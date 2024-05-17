@@ -1,0 +1,75 @@
+﻿
+<div class="navmenu">
+@*     <input type="checkbox" title="Menu expand/collapse toggle" id="navmenu-toggle" class="navmenu-icon" />
+    <label for="navmenu-toggle" class="navmenu-icon"><FluentIcon Value="@(new Icons.Regular.Size20.Navigation())" Color="Color.Fill" /></label> *@
+    <nav class="sitenav" aria-labelledby="main-menu" onclick="document.getElementById('navmenu-toggle').click();">
+        <FluentNavMenu Id="main-menu" Collapsible="true" Width="250" Title="Navigation menu" @bind-Expanded="expanded">
+
+            <FluentNavLink Href="/" Match="NavLinkMatch.All" Icon="@(new Icons.Regular.Size20.Home())" IconColor="Color.Accent">Start</FluentNavLink>
+            <FluentNavGroup OnClick="OnClick" Title="IT CMDB" Icon="@(new Icons.Regular.Size24.DesktopPulse())">
+                <ChildContent>
+                    <FluentNavLink Href="assets" Icon="@(new Icons.Regular.Size20.ReceiptMoney())">
+                        Assets
+                    </FluentNavLink>
+                    <FluentNavLink Href="invoices" Icon="@(new Icons.Regular.Size20.AlbumAdd())">
+                        Invoices
+                    </FluentNavLink>
+                    <FluentNavLink Href="invoiceitems" Icon="@(new Icons.Regular.Size20.AddSubtractCircle())">
+                        InvoiceItems
+                    </FluentNavLink>
+                   
+                    <FluentNavLink Href="itcmdbsettings" Icon="@(new Icons.Regular.Size20.TrayItemAdd())">
+                        IT CMDB Settings
+                    </FluentNavLink>
+
+                </ChildContent>
+            </FluentNavGroup>
+            <FluentNavGroup OnClick="OnClick" Title="Empty Slot for future" Icon="@(new Icons.Regular.Size20.EarthLeaf())">
+                <ChildContent>
+
+
+                    <FluentNavGroup OnClick="OnClick" Title="Some Area" Icon="@(new Icons.Regular.Size20.EarthLeaf())">
+                        <ChildContent>
+
+                            <FluentNavLink Href="https://sharepoint" Icon="@(new Icons.Regular.Size20.Classification())">
+                                Link 1
+                            </FluentNavLink>
+                            <FluentNavLink Href="https://sharepoint" Icon="@(new Icons.Regular.Size20.Classification())">
+                                Link 2
+                            </FluentNavLink>
+                            <FluentNavLink Href="https://sharepoint" Icon="@(new Icons.Regular.Size20.BuildingFactory())">
+                                Link 3
+                            </FluentNavLink>
+                            
+                        </ChildContent>
+                    </FluentNavGroup>
+                    
+
+                    <FluentNavGroup OnClick="OnClick" Title="Another Area" Icon="@(new Icons.Regular.Size20.EarthLeaf())">
+                        <ChildContent>
+
+                            <FluentNavLink Href="https://sharepoint" Icon="@(new Icons.Regular.Size20.LeafOne())">
+                                Another Link 1
+                            </FluentNavLink>
+                            <FluentNavLink Href="https://sharepoint" Icon="@(new Icons.Regular.Size20.LeafTwo())">
+                                Another Link 2
+                            </FluentNavLink>
+                            
+                        </ChildContent>
+                    </FluentNavGroup>
+                    
+                </ChildContent>
+            </FluentNavGroup>
+        </FluentNavMenu>
+    </nav>
+</div>
+
+@code {
+    private bool expanded = true;
+    
+    void OnClick(MouseEventArgs e)
+    {
+        Console.WriteLine("NavMenu item clicked");
+    }
+}
+

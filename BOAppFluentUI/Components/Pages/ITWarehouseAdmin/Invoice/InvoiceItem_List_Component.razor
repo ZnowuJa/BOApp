@@ -1,0 +1,57 @@
+﻿@* InvoiceItem ListComponent *@
+
+@using BOAppFluentUI.Components.Pages.ITWarehouseAdmin.Invoice
+@using Application.ITWarehouseCQRS.Assets.Commands
+@using Application.ITWarehouseCQRS.Companies.Queries
+@using Application.ITWarehouseCQRS.Currencies.Queries
+@using Application.ITWarehouseCQRS.Invoices.Commands
+@using Application.ITWarehouseCQRS.Units.Queries
+@using MediatR
+
+@inject IMediator _mediator;
+@inject ILogger<InvoiceItem_List_Component> _logger;
+
+<h3>Component of Invoice Items</h3>
+
+
+<FluentDataGrid Items="@InvoiceItems" TGridItem="InvoiceItemVm" GridTemplateColumns="80px repeat(4, 1fr) 0.5fr 0.5fr" ResizableColumns=true>
+    <PropertyColumn Property="@(i => i.Id)" Sortable="true" Align="Align.Start" Title="Id" Tooltip="true" />
+    <PropertyColumn Property="@(i => i.Name)" Sortable="true" Align="Align.Start" Title="Name" Tooltip="true" />
+    <PropertyColumn Property="@(i => i.PartVmName)" Sortable="true" Align="Align.Start" Title="PartName" Tooltip="true" />
+    <PropertyColumn Property="@(i => i.UnitNetPrice)" Sortable="true" Align="Align.Start" Title="Unit price" Tooltip="true" />
+    <TemplateColumn Title="Actions" Align="Align.End">
+        <FluentButton IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" />
+        <FluentButton IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => Edit(context))" />
+        <FluentButton IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" />
+
+    </TemplateColumn>
+</FluentDataGrid>
+
+
+@code {
+    [Parameter]
+    public IQueryable<InvoiceItemVm> InvoiceItems { get; set; } = default;
+
+    public InvoiceItemVm invoiceItemVm { get; set; }
+
+    private EditContext _childContext;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _childContext = new EditContext(InvoiceItems);
+
+    }
+
+    private async Task View(InvoiceItemVm item)
+    {
+        Console.WriteLine("View " + item.Id);
+    }
+    private async Task Edit(InvoiceItemVm item)
+    {
+        Console.WriteLine("Edit " + item.Id);
+    }
+    private async Task Delete(InvoiceItemVm item)
+    {
+        Console.WriteLine("Delete " + item.Id);
+    }
+}

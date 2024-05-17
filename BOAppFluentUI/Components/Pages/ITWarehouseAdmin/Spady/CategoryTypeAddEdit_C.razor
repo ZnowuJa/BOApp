@@ -1,0 +1,49 @@
+﻿@using Application.ITWarehouseCQRS.CategoryTypes
+
+@if (Visible)
+{
+    <FluentLabel Typo="Typography.PageTitle">@(addCatType.Id > 0 ? "Update" : "Create") Category Type</FluentLabel>
+
+    <FluentCard Style="margin:16px 0px; padding: 16px; width:350px; height:auto">
+        <EditForm Model="@addCatType" OnValidSubmit="CreateCatType">
+            <FluentValidationValidator />
+            <ValidationSummary />
+
+            <FluentTextField Label="Category Name: *" Placeholder="Enter Category Type name" Required @bind-Value="@addCatType.Name" />
+             <div style="margin: 24px 0px;" />
+
+             <FluentButton Appearance="Appearance.Accent"
+                           Loading="@Loading"
+                           Disabled="@(string.IsNullOrWhiteSpace(addCatType.Name))"
+                           Type="ButtonType.Submit">
+                 @(addCatType.Id > 0 ? "Update" : "Create")
+             </FluentButton>
+             <FluentButton OnClick="CancelCatType" Appearance="Appearance.Accent">
+                 Back
+             </FluentButton>
+
+         </EditForm>
+     </FluentCard>
+}
+
+
+ @code {
+    private bool Loading = false;
+    [Parameter]
+    public bool Visible { get; set; }
+    [Parameter]
+    public EventCallback<CategoryTypeVm> OnSave { get; set; }
+    [Parameter]
+    public EventCallback CancelCatTypeClicked { get; set; }
+    [Parameter]
+    public CategoryTypeVm addCatType { get; set; } = new CategoryTypeVm();
+
+    private async Task CreateCatType()
+    {
+        await OnSave.InvokeAsync(addCatType);
+    }
+    private async Task CancelCatType()
+    {
+        await CancelCatTypeClicked.InvokeAsync();
+    }
+}

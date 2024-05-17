@@ -1,0 +1,70 @@
+﻿@* @*
+Na stronie Category chcemy mieć 
+- możliwość listowania wszystkich kategori, 
+- filtrowania (po typie), 
+- zmieniania typu lub dodawania prefiksu
+*@
+
+
+@page "/category"
+@using Application.ITWarehouseCQRS.Categories
+@using Application.ITWarehouseCQRS.Categories.Queries
+@using MediatR
+@using Microsoft.FluentUI.AspNetCore.Components
+@inject IMediator _mediator;
+
+
+<h3>Category</h3>
+
+@if (ctVms != null)
+{
+    <table class ="table>">
+        <thead>
+            <tr>
+                <th>Id</th>
+                <th>Category Name</th>
+                <th>Category Type</th>
+                <th>Category Type Id</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in ctVms.Cats)
+            {
+                <tr>
+                    <td>@item.Id</td>
+                    <td>@item.Name</td>
+                    <td>@item.CategoryType.Name</td>
+                    <td>@item.CategoryType.Id</td>
+                    
+                </tr>
+            }
+        </tbody>
+    </table>
+    
+}
+
+<FluentCard>
+  <h2>Hello World!</h2>
+  <FluentButton Appearance="@Appearance.Accent">Click Me</FluentButton>
+</FluentCard>
+
+else
+{
+    <p>Loading Categories...</p>
+}
+
+@code{
+
+    public List<CategoryVm> ctVms;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // ctVms = await _mediator.Send(new GetAllCategoriesQuery());
+        // foreach (var c in ctVms.Cats)
+        {
+            Console.WriteLine(c.Id + " " + c.Name + " " + c.CategoryType.Name + " " + c.CategoryType.Id);
+        }
+        
+    }
+    
+}

@@ -1,0 +1,162 @@
+﻿@page "/departments"
+@using Application.ITWarehouseCQRS.Departments
+@using Application.ITWarehouseCQRS.Departments.Queries
+@using Application.ITWarehouseCQRS.Departments.Commands
+@using Application.ITWarehouseCQRS.Warehouses.Queries
+@using Application.ITWarehouseCQRS.Employees.Queries
+@using Application.ITWarehouseCQRS.Companies.Queries
+@using BOAppFluentUI.Components.Pages.ITWarehouseAdmin.Company
+@using MediatR
+
+@inject IMediator _mediator
+@inject ILogger<Company_Page> _logger
+@inject IDialogService _dialogService
+@inject IToastService _toastService
+
+
+<h3>Departments</h3>
+
+@if (depts == null)
+{
+    <FluentProgressRing>Loading...</FluentProgressRing>
+
+}
+else
+{
+
+    <FluentDataGrid Items="@depts" TGridItem="DepartmentVm" GridTemplateColumns="50px repeat(8, 1fr)" ResizableColumns=true>
+        <PropertyColumn Property="@(c => c.Id)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.LongName)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.DeptNumber)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.CompanyVm.Name)" Sortable="true" Align="Align.Start" Tooltip="true" />
+         <PropertyColumn Property="@(c => c.CostCenter)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.SapNumber)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.WarehouseVm.Name)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.ManagerVm.LongName)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        
+  
+
+
+        <TemplateColumn Title="Actions" Align="Align.End">
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" />
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => EditCatType(context))" />
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" />
+
+        </TemplateColumn>
+    </FluentDataGrid>
+    <FluentButton IconStart="@(new Icons.Regular.Size24.Add())" OnClick="@(() => Add())" />
+}
+
+
+
+@code {
+    private IQueryable<DepartmentVm> depts;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Load();
+    }
+    private async Task Load()
+    {
+        depts = await _mediator.Send(new GetAllDepartmentsQuery());
+        foreach( var d in depts)
+        {
+            Console.WriteLine( d.LongName, d.DeptNumber);
+        }
+        Console.WriteLine(depts.Count());
+    }
+    private async Task EditCatType(DepartmentVm item)
+    {
+        ToastIntent intent;
+        string message = string.Empty;
+        int i = 0;
+
+        var data = item;
+        var dialog = await _dialogService.ShowDialogAsync<Department_Edit_Component>(data, new DialogParameters()
+            {
+                Height = "750px",
+                Width = "720px",
+                Title = data.Id > 0 ? "Update Department" : "Create new Department",
+                PreventDismissOnOverlayClick = false,
+                PreventScroll = true,
+            });
+        var result = await dialog.Result;
+
+
+        if (!result.Cancelled && result.Data != null)
+        {
+            item = (DepartmentVm)result.Data;
+            if (item.Id > 0)
+            {
+                i = await _mediator.Send(new UpdateDepartmentCommand(item.Id, item.DeptNumber, item.LongName, item.CompanyId, item.CostCenter, item.SapNumber, item.WarehouseID, item.ManagerEmpId));
+                intent = ToastIntent.Success;
+                message = "Department has been updated!";
+            }
+            else if (item.Id == 0)
+            {
+                // Console.WriteLine("Tu weszlismy?" + item.LongName + item.DeptNumber);
+                i = await _mediator.Send(new CreateDepartmentCommand(item.DeptNumber, item.LongName, item.CompanyId, item.CostCenter, item.SapNumber, item.WarehouseID, item.ManagerEmpId));
+                intent = ToastIntent.Success;
+                message = "Department has been Created!";
+            }
+            else
+            {
+                intent = ToastIntent.Warning;
+                message = "Something went realy wrong!";
+            }
+
+        }
+        else if (result.Cancelled)
+        {
+            intent = ToastIntent.Info;
+            message = "Update Cancelled...";
+        }
+        else
+        {
+            intent = ToastIntent.Error;
+            message = "Something went wrong!!!";
+        }
+
+
+        await Load();
+        _toastService.ShowToast(intent, message, 3000);
+
+        Console.WriteLine(result.GetType());
+    }
+
+    private async Task Add()
+    {
+        DepartmentVm item = new DepartmentVm { Id = 0, LongName = string.Empty, DeptNumber = string.Empty, CompanyId = 0, CompanyVm = new CompanyVm(), CostCenter = string.Empty, SapNumber = string.Empty, WarehouseID = 0, WarehouseVm = new WarehouseVm(), ManagerEmpId = 0, ManagerVm = new EmployeeVm() };
+        // await EditCatTypePanel(ctVm);
+        await EditCatType(item);
+        
+    }
+
+
+    private async Task View(DepartmentVm item)
+    {
+        await _dialogService.ShowInfoAsync(message: $"Department name: {item.LongName}, number: {item.DeptNumber}");
+    }
+
+    private async Task Delete(DepartmentVm deptVm)
+    {
+        ToastIntent intent;
+        string message = string.Empty;
+
+        var i = await _mediator.Send(new DeleteDepartmentCommand(deptVm.Id));
+
+        if (i == deptVm.Id)
+        {
+            intent = ToastIntent.Success;
+            message = "Department has been deleted!";
+        }
+        else
+        {
+            intent = ToastIntent.Error;
+            message = "Something went wrong!!!";
+        }
+        await Load();
+        _toastService.ShowToast(intent, message, 3000);
+
+    }
+}

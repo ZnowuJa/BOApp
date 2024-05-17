@@ -1,0 +1,76 @@
+﻿@page "/"
+@using Application.Entities
+@using System.Security.Claims
+@using Infrastructure.Identity.Services
+@using Microsoft.AspNetCore.Components.Authorization
+
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@* @inject CustomAuthenticationStateProvider AuthenticationStateProvider *@
+
+<PageTitle>Home</PageTitle>
+
+<h1>Hello, world!</h1>
+Hello!
+Welcome to your new app.
+
+<h3>User Claims</h3>
+
+@if (claims != null && claims.Any())
+{
+    <ul>
+        @foreach (var claim in claims)
+        {
+            <li>@claim.Type: @claim.Value</li>
+        }
+    </ul>
+}
+else
+{
+    <p>No claims available.</p>
+}
+
+@code {
+    private Claim[] claims;
+    private bool isInRole;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RefreshClaims();
+    }
+
+    private async Task RefreshClaims()
+    {
+        try
+        {
+            // await AuthenticationStateProvider.;         
+            // Force a refresh of the authentication state
+            // await AuthenticationStateProvider.NotifyAuthenticationStateChanged(
+            //     new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity())));
+
+            // Retrieve the updated authentication state
+            var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            // NotifyAuthenticationStateChanged(Task.FromResult(authenticationState));
+            var user = authenticationState.User;
+            claims = user.Claims.ToArray();
+        }
+        catch (Exception ex)
+        {
+            // Handle any errors
+        }
+    }
+}
+
+@* @code {
+    private Claim[] claims;
+    private bool isInRole;
+
+
+    protected override void OnInitialized()
+    {
+        AuthenticationStateProvider.NotifyAuthenticationStateChanged(
+                new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity())));
+        var authenticationState = Task.Run(() => AuthenticationStateProvider.GetAuthenticationStateAsync()).Result;
+        var user = authenticationState.User;
+        claims = user.Claims.ToArray();
+    }
+} *@

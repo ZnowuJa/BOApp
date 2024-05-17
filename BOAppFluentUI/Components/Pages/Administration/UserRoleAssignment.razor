@@ -1,0 +1,91 @@
+﻿@page "/userroleassignment"
+@using Application.Entities
+@using Application.Interfaces.Identity.Services
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@attribute [Authorize(Policy = "User")]
+
+@inject IUserService userService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+
+<h3>User Role Assignment</h3>
+
+@if (users != null && roles != null)
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>User</th>
+                <th>Roles</th>
+                <th>Assign Roles</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in users)
+            {
+                <tr>
+                    <td>@user.UserName</td>
+                    <td>
+                        
+                        @foreach(var rolee in userRoles)
+                        {
+                            rolee.ToString();
+                        }
+
+                        <!-- Display roles for the current user -->
+@*                         @foreach (var role in roles)
+                        {
+                            <span>@role</span>
+                        } *@
+                    </td>
+                    <td>
+                        <select @onchange="@(async (args) => await AssignRoles(user, args.Value.ToString()))">
+                            <!-- Display available roles for assignment -->
+                            @foreach (var role in roles)
+                            {
+                                <option value="@role">@role</option>
+                            }
+                        </select>
+                    </td>
+                </tr>
+            }
+            </tbody>
+    </table>
+}
+
+@code {
+    List<AppUser> users;
+    List<string> roles;
+    List<string> userRoles;
+
+    protected override async Task OnInitializedAsync()
+    {
+        users = await userService.GetUsers(); 
+        roles = await userService.GetRoles(); 
+        var authenticationState = Task.Run(() => AuthenticationStateProvider.GetAuthenticationStateAsync()).Result;
+        var user = authenticationState.User;
+        var claims = user.Claims;
+        var usernamee = claims.FirstOrDefault(c => c.Type == "preferred_username")?.Value;
+        var appUser = await userService.GetUserByPreferredUsername(usernamee);
+        userRoles = await userService.GetUserRoles(appUser);
+        
+    }
+
+    async Task AssignRoles(AppUser user, string selectedRole)
+    {
+        await userService.AssignRole(user.Id, selectedRole);
+
+        users = await userService.GetUsers();
+    }
+
+    public async Task<List<string>> GetUserRoles(AppUser user)
+    {
+        var roles = await userService.GetUserRoles(user);
+        return roles;
+    }
+
+    
+    
+    
+}

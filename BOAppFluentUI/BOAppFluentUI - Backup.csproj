@@ -1,0 +1,96 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+	<PropertyGroup>
+		<EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+		<CompilerGeneratedFilesOutputPath>Generated</CompilerGeneratedFilesOutputPath>
+	</PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="Areas\Identity\**" />
+    <Compile Remove="Pages\**" />
+    <Compile Remove="Shared\**" />
+    <Content Remove="Areas\Identity\**" />
+    <Content Remove="Pages\**" />
+    <Content Remove="Shared\**" />
+    <EmbeddedResource Remove="Areas\Identity\**" />
+    <EmbeddedResource Remove="Pages\**" />
+    <EmbeddedResource Remove="Shared\**" />
+    <None Remove="Areas\Identity\**" />
+    <None Remove="Pages\**" />
+    <None Remove="Shared\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="Components\Pages\ITWarehouseAdmin\Category\CategoryComponent.razor" />
+    <Content Remove="Components\Pages\ITWarehouseAdmin\Category\CategoryPage.razor" />
+    <Content Remove="Components\Pages\ITWarehouseAdmin\Category\CategoryTypeCRUD.razor" />
+    <Content Remove="Components\Pages\ITWarehouseAdmin\Category\CategoryTypeDeletePage.razor" />
+    <Content Remove="Components\Pages\ITWarehouseAdmin\Category\Category_Page2.razor" />
+    <Content Remove="Components\Pages\ITWarehouseAdmin\Category\Category_Page2_Component.razor" />
+    <Content Remove="Components\Pages\ITWarehouseAdmin\Invoice\AddInvoiceItem.razor" />
+    <Content Remove="Components\Pages\ITWarehouseAdmin\Invoice\InvoiceDetails_Page.razor" />
+    <Content Remove="Components\Pages\ITWarehouseAdmin\Invoice\InvoiceItemNewEdit_Component.razor" />
+    <Content Remove="Components\Pages\ITWarehouseAdmin\Invoice\InvoiceItem_List_Component.razor" />
+    <Content Remove="Components\Pages\ITWarehouseAdmin\Spady\CategoryTypeAddEdit_C.razor" />
+    <Content Remove="Components\Pages\ITWarehouseAdmin\Spady\CategoryTypeAdd_C.razor" />
+    <Content Remove="Components\Pages\ITWarehouseAdmin\Spady\CategoryTypeDG_C.razor" />
+    <Content Remove="Components\Pages\ITWarehouseAdmin\Spady\CategoryTypeP.razor" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="Areas\Identity\Pages\Account\Login.cshtml.cs" />
+    <Compile Include="Areas\Identity\Pages\Account\Logout.cshtml.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+	<PackageReference Include="AutoMapper" Version="13.0.1" />
+	<PackageReference Include="Blazored.FluentValidation" Version="2.1.0" />
+	<PackageReference Include="FluentValidation" Version="11.9.0" />
+	<PackageReference Include="FluentValidation.AspNetCore" Version="11.3.0" />
+	<PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.9.0" />
+	<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.2" />
+	<PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="8.0.2" />
+	<PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="8.0.2" />
+	<PackageReference Include="Microsoft.AspNetCore.Components.QuickGrid.EntityFrameworkAdapter" Version="8.0.3" />
+	<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="8.0.2" />
+	<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.3" />
+	<PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="8.0.3" />
+	<PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.0" />
+	<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.3" />
+	<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.3" />
+	<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.3">
+	  <PrivateAssets>all</PrivateAssets>
+	  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+	</PackageReference>
+	<PackageReference Include="Microsoft.FluentUI.AspNetCore.Components" Version="4.*-* " />
+	<PackageReference Include="Microsoft.FluentUI.AspNetCore.Components.DataGrid.EntityFrameworkAdapter" Version="4.4.0" />
+	<PackageReference Include="Microsoft.FluentUI.AspNetCore.Components.Emoji" Version="4.4.0" />
+    <PackageReference Include="Microsoft.FluentUI.AspNetCore.Components.Icons" Version="4.*-* " />
+    <PackageReference Include="Microsoft.Identity.Web" Version="2.17.1" />
+    <PackageReference Include="Microsoft.Identity.Web.UI" Version="2.17.1" />
+    <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="7.4.0" />
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.2" />
+    <PackageReference Include="Serilog" Version="3.1.1" />
+    <PackageReference Include="Serilog.AspNetCore" Version="8.0.1" />
+    <PackageReference Include="Serilog.Settings.Configuration" Version="8.0.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="5.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Infrastructure\Infrastructure.csproj" />
+    <ProjectReference Include="..\Persistance\Persistance.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Areas\Identity\Pages\Account\Login.cshtml" />
+    <None Include="Areas\Identity\Pages\Account\Logout.cshtml" />
+    <None Include="Areas\Identity\Pages\Account\_ViewImports.cshtml" />
+    <None Include="Areas\Identity\Pages\_ValidationScriptsPartial.cshtml" />
+    <None Include="Areas\Identity\Pages\_ViewImports.cshtml" />
+    <None Include="Areas\Identity\Pages\_ViewStart.cshtml" />
+  </ItemGroup>
+</Project>

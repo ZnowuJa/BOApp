@@ -1,0 +1,12 @@
+{
+  "dependencies": {
+    "identityapp1": {
+      "connectionInfo": "App registration: PIAPL BackOfficeApp, Tenant: Porsche Holding Salzburg (porscheholding.onmicrosoft.com - Microsoft Entra ID)",
+      "type": "identityapp.default"
+    },
+    "sqlite1": {
+      "ignored": "true",
+      "type": "sqlite"
+    }
+  }
+}

@@ -1,0 +1,228 @@
+﻿@page "/assets"
+@using Application.DTOs
+@using Application.ITWarehouseCQRS.Assets.Commands
+@using Application.ITWarehouseCQRS.Assets.Queries
+@using BOAppFluentUI.Components.Pages.ITWarehouseAdmin.Asset
+@using MediatR
+
+@inject IMediator _mediator
+@inject ILogger<Assets_Page> _logger
+@inject IDialogService _dialogService
+@inject IToastService _toastService
+
+<style>
+    .filter-applied {
+        background-color: #ffffcc; /* light yellow */
+    }
+
+    .filter-notapplied {
+        background-color: #ffffcc; /* light yellow */
+    }
+</style>
+
+<h3>Asset_Page</h3>
+
+@if (products == null)
+{
+    <FluentProgressRing>Loading...</FluentProgressRing>
+}
+else
+{
+    <FluentDataGrid Items="@filteredProducts" Pagination="@pagination" TGridItem="AssetDTO" GridTemplateColumns="80px repeat(6, 0.75fr) repeat(3, 0.5fr)" ResizableColumns=true>
+
+        <PropertyColumn Property="@(c => c.Id)" Sortable="true" Align="Align.Start" Tooltip="true" Title="ID">
+        </PropertyColumn>
+
+        @* Asset *@
+        <PropertyColumn Property="@(c => c.AssetTagNumber)" Sortable="true" Align="Align.Start" Tooltip="true" Title="AssetTagNumber">
+            <ColumnOptions>
+                <div>
+                    <FluentSearch type="search"
+                                  Autofocus=true
+                                  @bind-Value=assetFilter
+                                  @oninput="(args) => HandleFilter(ref assetFilter, args)"
+                                  @bind-Value:after="@(() => HandleClearFilter(ref assetFilter))"
+                                  Placeholder="asset number..." />
+                </div>
+            </ColumnOptions>
+        </PropertyColumn>
+
+        @* Serial *@
+        <PropertyColumn Property="@(c => c.SerialNumber)" Sortable="true" Align="Align.Start" Tooltip="true" Title="Serial">
+            <ColumnOptions>
+                <div class="search-box">
+                    <FluentSearch type="search" Autofocus=true @bind-Value=serialFilter @oninput="(args) => HandleFilter(ref serialFilter, args)" @bind-Value:after="@(() => HandleClearFilter(ref serialFilter))" Placeholder="serial number..." />
+                </div>
+            </ColumnOptions>
+        </PropertyColumn>
+        @* Part *@
+        <PropertyColumn Property="@(c => c.PartVmName)" Sortable="true" Align="Align.Start" Tooltip="true" Title="Part">
+            <ColumnOptions>
+                <div class="search-box">
+                    <FluentSearch type="search" Autofocus=true @bind-Value=partFilter @oninput="(args) => HandleFilter(ref partFilter, args)" @bind-Value:after="@(() => HandleClearFilter(ref partFilter))" Placeholder="part name..." />
+                </div>
+            </ColumnOptions>
+        </PropertyColumn>
+        @* Assignee *@
+        <PropertyColumn Property="@(c => c.AssigneeVmName)" Sortable="true" Align="Align.Start" Tooltip="true" Title="Assignment">
+            <ColumnOptions>
+                <div class="search-box">
+                    <FluentSearch type="search" Autofocus=true @bind-Value=assignFilter @oninput="(args) => HandleFilter(ref assignFilter, args)" @bind-Value:after="@(() => HandleClearFilter(ref assignFilter))" Placeholder="assign..." />
+                </div>
+            </ColumnOptions>
+        </PropertyColumn>
+        @* State *@
+        <PropertyColumn Property="@(c => c.StateVmName)" Sortable="true" Align="Align.Start" Tooltip="true" Title="State:">
+            <ColumnOptions>
+                <div class="search-box">
+                    <FluentSearch type="search" Autofocus=true @bind-Value=stateFilter @oninput="(args) => HandleFilter(ref stateFilter, args)" @bind-Value:after="@(() => HandleClearFilter(ref stateFilter))" Placeholder="state name..." />
+                </div>
+            </ColumnOptions>
+        </PropertyColumn>
+        @* WareHouse*@
+        <PropertyColumn Property="@(c => c.WarehouseVmNumber)" Sortable="true" Align="Align.Start" Tooltip="true" Title="Warehouse">
+            <ColumnOptions>
+                <div class="search-box">
+                    <FluentSearch type="search" Autofocus=true @bind-Value=whFilter @oninput="(args) => HandleFilter(ref whFilter, args)" @bind-Value:after="@(() => HandleClearFilter(ref whFilter))" Placeholder="warehouse..." />
+                </div>
+            </ColumnOptions>
+        </PropertyColumn>
+        <PropertyColumn Property="@(c => c.InvoiceVmNumber)" Sortable="true" Align="Align.Start" Tooltip="true" Title="Invoice" />
+        @* Actions *@
+        <TemplateColumn Title="Actions" Align="Align.End">
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" />
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => EditType(context))" />
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" />
+
+        </TemplateColumn>
+    </FluentDataGrid>
+    <FluentPaginator State="@pagination" />
+
+    <FluentButton IconStart="@(new Icons.Regular.Size24.Add())" OnClick="@(() => AddPanel())" />
+
+}
+
+@code {
+    private IQueryable<AssetDTO> products;
+    private IQueryable<AssetDTO> filteredProducts => products
+        .Where(x =>
+            (x.AssetTagNumber.Contains(assetFilter, StringComparison.CurrentCultureIgnoreCase)) &&
+            (x.SerialNumber.Contains(serialFilter, StringComparison.CurrentCultureIgnoreCase)) &&
+            (x.PartVmName.Contains(partFilter, StringComparison.CurrentCultureIgnoreCase)) &&
+            (x.AssigneeVmName.Contains(assignFilter, StringComparison.CurrentCultureIgnoreCase)) &&
+            (x.StateVmName.Contains(stateFilter, StringComparison.CurrentCultureIgnoreCase)) &&
+            (x.WarehouseVmNumber.Contains(whFilter, StringComparison.CurrentCultureIgnoreCase)));
+
+    PaginationState pagination = new PaginationState { ItemsPerPage = 13 };
+    string assetFilter = string.Empty;
+    string serialFilter = string.Empty;
+    string partFilter = string.Empty;
+    string assignFilter = string.Empty;
+    string stateFilter = string.Empty;
+    string whFilter = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Load();
+    }
+
+    private async Task Load()
+    {
+        products = await _mediator.Send(new GetAllAssetsDTOQuery());
+        StateHasChanged();
+    }
+
+    private void HandleClearFilter(ref string filter) => filter = string.IsNullOrWhiteSpace(filter) ? string.Empty : filter;
+    private void HandleFilter(ref string filter, ChangeEventArgs args) => filter = args.Value is string value ? value : string.Empty;
+
+    private async Task EditType(AssetDTO item)
+    {
+        ToastIntent intent;
+        string message = string.Empty;
+        int i = 0;
+        // var data = item;
+        var dialog = await _dialogService.ShowDialogAsync<Asset_Edit_Component>(item, new DialogParameters()
+            {
+                Height = "550px",
+                Width = "720px",
+                Title = item.Id > 0 ? "Update Asset..." : "Create new Asset...",
+                PreventDismissOnOverlayClick = false,
+                PreventScroll = true,
+            });
+
+        var result = await dialog.Result;
+
+        if (!result.Cancelled && result.Data != null)
+        {
+            var final = (AssetDTO)result.Data;
+            DateTime date = final.PurchaseDate ?? DateTime.Now;
+            if (final.Id > 0)
+            {
+                i = await _mediator.Send(new UpdateAssetCommand(final.Id, final.PartVmId, final.InvoiceVmId, final.InvoiceItemID, final.AssetTagNumber, final.StateVmId, final.SerialNumber, final.LastSeen, final.AssigneeVmId, final.AssigneeVmType, final.AssigneeVmName, final.WarehouseVmId, final.Price, final.CurrencyVmId, date, final.Leasing, final.EndOfContract, final.WarrantyUntil, final.Imei, final.Mac));
+                intent = ToastIntent.Success;
+                message = "Asset has been updated!";
+                await Load();
+            }
+            else if (final.Id == 0)
+            {
+                i = await _mediator.Send(new CreateAssetCommand(final.PartVmId, final.InvoiceVmId, final.InvoiceItemID, final.AssetTagNumber, final.StateVmId, final.SerialNumber, final.LastSeen, final.AssigneeVmId, final.AssigneeVmType, final.AssigneeVmName, final.WarehouseVmId, final.Price, final.CurrencyVmId, date, final.Leasing, final.EndOfContract,final.WarrantyUntil, final.Imei, final.Mac));
+                await Load();
+
+                intent = ToastIntent.Success;
+                message = "Asset has been created!";
+
+            }
+            else
+            {
+                intent = ToastIntent.Warning;
+                message = "Something went realy wrong!";
+            }
+        }
+        else if (result.Cancelled)
+        {
+            intent = ToastIntent.Info;
+            message = "Operation Cancelled...";
+        }
+        else
+        {
+            intent = ToastIntent.Error;
+            message = "Something went wrong!";
+        }
+
+        _toastService.ShowToast(intent, message, 3000);
+    }
+
+    private async Task AddPanel()
+    {
+        var item = new AssetDTO();
+        await EditType(item);
+    }
+
+    private async Task View(AssetDTO item)
+    {
+        await _dialogService.ShowInfoAsync(message: $"Asset id: {item.Id}, name: {item.AssetTagNumber}");
+    }
+
+    private async Task Delete(AssetDTO item)
+    {
+        ToastIntent intent;
+        string message = string.Empty;
+
+        var i = await _mediator.Send(new DeleteAssetCommand(item.Id));
+
+        if (i == item.Id)
+        {
+            intent = ToastIntent.Success;
+            message = "Asset has been deleted!";
+        }
+        else
+        {
+            intent = ToastIntent.Error;
+            message = "Something went wrong!!!";
+        }
+
+        _toastService.ShowToast(intent, message, 3000);
+        Load();
+    }
+
+}

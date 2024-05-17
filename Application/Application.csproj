@@ -1,0 +1,80 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Interfaces\ITWarehouse.Services\**" />
+    <Compile Remove="ITWarehouseCQRS\AssetsById\**" />
+    <Compile Remove="ITWarehouseCQRS\EmployeeForList\**" />
+    <Compile Remove="Services\**" />
+    <Compile Remove="ViewModels\Category\**" />
+    <Compile Remove="ViewModels\Employees\**" />
+    <EmbeddedResource Remove="Interfaces\ITWarehouse.Services\**" />
+    <EmbeddedResource Remove="ITWarehouseCQRS\AssetsById\**" />
+    <EmbeddedResource Remove="ITWarehouseCQRS\EmployeeForList\**" />
+    <EmbeddedResource Remove="Services\**" />
+    <EmbeddedResource Remove="ViewModels\Category\**" />
+    <EmbeddedResource Remove="ViewModels\Employees\**" />
+    <None Remove="Interfaces\ITWarehouse.Services\**" />
+    <None Remove="ITWarehouseCQRS\AssetsById\**" />
+    <None Remove="ITWarehouseCQRS\EmployeeForList\**" />
+    <None Remove="Services\**" />
+    <None Remove="ViewModels\Category\**" />
+    <None Remove="ViewModels\Employees\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="Interfaces\AssigneeToAssigneeVmConverter.cs" />
+    <Compile Remove="Interfaces\AssigneeVmToAssigneeConverter.cs" />
+    <Compile Remove="ITWarehouseCQRS\Categories\CategoriesVm.cs" />
+    <Compile Remove="ITWarehouseCQRS\Categories\CategoryDTO.cs" />
+    <Compile Remove="ITWarehouseCQRS\Categories\Queries\GetAllCategoriesQueryHandler - Copy.cs" />
+    <Compile Remove="ITWarehouseCQRS\CategoryTypes\CategoryTypeDTO.cs" />
+    <Compile Remove="ITWarehouseCQRS\CategoryTypes\CategoryTypesVm.cs" />
+    <Compile Remove="ITWarehouseCQRS\CategoryTypes\Commands\CreateCategoryTypeCommandValidator.cs" />
+    <Compile Remove="ITWarehouseCQRS\Employees\Queries\GetEmployeeGridModelListQuery.cs" />
+    <Compile Remove="ITWarehouseCQRS\Employees\Queries\GetEmployeeGridModelListQueryHandler.cs" />
+    <Compile Remove="ITWarehouseCQRS\InvoiceItems\Commands\CreateInvoiceCommand.cs" />
+    <Compile Remove="ITWarehouseCQRS\InvoiceItems\Commands\CreateInvoiceCommandHandler.cs" />
+    <Compile Remove="ITWarehouseCQRS\InvoiceItems\Commands\DeleteInvoiceCommand.cs" />
+    <Compile Remove="ITWarehouseCQRS\InvoiceItems\Commands\DeleteInvoiceCommandHandler.cs" />
+    <Compile Remove="ITWarehouseCQRS\InvoiceItems\Commands\UpdateInvoiceCommand.cs" />
+    <Compile Remove="ITWarehouseCQRS\InvoiceItems\Commands\UpdateInvoiceCommandHandler.cs" />
+    <Compile Remove="ITWarehouseCQRS\InvoiceItems\Queries\GetAllInvoicesForSelectQuery.cs" />
+    <Compile Remove="Validation\AssetVmByIdValidator.cs" />
+    <Compile Remove="ViewModels\AssetVmById.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="13.0.1" />
+    <PackageReference Include="Blazored.FluentValidation" Version="2.1.0" />
+    <PackageReference Include="FluentValidation" Version="11.9.0" />
+    <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.0" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.9.0" />
+    <PackageReference Include="MediatR" Version="12.2.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="8.0.4" />
+    <PackageReference Include="Microsoft.AspNetCore.Components" Version="8.0.4" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.4" />
+    <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="7.5.1" />
+    <PackageReference Include="Serilog" Version="3.1.1" />
+    <PackageReference Include="Serilog.AspNetCore" Version="8.0.1" />
+    <PackageReference Include="Serilog.Settings.Configuration" Version="8.0.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="5.0.1" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="7.5.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Domain\Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="ITWarehouseCQRS\EmpInfos\Commands\" />
+    <Folder Include="ITWarehouseCQRS\EmpInfos\Queries\" />
+    <Folder Include="ITWarehouseCQRS\InvoiceItems\Commands\" />
+  </ItemGroup>
+
+</Project>
