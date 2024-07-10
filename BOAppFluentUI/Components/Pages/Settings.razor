@@ -1,0 +1,34 @@
+﻿@using Application.Entities
+@using Application.Interfaces.Identity.Services
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication
+@using Microsoft.AspNetCore.Identity
+
+@implements IDialogContentComponent
+
+
+
+<FluentDesignTheme  @bind-Mode="@Mode" 
+                    @bind-OfficeColor = "@Color" 
+                    StorageName="theme"/>
+
+<FluentSelect Label="Theme" Items="@(Enum.GetValues<DesignThemeModes>())" @bind-SelectedOption="@Mode" />
+<FluentSelect Label="Color" Items="@(new OfficeColor?[] {OfficeColor.Word, OfficeColor.Excel, OfficeColor.OneNote})" @bind-SelectedOption="@Color"/>
+<FluentDivider Orientation="Orientation.Horizontal"/>
+<p></p>
+<p></p>
+@*
+    NavLink below opens signout-oidc url in new window. New window can be then closed and user is expected to refresh the old one. This will force logout and login, hence refreshing the tokens and Claims
+*@
+<FluentNavLink Href="/signout-oidc" target="_blank">Wyloguj</FluentNavLink>
+
+
+
+@code {
+
+    private DesignThemeModes Mode { get; set; }
+    private OfficeColor? Color { get; set; }
+
+    // private string signoutUrl { get; set; } = 
+
+}

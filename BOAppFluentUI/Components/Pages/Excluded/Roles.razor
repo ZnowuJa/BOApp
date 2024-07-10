@@ -1,0 +1,12 @@
+﻿@page "/roles"
+@using Microsoft.AspNetCore.Authorization
+@* @inject ILogger<Index> logger *@
+@attribute [Authorize(Policy = "User")]
+
+<PageTitle>Roles</PageTitle>
+
+<h1>Hello, Roles!</h1>
+
+Welcome to your new app.
+
+<SurveyPrompt Title="How is Blazor working for you?" />

@@ -1,0 +1,188 @@
+﻿@*
+Na stronie CategoryType chcemy mieć
+- możliwość listowania wszystkich typów kategori,
+- filtrowania,
+- dodawania lub usuwania? typów kategorii
+*@
+
+@page "/categorytype"
+@using Application.ITWarehouseCQRS.CategoryTypes
+@using Application.ITWarehouseCQRS.CategoryTypes.Queries
+@using Application.ITWarehouseCQRS.CategoryTypes.Commands
+@* @using BOAppFluentUI.Components.Pages.ITWarehouseAdmin.Category *@
+@using MediatR
+
+@inject IMediator _mediator
+@inject ILogger<CategoryTypeP> _logger
+@inject IDialogService _dialogService
+
+<h1>CategoryTypes</h1>
+<CategoryTypeAdd_C CreateCatTypeClicked ="CreateCatType" Visible="@showList" />
+
+<CategoryTypeDG_C CatTypes="@catTypeList" Visible = "@showList"
+        EditCatTypeClicked="EditCatType"
+        DeleteCatTypeClicked="DeleteCatType"
+        ViewCatTypeClicked="ViewCatType"
+/>
+
+<CategoryTypeAddEdit_C Visible = "@showModel" addCatType="@editCatType"
+    OnSave="SaveCatType" CancelCatTypeClicked="backToList"
+    />
+
+@code{
+    private IQueryable<CategoryTypeVm> catTypeList;
+    private bool showList = false;
+    private bool showModel = false;
+    private CategoryTypeVm editCatType = new CategoryTypeVm();
+    private int deleteId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCatTypes();
+        // Thread.Sleep(600);
+        showList = true;
+    }
+
+    public async Task LoadCatTypes()
+    {
+        var result = await _mediator.Send(new GetAllCategoryTypesQuery());
+
+        foreach(var res in result)
+        {
+            Console.WriteLine(res.Name);
+        }
+
+        catTypeList = result;
+        // showList = true;
+
+    }
+
+    private void CreateCatType()
+    {
+        ResetPage();
+        showModel = true;
+        editCatType = new CategoryTypeVm();
+    }
+    private async Task EditCatType(int id)
+    {
+        editCatType = await _mediator.Send(new GetCategoryTypeQuery(id));
+        ResetPage();
+        showModel = true;
+        // await _dialogService.ShowInfoAsync(message: $"Edit cat type id: {id}");
+    }
+
+    private async Task DeleteCatType(int id)
+    {
+        deleteId = id;
+        await _dialogService.ShowConfirmationAsync(this, HandleConfirmationResult, "Are you sure>?");
+
+        // showList = true;
+        // await _dialogService.ShowInfoAsync(message: $"Delete cat type id: {id}");
+    }
+    private async Task HandleConfirmationResult(DialogResult result)
+    {
+        if (!result.Cancelled)
+        {
+            
+            await _mediator.Send(new DeleteCategoryTypeCommand(deleteId));
+            ResetPage();
+            await LoadCatTypes();
+            showList = true;
+
+        }
+    }
+    private async Task ViewCatType(int id)
+    {
+        await _dialogService.ShowInfoAsync(message: $"View cat type id: {id}");
+    }
+
+    private async Task SaveCatType(CategoryTypeVm catType)
+    {
+        if (catType.Id > 0)
+        {
+            var i = await _mediator.Send(new UpdateCategoryTypeCommand(catType.Id, catType.Name));
+            await _dialogService.ShowInfoAsync(message: $"Category Type of ID: {catType.Id} is updated");
+
+        } else
+        {
+            var i = await _mediator.Send(new CreateCategoryTypeCommand(catType.Name));
+            await _dialogService.ShowInfoAsync(message: $"Category Type of ID: {i} is created");
+        }
+    }
+
+    private async Task ResetPage()
+    {
+        showList = false;
+        showModel = false;
+        catTypeList = null;
+
+    }
+
+    private async Task backToList()
+    {
+        ResetPage();
+        await LoadCatTypes();
+        showList = true;
+    }
+
+}
+
+@* <FluentGrid Spacing="1" Justify="@JustifyContent.FlexStart" Style=" padding: 40px background-color: var(--neutral-layer-3);">
+    <FluentGridItem xs="12">
+        <div class="card">
+            xs="12"
+        </div>
+    </FluentGridItem>
+    <FluentGridItem xs="12" sm="8" >
+        <div class="card">
+            xs="12" sm="6" Hidden="SmAndDown"
+        </div>
+    </FluentGridItem>
+</FluentGrid>
+
+
+<EditForm Model=CatType method="post"  OnSubmit="SubmitForm">
+    <div>
+        <label>Category Name</label>
+        <InputText @bind-Value="CatType.Name" />
+    </div>
+    <button class="btn btn-primary" type="submit">Add CategoryType</button>
+</EditForm>
+@if (list == null)
+{
+    <p>Loading</p>
+}else
+{
+    foreach (var cts in list)
+    {
+        <p>@cts.Name</p>
+    }
+}
+
+
+@code{
+    public List<CategoryTypeVm> list;
+
+
+    private CategoryTypesVm CatTypes { get; set; } = new ();
+    private CategoryTypeVm CatType { get; set; } = new();
+
+    private async Task SubmitForm()
+    {
+        _logger.LogInformation($"{CatType.Name}");
+        int i =  await _mediator.Send(new CreateCategoryTypeCommand(CatType.Name));
+        _logger.LogInformation($"{i}");
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        list = await _mediator.Send(new GetAllCategoryTypesQuery());
+        // CatTypes.CategoryTypes = list.CategoryTypes;
+        Console.WriteLine(list.GetType());
+    }
+    void OnBreakpointEnterHandler(GridItemSize size)
+    {
+        Console.WriteLine($"Page Size: {size}");
+        
+    }
+} *@

@@ -1,0 +1,45 @@
+﻿DECLARE @LoginPrzelozTable TABLE (LoginPrzeloz NVARCHAR(255) )
+INSERT INTO @LoginPrzelozTable
+SELECT DISTINCT LoginPrzeloz COLLATE SQL_Latin1_General_CP1_CI_AS FROM [PLWAWQ06.PIA.PHSPL.PL].[RAPORTY].[dbo].[PracownicyInfo]
+
+UPDATE Emps
+SET 
+    Emps.FirstName = PI.Imie,
+    Emps.LastName = PI.Nazwisko,
+    Emps.Email = CASE 
+                        WHEN PI.KontaktEMAIL IS NULL THEN 'missing'
+                        ELSE PI.KontaktEMAIL
+                    END,
+    Emps.SapNumber = PI.SAPNumberHR,
+    --Emps.StatusId = PI.VCDEmpNumber, -- to tylko raz potem na Insercie jeśli new
+    Emps.VcdempNumber = PI.VCDEmpNumber,
+    Emps.FTEStartDate = PI.EtatDataRozpPracy,
+    Emps.FTEEndDate = PI.EtatOkresTo,
+    Emps.ManagerEmail = PI.EmailPrzeloz,
+    Emps.IsManager =    CASE
+                                WHEN PI.LoginPrac IN (SELECT LoginPrzeloz COLLATE SQL_Latin1_General_CP1_CI_AS from @LoginPrzelozTable) THEN 1
+                                WHEN PI.EtatStanowisko = 'Dyrektor Zarządzający' THEN 1
+                                ELSE 0 
+                            END,
+    Emps.VcdempId = PI.VCDEmpID,
+    Emps.VcddeptNumber = PI.VCDDeptNumber,
+    Emps.IsActive = PI.isActive,
+    Emps.Position = PI.EtatStanowisko,
+    Emps.DeptNumber = PI.KOSTL,
+    Emps.VcdCompanyNr = LEFT (PI.VCDDeptNumber, 5),
+    Emps.ManagerId = (SELECT PI2.empID 
+                            FROM [PLWAWQ06.PIA.PHSPL.PL].RAPORTY.dbo.PracownicyInfo AS PI2 
+                            WHERE PI2.LoginPrac = PI.LoginPrzeloz AND PI2.isActive = 1),
+    Emps.TypeId =   CASE 
+                            WHEN PI.EtatStanowisko = 'Dyrektor salonu' OR PI.EtatStanowisko = 'Dyrektor Sprzedaży marki Bentley i Lamborghini' THEN 3
+                            WHEN PI.EtatStanowisko = 'Dyrektor Regionalny' OR PI.EtatStanowisko = 'Dyrektor ds. personalnych' THEN 4
+                            WHEN PI.EtatStanowisko = 'Dyrektor Finansowy'THEN 5
+                            WHEN PI.EtatStanowisko = 'Dyrektor Zarządzający' THEN 6
+                            WHEN PI.isManager = 1 THEN 2
+                            ELSE 1
+                        END,
+    Emps.StatusId = PI.isActive
+FROM Employees AS Emps
+INNER JOIN [PLWAWQ06.PIA.PHSPL.PL].RAPORTY.dbo.PracownicyInfo AS PI
+    ON Emps.EnovaEmpId = PI.empID
+WHERE ISNUMERIC(PI.empID) = 1;

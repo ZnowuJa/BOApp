@@ -1,0 +1,15 @@
+{
+  "dependencies": {
+    "sqlite1": {
+      "ignored": "true",
+      "type": "sqlite"
+    },
+    "identityapp1": {
+      "connectionInfo": "App registration: PIAPL BackOfficeApp, Tenant: Porsche Holding Salzburg (porscheholding.onmicrosoft.com - Microsoft Entra ID)",
+      "secretStore": null,
+      "resourceId": null,
+      "type": "identityapp.secretStore",
+      "connectionId": "AzureAD:ClientSecret"
+    }
+  }
+}
