@@ -19,13 +19,6 @@ namespace Persistance.Migrations
                 defaultValue: "");
 
             migrationBuilder.AddColumn<string>(
-                name: "Approvals",
-                table: "DeferralPayments",
-                type: "nvarchar(max)",
-                nullable: false,
-                defaultValue: "");
-
-            migrationBuilder.AddColumn<string>(
                 name: "LVL1_EmployeeName",
                 table: "DeferralPayments",
                 type: "nvarchar(max)",

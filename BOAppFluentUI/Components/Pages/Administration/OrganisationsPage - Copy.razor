@@ -1,4 +1,4 @@
-﻿@page "/organisations"
+﻿@page "/organisationsall"
 
 @using Application.CQRS.General.Organisations.Commands
 @using Application.CQRS.General.Organisations.Queries
@@ -134,7 +134,7 @@ else
     private async Task Load()
     {
         // var orgsy = await _mediator.Send(new GetAllOrganisationsQuery());
-        var orgsy = await _mediator.Send(new GetOrganisationsByEmplIdQuery(int.Parse(EmplEnovaEmpId)));
+        var orgsy = await _mediator.Send(new GetAllOrganisationsQuery());
         orgs = orgsy.AsQueryable();
     }
 
