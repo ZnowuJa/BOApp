@@ -13,17 +13,27 @@ using MediatR;
 
 using Microsoft.EntityFrameworkCore;
 
+
+
+//
+//
+// Name of this query is a bit misleading
+// it looks like it searches for Org by EmpId but 
+// it searches Org where EmpId is in any Role
+//
+//
+
 namespace Application.CQRS.General.Organisations.Queries;
-public class GetOrganisationsByEmplIdQueryHandler : IRequestHandler<GetOrganisationsByEmplIdQuery, IQueryable<OrganisationVm>>
+public class GetOrganisationsByApproverIdQueryHandler : IRequestHandler<GetOrganisationsByApproverIdQuery, IQueryable<OrganisationVm>>
 {
     private readonly IAppDbContext _appDbContext;
 
-    public GetOrganisationsByEmplIdQueryHandler(IAppDbContext appDbContext)
+    public GetOrganisationsByApproverIdQueryHandler(IAppDbContext appDbContext)
     {
         _appDbContext = appDbContext;
     }
 
-    public async Task<IQueryable<OrganisationVm>> Handle(GetOrganisationsByEmplIdQuery request, CancellationToken cancellationToken)
+    public async Task<IQueryable<OrganisationVm>> Handle(GetOrganisationsByApproverIdQuery request, CancellationToken cancellationToken)
     {
         var query = $@"
         SELECT * 

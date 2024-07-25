@@ -30,6 +30,9 @@ public class UpdateDeferralPaymentCommandHandler : IRequestHandler<UpdateDeferra
         {
             var item = _mapper.Map<DeferralPaymentForm>(request.Item);
             item.Approvals = SerializeApprovals(request.Item.Approvals);
+            item.Level1Approvers = SerializeRole(request.Item.Level1Approvers);
+            item.Level2Approvers = SerializeRole(request.Item.Level2Approvers);
+
             _appDbContext.DeferralPayments.Add(item);
             await _appDbContext.SaveChangesAsync();
 
@@ -52,5 +55,9 @@ public class UpdateDeferralPaymentCommandHandler : IRequestHandler<UpdateDeferra
         return approvals == null || approvals.Count == 0 ? null : JsonSerializer.Serialize(approvals);
     }
 
+    private string SerializeRole(List<OrganisationRoleForFormVm> roles)
+    {
+        return roles == null || roles.Count == 0 ? null : JsonSerializer.Serialize(roles);
+    }
 
 }

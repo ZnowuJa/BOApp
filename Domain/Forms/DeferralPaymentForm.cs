@@ -22,6 +22,8 @@ public class DeferralPaymentForm : FormTemplate
     public string? EmployeeName { get; set; }
     public DateTime? Requested { get; set; }
     public string Approvals { get; set; }
+    public string Level1Approvers { get; set; }
+    public string Level2Approvers { get; set; }
     public string LVL1_EnovaEmpId { get; set; }
     public string LVL2_EnovaEmpId { get; set; }
     public string LVL1_EmployeeName { get; set; }

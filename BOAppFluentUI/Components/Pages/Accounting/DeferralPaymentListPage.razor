@@ -1,6 +1,7 @@
 ﻿@page "/deferralpayments"
 
 
+@using Application.CQRS.AccountingCQRS.DeferralPayment.Commands
 @using Application.CQRS.AccountingCQRS.DeferralPayment.Queries
 @using Application.Forms;
 @using Application.ViewModels.General
@@ -18,10 +19,11 @@
 @inject IDialogService _dialogService
 @inject IToastService _toastService
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager _navigationManager
 
 
 
-<h3>DeferralPaymentListPage</h3>
+<h3>Wnioski o odroczoną płatność</h3>
 
         <FluentStack Orientation="Orientation.Horizontal">
             <FluentLabel Typo="Typography.Subject"> Show columns:  </FluentLabel>
@@ -61,19 +63,20 @@
     <TemplateColumn Title="Actions" Align="Align.End">
 
         @{
-            // var viewId = $"viewid-{context.Id}";
+            var viewId = $"viewid-{context.Id}";
             var editId = $"editid-{context.Id}";
             var deleteId = $"deleteid-{context.Id}";
             // var addId = $"addid-{context.Id}";
         }
-        @*             <FluentButton Id="@viewId" IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" Disabled="@actionsDisabled" />
+                    @* <FluentButton Id="@viewId" IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" Disabled="@actionsDisabled" />
         <FluentTooltip Anchor="@viewId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Left Delay=50>View Asset</FluentTooltip> *@
 
-@*         <FluentButton Id="@editId" IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => Edit(context))" Disabled="@actionsDisabled" />
+        <FluentButton Id="@editId" IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => Edit(context))" Disabled="@IsEditDisabled(context)" />
+            @*WARNING it is not tested if isEditDisabled works*@
         <FluentTooltip Anchor="@editId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Edit Asset</FluentTooltip>
 
         <FluentButton Id="@deleteId" IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" Disabled="@actionsDisabled" />
-        <FluentTooltip Anchor="@deleteId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Delete Asset</FluentTooltip> *@
+        <FluentTooltip Anchor="@deleteId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Delete Asset</FluentTooltip>
 
         @*             <FluentButton Id="@addId" IconEnd="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddToList(context))" Disabled="@actionsDisabled" />
         <FluentTooltip Anchor="@addId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50>Add Asset to update</FluentTooltip> *@
@@ -95,13 +98,13 @@
     private List<FilterColumn<DeferralPaymentFormVm>> filterColumns = new List<FilterColumn<DeferralPaymentFormVm>>
     {
         new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "ID", Property = c => c.Id.ToString(), IsVisible = true },
-        new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "Number", Property = c => c.Number.ToString()??string.Empty, IsVisible = true },
-        new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "Statu", Property = c => c.Status.ToString()??string.Empty, IsVisible = true },
-        new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "KontrahentId", Property = c => c.KontrahentId.ToString(), IsVisible = true },
-        new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "KontrahentName", Property = c => c.KontrahentName.ToString(), IsVisible = true },
-        new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "Note", Property = c => c.Note.ToString(), IsVisible = true },
-        new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "EmployeeName", Property = c =>(c.EmployeeName.ToString()??string.Empty), IsVisible = true },
-        new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "Requested", Property = c => c.Requested.ToString(), IsVisible = true }
+        new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "Numer", Property = c => c.Number.ToString()??string.Empty, IsVisible = true },
+        new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "Status", Property = c => c.Status.ToString()??string.Empty, IsVisible = true },
+        new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "Nr kontr.", Property = c => c.KontrahentId.ToString(), IsVisible = true },
+        new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "Nazwa kontr.", Property = c => c.KontrahentName.ToString(), IsVisible = true },
+        new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "Uzasadnienie", Property = c => c.Note.ToString(), IsVisible = true },
+        new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "Zgłaszający", Property = c =>(c.EmployeeName.ToString()??string.Empty), IsVisible = true },
+        new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "Data", Property = c => c.Requested.ToString(), IsVisible = true }
     };
 
     private ClaimsPrincipal? user { get; set; }
@@ -120,8 +123,9 @@
 
     private async Task Load()
     {
-       
-        var deferralForms = await _mediator.Send(new GetDeferralPaymentByApproverQuery(EmplEnovaEmpId));
+
+        // var deferralForms = await _mediator.Send(new GetDeferralPaymentByApproverQuery(EmplEnovaEmpId));
+        var deferralForms = await _mediator.Send(new GetAllDeferralPaymentFormQuery());
         Console.WriteLine(deferralForms.Count());
         Console.WriteLine(deferralForms.Count());
         items = deferralForms.AsQueryable();
@@ -142,7 +146,7 @@
     {
         var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         user = authenticationState.User;
-        
+
         var claimType = "name"; // or use ClaimTypes.Title
         var usernameClaim = user.Claims.FirstOrDefault(c => c.Type == claimType);
         if (usernameClaim != null)
@@ -161,6 +165,7 @@
         if (EnovaEmpIdClaim != null)
         {
             EmplEnovaEmpId = EnovaEmpIdClaim.Value;
+            employee = await _mediator.Send(new GetEmployeeByEnovaIdQuery(int.Parse(EmplEnovaEmpId)));
             Console.WriteLine($"Claim of type {claimType} found, value {EmplEnovaEmpId}.");
         }
         else
@@ -168,11 +173,35 @@
             EmplEnovaEmpId = "unknown";
             Console.WriteLine($"No claim of type {claimType} found.");
         }
+
     }
 
     private Expression<Func<DeferralPaymentFormVm, string>> GetPropertyExpression(Func<DeferralPaymentFormVm, string> propertyFunc) 
     {
         return x => propertyFunc(x);
+    }
+
+    private async Task Edit(DeferralPaymentFormVm item = null)
+    {
+        _navigationManager.NavigateTo($"/deferralpaymentedit/{item.Id}");
+    }
+    private async Task Delete(DeferralPaymentFormVm item = null)
+    {
+        
+    }
+
+    private bool IsEditDisabled(DeferralPaymentFormVm context)
+    {
+        if (context.Status == "AprobataL1")
+        {
+            return !(context.LVL1_EnovaEmpId == EmplEnovaEmpId);
+            // return !context.Level1Approvers.Any(approver => approver.EmpId.ToString() == EmplEnovaEmpId);
+        }
+        if (context.Status == "AprobataL2")
+        {
+            return !context.Level2Approvers.Any(approver => approver.EmpId.ToString() == EmplEnovaEmpId);
+        }
+        return true; // Default to disabled if none of the conditions match
     }
 
     // private async Task Edit(DeferralPaymentFormVm item = null)
@@ -210,20 +239,20 @@
 
     //     if (!result.Cancelled && result.Data != null)
     //     {
-    //         var final = (OrganisationVm)result.Data;
+    //         var final = (DeferralPaymentFormVm)result.Data;
 
     //         if (final.Id > 0)
     //         {
-    //             _logger.LogInformation("Organisations | Edit(item) | Update Organisation start...");
-    //             i = await _mediator.Send(new UpdateOrganisationCommand(final));
-    //             _logger.LogInformation("Organisations | Edit(item) | Update Organisation finished...");
+    //             _logger.LogInformation("DeferralPaymentFormVm | Edit(item) | Update DeferralPaymentFormVm start...");
+    //             var itemVm = await _mediator.Send(new UpdateDeferralPaymentCommand(final));
+    //             _logger.LogInformation("DeferralPaymentFormVm | Edit(item) | Update DeferralPaymentFormVm finished...");
     //             intent = ToastIntent.Success;
-    //             message = "Organisation has been updated!";
+    //             message = "DeferralPaymentFormVm has been updated!";
     //         }
     //         else
     //         {
     //             _logger.LogInformation("Organisations | Edit(item)| Create Organisation start...");
-    //             i = await _mediator.Send(new CreateOrganisationCommand(final));
+    //             var itemVm = await _mediator.Send(new CreateDeferralPaymentCommand(final));
     //             _logger.LogInformation("Organisations | Edit(item) | Create Organisation finished...");
     //             intent = ToastIntent.Success;
     //             message = "Organisation has been created!";

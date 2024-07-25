@@ -4,6 +4,8 @@
 
 @using Application.CQRS.AccountingCQRS.Customer.Queries
 @using Application.CQRS.AccountingCQRS.DeferralPayment.Commands;
+@using Application.CQRS.General.Organisations.Queries
+@using Application.CQRS.General.Workflows.Queries
 @using Application.Forms
 @using Application.Interfaces
 @using Application.ViewModels.Accounting
@@ -21,6 +23,12 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
 <h3>Wniosek o udzielenie odroczonej płatności</h3>
+@if(_organisation != null)
+{
+    <h5>Organizacja: @_organisation.Name</h5>
+    <h5>Pracownik: @emp.LongName</h5>
+}
+
 
 @if (customer == null)
 {
@@ -43,24 +51,63 @@ else
             <div>
                 <FluentTextField Id="name" @bind-Value="@formItem.KontrahentName" ReadOnly="true" style="width: 400px;"> Nazwa: </FluentTextField>
             </div>
-            <div>
-                <FluentTextField Id="EmpName" @bind-Value="@formItem.EmployeeName" ReadOnly="true" style="width: 400px;"> Nazwa użytkownika: </FluentTextField>
-            </div>
 
         </FluentStack>
         <h3> </h3>
-        <FluentTextArea @bind-Value="@formItem.Note" Label="Proszę o włączenie odroczonej płatności ze względu na:" Cols="72" Required="true">
-        </FluentTextArea>
+        <FluentTextArea 
+            @bind-Value="@formItem.Note" 
+            Label="Proszę o włączenie odroczonej płatności ze względu na:" 
+            Cols="72" 
+            Required="true"
+            @onchange = "ChangeNote"
+            />
+        <p></p>
+        <h5>Aprobujący:</h5>
+        @if (al1)
+        {
+            <p></p>
+            <FluentSelect TOption="OrganisationRoleForFormVm"
+                          Id="AL1Id"
+                          Autofocus="true"
+                          Items="@formItem.Level1Approvers"
+                          Multiple = "false"
+                          OptionValue="@(p => p.EmpId.ToString())"
+                          OptionText="@(p => p.LongName)"
+                          OptionSelected="@(p => p.IsDefault)"
+                          
+                          @bind-SelectedOption="@approverL1"
+                          Height="200px"
+                          @onchange="HandleChangeApproverL1"
+                          
+                          />
+                          
+        }
+        else if (formItem.Status == "AprobataL2")
+        {
+            <FluentSelect TOption="OrganisationRoleForFormVm"
+                          Id="AL1Id"
+                          Label="Approver"
+                          Autofocus="true"
+                          Items="@formItem.Level1Approvers"
+                          Multiple="false"
+                          OptionValue="@(p => p.EmpId.ToString())"
+                          OptionText="@(p => p.LongName)"
+                          OptionSelected="@(p => p.IsDefault)"
+                          @bind-SelectedOption="@approverL1"
+                          Height="200px"
+                          @onchange="HandleChangeApproverL2" />
+        }
+
         <H3></H3>
         <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
-                      Appearance="Appearance.Accent" OnClick="@Save" BackgroundColor="#509EDB" Style="width: 100px"> Wyślij</FluentButton>
+                      Appearance="Appearance.Accent" OnClick="@Save" BackgroundColor="#509EDB" Style="width: 100px" Disabled="@SendButton"> Wyślij</FluentButton>
         <FluentSpacer Width="@buttonSpacer" />
         @if (showApproval)
         {
             
         }
         <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
-                      Appearance="Appearance.Accent" OnClick="@Cancel" BackgroundColor="#1FC91F" Style="width: 100px"> Zatwierdź</FluentButton>
+                      Appearance="Appearance.Accent" OnClick="@Cancel" BackgroundColor="#1FC91F" Style="width: 100px" Disabled = "@ApproveButton"> Zatwierdź</FluentButton>
         <FluentSpacer Width="@buttonSpacer" />
         <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
                       Appearance="Appearance.Accent" OnClick="@Cancel" BackgroundColor="#C21E56" Color="#FFFFFF" Style="width: 100px"> Anuluj</FluentButton>
@@ -68,6 +115,7 @@ else
 }
 
 @code {
+    #region InitForm
     [Parameter]
     public int Id { get; set; }
 
@@ -82,50 +130,147 @@ else
     private ClaimsPrincipal? user { get; set; }
     private string username { get; set; }
     private EmployeeVm emp { get; set; }
+    private IQueryable<EmployeeVm> itemEmployeesList { get; set; }
+    private OrganisationRoleForFormVm approverL1 { get; set; }
+    private OrganisationRoleForFormVm approverL2 { get; set; }
+    private string ApproverL1Name { get; set; }
+    private bool al1 = false;
+    private bool al2 = false;
+    private bool ApproveButton = true;
+    private bool SendButton = true;
+
+    private OrganisationVm _organisation { get; set; }
+    private WorkflowTemplateVm wf { get; set; }
+    private string FormName = "DeferralPaymentFormVm";
 
     private int buttonSpacer = 100;
 
+    #endregion InitForm
     protected override async Task OnInitializedAsync()
     {
         await GetUserName();
+        wf = await _mediator.Send(new GetWorkflowTemplateByFormNameQuery(FormName));
+
+        itemEmployeesList = await _mediator.Send(new GetAllEmployeesQuery());
+        _organisation = await _mediator.Send(new GetOrganisationByEmpSapNumberQuery(emp.SapNumber));
+        Approval approval = new Approval()
+        {
+            Status = formItem.Status,
+            EnovaEmpId = emp.EnovaEmpId.ToString(),
+            LongName = emp.LongName,
+            Date = DateTime.Now,
+            IsApproved = true
+        };
+        formItem.Approvals = new List<Approval>();
+        formItem.Approvals.Add(approval);
+        formItem.WorkflowTemplateId = wf.Id;
+
+        // var wf = await _mediator.Send(new GetWorkflow;
+        formItem.Level1Approvers = SetApprovers(_organisation.Role_SalesManager);
+        formItem.Level2Approvers = SetApprovers(_organisation.Role_SettlementsTeam);
         // await _mediator.Send(new GetEmployeeByAIDQuery())
         await Load();
     }
 
     private async Task Load()
     {
-        try
+        //this trycatch block is to be conditional due to stage (New/Edit)
+        //we do not need read customer if it is awaiting approval
+        if(formItem.Status == "Rejestracja")
         {
-            customer = await _mediator.Send(new GetCustomerQuery(Id));
-            if (customer != null)
+            try
             {
-                showCustomer = true;
-
-                if (customer.Przelew)
+                customer = await _mediator.Send(new GetCustomerQuery(Id));
+                if (customer != null)
                 {
-                    message = $"Kontrahent {customer.KontrahentId}, \"{customer.Nazwa}\" ma już włączoną płatność odroczoną!";
+                    showCustomer = true;
+
+                    if (customer.Przelew)
+                    {
+                        message = $"Kontrahent {customer.KontrahentId}, \"{customer.Nazwa}\" ma już włączoną płatność odroczoną!";
+                    }
+                    else
+                    {
+                        formItem.KontrahentId = customer.KontrahentId.ToString();
+                        formItem.KontrahentName = customer.Nazwa;
+                        formItem.KontrahentPrzelew = customer.Przelew;
+                        formItem.EmployeeId = emp.EnovaEmpId;
+                        formItem.EmployeeName = emp.LongName;
+                        formItem.Status = "AprobataL1";
+
+                        Console.WriteLine();
+                    }
                 }
                 else
                 {
-                    formItem.KontrahentId = customer.KontrahentId.ToString();
-                    formItem.KontrahentName = customer.Nazwa;
-                    formItem.KontrahentPrzelew = customer.Przelew;
-                    formItem.EmployeeId = emp.EnovaEmpId;
-                    formItem.EmployeeName = emp.LongName;
-                    Console.WriteLine("nic");
+                    messageMissing = $"Kontrahent o numerze {Id} nie ma otwartych dokumentów do których można wystawić dokument z odroczoną płatnością!";
                 }
             }
-            else
+            catch (Exception ex)
             {
-                messageMissing = $"Kontrahent o numerze {Id} nie ma otwartych dokumentów do których można wystawić dokument z odroczoną płatnością!";
+                Console.WriteLine($"Error loading kontrahent: {ex.Message}");
             }
         }
-        catch (Exception ex)
+
+        al1 = formItem.Status == "AprobataL1";
+        al2 = formItem.Status == "AprobataL2";
+
+        if(al1) //sets Approvers data in Form object.
         {
-            Console.WriteLine($"Error loading kontrahent: {ex.Message}");
+            var defaultApproverL1 = formItem.Level1Approvers.First(p => p.IsDefault == true);
+
+            formItem.LVL1_EnovaEmpId = defaultApproverL1.EmpId.ToString();
+            formItem.LVL1_EmployeeName = defaultApproverL1.LongName;
+
+            //this code is here temporary:
+
+            var defaultApproverL2 = formItem.Level2Approvers.First(p => p.IsDefault == true);
+            formItem.LVL2_EnovaEmpId = defaultApproverL2.EmpId.ToString();
+            formItem.LVL2_EmployeeName = defaultApproverL2.LongName;
+
+        } 
+        else if (al2)
+        {
+            var defaultApproverL2 = formItem.Level2Approvers.First(p => p.IsDefault == true);
+            formItem.LVL2_EnovaEmpId = defaultApproverL2.EmpId.ToString();
+            formItem.LVL2_EmployeeName = defaultApproverL2.LongName;
         }
     }
+    private List<OrganisationRoleForFormVm> SetApprovers(List<OrganisationRoleVm> rolesIn)
+    {
+        var rolesOut = new List<OrganisationRoleForFormVm>();
+        foreach(var role in rolesIn)
+        {
+            var roleOut = new OrganisationRoleForFormVm(role);
+            rolesOut.Add(roleOut);
+        }
+        return rolesOut;
+    }
 
+    private void ChangeNote (ChangeEventArgs e)
+    {
+        // if (formItem.Note )
+        formItem.Note = e.Value.ToString();
+        SendButton = false;
+        Console.WriteLine();
+    }
+
+    private void HandleChangeApproverL1(ChangeEventArgs e)
+    {
+        var tempEmp = itemEmployeesList.First(p => p.EnovaEmpId == int.Parse(e.Value.ToString()));
+        formItem.LVL1_EnovaEmpId = tempEmp.EnovaEmpId.ToString();
+        formItem.LVL1_EmployeeName = tempEmp.LongName;
+        Console.WriteLine(tempEmp.LongName);
+    }
+    private void HandleChangeApproverL2(ChangeEventArgs e)
+    {
+        var tempEmp = itemEmployeesList.First(p => p.EnovaEmpId == int.Parse(e.Value.ToString()));
+        formItem.LVL2_EnovaEmpId = tempEmp.EnovaEmpId.ToString();
+        formItem.LVL2_EmployeeName = tempEmp.LongName;
+        Console.WriteLine(tempEmp.LongName);
+    }
+
+    
     private async Task TogglePrzelew()
     {
         if (customer != null)
@@ -139,6 +284,7 @@ else
 
     private async Task Save()
     {
+        Console.WriteLine($"Error creating deferral payment form:");
         try
         {
             formItem.Przelew = true;
@@ -150,7 +296,7 @@ else
         catch (Exception ex)
         {
             Console.WriteLine($"Error creating deferral payment form: {ex.Message}");
-            message = "An error occurred while creating the deferral payment form.";
+            message = $"An error occurred while creating the deferral payment form: {ex.InnerException.Message}.";
         }
     }
 

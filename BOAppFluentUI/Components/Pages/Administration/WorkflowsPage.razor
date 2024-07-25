@@ -1,7 +1,9 @@
-﻿@page "/organisations"
+﻿@page "/workflows"
 
 @using Application.CQRS.General.Organisations.Commands
 @using Application.CQRS.General.Organisations.Queries
+@using Application.CQRS.General.Workflows.Commands
+@using Application.CQRS.General.Workflows.Queries
 @using Application.ViewModels.General
 @using System.Security.Claims
 @using System.Linq.Expressions
@@ -15,9 +17,9 @@
 @inject IToastService _toastService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
-<h3>OrganisationsPage + @EmplEnovaEmpId</h3>
+<h3>Workflows Page</h3>
 
-@if (orgs == null)
+@if (wfs == null)
 {
     <FluentProgressRing>Loading...</FluentProgressRing>
 }
@@ -32,27 +34,27 @@ else
                 {
                     <FluentCheckbox @bind-Value="column.IsVisible" Label="@column.Label" />
                 }
-                
-            }
-            </FluentStack>
-    @* <p></p>
-        <FluentStack Orientation="Orientation.Horizontal">
-            @foreach (var column in filterColumns)
-            {
-                if (!column.FirstRow)
-                {
-                <FluentCheckbox @bind-Value="column.IsVisible" Label="@column.Label" />
-                }
 
             }
-        </FluentStack> *@
+        </FluentStack>
+        @* <p></p>
+    <FluentStack Orientation="Orientation.Horizontal">
+    @foreach (var column in filterColumns)
+    {
+    if (!column.FirstRow)
+    {
+    <FluentCheckbox @bind-Value="column.IsVisible" Label="@column.Label" />
+    }
+
+    }
+    </FluentStack> *@
     </p>
 
-    <FluentDataGrid Items="@filteredOrgs" Pagination="@pagination" TGridItem="OrganisationVm" GridTemplateColumns="80px repeat(6, 0.75fr)" ResizableColumns="true">
-       
+    <FluentDataGrid Items="@filteredWfs" Pagination="@pagination" TGridItem="WorkflowTemplateVm" GridTemplateColumns="80px repeat(3, 0.75fr)" ResizableColumns="true">
+
         @foreach (var column in filterColumns.Where(c => c.IsVisible))
         {
-            <PropertyColumn TGridItem="OrganisationVm" TProp="string" Property="@(GetPropertyExpression(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label" Filtered="!string.IsNullOrWhiteSpace(column.Filter)">
+            <PropertyColumn TGridItem="WorkflowTemplateVm" TProp="string" Property="@(GetPropertyExpression(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label" Filtered="!string.IsNullOrWhiteSpace(column.Filter)">
                 <ColumnOptions>
                     <div class="search-box">
                         <FluentSearch type="search" Autofocus="true" @bind-Value="column.Filter" @oninput="(args) => HandleFilterDebounced(column, args)" Placeholder="@($"{column.Label.ToLower()}...")" />
@@ -70,32 +72,32 @@ else
                 var deleteId = $"deleteid-{context.Id}";
                 // var addId = $"addid-{context.Id}";
             }
-@*             <FluentButton Id="@viewId" IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" Disabled="@actionsDisabled" />
-            <FluentTooltip Anchor="@viewId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Left Delay=50>View Asset</FluentTooltip> *@
+            @*             <FluentButton Id="@viewId" IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" Disabled="@actionsDisabled" />
+        <FluentTooltip Anchor="@viewId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Left Delay=50>View Asset</FluentTooltip> *@
 
-            <FluentButton Id="@editId" IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => EditOrganisation(context))" Disabled="@actionsDisabled" />
+            <FluentButton Id="@editId" IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => EditItem(context))" Disabled="@actionsDisabled" />
             <FluentTooltip Anchor="@editId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Edit Asset</FluentTooltip>
 
             <FluentButton Id="@deleteId" IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" Disabled="@actionsDisabled" />
             <FluentTooltip Anchor="@deleteId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Delete Asset</FluentTooltip>
 
-@*             <FluentButton Id="@addId" IconEnd="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddToList(context))" Disabled="@actionsDisabled" />
-            <FluentTooltip Anchor="@addId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50>Add Asset to update</FluentTooltip> *@
+            @*             <FluentButton Id="@addId" IconEnd="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddToList(context))" Disabled="@actionsDisabled" />
+        <FluentTooltip Anchor="@addId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50>Add Asset to update</FluentTooltip> *@
 
         </TemplateColumn>
     </FluentDataGrid>
     <FluentPaginator State="@pagination" />
 
-    
-    }
-<FluentButton IconStart="@(new Icons.Regular.Size20.Add())" OnClick="@(() => EditOrganisation())" />
+
+}
+<FluentButton IconStart="@(new Icons.Regular.Size20.Add())" OnClick="@(() => EditItem())" />
 
 
 @code {
 
     #region Properties
-    private IQueryable<OrganisationVm> orgs;
-    private IQueryable<OrganisationVm> filteredOrgs => orgs.Where(x =>
+    private IQueryable<WorkflowTemplateVm> wfs;
+    private IQueryable<WorkflowTemplateVm> filteredWfs => wfs.Where(x =>
     filterColumns.All(column => string.IsNullOrWhiteSpace(column.Filter) ||
     column.Property(x).Contains(column.Filter, StringComparison.CurrentCultureIgnoreCase)));
 
@@ -113,13 +115,11 @@ else
     private bool deleteConfirm = false;
     private bool actionsDisabled = false;
 
-    private List<FilterColumn<OrganisationVm>> filterColumns = new List<FilterColumn<OrganisationVm>>
+    private List<FilterColumn<WorkflowTemplateVm>> filterColumns = new List<FilterColumn<WorkflowTemplateVm>>
     {
-        new FilterColumn<OrganisationVm> { FirstRow = true, Label = "ID", Property = c => c.Id.ToString(), IsVisible = true, Width = "80px" },
-        new FilterColumn<OrganisationVm> { FirstRow = true, Label = "Nazwa", Property = c => c.Name, IsVisible = true, Width = "1FR" },
-        new FilterColumn<OrganisationVm> { FirstRow = true, Label = "Marka", Property = c => c.Make, IsVisible = true , Width = "1FR" },
-        new FilterColumn<OrganisationVm> { FirstRow = true, Label = "Opis", Property = c => c.Description, IsVisible = true , Width = "1FR" },
-        new FilterColumn<OrganisationVm> { FirstRow = true, Label = "Numer SAP", Property = c => c.SapNumber, IsVisible = true , Width = "1FR" },        
+        new FilterColumn<WorkflowTemplateVm> { FirstRow = true, Label = "Id", Property = c => c.Id.ToString(), IsVisible = true, Width = "80px" },
+        new FilterColumn<WorkflowTemplateVm> { FirstRow = true, Label = "Nazwa", Property = c => c.Name, IsVisible = true, Width = "2FR" },
+        new FilterColumn<WorkflowTemplateVm> { FirstRow = true, Label = "Nazwa formularza", Property = c => c.FormClassName, IsVisible = true, Width = "2FR" }
     };
 
     #endregion Properties
@@ -134,11 +134,12 @@ else
     private async Task Load()
     {
         // var orgsy = await _mediator.Send(new GetAllOrganisationsQuery());
-        var orgsy = await _mediator.Send(new GetAllOrganisationsQuery());
-        orgs = orgsy.AsQueryable();
+        var wfsy = await _mediator.Send(new GetAllWorkflowTemplatesQuery());
+        wfs = wfsy.AsQueryable();
+        StateHasChanged();
     }
 
-    private async Task EditOrganisation(OrganisationVm item = null)
+    private async Task EditItem(WorkflowTemplateVm item = null)
     {
         ToastIntent intent;
         string message = string.Empty;
@@ -147,22 +148,21 @@ else
 
         if (isNew)
         {
-            item = new OrganisationVm
-                {
-                    Role_ServiceManager = new List<OrganisationRoleVm> { new OrganisationRoleVm() },
-                    Role_SalesManager = new List<OrganisationRoleVm> { new OrganisationRoleVm() },
-                    Role_DealerDirector = new List<OrganisationRoleVm> { new OrganisationRoleVm() },
-                    Role_RegionDirector = new List<OrganisationRoleVm> { new OrganisationRoleVm() }
-                };
+            item = new WorkflowTemplateVm();
+            item.Steps = new List<WorkflowStepVm>();
+
+        } else
+        {
+            item.Steps = await _mediator.Send(new GetWorkflowStepsByTemplateIdQuery(item.Id));
         }
 
         _logger.LogInformation("Organisations | Edit(item) | Opening dialog...");
 
-        var dialog = await _dialogService.ShowDialogAsync<OrganisationEditComponent>(item, new DialogParameters()
+        var dialog = await _dialogService.ShowDialogAsync<WorkflowEditComponent>(item, new DialogParameters()
             {
-                Height = "750px",
+                Height = "600px",
                 Width = "800px",
-                Title = item.Id > 0 ? "Update Organisation..." : "Create new Organisation...",
+                Title = item.Id > 0 ? "Update Workflow Template..." : "Create new Workflow Template...",
                 PreventDismissOnOverlayClick = true,
                 PreventScroll = false,
             });
@@ -173,21 +173,18 @@ else
 
         if (!result.Cancelled && result.Data != null)
         {
-            var final = (OrganisationVm)result.Data;
+            var final = (WorkflowTemplateVm)result.Data;
 
             if (final.Id > 0)
             {
-                _logger.LogInformation("Organisations | Edit(item) | Update Organisation start...");
-                i = await _mediator.Send(new UpdateOrganisationCommand(final));
-                _logger.LogInformation("Organisations | Edit(item) | Update Organisation finished...");
+                i = await _mediator.Send(new UpdateWorkflowTemplateCommand(final));
                 intent = ToastIntent.Success;
                 message = "Organisation has been updated!";
             }
             else
             {
-                _logger.LogInformation("Organisations | Edit(item)| Create Organisation start...");
-                i = await _mediator.Send(new CreateOrganisationCommand(final));
-                _logger.LogInformation("Organisations | Edit(item) | Create Organisation finished...");
+
+                i = await _mediator.Send(new CreateWorkflowTemplateCommand(final));
                 intent = ToastIntent.Success;
                 message = "Organisation has been created!";
             }
@@ -208,10 +205,10 @@ else
         actionsDisabled = false;
     }
 
-    private async Task Delete(OrganisationVm item)
+    private async Task Delete(WorkflowTemplateVm item)
     {
 
-        var dialog = await _dialogService.ShowConfirmationAsync("You are about to delete Organisation: " + item.SapNumber + "\n Are you sure?", "Yes", "No", "Confirm delete operation");
+        var dialog = await _dialogService.ShowConfirmationAsync("You are about to delete Organisation: " + item.Name + "\n Are you sure?", "Yes", "No", "Confirm delete operation");
         var result = await dialog.Result;
         deleteConfirm = result.Cancelled;
 
@@ -228,7 +225,7 @@ else
         else
         {
             Console.WriteLine();
-            var i = await _mediator.Send(new DeleteOrganisationCommand(item.Id));
+            var i = await _mediator.Send(new DeleteWorkflowTemplateCommand(item.Id));
             // var i = await _mediator.Send(new (item.Id));
             intent = ToastIntent.Success;
             message = "Asset has been deleted";
@@ -239,7 +236,7 @@ else
         Load();
     }
     private void HandleClearFilter(ref string filter) => filter = string.IsNullOrWhiteSpace(filter) ? string.Empty : filter;
-    private void HandleFilterDebounced(FilterColumn<OrganisationVm> column, ChangeEventArgs args)
+    private void HandleFilterDebounced(FilterColumn<WorkflowTemplateVm> column, ChangeEventArgs args)
     {
         debounceDispatcher.Debounce(300, _ =>
         {
@@ -277,7 +274,7 @@ else
         }
 
     }
-    private Expression<Func<OrganisationVm, string>> GetPropertyExpression(Func<OrganisationVm, string> propertyFunc)
+    private Expression<Func<WorkflowTemplateVm, string>> GetPropertyExpression(Func<WorkflowTemplateVm, string> propertyFunc)
     {
         return x => propertyFunc(x);
     }

@@ -8,9 +8,9 @@ using Application.ViewModels.General;
 using MediatR;
 
 namespace Application.CQRS.General.Organisations.Queries;
-public class GetOrganisationsByEmplIdQuery : IRequest<IQueryable<OrganisationVm>>
+public class GetOrganisationsByApproverIdQuery : IRequest<IQueryable<OrganisationVm>>
 {
-    public GetOrganisationsByEmplIdQuery(int i)
+    public GetOrganisationsByApproverIdQuery(int i)
     {
         Id = i;
     }

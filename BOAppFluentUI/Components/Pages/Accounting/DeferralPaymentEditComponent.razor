@@ -5,6 +5,7 @@
 @using Application.CQRS.AccountingCQRS.Customer.Queries
 @using Application.CQRS.AccountingCQRS.DeferralPayment.Commands;
 @using Application.CQRS.AccountingCQRS.DeferralPayment.Queries
+@using Application.CQRS.General.Organisations.Queries
 @using Application.Forms
 @using Application.Interfaces
 @using Application.ViewModels.Accounting
@@ -23,19 +24,13 @@
 
 <h3>Wniosek o udzielenie odroczonej płatności</h3>
 
-@if (customer == null)
+@if (!(messageMissing == "Loaded"))
 {
-    @* <FluentProgressRing>Loading...</FluentProgressRing> *@
+    <FluentProgressRing>Loading...</FluentProgressRing>
     <b>@messageMissing</b>
-}
-else if (message != null)
-{
-    <b>@message</b>
-    
 }
 else
 {
-
     <EditForm Model="@_editContext">
         <FluentStack VerticalAlignment="VerticalAlignment.Center" HorizontalAlignment="HorizontalAlignment.Start">
             <div>
@@ -47,11 +42,47 @@ else
             <div>
                 <FluentTextField Id="EmpName" @bind-Value="@formItem.EmployeeName" ReadOnly="true" style="width: 400px;"> Nazwa użytkownika: </FluentTextField>
             </div>
-
         </FluentStack>
         <h3> </h3>
         <FluentTextArea @bind-Value="@formItem.Note" Label="Proszę o włączenie odroczonej płatności ze względu na:" Cols="72" Required="true">
         </FluentTextArea>
+
+        <p></p>
+        <h5>Aprobujący:</h5>
+        @if (al1 || al2)
+        {
+            <p></p>
+            <FluentStack Orientation="Orientation.Horizontal">
+            <FluentSelect TOption="OrganisationRoleForFormVm"
+                          Id="AL1Id"
+                          Disabled = "@al1"
+                          Label ="Aprobata L1"
+                          Autofocus="true"
+                          Items="@formItem.Level1Approvers"
+                          Multiple="false"
+                          OptionValue="@(p => p.EmpId.ToString())"
+                          OptionText="@(p => p.LongName)"
+                          OptionSelected="@(p => p.IsDefault)"
+                          @bind-SelectedOption="@approverL1"
+                          Height="200px"
+                          @onchange="HandleChangeApproverL1" />
+
+
+            <FluentSelect TOption="OrganisationRoleForFormVm"
+                          Id="AL1Id"
+                          Autofocus="true"
+                          Label="Aprobata L2"
+                          Items="@formItem.Level2Approvers"
+                          Multiple="false"
+                          OptionValue="@(p => p.EmpId.ToString())"
+                          OptionText="@(p => p.LongName)"
+                          OptionSelected="@(p => p.IsDefault)"
+                          @bind-SelectedOption="@approverL1"
+                          Height="200px"
+                          @onchange="HandleChangeApproverL2" />
+            </FluentStack>
+        }
+
         <H3></H3>
         <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
                       Appearance="Appearance.Accent" OnClick="@Save" BackgroundColor="#509EDB" Style="width: 100px"> Wyślij</FluentButton>
@@ -87,42 +118,35 @@ else
     private string username { get; set; }
     private EmployeeVm emp { get; set; }
 
+    private IQueryable<EmployeeVm> itemEmployeesList { get; set; }
+    private OrganisationRoleForFormVm approverL1 { get; set; }
+    private OrganisationRoleForFormVm approverL2 { get; set; }
+    private string ApproverL1Name { get; set; }
+    private bool al1 = false;
+    private bool al2 = false;
+    private bool fin = false;
+    private bool ApproveButton = true;
+    private bool SendButton = true;
+
+    private OrganisationVm _organisation { get; set; }
+    private WorkflowTemplateVm wf { get; set; }
+    private string FormName = "DeferralPaymentFormVm";
+
     private int buttonSpacer = 100;
 
     protected override async Task OnInitializedAsync()
     {
         await GetUserName();
-        // await _mediator.Send(new GetEmployeeByAIDQuery())
         await Load();
     }
 
     private async Task Load()
     {
+        messageMissing = "Loading";
         try
         {
+            Console.WriteLine();
             formItem = await _mediator.Send(new GetDeferralPaymentQuery(Id));
-        //     if (customer != null)
-        //     {
-        //         showCustomer = true;
-
-        //         if (customer.Przelew)
-        //         {
-        //             message = $"Kontrahent {customer.KontrahentId}, \"{customer.Nazwa}\" ma już włączoną płatność odroczoną!";
-        //         }
-        //         else
-        //         {
-        //             formItem.KontrahentId = customer.KontrahentId.ToString();
-        //             formItem.KontrahentName = customer.Nazwa;
-        //             formItem.KontrahentPrzelew = customer.Przelew;
-        //             formItem.EmployeeId = emp.EnovaEmpId;
-        //             formItem.EmployeeName = emp.LongName;
-        //             Console.WriteLine("nic");
-        //         }
-        //     }
-        //     else
-        //     {
-        //         messageMissing = $"Kontrahent o numerze {Id} nie ma otwartych dokumentów do których można wystawić dokument z odroczoną płatnością!";
-        //     }
         }
         catch (Exception ex)
         {
@@ -130,26 +154,92 @@ else
         }
 
         _editContext = new EditContext(formItem);
+
+        al1 = formItem.Status == "AprobataL1";
+        al2 = formItem.Status == "AprobataL2";
+        fin = formItem.Status == "Zakończone";
+
+        itemEmployeesList = await _mediator.Send(new GetAllEmployeesQuery());
+        _organisation = await _mediator.Send(new GetOrganisationByEmpSapNumberQuery(emp.SapNumber));
+        try
+        {
+            Approval approval = new Approval()
+                {
+                    Status = formItem.Status,
+                    EnovaEmpId = emp.EnovaEmpId.ToString(),
+                    LongName = emp.LongName,
+                    Date = DateTime.Now,
+                    IsApproved = true
+                };
+            formItem.Approvals.Add(approval);
+        } catch (Exception ex)
+        {
+            message = $"Error:: {ex.InnerException}";
+        }
+
+        Console.WriteLine("tadtam");
+
+        if (al1)
+        {
+            formItem.Status = "AprobataL2";
+        }
+        else if (al2)
+        {
+            formItem.Status = "Zakończone";
+        } else
+        {
+            // do nothing ???
+            // or at least disable all actions except Cancel
+        }
+        Console.WriteLine("tadtam2");
+        messageMissing = "Loaded";
+        StateHasChanged();
     }
 
-    private async Task TogglePrzelew()
+    private void HandleChangeApproverL1(ChangeEventArgs e)
     {
-        if (customer != null)
-        {
-            // await _asdbctx.ExecuteSqlRawAsync("EXEC kontrahent_przelew @p0, @p1", Id, !kontrahent.Przelew);
-            customer.Przelew = !customer.Przelew;
-            StateHasChanged();
-            // await LoadKontrahent();
-        }
+        var tempEmp = itemEmployeesList.First(p => p.EnovaEmpId == int.Parse(e.Value.ToString()));
+        formItem.LVL1_EnovaEmpId = tempEmp.EnovaEmpId.ToString();
+        formItem.LVL1_EmployeeName = tempEmp.LongName;
+        Console.WriteLine(tempEmp.LongName);
     }
+    private void HandleChangeApproverL2(ChangeEventArgs e)
+    {
+        var tempEmp = itemEmployeesList.First(p => p.EnovaEmpId == int.Parse(e.Value.ToString()));
+        formItem.LVL2_EnovaEmpId = tempEmp.EnovaEmpId.ToString();
+        formItem.LVL2_EmployeeName = tempEmp.LongName;
+        Console.WriteLine(tempEmp.LongName);
+    }
+    // private async Task TogglePrzelew()
+    // {
+    //     if (customer != null)
+    //     {
+    //         // await _asdbctx.ExecuteSqlRawAsync("EXEC kontrahent_przelew @p0, @p1", Id, !kontrahent.Przelew);
+    //         customer.Przelew = !customer.Przelew;
+    //         StateHasChanged();
+    //         // await LoadKontrahent();
+    //     }
+    // }
 
     private async Task Save()
     {
         try
         {
-            formItem.Przelew = true;
+            if (formItem.Status == "AprobataL1")
+            {
+                formItem.Status = "AprobataL2";
+            }
+            else if (formItem.Status == "AprobataL2")
+            {
+                formItem.Status = "Zakończone";
+            }
+            else
+            {
+                // do nothing ???
+                // or at least disable all actions except Cancel
+            }
             // Call the mediator to send the command
-            var saveResult = await _mediator.Send(new CreateDeferralPaymentCommand(formItem));
+            var saveResult = await _mediator.Send(new UpdateDeferralPaymentCommand(formItem));
 
             message = $"Wniosek o numerze {saveResult.Number}o opóźnioną płatność dla {saveResult.KontrahentId}, {saveResult.KontrahentName} wysłana!";
         }

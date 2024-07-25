@@ -44,6 +44,13 @@
     <Content Remove="Components\Pages\Administration\OrgNewComponent.razor" />
     <Content Remove="Components\Pages\Administration\OrgsPage.razor" />
     <Content Remove="Components\Pages\Administration\RoleEditor3.razor" />
+    <Content Remove="Components\Pages\Excluded\CategoryComponent.razor" />
+    <Content Remove="Components\Pages\Excluded\CategoryPage.razor" />
+    <Content Remove="Components\Pages\Excluded\CategoryTypeCRUD.razor" />
+    <Content Remove="Components\Pages\Excluded\CategoryTypeDeletePage.razor" />
+    <Content Remove="Components\Pages\Excluded\Category_Page2.razor" />
+    <Content Remove="Components\Pages\Excluded\Category_Page2_Component.razor" />
+    <Content Remove="Components\Pages\Excluded\InvoiceItem_List_Component.razor" />
     <Content Remove="Components\Pages\ITWarehouseAdmin\Category\CategoryComponent.razor" />
     <Content Remove="Components\Pages\ITWarehouseAdmin\Category\CategoryPage.razor" />
     <Content Remove="Components\Pages\ITWarehouseAdmin\Category\CategoryTypeCRUD.razor" />

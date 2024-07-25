@@ -12,7 +12,7 @@ using Domain.WorkFlows;
 
 namespace Application.Forms;
 
-public class DeferralPaymentFormVm : IMapFrom<DeferralPaymentForm>
+public class OtherFormVm 
 {
     // Properties from FormTemplate
     public int Id { get; set; }
@@ -23,7 +23,7 @@ public class DeferralPaymentFormVm : IMapFrom<DeferralPaymentForm>
     public string Status { get; set; }
     public List<string> Statuses { get; set; }
     public int WorkflowTemplateId { get; set; }
-    //public WorkflowTemplateVm WorkflowTemplate { get; set; }
+    public WorkflowTemplate WorkflowTemplate { get; set; }
 
     // Properties specific to DeferralPaymentForm
     public string? Number { get; set; }
@@ -49,20 +49,13 @@ public class DeferralPaymentFormVm : IMapFrom<DeferralPaymentForm>
 
     public void Mapping(Profile profile)
     {
-       profile.CreateMap<DeferralPaymentForm, DeferralPaymentFormVm>()
-            .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status))
-            .ForMember(dest => dest.Statuses, opt => opt.MapFrom(src => src.Statuses.ToList())) // Ensure Statuses is a List<string>
-            
-            // Assuming Number is based on Id
-
-            .ReverseMap();
+       
     }
 
-    public DeferralPaymentFormVm()
+    public OtherFormVm()
     {
         Status = "Rejestracja";
         Statuses = GetDefaultStatuses();
-        Note = string.Empty;
 
     }
 
@@ -70,7 +63,7 @@ public class DeferralPaymentFormVm : IMapFrom<DeferralPaymentForm>
     {
         return new List<string>
             {
-                "Rejestracja", "AprobataL1", "AprobataL2", "Zakończone"
+                "Rejestracja", "Level1", "Level2", "DeadEnd"
             };
     }
 }

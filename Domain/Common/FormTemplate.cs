@@ -15,7 +15,7 @@ public abstract class FormTemplate : AuditableEntity
     public string? Status { get; set; } //current status or step in workflow
     public List<string> Statuses { get; set; } //collection of possible statuses
     public int WorkflowTemplateId { get; set; }
-    public WorkflowTemplate WorkflowTemplate { get; set; }
+    //public WorkflowTemplate WorkflowTemplate { get; set; }
 
     protected FormTemplate(string title, string description, string folderName, string numberPrefix, string operArea, string status, int workflowTemplateId)
     {

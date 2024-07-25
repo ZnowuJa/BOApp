@@ -29,15 +29,38 @@ public class GetDeferralPaymentByApproverQueryHandler : IRequestHandler<GetDefer
 
     public async Task<IQueryable<DeferralPaymentFormVm>> Handle(GetDeferralPaymentByApproverQuery request, CancellationToken cancellationToken)
     {
+        var query = $@"
+        SELECT * 
+        FROM DeferralPayments
+        WHERE 
+            EXISTS (
+                SELECT 1
+                FROM OPENJSON(Level1Approvers)
+                WITH (EmpId int '$.EmpId') AS json
+                WHERE json.EmpId = {request.Id}
+            )
+            OR 
+            EXISTS (
+                SELECT 1
+                FROM OPENJSON(Level2Approvers)
+                WITH (EmpId int '$.EmpId') AS json
+                WHERE json.EmpId = {request.Id}
+            )";
+
+        //var empIdParameter = new SqlParameter("@empId", request.Id);
+
+        var result = await _appDbContext.DeferralPayments.FromSqlRaw(query).ToListAsync(cancellationToken);
+
+
         //var temp = new DeferralPaymentFormVm();
-        var item = await _appDbContext.DeferralPayments
-            .Where(p => p.LVL1_EnovaEmpId == request.Id || p.LVL2_EnovaEmpId == request.Id)
-            .ToListAsync(cancellationToken);
+        //var item = await _appDbContext.DeferralPayments
+        //    .Where(p => p.LVL1_EnovaEmpId == request.Id || p.LVL2_EnovaEmpId == request.Id)
+        //    .ToListAsync(cancellationToken);
         var items = new List<DeferralPaymentFormVm>();
 
-        foreach (var it in item)
+        foreach (var item in result)
         {
-            items.Add(MapToViewModel(it));
+            items.Add(MapToViewModel(item));
         }
         
         //itemVM;
@@ -69,7 +92,9 @@ public class GetDeferralPaymentByApproverQueryHandler : IRequestHandler<GetDefer
             LVL2_EnovaEmpId = model.LVL2_EnovaEmpId,
             LVL1_EmployeeName = model.LVL1_EmployeeName,
             LVL2_EmployeeName = model.LVL2_EmployeeName,
-            Approvals = DeserializeApprovals(model.Approvals)
+            Approvals = DeserializeApprovals(model.Approvals),
+            Level1Approvers = DeserializeRoles(model.Level1Approvers),
+            Level2Approvers = DeserializeRoles(model.Level2Approvers)
         };
         
         return item;
@@ -78,5 +103,10 @@ public class GetDeferralPaymentByApproverQueryHandler : IRequestHandler<GetDefer
     private List<Approval> DeserializeApprovals(string json)
     {
         return string.IsNullOrEmpty(json) ? new List<Approval>() : JsonSerializer.Deserialize<List<Approval>>(json);
+    }
+
+    private List<OrganisationRoleForFormVm> DeserializeRoles(string json)
+    {
+        return string.IsNullOrEmpty(json) ? new List<OrganisationRoleForFormVm>() : JsonSerializer.Deserialize<List<OrganisationRoleForFormVm>>(json);
     }
 }
