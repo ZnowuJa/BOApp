@@ -28,12 +28,17 @@ public class UpdateDeferralPaymentCommandHandler : IRequestHandler<UpdateDeferra
         using var transaction = await _appDbContext.BeginTransactionAsync();
         try
         {
-            var item = _mapper.Map<DeferralPaymentForm>(request.Item);
-            item.Approvals = SerializeApprovals(request.Item.Approvals);
-            item.Level1Approvers = SerializeRole(request.Item.Level1Approvers);
-            item.Level2Approvers = SerializeRole(request.Item.Level2Approvers);
+            var item = await _appDbContext.DeferralPayments.FindAsync(request.Item.Id, cancellationToken);
+            if (item != null)
+            {
+                _mapper.Map(request.Item, item);
+                item.Approvals = SerializeApprovals(request.Item.Approvals);
+                item.Level1Approvers = SerializeRole(request.Item.Level1Approvers);
+                item.Level2Approvers = SerializeRole(request.Item.Level2Approvers);
+            }
 
-            _appDbContext.DeferralPayments.Add(item);
+
+            _appDbContext.DeferralPayments.Update(item);
             await _appDbContext.SaveChangesAsync();
 
             await transaction.CommitAsync();

@@ -1,5 +1,4 @@
-﻿@*This page is just for registering request*@
-
+﻿
 @page "/deferralpaymentedit/{id:int}"
 
 @using Application.CQRS.AccountingCQRS.Customer.Queries
@@ -21,30 +20,49 @@
 @inject IMediator _mediator
 @inject ILogger<DeferralPaymentListPage> _logger
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager _navigationManager
 
 <h3>Wniosek o udzielenie odroczonej płatności</h3>
 
-@if (!(messageMissing == "Loaded"))
+@if (formItem == null)
 {
     <FluentProgressRing>Loading...</FluentProgressRing>
-    <b>@messageMissing</b>
 }
 else
 {
-    <EditForm Model="@_editContext">
+
+    <EditForm EditContext="_editContext">
+        <div>
+            <table>
+                <tr>
+                    <td><b>Numer:</b></td>
+                    <td>@formItem.Number</td>
+                    <td><b>Zgłoszone: </b></td>
+                    <td>@formItem.Requested.ToIsoDateString()</td>
+                </tr>
+                <tr>
+                    <td><b>Organizacja:</b></td>
+                    <td>@_organisation.Name</td>
+                    <td><b>Zgłaszający:</b></td>
+                    <td>@formItem.EmployeeName</td>
+                </tr>
+            </table>
+        </div>
+        <p></p>
         <FluentStack VerticalAlignment="VerticalAlignment.Center" HorizontalAlignment="HorizontalAlignment.Start">
+
             <div>
-                <FluentTextField Id="kontrahentId" @bind-Value="@formItem.KontrahentId" ReadOnly="true" style="width: 100px;"> Numer (AS): </FluentTextField>
+                <FluentTextField Id="kontrahentId" @bind-Value="formItem.KontrahentId" ReadOnly="true" style="width: 100px;"> Numer (AS): </FluentTextField>
             </div>
             <div>
-                <FluentTextField Id="name" @bind-Value="@formItem.KontrahentName" ReadOnly="true" style="width: 400px;"> Nazwa: </FluentTextField>
+                <FluentTextField Id="name" @bind-Value="formItem.KontrahentName" ReadOnly="true" style="width: 400px;"> Nazwa: </FluentTextField>
             </div>
-            <div>
-                <FluentTextField Id="EmpName" @bind-Value="@formItem.EmployeeName" ReadOnly="true" style="width: 400px;"> Nazwa użytkownika: </FluentTextField>
-            </div>
+@*             <div>
+                <FluentTextField Id="EmpName" @bind-Value="formItem.EmployeeName" ReadOnly="true" style="width: 400px;"> Nazwa użytkownika: </FluentTextField>
+            </div> *@
         </FluentStack>
         <h3> </h3>
-        <FluentTextArea @bind-Value="@formItem.Note" Label="Proszę o włączenie odroczonej płatności ze względu na:" Cols="72" Required="true">
+        <FluentTextArea @bind-Value="formItem.Note" Label="Proszę o włączenie odroczonej płatności ze względu na:" Cols="72" Required="true" Disabled = "true">
         </FluentTextArea>
 
         <p></p>
@@ -52,18 +70,20 @@ else
         @if (al1 || al2)
         {
             <p></p>
+            
             <FluentStack Orientation="Orientation.Horizontal">
             <FluentSelect TOption="OrganisationRoleForFormVm"
+                          Style="align-items: center;"
                           Id="AL1Id"
-                          Disabled = "@al1"
-                          Label ="Aprobata L1"
+                          Disabled="@(al1)"
+                          Label="Aprobata L1"
                           Autofocus="true"
-                          Items="@formItem.Level1Approvers"
+                          Items="formItem.Level1Approvers"
                           Multiple="false"
                           OptionValue="@(p => p.EmpId.ToString())"
                           OptionText="@(p => p.LongName)"
                           OptionSelected="@(p => p.IsDefault)"
-                          @bind-SelectedOption="@approverL1"
+                          @bind-SelectedOption="approverL1"
                           Height="200px"
                           @onchange="HandleChangeApproverL1" />
 
@@ -72,30 +92,33 @@ else
                           Id="AL1Id"
                           Autofocus="true"
                           Label="Aprobata L2"
-                          Items="@formItem.Level2Approvers"
+                          Items="formItem.Level2Approvers"
                           Multiple="false"
                           OptionValue="@(p => p.EmpId.ToString())"
                           OptionText="@(p => p.LongName)"
                           OptionSelected="@(p => p.IsDefault)"
-                          @bind-SelectedOption="@approverL1"
+                          @bind-SelectedOption="approverL2"
                           Height="200px"
                           @onchange="HandleChangeApproverL2" />
             </FluentStack>
         }
 
         <H3></H3>
+        <p></p>
+        <p></p>
         <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
-                      Appearance="Appearance.Accent" OnClick="@Save" BackgroundColor="#509EDB" Style="width: 100px"> Wyślij</FluentButton>
-        <FluentSpacer Width="@buttonSpacer" />
-        @if (showApproval)
-        {
-            
-        }
-        <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
-                      Appearance="Appearance.Accent" OnClick="@Cancel" BackgroundColor="#1FC91F" Style="width: 100px"> Zatwierdź</FluentButton>
+                      Appearance="Appearance.Accent" OnClick="() => Save(sent)" BackgroundColor="#509EDB" Style="width: 100px" Disabled="@SendButton"> 
+                      Wyślij</FluentButton>
         <FluentSpacer Width="@buttonSpacer" />
         <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
-                      Appearance="Appearance.Accent" OnClick="@Cancel" BackgroundColor="#C21E56" Color="#FFFFFF" Style="width: 100px"> Anuluj</FluentButton>
+                      Appearance="Appearance.Accent" OnClick="() => Save(approved)" BackgroundColor="#1FC91F" Style="width: 100px"> 
+                      Zatwierdź</FluentButton>
+        <FluentSpacer Width="@buttonSpacer" />
+        <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
+                      Appearance="Appearance.Accent" OnClick="() => Save(rejected)" BackgroundColor="#C21E56" Color="#FFFFFF" Style="width: 100px"> Odrzuć</FluentButton>
+        <FluentSpacer Width="@buttonSpacer" />
+        <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
+                      Appearance="Appearance.Accent" OnClick="() => Save(cancelled)" BackgroundColor="#808080" Color="#FFFFFF" Style="width: 100px"> Anuluj</FluentButton>
     </EditForm>
 }
 
@@ -103,7 +126,7 @@ else
     [Parameter]
     public int Id { get; set; }
 
-    private DeferralPaymentFormVm formItem { get; set; } 
+    private DeferralPaymentFormVm formItem { get; set; }
     private EditContext _editContext;
 
     private CustomerVm customer { get; set; }
@@ -111,6 +134,11 @@ else
     private string messageMissing { get; set; }
     private bool showCustomer { get; set; }
     private bool showApproval = false;
+
+    private readonly string sent = "sent";
+    private readonly string rejected = "rejected";
+    private readonly string approved = "approved";
+    private readonly string cancelled = "cancelled";
 
     private bool caneditfields = false;
 
@@ -128,6 +156,8 @@ else
     private bool ApproveButton = true;
     private bool SendButton = true;
 
+    private Approval approval { get; set; }
+
     private OrganisationVm _organisation { get; set; }
     private WorkflowTemplateVm wf { get; set; }
     private string FormName = "DeferralPaymentFormVm";
@@ -136,49 +166,37 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        await GetUserName();
-        await Load();
-    }
-
-    private async Task Load()
-    {
         messageMissing = "Loading";
         try
         {
-            Console.WriteLine();
             formItem = await _mediator.Send(new GetDeferralPaymentQuery(Id));
+            _editContext = new EditContext(formItem);
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error loading kontrahent: {ex.Message}");
         }
 
-        _editContext = new EditContext(formItem);
+        await GetUserName();
+        await Load();
+    }
 
+    private async Task Load()
+    {
         al1 = formItem.Status == "AprobataL1";
         al2 = formItem.Status == "AprobataL2";
         fin = formItem.Status == "Zakończone";
 
         itemEmployeesList = await _mediator.Send(new GetAllEmployeesQuery());
         _organisation = await _mediator.Send(new GetOrganisationByEmpSapNumberQuery(emp.SapNumber));
-        try
+        approval = new Approval()
         {
-            Approval approval = new Approval()
-                {
-                    Status = formItem.Status,
-                    EnovaEmpId = emp.EnovaEmpId.ToString(),
-                    LongName = emp.LongName,
-                    Date = DateTime.Now,
-                    IsApproved = true
-                };
-            formItem.Approvals.Add(approval);
-        } catch (Exception ex)
-        {
-            message = $"Error:: {ex.InnerException}";
-        }
-
-        Console.WriteLine("tadtam");
-
+                Status = formItem.Status,
+                EnovaEmpId = emp.EnovaEmpId.ToString(),
+                LongName = emp.LongName,
+                Date = DateTime.Now,
+                IsApproved = true
+        };
         if (al1)
         {
             formItem.Status = "AprobataL2";
@@ -186,12 +204,8 @@ else
         else if (al2)
         {
             formItem.Status = "Zakończone";
-        } else
-        {
-            // do nothing ???
-            // or at least disable all actions except Cancel
         }
-        Console.WriteLine("tadtam2");
+
         messageMissing = "Loaded";
         StateHasChanged();
     }
@@ -210,20 +224,10 @@ else
         formItem.LVL2_EmployeeName = tempEmp.LongName;
         Console.WriteLine(tempEmp.LongName);
     }
-    // private async Task TogglePrzelew()
-    // {
-    //     if (customer != null)
-    //     {
-    //         // await _asdbctx.ExecuteSqlRawAsync("EXEC kontrahent_przelew @p0, @p1", Id, !kontrahent.Przelew);
-    //         customer.Przelew = !customer.Przelew;
-    //         StateHasChanged();
-    //         // await LoadKontrahent();
-    //     }
-    // }
 
-    private async Task Save()
+    private async Task Save(string buttonState)
     {
-        try
+        if (buttonState == "approved")
         {
             if (formItem.Status == "AprobataL1")
             {
@@ -233,35 +237,49 @@ else
             {
                 formItem.Status = "Zakończone";
             }
-            else
-            {
-                // do nothing ???
-                // or at least disable all actions except Cancel
-            }
-            // Call the mediator to send the command
-            var saveResult = await _mediator.Send(new UpdateDeferralPaymentCommand(formItem));
 
-            message = $"Wniosek o numerze {saveResult.Number}o opóźnioną płatność dla {saveResult.KontrahentId}, {saveResult.KontrahentName} wysłana!";
-        }
-        catch (Exception ex)
+        } 
+        else if (buttonState == "rejected")
         {
-            Console.WriteLine($"Error creating deferral payment form: {ex.Message}");
-            message = "An error occurred while creating the deferral payment form.";
+            approval.IsApproved = false;
+            formItem.Status = "Odrzucone";
+        }
+        else if (buttonState == "cancelled")
+        {
+            _navigationManager.NavigateTo("/deferralpayments");
+            return;
+        }
+
+        formItem.Approvals.Add(approval);
+
+        var saveResult = await _mediator.Send(new UpdateDeferralPaymentCommand(formItem));
+        
+        message = $"Wniosek o numerze {saveResult.Number} o opóźnioną płatność dla {saveResult.KontrahentId}, {saveResult.KontrahentName} wysłana!";
+
+        _navigationManager.NavigateTo("/deferralpayments");
+    }
+
+    private async Task Reject()
+    {
+        message = "Wniosek odrzucony!";
+        formItem.Status = "Odrzucony";
+        ///deferralpayments
+        if (_navigationManager != null)
+        {
+            _navigationManager.NavigateTo("/deferralpayments");
+        }
+        else
+        {
+            // Handle the null case appropriately
+            Console.WriteLine("NavigationManager is null");
         }
     }
-
-    private async Task Cancel()
-    {
-        message = "Wniosek anulowany!";
-    }
-
     private async Task GetUserName()
     {
         var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         user = authenticationState.User;
         var claimType = "name"; // or use ClaimTypes.Title
         var claimTypeAID = "http://schemas.microsoft.com/identity/claims/objectidentifier";
-        // new Guid();
 
         var usernameClaim = user.Claims.FirstOrDefault(c => c.Type == claimType);
         if (usernameClaim != null)
@@ -277,22 +295,28 @@ else
         var aidClaim = user.Claims.FirstOrDefault(c => c.Type == claimTypeAID);
         if (aidClaim != null)
         {
-            Guid aidGuid = new Guid();
+            Guid aidGuid;
             Guid.TryParse(aidClaim.Value, out aidGuid);
             emp = await _mediator.Send(new GetEmployeeByAIDQuery(aidGuid));
-            Console.WriteLine($"claim of type {claimTypeAID} found.");
         }
         else
         {
             emp = new EmployeeVm();
             Console.WriteLine($"No claim of type {claimTypeAID} found.");
         }
-
-        Console.WriteLine("");
-    }
-
-    private async Task SetCanEditForm()
-    {
-        
     }
 }
+
+<style>
+        table {
+            border-collapse: collapse; /* Optional: For a cleaner look */
+            width: 450px; /* Optional: Adjust to fit your container */
+        }
+        th, td {
+            padding: 5px; /* Adds padding inside each cell */
+            text-align: left; /* Optional: Align text to the left */
+        }
+        td:first-child, th:first-child {
+            padding-left: 0; /* Removes padding on the left of the first cell */
+        }
+</style>

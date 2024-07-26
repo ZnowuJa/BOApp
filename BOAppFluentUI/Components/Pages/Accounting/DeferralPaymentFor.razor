@@ -19,10 +19,11 @@
 @attribute [Authorize(Policy = "Technician")]
 
 @inject IMediator _mediator
-@inject ILogger<DeferralPaymentListPage> _logger
+@inject ILogger<DeferralPaymentFor> _logger
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
 <h3>Wniosek o udzielenie odroczonej płatności</h3>
+
 @if(_organisation != null)
 {
     <h5>Organizacja: @_organisation.Name</h5>
