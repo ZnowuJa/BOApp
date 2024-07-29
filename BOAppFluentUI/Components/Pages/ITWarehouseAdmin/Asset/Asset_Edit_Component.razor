@@ -481,7 +481,8 @@ else
     }
     private async Task HandleAssigneeChange(string newValue)
     {
-        if (newValue != null)
+        Console.WriteLine();
+        if (newValue != null && newValue != "" && Content.AssigneeVmType != "Unknown")
         {
             if (firstInit)
             {
