@@ -253,7 +253,7 @@ else
         formItem.Approvals.Add(approval);
 
         var saveResult = await _mediator.Send(new UpdateDeferralPaymentCommand(formItem));
-        
+
         message = $"Wniosek o numerze {saveResult.Number} o opóźnioną płatność dla {saveResult.KontrahentId}, {saveResult.KontrahentName} wysłana!";
 
         _navigationManager.NavigateTo("/deferralpayments");
@@ -263,6 +263,7 @@ else
     {
         message = "Wniosek odrzucony!";
         formItem.Status = "Odrzucony";
+        await _mediator.Send(new UpdateDeferralPaymentCommand(formItem));
         ///deferralpayments
         if (_navigationManager != null)
         {

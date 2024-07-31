@@ -4,6 +4,7 @@
 
 @using Application.CQRS.AccountingCQRS.Customer.Queries
 @using Application.CQRS.AccountingCQRS.DeferralPayment.Commands;
+@using Application.CQRS.AccountingCQRS.DeferralPayment.Queries
 @using Application.CQRS.General.Organisations.Queries
 @using Application.CQRS.General.Workflows.Queries
 @using Application.Forms
@@ -182,8 +183,18 @@ else
             try
             {
                 customer = await _mediator.Send(new GetCustomerQuery(Id));
+
+
                 if (customer != null)
                 {
+                    var chekRequests = await _mediator.Send(new GetDeferralPaymentByCustomerQuery(Id.ToString()));
+                    if(chekRequests.Count() > 0)
+                    {
+                        customer = null;
+                        messageMissing = $"Kontrahent o numerze {Id} ma już otwarte zgłoszenia o odroczoną płatność!";
+                        return;
+                    }
+
                     showCustomer = true;
 
                     if (customer.Przelew)
@@ -255,6 +266,16 @@ else
         SendButton = false;
         Console.WriteLine();
     }
+    private async Task TogglePrzelew()
+        {
+            if (customer != null)
+            {
+                // await _asdbctx.ExecuteSqlRawAsync("EXEC kontrahent_przelew @p0, @p1", Id, !kontrahent.Przelew);
+                customer.Przelew = !customer.Przelew;
+                StateHasChanged();
+                // await LoadKontrahent();
+            }
+        }
 
     private void HandleChangeApproverL1(ChangeEventArgs e)
     {
@@ -272,16 +293,6 @@ else
     }
 
     
-    private async Task TogglePrzelew()
-    {
-        if (customer != null)
-        {
-            // await _asdbctx.ExecuteSqlRawAsync("EXEC kontrahent_przelew @p0, @p1", Id, !kontrahent.Przelew);
-            customer.Przelew = !customer.Przelew;
-            StateHasChanged();
-            // await LoadKontrahent();
-        }
-    }
 
     private async Task Save()
     {

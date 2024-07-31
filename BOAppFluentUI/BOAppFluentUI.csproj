@@ -4,6 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>e7ac633d-9928-476d-b85c-3c3f9ed838ac</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -35,6 +36,7 @@
     <Compile Remove="Components\Pages\Excluded\LogoutPage.cshtml.cs" />
     <Compile Remove="Components\Pages\Excluded\RefreshSignIn.cshtml.cs" />
     <Compile Remove="Components\Pages\RefreshSignIn.cshtml.cs" />
+    <Compile Remove="Data\GraphClientExtensions.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -83,31 +85,31 @@
 	<PackageReference Include="FluentValidation" Version="11.9.2" />
 	<PackageReference Include="FluentValidation.AspNetCore" Version="11.3.0" />
 	<PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.9.2" />
-	<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.6" />
-	<PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="8.0.6" />
-	<PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="8.0.6" />
-	<PackageReference Include="Microsoft.AspNetCore.Components.QuickGrid.EntityFrameworkAdapter" Version="8.0.6" />
-	<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="8.0.6" />
-	<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.6" />
-	<PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="8.0.6" />
+	<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.7" />
+	<PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="8.0.7" />
+	<PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="8.0.7" />
+	<PackageReference Include="Microsoft.AspNetCore.Components.QuickGrid.EntityFrameworkAdapter" Version="8.0.7" />
+	<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="8.0.7" />
+	<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.7" />
+	<PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="8.0.7" />
 	<PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.1" />
-	<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.6" />
-	<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.6" />
-	<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.6">
+	<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.7" />
+	<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.7" />
+	<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.7">
 	  <PrivateAssets>all</PrivateAssets>
 	  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 	</PackageReference>
-	<PackageReference Include="Microsoft.FluentUI.AspNetCore.Components.DataGrid.EntityFrameworkAdapter" Version="4.8.0" />
+	<PackageReference Include="Microsoft.FluentUI.AspNetCore.Components.DataGrid.EntityFrameworkAdapter" Version="4.9.3" />
 	<PackageReference Include="Microsoft.FluentUI.AspNetCore.Components.Emoji" Version="4.6.0" />
-    <PackageReference Include="Microsoft.FluentUI.AspNetCore.Components.Icons" Version="4.8.0" />
-    <PackageReference Include="Microsoft.Identity.Web" Version="2.20.0" />
-    <PackageReference Include="Microsoft.Identity.Web.MicrosoftGraph" Version="2.20.0" />
-    <PackageReference Include="Microsoft.Identity.Web.UI" Version="2.20.0" />
-    <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="7.6.2" />
-    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.2" />
-    <PackageReference Include="Serilog" Version="4.0.0" />
+    <PackageReference Include="Microsoft.FluentUI.AspNetCore.Components.Icons" Version="4.9.3" />
+    <PackageReference Include="Microsoft.Identity.Web" Version="3.0.1" />
+    <PackageReference Include="Microsoft.Identity.Web.MicrosoftGraph" Version="3.0.1" />
+    <PackageReference Include="Microsoft.Identity.Web.UI" Version="3.0.1" />
+    <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.0.1" />
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.3" />
+    <PackageReference Include="Serilog" Version="4.0.1" />
     <PackageReference Include="Serilog.AspNetCore" Version="8.0.1" />
-    <PackageReference Include="Serilog.Settings.Configuration" Version="8.0.1" />
+    <PackageReference Include="Serilog.Settings.Configuration" Version="8.0.2" />
     <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
   </ItemGroup>
 
