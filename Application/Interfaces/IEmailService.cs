@@ -4,8 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using Microsoft.Graph.Models;
+
 namespace Application.Interfaces;
 public interface IEmailService
 {
-    Task SendEmailAsync(string toEmail, string subject, string body);
+    Task SendEmailAsync(Message message);
 }

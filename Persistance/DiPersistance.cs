@@ -39,8 +39,7 @@ public static class DiPersistance
         });
 
         services.AddScoped<ITokenValidatedHandlerService, TokenValidatedHandlerService>();
-        //services.AddScoped<IUserService, UserService>();
-
+        
         services.AddDefaultIdentity<AppUser>(options => options.SignIn.RequireConfirmedAccount = false)
             .AddRoles<IdentityRole>()
             .AddEntityFrameworkStores<AppDbContext>();
@@ -48,21 +47,22 @@ public static class DiPersistance
 
         services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
             .AddMicrosoftIdentityWebApp(configuration.GetSection("AzureAd"));
+
         services.AddControllersWithViews()
             .AddMicrosoftIdentityUI();
 
         services.Configure<OpenIdConnectOptions>(OpenIdConnectDefaults.AuthenticationScheme, options =>
         {
             options.SignedOutCallbackPath = new PathString("/signout-oidc");
-            //options.LogoutCallbackUrl = new PathString("/signout-oidc");
             options.SignedOutRedirectUri = "/";
-            //options.Prompt = "none";
             options.Events = new OpenIdConnectEvents
             {
                 OnTokenValidated = async context =>
                 {
-                    Log.Information("onTokentValaidated Event :: " + context.Principal.Claims.ToString());
-                    var tokenValidatedHandler = context.HttpContext.RequestServices.GetRequiredService< ITokenValidatedHandlerService>();
+                    var tokenValidatedHandler = context.HttpContext
+                    .RequestServices
+                    .GetRequiredService<ITokenValidatedHandlerService>();
+                    
                     await tokenValidatedHandler.HandleTokenValidation(context);
                    
                 }
@@ -71,13 +71,23 @@ public static class DiPersistance
 
         services.AddAuthorization(options =>
         {
-            options.AddPolicy("Accountant", policy => policy.RequireRole("Accountant", "AccountantTL", "Technician", "Administrator", "AppAdmin"));
-            //options.AddPolicy("UserOnly", policy => policy.RequireRole("User"));
-            options.AddPolicy("User", policy => policy.RequireRole("User", "Accountant", "AccountantTL", "Manager", "Technician", "Administrator", "AppAdmin"));
-            options.AddPolicy("Manager", policy => policy.RequireRole("Manager", "Technician", "Administrator", "AppAdmin"));
-            options.AddPolicy("Technician", policy => policy.RequireRole("Technician", "Administrator", "AppAdmin"));
-            options.AddPolicy("Administrator", policy => policy.RequireRole("Administrator", "AppAdmin"));
-            options.AddPolicy("AppAdmin", policy => policy.RequireRole("AppAdmin"));
+            options.AddPolicy("Accountant", policy => policy
+            .RequireRole("Accountant", "AccountantTL", "Technician", "Administrator", "AppAdmin"));
+            
+            options.AddPolicy("User", policy => policy
+            .RequireRole("User", "Accountant", "AccountantTL", "Manager", "Technician", "Administrator", "AppAdmin"));
+
+            options.AddPolicy("Manager", policy => policy
+            .RequireRole("Manager", "Technician", "Administrator", "AppAdmin"));
+
+            options.AddPolicy("Technician", policy => policy
+            .RequireRole("Technician", "Administrator", "AppAdmin"));
+
+            options.AddPolicy("Administrator", policy => policy
+            .RequireRole("Administrator", "AppAdmin"));
+
+            options.AddPolicy("AppAdmin", policy => policy
+            .RequireRole("AppAdmin"));
 
             options.FallbackPolicy = options.DefaultPolicy;
         });

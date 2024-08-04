@@ -19,7 +19,7 @@ public static class DiInfrastructure
         services.AddScoped<IUserRegistrationService, UserRegistrationService>();
         services.AddScoped<IFileService, FileService>();
 
-        //services.AddScoped<IEmailService, GraphAPIMailService>();
+        services.AddScoped<IEmailService, GraphEmailService>();
 
         //services.AddScoped<GraphServiceClient>(provider =>
         //{
