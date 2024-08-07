@@ -44,7 +44,8 @@ public class AppDbContext : IdentityDbContext<AppUser>, IAppDbContext
     public DbSet<WorkflowTemplate> WorkflowTemplates { get; set; }
     public DbSet<WorkflowStep> WorkflowSteps { get; set; }
     public DbSet<Organisation> Organisations { get; set; }
-    
+    public DbSet<TestForm> TestForms { get; set; }
+
     protected override void OnModelCreating(ModelBuilder builder)
     {
         builder.Entity<Invoice>(e =>

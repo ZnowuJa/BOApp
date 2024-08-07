@@ -30,9 +30,10 @@ public interface IAppDbContext
     DbSet<Department> Departments { get; set; }
     DbSet<AssetHistory> AssetsHistory { get; set; }
     DbSet<DeferralPaymentForm> DeferralPayments { get; set; }
-    public DbSet<WorkflowTemplate> WorkflowTemplates { get; set; }
-    public DbSet<WorkflowStep> WorkflowSteps { get; set; }
-    public DbSet<Organisation> Organisations { get; set; }
+    DbSet<WorkflowTemplate> WorkflowTemplates { get; set; }
+    DbSet<WorkflowStep> WorkflowSteps { get; set; }
+    DbSet<Organisation> Organisations { get; set; }
+    DbSet<TestForm> TestForms { get; set; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default);

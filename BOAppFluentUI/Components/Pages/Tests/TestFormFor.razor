@@ -1,10 +1,11 @@
 ﻿@*This page is just for registering request*@
 
-@page "/deferralpaymentfor/{id:int}"
+@page "/testformfor/{id:int}"
 
 @using Application.CQRS.AccountingCQRS.Customer.Queries
 @using Application.CQRS.AccountingCQRS.DeferralPayment.Commands;
 @using Application.CQRS.AccountingCQRS.DeferralPayment.Queries
+@using Application.CQRS.AccountingCQRS.TestForms.Commands
 @using Application.CQRS.General.Organisations.Queries
 @using Application.CQRS.General.Workflows.Queries
 @using Application.Forms
@@ -20,7 +21,7 @@
 @attribute [Authorize(Policy = "Technician")]
 
 @inject IMediator _mediator
-@inject ILogger<DeferralPaymentFor> _logger
+@inject ILogger<TestFormFor> _logger
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
 <h3>Wniosek o udzielenie odroczonej płatności</h3>
@@ -113,28 +114,61 @@ else
         <FluentSpacer Width="@buttonSpacer" />
         <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
                       Appearance="Appearance.Accent" OnClick="@Cancel" BackgroundColor="#808080" Color="#FFFFFF" Style="width: 100px"> Anuluj</FluentButton>
-
+        <p></p>
         <h3>
             @* test obslugi plików *@
         </h3>
         <p></p>
+        <FluentInputFile @ref="@myFileByBuffer"
+                         AnchorId="MyUploadBuffer"
+                         DragDropZoneVisible="true"
+                         Mode="InputFileMode.Buffer"
+                         Multiple="true"
+                         MaximumFileSize="@(1000 * 1024 * 1024)"
+                         Accept=".pdf, .jpg, .png"
+                         OnProgressChange="@OnProgressChangeAsync"
+                         OnCompleted="@OnCompleted" />
+        <FluentButton Appearance="Appearance.Accent" Id="MyUploadBuffer">
+            Upload files
+        </FluentButton>
+        <FluentButton @onclick="@((e) => IsCanceled = true)">
+            Cancel
+        </FluentButton>
+        @if (Files.Any())
+        {
+            <h4>File(s) uploaded:</h4>
+            <ul>
+                @foreach (var file in Files)
+                {
+                    <li>
+                        @file
+                    </li>
+                }
+            </ul>
+        }
+
 
     </EditForm>
 }
 
 @code {
+
+    FluentInputFile? myFileByBuffer = default!;
+    int? progressPercent;
+    string? progressTitle;
+    bool IsCanceled;
+    Dictionary<int, string> Files = new();
+
     #region InitForm
     [Parameter]
     public int Id { get; set; }
 
-    private DeferralPaymentFormVm formItem { get; set; } = new DeferralPaymentFormVm();
-
+    private TestFormVm formItem { get; set; } = new TestFormVm();
     private CustomerVm customer { get; set; }
     private string message { get; set; }
     private string messageMissing { get; set; }
     private bool showCustomer { get; set; }
     private bool showApproval = false;
-
     private ClaimsPrincipal? user { get; set; }
     private string username { get; set; }
     private EmployeeVm emp { get; set; }
@@ -146,14 +180,44 @@ else
     private bool al2 = false;
     private bool ApproveButton = true;
     private bool SendButton = true;
-
     private OrganisationVm _organisation { get; set; }
     private WorkflowTemplateVm wf { get; set; }
-    private string FormName = "DeferralPaymentFormVm";
-
+    private string FormName = "TestFormVm";
     private int buttonSpacer = 100;
 
     #endregion InitForm
+
+    async Task OnProgressChangeAsync(FluentInputFileEventArgs file)
+    {
+        progressPercent = file.ProgressPercent;
+        progressTitle = file.ProgressTitle;
+
+        // To cancel?
+        file.IsCancelled = IsCanceled;
+
+        // New file
+        if (!Files.ContainsKey(file.Index))
+        {
+            var localFile = Path.GetTempFileName() + file.Name;
+            Files.Add(file.Index, localFile);
+        }
+
+        // Write to the FileStream
+        await file.Buffer.AppendToFileAsync(Files[file.Index]);
+    }
+
+    void OnCompleted(IEnumerable<FluentInputFileEventArgs> files)
+    {
+        progressPercent = myFileByBuffer!.ProgressPercent;
+        progressTitle = myFileByBuffer!.ProgressTitle;
+
+        // For the demo, delete these files.
+        foreach (var file in Files)
+        {
+            File.Delete(file.Value);
+        }
+    }
+
     protected override async Task OnInitializedAsync()
     {
         await GetUserName();
@@ -179,7 +243,6 @@ else
         // await _mediator.Send(new GetEmployeeByAIDQuery())
         await Load();
     }
-
     private async Task Load()
     {
         //this trycatch block is to be conditional due to stage (New/Edit)
@@ -193,7 +256,7 @@ else
 
                 if (customer != null)
                 {
-                    var chekRequests = await _mediator.Send(new GetDeferralPaymentByCustomerQuery(Id.ToString()));
+                    var chekRequests = await _mediator.Send(new GetTestFormByCustomerQuery(Id.ToString()));
                     if(chekRequests.Count() > 0)
                     {
                         customer = null;
@@ -264,7 +327,6 @@ else
         }
         return rolesOut;
     }
-
     private void ChangeNote (ChangeEventArgs e)
     {
         // if (formItem.Note )
@@ -282,7 +344,6 @@ else
                 // await LoadKontrahent();
             }
         }
-
     private void HandleChangeApproverL1(ChangeEventArgs e)
     {
         var tempEmp = itemEmployeesList.First(p => p.EnovaEmpId == int.Parse(e.Value.ToString()));
@@ -297,9 +358,6 @@ else
         formItem.LVL2_EmployeeName = tempEmp.LongName;
         Console.WriteLine(tempEmp.LongName);
     }
-
-    
-
     private async Task Save()
     {
         Console.WriteLine($"Error creating deferral payment form:");
@@ -307,7 +365,7 @@ else
         {
             formItem.Przelew = true;
             // Call the mediator to send the command
-            var saveResult = await _mediator.Send(new CreateDeferralPaymentCommand(formItem));
+            var saveResult = await _mediator.Send(new CreateTestFormCommand(formItem));
 
             message = $"Wniosek o numerze {saveResult.Number}o opóźnioną płatność dla {saveResult.KontrahentId}, {saveResult.KontrahentName} wysłana!";
         }
@@ -317,12 +375,10 @@ else
             message = $"An error occurred while creating the deferral payment form: {ex.InnerException.Message}.";
         }
     }
-
     private async Task Cancel()
     {
         message = "Wniosek anulowany!";
     }
-
     private async Task GetUserName()
     {
         var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
