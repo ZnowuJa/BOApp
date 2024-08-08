@@ -26,6 +26,7 @@ else
         <PropertyColumn Property="@(c => c.Id)" Sortable="true" Align="Align.Start" Tooltip="true"  />
         <PropertyColumn Property="@(c => c.Name)" Sortable="true" Align="Align.Start" Tooltip="true" Title="Category Name" />
         <PropertyColumn Property="@(c => c.Prefix)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.LeadingZeros)" Sortable="true" Align="Align.Start" Tooltip="true" />
         <PropertyColumn Property="@(c => c.CategoryTypeVm.Name)" Sortable="true" Align="Align.Start" Tooltip="true" Title="Category Type"/>
         <TemplateColumn Title="Actions" Align="Align.End">
             <FluentButton IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" />
@@ -75,14 +76,14 @@ else
             ctVm = (CategoryVm)result.Data;
             if (ctVm.Id > 0)
             {
-                i = await _mediator.Send(new UpdateCategoryCommand(ctVm.Id, ctVm.Name, ctVm.Prefix, ctVm.CategoryTypeVm));
+                i = await _mediator.Send(new UpdateCategoryCommand(ctVm.Id, ctVm.Name, ctVm.Prefix, ctVm.LeadingZeros, ctVm.CategoryTypeVm));
                 intent = ToastIntent.Success;
                 message = "Category has been updated!";
             }
             else if (ctVm.Id == 0)
             {
                 Console.WriteLine("Tu weszlismy?" + ctVm.Name + ctVm.Prefix + ctVm.CategoryTypeVm.Name);
-                i = await _mediator.Send(new CreateCategoryCommand(ctVm.Name, ctVm.Prefix, ctVm.CategoryTypeVm));
+                i = await _mediator.Send(new CreateCategoryCommand(ctVm.Name, ctVm.Prefix, ctVm.LeadingZeros, ctVm.CategoryTypeVm));
                 intent = ToastIntent.Success;
                 message = "Category has been Created!";
             }
@@ -113,79 +114,79 @@ else
 
     private async Task AddPanel()
     {
-        CategoryVm ctVm = new CategoryVm { Id = 0, Name = string.Empty, Prefix = string.Empty, CategoryTypeVm = new CategoryTypeVm() };
+        CategoryVm ctVm = new CategoryVm { Id = 0, Name = string.Empty, Prefix = string.Empty, CategoryTypeVm = new CategoryTypeVm(), LeadingZeros = 0 };
         // await EditCatTypePanel(ctVm);
         await EditCatType(ctVm);
         
     }
 
-    private async Task EditCatTypePanel(CategoryVm ctVm)
-    {
-        ToastIntent intent;
-        string message = string.Empty;
-        int i = 0;
+    // private async Task EditCatTypePanel(CategoryVm ctVm)
+    // {
+    //     ToastIntent intent;
+    //     string message = string.Empty;
+    //     int i = 0;
 
-        var data = ctVm;
-        var dialog = await _dialogService.ShowPanelAsync<Category_Edit_Component>(data, new DialogParameters()
-            {
-                Height = "240px",
-                Width = "720px",
-                Title = data.Id > 0 ? "Update Category Title" : "Create new Category",
-                PreventDismissOnOverlayClick = false,
-                PreventScroll = true,
-            });
-        var result = await dialog.Result;
-
-
-        if (!result.Cancelled && result.Data != null)
-        {
-            ctVm = (CategoryVm)result.Data;
-            if (ctVm.Id > 0)
-            {
-                i = await _mediator.Send(new UpdateCategoryCommand(ctVm.Id, ctVm.Name, ctVm.Prefix, ctVm.CategoryTypeVm));
-                intent = ToastIntent.Success;
-                message = "Category has been updated!";
-            }
-            else if (ctVm.Id == 0)
-            {
-                i = await _mediator.Send(new CreateCategoryCommand(ctVm.Name, ctVm.Prefix, ctVm.CategoryTypeVm));
-                intent = ToastIntent.Success;
-                message = "Category has been Created!";
-            }
-            else
-            {
-
-                intent = ToastIntent.Warning;
-                message = "Something went realy wrong!";
-            }
-
-        }
-        else if (result.Cancelled)
-        {
-            intent = ToastIntent.Info;
-            message = "Changes Cancelled...";
-        }
-        else
-        {
-            intent = ToastIntent.Error;
-            message = "Something went wrong!!!";
-        }
+    //     var data = ctVm;
+    //     var dialog = await _dialogService.ShowPanelAsync<Category_Edit_Component>(data, new DialogParameters()
+    //         {
+    //             Height = "240px",
+    //             Width = "720px",
+    //             Title = data.Id > 0 ? "Update Category Title" : "Create new Category",
+    //             PreventDismissOnOverlayClick = false,
+    //             PreventScroll = true,
+    //         });
+    //     var result = await dialog.Result;
 
 
-        await Load();
-        _toastService.ShowToast(intent, message, 3000);
+    //     if (!result.Cancelled && result.Data != null)
+    //     {
+    //         ctVm = (CategoryVm)result.Data;
+    //         if (ctVm.Id > 0)
+    //         {
+    //             i = await _mediator.Send(new UpdateCategoryCommand(ctVm.Id, ctVm.Name, ctVm.Prefix, ctVm.CategoryTypeVm));
+    //             intent = ToastIntent.Success;
+    //             message = "Category has been updated!";
+    //         }
+    //         else if (ctVm.Id == 0)
+    //         {
+    //             i = await _mediator.Send(new CreateCategoryCommand(ctVm.Name, ctVm.Prefix, ctVm.CategoryTypeVm));
+    //             intent = ToastIntent.Success;
+    //             message = "Category has been Created!";
+    //         }
+    //         else
+    //         {
 
-        Console.WriteLine(result.GetType());
-    }
+    //             intent = ToastIntent.Warning;
+    //             message = "Something went realy wrong!";
+    //         }
+
+    //     }
+    //     else if (result.Cancelled)
+    //     {
+    //         intent = ToastIntent.Info;
+    //         message = "Changes Cancelled...";
+    //     }
+    //     else
+    //     {
+    //         intent = ToastIntent.Error;
+    //         message = "Something went wrong!!!";
+    //     }
+
+
+    //     await Load();
+    //     _toastService.ShowToast(intent, message, 3000);
+
+    //     Console.WriteLine(result.GetType());
+    // }
 
     private async Task View(CategoryVm catType)
     {
-        await _dialogService.ShowInfoAsync(message: $"Category type id: {catType.Id}, name: {catType.Name}");
+        await _dialogService.ShowInfoAsync(message: $"Category type id: {catType.Id}, name: {catType.Name}, leading zeros: {catType.LeadingZeros}");
     }
 
     private async Task Add()
     {
-        CategoryVm ctVm = new CategoryVm { Id = 0, Name = string.Empty, Prefix = string.Empty, CategoryTypeVm = new CategoryTypeVm() };
+        CategoryVm ctVm = new CategoryVm { Id = 0, Name = string.Empty, Prefix = string.Empty, LeadingZeros = 0, CategoryTypeVm = new CategoryTypeVm() };
         await EditCatType(ctVm);
     }
 

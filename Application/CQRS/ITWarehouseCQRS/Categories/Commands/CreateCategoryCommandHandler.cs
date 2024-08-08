@@ -24,6 +24,7 @@ public class CreateCategoryCommandHandler : IRequestHandler<CreateCategoryComman
         {
             Name = request.Name,
             Prefix = request.Prefix,
+            LeadingZeros = request.LeadingZeros,
             CategoryType = ct
             //_mapper.Map<CategoryType>(request.CategoryTypeVm)
 

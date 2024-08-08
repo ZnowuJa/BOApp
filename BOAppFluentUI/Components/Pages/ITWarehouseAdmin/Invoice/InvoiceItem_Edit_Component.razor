@@ -290,6 +290,7 @@
         {
             // string latestAssetTagNumber = string.Empty;
             var prefix = Content.PartVm.CategoryVm.Prefix;
+            var leadingZeros = Content.PartVm.CategoryVm.LeadingZeros;
             //think about variuos amount of digits across categories
             var latestAssetTagNumber = await _mediator.Send(new GetLatestAssetNumberByPrefixQuery(prefix));
 
@@ -305,7 +306,7 @@
             {
                 var tempAsst = new AssetVm();
                 latestNumericPart++; 
-                var nextAssetTagNumber = prefix + latestNumericPart.ToString().PadLeft(7, '0'); 
+                var nextAssetTagNumber = prefix + latestNumericPart.ToString().PadLeft(leadingZeros, '0'); 
                 tempAsst.AssetTagNumber = nextAssetTagNumber;
                 tempAsst.WarehouseVmId = 26;
                 tempAsst.WarrantyUntil = invoiceDate?.AddMonths(Content.PartVm.WarrantyPeriod);

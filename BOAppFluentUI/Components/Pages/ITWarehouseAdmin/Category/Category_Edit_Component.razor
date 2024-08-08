@@ -30,6 +30,9 @@
 
         <FluentTextField Id="Prefix" @bind-Value="@Content.Prefix" Placeholder="Enter prefix" />
         <FluentValidationMessage For="@(() => Content.Prefix)" />
+        
+        <FluentNumberField Id="LeadingZeros" @bind-Value="@Content.LeadingZeros" Placeholder="Enter number"/>
+        <FluentValidationMessage For="@(() => Content.LeadingZeros)" />
 
         @{
             // Check if it's an Edit operation

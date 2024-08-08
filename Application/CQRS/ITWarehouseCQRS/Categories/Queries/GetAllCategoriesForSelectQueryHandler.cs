@@ -26,7 +26,7 @@ internal class GetAllCategoriesForSelectQueryHandler : IRequestHandler<GetAllCat
 
     public async Task<IQueryable<CategoryVm>> Handle(GetAllCategoriesForSelectQuery request, CancellationToken cancellationToken)
     {
-        Category cat = new Category() { Id = 0, Name = "Select..."};
+        Category cat = new Category() { Id = 0, Name = "Select...", LeadingZeros = 0};
         List<Category> catsList = [cat];
         //catsList.Add(cat);
         var result = await _appDbContext.Categories.Where(p => p.StatusId == 1).Include(i => i.CategoryType).ToListAsync(cancellationToken);

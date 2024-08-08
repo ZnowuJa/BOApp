@@ -6,6 +6,9 @@ using Application.Common;
 
 
 namespace Infrastructure.Services;
+
+
+
 public class FileService : IFileService
 {
     private readonly IWebHostEnvironment _environment;
@@ -29,5 +32,51 @@ public class FileService : IFileService
         await using var fileStream = new FileStream(filePath, FileMode.Create);
         await file.OpenReadStream().CopyToAsync(fileStream);
         return fileName;
+    }
+
+    public async Task<string> UploadTemporaryFileAsync(IBrowserFile file, string sessionId)
+    {
+        var tempFolder = Path.Combine(_environment.WebRootPath, "temp", sessionId);
+        if (!Directory.Exists(tempFolder))
+        {
+            Directory.CreateDirectory(tempFolder);
+        }
+
+        var timestamp = DateTime.Now.ToString("yyyyMMddHHmmssfff");
+        var fileExtension = Path.GetExtension(file.Name);
+        var customFileName = $"{timestamp}{fileExtension}";
+
+        var filePath = Path.Combine(tempFolder, customFileName);
+        await using var fileStream = new FileStream(filePath, FileMode.Create);
+        await file.OpenReadStream().CopyToAsync(fileStream);
+        return customFileName;
+    }
+
+    public async Task MoveTemporaryFilesToPermanentLocationAsync(string sessionId, string sourceFolder, string folderName, string numberPrefix, int id)
+    {
+        var tempFolder = Path.Combine(_environment.WebRootPath, "temp", sessionId);
+        var permanentFolder = Path.Combine(_environment.WebRootPath, folderName);
+
+        if (!Directory.Exists(permanentFolder))
+        {
+            Directory.CreateDirectory(permanentFolder);
+        }
+
+        var tempFiles = Directory.GetFiles(sourceFolder);
+        var idFormatted = id.ToString("D10");
+        var fileCounter = 1;
+
+        foreach (var tempFile in tempFiles)
+        {
+            var fileExtension = Path.GetExtension(tempFile);
+            var newFileName = $"{numberPrefix}{idFormatted}_{fileCounter:D2}{fileExtension}";
+            var newFilePath = Path.Combine(permanentFolder, newFileName);
+
+            File.Move(tempFile, newFilePath);
+            fileCounter++;
+        }
+
+        // Optionally delete the temp folder after moving files
+        Directory.Delete(tempFolder, true);
     }
 }

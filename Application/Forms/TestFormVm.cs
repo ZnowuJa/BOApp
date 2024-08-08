@@ -49,11 +49,6 @@ public class TestFormVm : IMapFrom<TestForm>
     public void Mapping(Profile profile)
     {
        profile.CreateMap<TestForm, TestFormVm>()
-            .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status))
-            .ForMember(dest => dest.Statuses, opt => opt.MapFrom(src => src.Statuses.ToList())) // Ensure Statuses is a List<string>
-            
-            // Assuming Number is based on Id
-
             .ReverseMap();
     }
 

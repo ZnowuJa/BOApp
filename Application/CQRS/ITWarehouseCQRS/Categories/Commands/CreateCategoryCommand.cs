@@ -6,13 +6,15 @@ public class CreateCategoryCommand : IRequest<int>
 {
     public string Name { get; set; }
     public string Prefix { get; set; }
+    public int LeadingZeros { get; set; }
     public CategoryTypeVm CategoryTypeVm { get; set; }
 
-    public CreateCategoryCommand(string name, string prefix, CategoryTypeVm categoryTypeVm)
+    public CreateCategoryCommand(string name, string prefix, int leadingZeros, CategoryTypeVm categoryTypeVm)
     {
         Name = name;
         Prefix = prefix;
         CategoryTypeVm = categoryTypeVm;
+        LeadingZeros = leadingZeros;
     }
 
 

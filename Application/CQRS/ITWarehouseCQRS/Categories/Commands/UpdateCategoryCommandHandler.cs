@@ -26,6 +26,7 @@ public class UpdateCategoryCommandHandler : IRequestHandler<UpdateCategoryComman
         cat.Prefix = request.Prefix;
         cat.Name = request.Name;
         cat.CategoryType = ct;
+        cat.LeadingZeros = request.LeadingZeros;
 
         //Category category = new()
         //{

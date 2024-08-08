@@ -23,6 +23,8 @@
 @inject IMediator _mediator
 @inject ILogger<TestFormFor> _logger
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IFileService _fileService
+@inject IWebHostEnvironment WebHostEnvironment
 
 <h3>Wniosek o udzielenie odroczonej płatności</h3>
 
@@ -122,7 +124,7 @@ else
         <FluentInputFile @ref="@myFileByBuffer"
                          AnchorId="MyUploadBuffer"
                          DragDropZoneVisible="true"
-                         Mode="InputFileMode.Buffer"
+                         Mode="InputFileMode.SaveToTemporaryFolder"
                          Multiple="true"
                          MaximumFileSize="@(1000 * 1024 * 1024)"
                          Accept=".pdf, .jpg, .png"
@@ -147,6 +149,7 @@ else
             </ul>
         }
 
+        @name
 
     </EditForm>
 }
@@ -157,7 +160,10 @@ else
     int? progressPercent;
     string? progressTitle;
     bool IsCanceled;
+    FluentInputFileEventArgs[] FilesArray = Array.Empty<FluentInputFileEventArgs>();
     Dictionary<int, string> Files = new();
+    private string sessionId = Guid.NewGuid().ToString();
+    
 
     #region InitForm
     [Parameter]
@@ -184,7 +190,7 @@ else
     private WorkflowTemplateVm wf { get; set; }
     private string FormName = "TestFormVm";
     private int buttonSpacer = 100;
-
+    private string name { get; set; }
     #endregion InitForm
 
     async Task OnProgressChangeAsync(FluentInputFileEventArgs file)
@@ -203,19 +209,29 @@ else
         }
 
         // Write to the FileStream
-        await file.Buffer.AppendToFileAsync(Files[file.Index]);
+        // await file.Buffer.AppendToFileAsync(Files[file.Index]);
     }
 
     void OnCompleted(IEnumerable<FluentInputFileEventArgs> files)
     {
+        FilesArray = FilesArray.Concat(files.ToArray()).ToArray();
         progressPercent = myFileByBuffer!.ProgressPercent;
         progressTitle = myFileByBuffer!.ProgressTitle;
-
+         name = WebHostEnvironment.WebRootPath;
+        
         // For the demo, delete these files.
-        foreach (var file in Files)
-        {
-            File.Delete(file.Value);
-        }
+        // foreach (var file in Files)
+        // {
+        //     File.Delete(file.Value);
+        // }
+
+        // foreach (var file in FilesArray)
+        // {
+        //     Console.WriteLine();
+
+        //     var customFileName =  _fileService.UploadTemporaryFileAsync(file.LocalFile, sessionId);
+        //     Files.Add(file.GetHashCode(), customFileName);
+        // }
     }
 
     protected override async Task OnInitializedAsync()
@@ -335,15 +351,15 @@ else
         Console.WriteLine();
     }
     private async Task TogglePrzelew()
+    {
+        if (customer != null)
         {
-            if (customer != null)
-            {
-                // await _asdbctx.ExecuteSqlRawAsync("EXEC kontrahent_przelew @p0, @p1", Id, !kontrahent.Przelew);
-                customer.Przelew = !customer.Przelew;
-                StateHasChanged();
-                // await LoadKontrahent();
-            }
+            // await _asdbctx.ExecuteSqlRawAsync("EXEC kontrahent_przelew @p0, @p1", Id, !kontrahent.Przelew);
+            customer.Przelew = !customer.Przelew;
+            StateHasChanged();
+            // await LoadKontrahent();
         }
+    }
     private void HandleChangeApproverL1(ChangeEventArgs e)
     {
         var tempEmp = itemEmployeesList.First(p => p.EnovaEmpId == int.Parse(e.Value.ToString()));
@@ -366,7 +382,9 @@ else
             formItem.Przelew = true;
             // Call the mediator to send the command
             var saveResult = await _mediator.Send(new CreateTestFormCommand(formItem));
-
+            await _fileService.MoveTemporaryFilesToPermanentLocationAsync(sessionId,FilesArray[0].LocalFile.Directory.ToString(), saveResult.FolderName, saveResult.NumberPrefix, saveResult.Id);
+            name = WebHostEnvironment.WebRootPath;
+            Console.WriteLine(name);
             message = $"Wniosek o numerze {saveResult.Number}o opóźnioną płatność dla {saveResult.KontrahentId}, {saveResult.KontrahentName} wysłana!";
         }
         catch (Exception ex)
