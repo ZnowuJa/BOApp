@@ -1,5 +1,7 @@
 ﻿using Application.Mappings;
 using AutoMapper;
+
+using Domain.Common;
 using Domain.Entities.Common;
 
 namespace Application.Common;

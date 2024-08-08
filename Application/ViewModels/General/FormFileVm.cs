@@ -1,5 +1,11 @@
-﻿namespace Domain.Entities.Common;
-public class FormFile
+﻿using Application.Mappings;
+
+using AutoMapper;
+
+using Microsoft.AspNetCore.Http;
+
+namespace Application.ViewModels.General;
+public class FormFileVm : IMapFrom<FormFile>
 {
     public int Id { get; set; }
     public string TmpPath { get; set; }
@@ -11,4 +17,11 @@ public class FormFile
     public int FormId { get; set; }
     public int Order { get; set; }
     public bool Deleted { get; set; } = false;
+
+    public void Mapping(Profile profile)
+    {
+        profile.CreateMap<FormFile, FormFileVm>().ReverseMap();
+        
+    }
+
 }

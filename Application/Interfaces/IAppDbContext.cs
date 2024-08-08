@@ -34,6 +34,7 @@ public interface IAppDbContext
     DbSet<WorkflowStep> WorkflowSteps { get; set; }
     DbSet<Organisation> Organisations { get; set; }
     DbSet<TestForm> TestForms { get; set; }
+    DbSet<FormFile> FormFiles { get; set; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default);

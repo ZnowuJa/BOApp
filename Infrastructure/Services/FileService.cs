@@ -2,12 +2,9 @@
 using Application.Interfaces;
 using Microsoft.AspNetCore.Hosting;
 using Application.Common;
-
-
+using Domain.Entities.Common;
 
 namespace Infrastructure.Services;
-
-
 
 public class FileService : IFileService
 {
@@ -78,5 +75,24 @@ public class FileService : IFileService
 
         // Optionally delete the temp folder after moving files
         Directory.Delete(tempFolder, true);
+    }
+
+    public async Task MoveFormFilesToDestinationAsync(string tmpPath, string tmpFileName,string tmpFileExtension, string prefix, string folderName, string formClassName, string formId, int fileCounter)
+    {
+        var sourceFilePath = Path.Combine(tmpPath, tmpFileName);
+        var fid = int.Parse(formId);
+        var idFormatted = fid.ToString("D10");
+        var destFolder = Path.Combine(_environment.WebRootPath, folderName);
+
+        if (!Directory.Exists(destFolder))
+        {
+            Directory.CreateDirectory(destFolder);
+        }
+
+        var newFileName = $"{prefix}{idFormatted}_{fileCounter:D2}{tmpFileExtension}";
+        var newFilePath = Path.Combine(destFolder, newFileName);
+
+        File.Move(sourceFilePath, newFilePath);
+
     }
 }

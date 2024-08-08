@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Persistance;
 
@@ -11,9 +12,11 @@ using Persistance;
 namespace Persistance.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240808111139_FormFile Entity Changes")]
+    partial class FormFileEntityChanges
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -131,9 +134,6 @@ namespace Persistance.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("TestFormId")
-                        .HasColumnType("int");
-
                     b.Property<string>("TmpFileExtension")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -147,8 +147,6 @@ namespace Persistance.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("TestFormId");
 
                     b.ToTable("FormFiles");
                 });
@@ -1364,6 +1362,10 @@ namespace Persistance.Migrations
                     b.Property<string>("FolderName")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("FormFiles")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime?>("Inactivated")
                         .HasColumnType("datetime2");
 
@@ -1634,13 +1636,6 @@ namespace Persistance.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("Domain.Entities.Common.FormFile", b =>
-                {
-                    b.HasOne("Domain.Forms.TestForm", null)
-                        .WithMany("FormFiles")
-                        .HasForeignKey("TestFormId");
-                });
-
             modelBuilder.Entity("Domain.Entities.ITWarehouse.Asset_Note", b =>
                 {
                     b.HasOne("Domain.Entities.ITWarehouse.Asset", "item")
@@ -1770,11 +1765,6 @@ namespace Persistance.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("Domain.Forms.TestForm", b =>
-                {
-                    b.Navigation("FormFiles");
                 });
 
             modelBuilder.Entity("Domain.WorkFlows.WorkflowTemplate", b =>

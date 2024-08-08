@@ -1,5 +1,4 @@
 ﻿using Application.Forms;
-
 using MediatR;
 
 namespace Application.CQRS.AccountingCQRS.TestForms.Queries;

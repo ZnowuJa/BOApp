@@ -1,9 +1,6 @@
-﻿
-using Application.Common;
+﻿using Application.Common;
 using Application.Mappings;
-using Application.ViewModels;
 using Application.ViewModels.General;
-
 using AutoMapper;
 
 using Domain.Entities.ITWarehouse;
@@ -34,22 +31,20 @@ public class TestFormVm : IMapFrom<TestForm>
     public int? EmployeeId { get; set; }
     public string? EmployeeName { get; set; }
     public DateTime? Requested { get; set; }
-    public List<Approval>? Approvals { get; set;}
-    public List<OrganisationRoleForFormVm> Level1Approvers { get; set;}
-    public List<OrganisationRoleForFormVm> Level2Approvers { get; set;}
+    public List<Approval>? Approvals { get; set; }
+    public List<OrganisationRoleForFormVm> Level1Approvers { get; set; }
+    public List<OrganisationRoleForFormVm> Level2Approvers { get; set; }
+    public List<FormFileVm> FormFiles { get; set; }
 
-    public string LVL1_EnovaEmpId {  get; set; }
+    public string LVL1_EnovaEmpId { get; set; }
     public string LVL2_EnovaEmpId { get; set; }
     public string LVL1_EmployeeName { get; set; }
     public string LVL2_EmployeeName { get; set; }
 
-
-
-
     public void Mapping(Profile profile)
     {
-       profile.CreateMap<TestForm, TestFormVm>()
-            .ReverseMap();
+        profile.CreateMap<TestForm, TestFormVm>()
+             .ReverseMap();
     }
 
     public TestFormVm()

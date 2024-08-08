@@ -6,6 +6,7 @@
 @using Application.CQRS.AccountingCQRS.DeferralPayment.Commands;
 @using Application.CQRS.AccountingCQRS.DeferralPayment.Queries
 @using Application.CQRS.AccountingCQRS.TestForms.Commands
+@using Application.CQRS.General.FormFiles.Commands
 @using Application.CQRS.General.Organisations.Queries
 @using Application.CQRS.General.Workflows.Queries
 @using Application.Forms
@@ -163,7 +164,9 @@ else
     FluentInputFileEventArgs[] FilesArray = Array.Empty<FluentInputFileEventArgs>();
     Dictionary<int, string> Files = new();
     private string sessionId = Guid.NewGuid().ToString();
-    
+    private List<FormFileVm> FormFilesList = new List<FormFileVm>();
+    private int filesCounter { get; set; }
+
 
     #region InitForm
     [Parameter]
@@ -202,11 +205,11 @@ else
         file.IsCancelled = IsCanceled;
 
         // New file
-        if (!Files.ContainsKey(file.Index))
-        {
-            var localFile = Path.GetTempFileName() + file.Name;
-            Files.Add(file.Index, localFile);
-        }
+        // if (!Files.ContainsKey(file.Index))
+        // {
+        //     var localFile = Path.GetTempFileName() + file.Name;
+        //     Files.Add(file.Index, localFile);
+        // }
 
         // Write to the FileStream
         // await file.Buffer.AppendToFileAsync(Files[file.Index]);
@@ -217,21 +220,34 @@ else
         FilesArray = FilesArray.Concat(files.ToArray()).ToArray();
         progressPercent = myFileByBuffer!.ProgressPercent;
         progressTitle = myFileByBuffer!.ProgressTitle;
-         name = WebHostEnvironment.WebRootPath;
-        
+        name = WebHostEnvironment.WebRootPath;
+
         // For the demo, delete these files.
         // foreach (var file in Files)
         // {
         //     File.Delete(file.Value);
         // }
 
-        // foreach (var file in FilesArray)
-        // {
-        //     Console.WriteLine();
+        foreach (var file in FilesArray)
+        {
+            Console.WriteLine();
+            filesCounter++;
+            var fileForm = new FormFileVm()
+            {
+                Id = 0,
+                TmpPath = file.LocalFile.DirectoryName,
+                TmpFileName = file.LocalFile.Name,
+                TmpFileExtension = file.LocalFile.Extension,
+                Prefix = formItem.NumberPrefix,
+                FolderName = formItem.FolderName,
+                FormClassName = formItem.GetType().Name,
+                FormId = 0,
+                Order = filesCounter
+            };
 
-        //     var customFileName =  _fileService.UploadTemporaryFileAsync(file.LocalFile, sessionId);
-        //     Files.Add(file.GetHashCode(), customFileName);
-        // }
+            FormFilesList.Add(fileForm);
+            Console.WriteLine();
+        }
     }
 
     protected override async Task OnInitializedAsync()
@@ -256,6 +272,7 @@ else
         // var wf = await _mediator.Send(new GetWorkflow;
         formItem.Level1Approvers = SetApprovers(_organisation.Role_SalesManager);
         formItem.Level2Approvers = SetApprovers(_organisation.Role_SettlementsTeam);
+        filesCounter = formItem.FormFiles?.Count() ?? 0;
         // await _mediator.Send(new GetEmployeeByAIDQuery())
         await Load();
     }
@@ -382,14 +399,40 @@ else
             formItem.Przelew = true;
             // Call the mediator to send the command
             var saveResult = await _mediator.Send(new CreateTestFormCommand(formItem));
-            await _fileService.MoveTemporaryFilesToPermanentLocationAsync(sessionId,FilesArray[0].LocalFile.Directory.ToString(), saveResult.FolderName, saveResult.NumberPrefix, saveResult.Id);
+            foreach (var file in FormFilesList)
+            {
+                file.FormId = saveResult.Id;
+                try
+                {
+                    await _fileService.MoveFormFilesToDestinationAsync(file.TmpPath, file.TmpFileName, file.TmpFileExtension, file.Prefix, file.FolderName, file.FormClassName, file.FormId.ToString(), file.Order);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.InnerException.Message);
+                    Console.WriteLine(ex.Message);
+                }
+
+                try
+                {
+                    await _mediator.Send(new CreateFormFileCommand(file));
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.InnerException.Message);
+                    Console.WriteLine(ex.Message);
+                }
+
+                
+                Console.WriteLine();
+            }
+            // await _fileService.MoveTemporaryFilesToPermanentLocationAsync(sessionId,FilesArray[0].LocalFile.Directory.ToString(), saveResult.FolderName, saveResult.NumberPrefix, saveResult.Id);
             name = WebHostEnvironment.WebRootPath;
             Console.WriteLine(name);
             message = $"Wniosek o numerze {saveResult.Number}o opóźnioną płatność dla {saveResult.KontrahentId}, {saveResult.KontrahentName} wysłana!";
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error creating deferral payment form: {ex.Message}");
+            Console.WriteLine($"Error creating TestForm form: {ex.Message}");
             message = $"An error occurred while creating the deferral payment form: {ex.InnerException.Message}.";
         }
     }

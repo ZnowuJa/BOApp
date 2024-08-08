@@ -45,6 +45,7 @@ public class AppDbContext : IdentityDbContext<AppUser>, IAppDbContext
     public DbSet<WorkflowStep> WorkflowSteps { get; set; }
     public DbSet<Organisation> Organisations { get; set; }
     public DbSet<TestForm> TestForms { get; set; }
+    public DbSet<FormFile> FormFiles { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
