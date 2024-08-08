@@ -82,7 +82,7 @@ else
             }
             else if (ctVm.Id == 0)
             {
-                Console.WriteLine("Tu weszlismy?" + ctVm.Name + ctVm.Prefix + ctVm.CategoryTypeVm.Name);
+                
                 i = await _mediator.Send(new CreateCategoryCommand(ctVm.Name, ctVm.Prefix, ctVm.LeadingZeros, ctVm.CategoryTypeVm));
                 intent = ToastIntent.Success;
                 message = "Category has been Created!";

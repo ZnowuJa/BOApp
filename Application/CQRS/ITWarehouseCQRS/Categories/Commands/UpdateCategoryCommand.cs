@@ -20,7 +20,7 @@ public class UpdateCategoryCommand : IRequest<int>
         Name = name;
         Prefix = prefix;
         CategoryTypeVm = categoryType;
-        leadingZeros = LeadingZeros;
+        LeadingZeros = leadingZeros;
     }
 
 
