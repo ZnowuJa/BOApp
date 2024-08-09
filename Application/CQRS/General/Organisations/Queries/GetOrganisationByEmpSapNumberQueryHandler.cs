@@ -45,7 +45,13 @@ public class GetOrganisationByEmpSapNumberQueryHandler : IRequestHandler<GetOrga
             Role_ServiceManager = DeserializeRoles(organisation.Role_ServiceManager),
             Role_DealerDirector = DeserializeRoles(organisation.Role_DealerDirector),
             Role_RegionDirector = DeserializeRoles(organisation.Role_RegionDirector),
-            Role_SettlementsTeam = DeserializeRoles(organisation.Role_SettlementsTeam)
+            Role_SettlementsTeam = DeserializeRoles(organisation.Role_SettlementsTeam),
+            Role_Cashiers = DeserializeRoles(organisation.Role_Cashiers),
+            Role_Accountants = DeserializeRoles(organisation.Role_Accountants),
+            Role_AccountantsTeamLeader = DeserializeRoles(organisation.Role_AccountantsTeamLeader),
+            Role_HRSpecialists = DeserializeRoles(organisation.Role_HRSpecialists),
+            Role_InvestmentsDept = DeserializeRoles(organisation.Role_InvestmentsDept),
+            Role_SourcingDept = DeserializeRoles(organisation.Role_SourcingDept)
         };
     }
 

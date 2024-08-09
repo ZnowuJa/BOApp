@@ -58,6 +58,7 @@
                     <FluentValidationMessage For="@(() => Content.Description)" />
                 </FluentGridItem>
             </FluentGrid>
+
             <p></p>
             <FluentDivider Style="width: 100%;" Orientation=Orientation.Horizontal Role="DividerRole.Separator"></FluentDivider>
             <FluentTabs Orientation="Orientation.Horizontal" ActiveTabId="tab-v1">
@@ -70,19 +71,45 @@
                 <FluentTab Label =" Dealer Director" Id="tab-v3">
                     <OrganisationRoleListComponent Roles="@Content.Role_DealerDirector" Employees="@empsList" Title="Dealer Director" />
                 </FluentTab>
-
-            </FluentTabs>
-            <p></p>
-            <FluentDivider Style="width: 100%;" Orientation=Orientation.Horizontal Role="DividerRole.Separator"></FluentDivider>
-            <FluentTabs Orientation="Orientation.Horizontal" ActiveTabId="tab-v2">
                 <FluentTab Label=" Region Director" Id="tab-v4">
                     <OrganisationRoleListComponent Roles="@Content.Role_RegionDirector" Employees="@empsList" Title="Region Director" />
                 </FluentTab>
                 <FluentTab Label=" Settlements Department" Id="tab-v5">
                     <OrganisationRoleListComponent Roles="@Content.Role_SettlementsTeam" Employees="@empsList" Title="Settlements Department" />
                 </FluentTab>
+                <FluentTab Label=" Cashiers" Id="tab-v6">
+                    <OrganisationRoleListComponent Roles="@Content.Role_Cashiers" Employees="@empsList" Title="Cashiers" />
+                </FluentTab>
             </FluentTabs>
+            <p></p>
+            <FluentDivider Style="width: 100%;" Orientation=Orientation.Horizontal Role="DividerRole.Separator"></FluentDivider>
+            <FluentTabs Orientation="Orientation.Horizontal" ActiveTabId="tab-v2">
+                <FluentTab Label="Accountants" Id="tab-v7">
+                    <OrganisationRoleListComponent Roles="@Content.Role_Accountants" Employees="@empsList" Title="Accountants" />
+                </FluentTab>
+                <FluentTab Label="Accountants TeamLeader" Id="tab-v8">
+                    <OrganisationRoleListComponent Roles="@Content.Role_AccountantsTeamLeader" Employees="@empsList" Title="Accountants TeamLeader" />
+                </FluentTab>
+                <FluentTab Label="HR Specialists" Id="tab-v9">
+                    <OrganisationRoleListComponent Roles="@Content.Role_HRSpecialists" Employees="@empsList" Title="HR Specialists" />
+                </FluentTab>
+                <FluentTab Label="Investments Department" Id="tab-v10">
+                    <OrganisationRoleListComponent Roles="@Content.Role_InvestmentsDept" Employees="@empsList" Title="Investments Department" />
+                </FluentTab>
+                <FluentTab Label="Sourcing Department" Id="tab-v11">
+                    <OrganisationRoleListComponent Roles="@Content.Role_SourcingDept" Employees="@empsList" Title="Sourcing Department" />
+                </FluentTab>
+            </FluentTabs>
+@*             <p></p>
+            <FluentDivider Style="width: 100%;" Orientation=Orientation.Horizontal Role="DividerRole.Separator"></FluentDivider>
+            <FluentTabs Orientation="Orientation.Horizontal" ActiveTabId="tab-v2">
 
+            </FluentTabs>
+            <p></p>
+            <FluentDivider Style="width: 100%;" Orientation=Orientation.Horizontal Role="DividerRole.Separator"></FluentDivider>
+            <FluentTabs Orientation="Orientation.Horizontal" ActiveTabId="tab-v2">
+                
+            </FluentTabs> *@
         }
         else
         {
@@ -121,11 +148,17 @@
 
         if (Content.Id == 0)
         {
-            Content.Role_ServiceManager = new List<OrganisationRoleVm> { new OrganisationRoleVm() };
             Content.Role_SalesManager = new List<OrganisationRoleVm> { new OrganisationRoleVm() };
+            Content.Role_ServiceManager = new List<OrganisationRoleVm> { new OrganisationRoleVm() };
             Content.Role_DealerDirector = new List<OrganisationRoleVm> { new OrganisationRoleVm() };
             Content.Role_RegionDirector = new List<OrganisationRoleVm> { new OrganisationRoleVm() };
             Content.Role_SettlementsTeam = new List<OrganisationRoleVm> { new OrganisationRoleVm() };
+            Content.Role_Cashiers = new List<OrganisationRoleVm> { new OrganisationRoleVm() };
+            Content.Role_Accountants = new List<OrganisationRoleVm> { new OrganisationRoleVm() };
+            Content.Role_AccountantsTeamLeader = new List<OrganisationRoleVm> { new OrganisationRoleVm() };
+            Content.Role_HRSpecialists = new List<OrganisationRoleVm> { new OrganisationRoleVm() };
+            Content.Role_InvestmentsDept = new List<OrganisationRoleVm> { new OrganisationRoleVm() };
+            Content.Role_SourcingDept = new List<OrganisationRoleVm> { new OrganisationRoleVm() };
         }
 
         empsList = await _mediator.Send(new GetAllEmployeesQuery());

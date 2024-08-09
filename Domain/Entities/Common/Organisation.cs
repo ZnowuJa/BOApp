@@ -18,6 +18,12 @@ public class Organisation : SmallAuditableEntity
     public string Role_DealerDirector { get; set; } 
     public string Role_RegionDirector { get; set; } 
     public string Role_SettlementsTeam { get; set; }
+    public string Role_Cashiers { get; set; }
+    public string Role_Accountants { get; set; }
+    public string Role_AccountantsTeamLeader { get; set; }
+    public string Role_HRSpecialists { get; set; }
+    public string Role_InvestmentsDept { get; set; }
+    public string Role_SourcingDept { get; set; }
 
 
 }
