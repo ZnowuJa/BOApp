@@ -10,11 +10,60 @@ variables:
   IISWebsiteName: 'BackOfficeApp'
 
 resources:
- pipelines:
-     - pipeline: 'buildPipline'
-       project: 'BackOfficeApp'
-       source:  'BOApp Build Pipeline'
-       branch: 'master'
+  pipelines:
+    - pipeline: 'buildPipeline'
+      project: 'BackOfficeApp'
+      source: 'BOApp Build Pipeline'
+      branch: 'master'
+
+stages:
+  - stage: DeployWebApp
+    displayName: 'Deploy Application'
+    pool: 
+      vmImage: 'windows-latest'
+    
+    jobs:
+      - deployment: DeployWebApp
+        displayName: 'DeployWebApp'
+        environment: 'PLWAWS86DEV.PLWAWS86DEV'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: none
+
+                - download: 'buildPipeline'
+                  name: 'DownloadArtifacts'
+                  displayName: 'Download Artifacts'
+                  artifact: 'BoAppTestProject'
+               
+                - task: IISWebAppManagementOnMachineGroup@0
+                  name: 'StopIIS'
+                  displayName: 'Stop IIS'
+                  inputs:
+                    IISDeploymentType: 'IISWebsite'
+                    ActionIISWebsite: 'StopWebsite'
+                    StartStopWebsiteName: '$(IISWebsiteName)'
+                - task: IISWebAppDeploymentOnMachineGroup@0
+                  name: 'DeployApp'
+                  displayName: 'Deploy App'
+                  inputs:
+                    WebSiteName: '$(IISWebsiteName)'
+                    Package: '$(Pipeline.Workspace)/buildPipeline/BoAppTestProject'
+                    TakeAppOfflineFlag: true
+                    
+                - task: IISWebAppManagementOnMachineGroup@0
+                  name: 'Start App'
+                  displayName: 'Start App'
+                  inputs:
+                    IISDeploymentType: 'IISWebsite'
+                    ActionIISWebsite: 'StartWebsite'
+                    StartStopWebsiteName: '$(IISWebsiteName)'
+                
+                
+
+
+
 
 
 
