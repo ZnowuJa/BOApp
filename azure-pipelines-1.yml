@@ -53,13 +53,14 @@ stages:
                     TakeAppOfflineFlag: true
                     
                 - task: IISWebAppManagementOnMachineGroup@0
-                  name: 'Start App'
+                  name: 'StartApp'
                   displayName: 'Start App'
                   inputs:
                     IISDeploymentType: 'IISWebsite'
                     ActionIISWebsite: 'StartWebsite'
                     StartStopWebsiteName: '$(IISWebsiteName)'
                 
+
                 
 
 
