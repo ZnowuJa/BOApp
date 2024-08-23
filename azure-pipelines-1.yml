@@ -3,4 +3,18 @@
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
 
+trigger:
+  none
+
+variables:
+  IISWebsiteName: 'BackOfficeApp'
+
+resources:
+ pipelines:
+     - pipeline: 'buildPipline'
+       project: 'BackOfficeApp'
+       source:  'BOApp Build Pipeline'
+       branch: 'master'
+
+
 
