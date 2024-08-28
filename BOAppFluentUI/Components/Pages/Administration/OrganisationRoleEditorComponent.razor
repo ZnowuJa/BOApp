@@ -11,7 +11,7 @@
                                 
                                 OnOptionsSearch="@OnAssigneeSearch"
                                 MaximumSelectedOptions="1"
-                                OptionText="@(p => p.LongName)"
+                                OptionText="@(p => p.LongName + ' ' + p.Position)"
                                 @bind-SelectedOptions="@SelectedEmpl"
                                 @bind-SelectedOptions:after="HandleEmployeeChange"
                                  />

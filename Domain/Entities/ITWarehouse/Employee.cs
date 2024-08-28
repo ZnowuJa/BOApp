@@ -29,6 +29,7 @@ public class Employee : AuditableEntity, IAssignee
     public string? ManagerEmail { get; set; }  
     public string? DeptNumber {  get; set; }
     public string? AspNetUserId { get; set; }
+    public string? Oeshort {  get; set; }
     
 
     public Employee()
@@ -58,6 +59,7 @@ public class Employee : AuditableEntity, IAssignee
         ManagerEmail = string.Empty;
         DeptNumber = string.Empty;
         AspNetUserId = string.Empty;
+        Oeshort = string.Empty;
     }
 
 }
