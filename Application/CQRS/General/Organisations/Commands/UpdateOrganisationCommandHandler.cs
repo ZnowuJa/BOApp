@@ -51,6 +51,6 @@ public class UpdateOrganisationCommandHandler : IRequestHandler<UpdateOrganisati
 
     private string SerializeRoles(List<OrganisationRoleVm> roles)
     {
-        return roles == null || roles.Count == 0 ? null : JsonSerializer.Serialize(roles);
+        return roles == null || roles.Count == 0 ? string.Empty : JsonSerializer.Serialize(roles);
     }
 }
