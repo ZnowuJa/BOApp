@@ -137,9 +137,9 @@
             <div class="validation-error"><p style="color:red;">@errorMessage</p></div>
         }
 
-        <p>
+       @*  <p>
             Selected roles: @(selectedRoles != null ? string.Join(',', selectedRoles.Select(o => o.Value)) : "")<br />
-        </p>
+        </p> *@
     </EditForm>
 </FluentDialogBody>
 
@@ -169,7 +169,7 @@
     {
         _editContext = new EditContext(Content);
 
-        var roles = _roleManager.Roles.ToList();
+        var roles = _roleManager.Roles.OrderBy(r => r.Name).ToList();
         var allRolesList = roles.Select(s => s.Name).ToList();
         roleOptions = new List<Option<string>>();
 

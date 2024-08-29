@@ -204,10 +204,10 @@ public class TokenValidatedHandlerService : ITokenValidatedHandlerService
 
             _logger.LogInformation("Claims Updated!, Claims Updated!, Claims Updated!");
 
-            foreach (var claim in claimList)
-            {
-                Console.WriteLine($"Claim in claimSet :: type: {claim.Type}, value: {claim.Value}");
-            }
+            //foreach (var claim in claimList)
+            //{
+            //    Console.WriteLine($"Claim in claimSet :: type: {claim.Type}, value: {claim.Value}");
+            //}
 
         }
         catch (Exception ex)

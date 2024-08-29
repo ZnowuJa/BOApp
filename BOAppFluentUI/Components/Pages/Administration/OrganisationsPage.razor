@@ -15,7 +15,7 @@
 @inject IToastService _toastService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
-<h3>OrganisationsPage + @EmplEnovaEmpId</h3>
+<h3>OrganisationsPage</h3>
 
 @if (orgs == null)
 {
@@ -68,9 +68,8 @@ else
                 // var viewId = $"viewid-{context.Id}";
                 var editId = $"editid-{context.Id}";
                 var deleteId = $"deleteid-{context.Id}";
-                // var addId = $"addid-{context.Id}";
-            }
-@*             <FluentButton Id="@viewId" IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" Disabled="@actionsDisabled" />
+             }
+            @* <FluentButton Id="@viewId" IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" Disabled="@actionsDisabled" />
             <FluentTooltip Anchor="@viewId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Left Delay=50>View Asset</FluentTooltip> *@
 
             <FluentButton Id="@editId" IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => EditOrganisation(context))" Disabled="@actionsDisabled" />
@@ -79,17 +78,11 @@ else
             <FluentButton Id="@deleteId" IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" Disabled="@actionsDisabled" />
             <FluentTooltip Anchor="@deleteId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Delete Asset</FluentTooltip>
 
-@*             <FluentButton Id="@addId" IconEnd="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddToList(context))" Disabled="@actionsDisabled" />
-            <FluentTooltip Anchor="@addId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50>Add Asset to update</FluentTooltip> *@
-
         </TemplateColumn>
     </FluentDataGrid>
     <FluentPaginator State="@pagination" />
-
-    
     }
 <FluentButton IconStart="@(new Icons.Regular.Size20.Add())" OnClick="@(() => EditOrganisation())" />
-
 
 @code {
 
@@ -103,6 +96,7 @@ else
     PaginationState paginationAssets = new PaginationState { ItemsPerPage = 5 };
 
     private DebounceDispatcher debounceDispatcher = new DebounceDispatcher();
+
     private ClaimsPrincipal? user { get; set; }
     private string username { get; set; }
     private EmployeeVm employee { get; set; }
@@ -133,7 +127,6 @@ else
 
     private async Task Load()
     {
-        // var orgsy = await _mediator.Send(new GetAllOrganisationsQuery());
         var orgsy = await _mediator.Send(new GetAllOrganisationsQuery());
         orgs = orgsy.AsQueryable();
     }
@@ -162,10 +155,9 @@ else
             {
                 Height = "750px",
                 Width = "800px",
-                
                 Title = item.Id > 0 ? "Update Organisation..." : "Create new Organisation...",
                 PreventDismissOnOverlayClick = true,
-                PreventScroll = false,
+                PreventScroll = false
             });
 
         _logger.LogInformation("Organisations | Edit(item) | Dialog Closed...");

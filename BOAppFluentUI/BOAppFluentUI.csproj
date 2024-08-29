@@ -42,6 +42,7 @@
   <ItemGroup>
     <Content Remove="Components\LogoutPage.cshtml" />
     <Content Remove="Components\LogoutPage.razor" />
+    <Content Remove="Components\Pages\Accounting\DeferralPaymentListPageManager.razor" />
     <Content Remove="Components\Pages\Administration\OrganisationEditComponentOld.razor" />
     <Content Remove="Components\Pages\Administration\OrgNewComponent.razor" />
     <Content Remove="Components\Pages\Administration\OrgsPage.razor" />

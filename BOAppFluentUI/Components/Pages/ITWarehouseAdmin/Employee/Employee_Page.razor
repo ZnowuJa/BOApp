@@ -9,6 +9,10 @@
 @* @using BOAppFluentUI.Components.Pages.ITWarehouseAdmin.Employee *@
 @using MediatR
 @using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+
+@attribute [Authorize(Policy = "Technician")]
 
 @inject IMediator _mediator
 @inject ILogger<Employee_Page> _logger
@@ -361,7 +365,7 @@ else
         var prevRoles = data.Roles.ToList();
         var dialog = await _dialogService.ShowDialogAsync<Employee_Edit_Component>(data, new DialogParameters()
             {
-                Height = "500px",
+                Height = "700px",
                 Width = "720px",
                 Title = data.Id > 0 ? "Update Employee..." : "Create new EmployeeVm...",
                 PreventDismissOnOverlayClick = true,

@@ -19,6 +19,7 @@
 
 @inject IMediator _mediator
 @inject ILogger<DeferralPaymentListPage> _logger
+@inject IJSRuntime JS
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager _navigationManager
 
@@ -89,7 +90,7 @@ else
 
 
             <FluentSelect TOption="OrganisationRoleForFormVm"
-                          Id="AL1Id"
+                          Id="AL2Id"
                           Autofocus="true"
                           Label="Aprobata L2"
                           Items="formItem.Level2Approvers"
@@ -123,6 +124,7 @@ else
 }
 
 @code {
+    #region Declarations
     [Parameter]
     public int Id { get; set; }
 
@@ -163,6 +165,8 @@ else
     private string FormName = "DeferralPaymentFormVm";
 
     private int buttonSpacer = 100;
+
+    #endregion Declarations
 
     protected override async Task OnInitializedAsync()
     {
@@ -229,14 +233,21 @@ else
     {
         if (buttonState == "approved")
         {
-            if (formItem.Status == "AprobataL1")
+            // if (formItem.Status == "AprobataL1")
+            // {
+            //     formItem.Status = "AprobataL2";
+            // }
+            // else if (formItem.Status == "AprobataL2")
+            // {
+            //     formItem.Status = "Zakończone";
+            // }
+
+            formItem.Status = formItem.Status switch
             {
-                formItem.Status = "AprobataL2";
-            }
-            else if (formItem.Status == "AprobataL2")
-            {
-                formItem.Status = "Zakończone";
-            }
+                "AprobataL1" => "AprobataL2",
+                "AprobataL2" => "Zakończone",
+                _ => formItem.Status
+            };
 
         } 
         else if (buttonState == "rejected")
@@ -246,7 +257,8 @@ else
         }
         else if (buttonState == "cancelled")
         {
-            _navigationManager.NavigateTo("/deferralpayments");
+            GoBack();
+            // _navigationManager.NavigateTo("/deferralpayments");
             return;
         }
 
@@ -256,7 +268,8 @@ else
 
         message = $"Wniosek o numerze {saveResult.Number} o opóźnioną płatność dla {saveResult.KontrahentId}, {saveResult.KontrahentName} wysłana!";
 
-        _navigationManager.NavigateTo("/deferralpayments");
+        GoBack();
+        // _navigationManager.NavigateTo("/deferralpayments");
     }
 
     private async Task Reject()
@@ -264,16 +277,17 @@ else
         message = "Wniosek odrzucony!";
         formItem.Status = "Odrzucony";
         await _mediator.Send(new UpdateDeferralPaymentCommand(formItem));
+        GoBack();
         ///deferralpayments
-        if (_navigationManager != null)
-        {
-            _navigationManager.NavigateTo("/deferralpayments");
-        }
-        else
-        {
-            // Handle the null case appropriately
-            Console.WriteLine("NavigationManager is null");
-        }
+        // if (_navigationManager != null)
+        // {
+        //     _navigationManager.NavigateTo("/deferralpayments");
+        // }
+        // else
+        // {
+        //     // Handle the null case appropriately
+        //     // Console.WriteLine("NavigationManager is null");
+        // }
     }
     private async Task GetUserName()
     {
@@ -306,6 +320,11 @@ else
             Console.WriteLine($"No claim of type {claimTypeAID} found.");
         }
     }
+    private async Task GoBack()
+    {
+        Console.WriteLine("GOBACK");
+        await JS.InvokeVoidAsync("goBack");
+    }
 }
 
 <style>
@@ -321,3 +340,9 @@ else
             padding-left: 0; /* Removes padding on the left of the first cell */
         }
 </style>
+
+<script>
+    function goBack() {
+        window.history.back();
+    }
+</script>

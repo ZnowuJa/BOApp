@@ -8,7 +8,10 @@
 @using Application.ITWarehouseCQRS.Companies.Queries
 @using BOAppFluentUI.Components.Pages.ITWarehouseAdmin.Company
 @using MediatR
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
 
+@attribute [Authorize(Policy = "Technician")]
 @inject IMediator _mediator
 @inject ILogger<Company_Page> _logger
 @inject IDialogService _dialogService

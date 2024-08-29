@@ -1,4 +1,9 @@
 ﻿@page "/example"
+
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+
+@attribute [Authorize(Policy = "Technician")]
 @inject IDialogService DialogService
 
 <FluentButton Appearance="Appearance.Accent" OnClick="@OpenAsync">Open dialog</FluentButton>

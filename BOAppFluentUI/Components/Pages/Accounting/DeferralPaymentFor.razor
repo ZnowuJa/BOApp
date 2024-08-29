@@ -40,11 +40,9 @@
 else if (message != null)
 {
     <b>@message</b>
-    
 }
 else
 {
-
     <EditForm Model = "@formItem">
         <FluentStack VerticalAlignment="VerticalAlignment.Center" HorizontalAlignment="HorizontalAlignment.Start">
             <div>
@@ -174,7 +172,7 @@ else
         formItem.WorkflowTemplateId = wf.Id;
 
         // var wf = await _mediator.Send(new GetWorkflow;
-        formItem.Level1Approvers = SetApprovers(_organisation.Role_SalesManager);
+        formItem.Level1Approvers = await SetApproversL1(_organisation.Role_SalesManager);
         formItem.Level2Approvers = SetApprovers(_organisation.Role_SettlementsTeam);
         // await _mediator.Send(new GetEmployeeByAIDQuery())
         await Load();
@@ -254,17 +252,79 @@ else
             formItem.LVL2_EmployeeName = defaultApproverL2.LongName;
         }
     }
+
     private List<OrganisationRoleForFormVm> SetApprovers(List<OrganisationRoleVm> rolesIn)
     {
-        var rolesOut = new List<OrganisationRoleForFormVm>();
-        foreach(var role in rolesIn)
-        {
-            var roleOut = new OrganisationRoleForFormVm(role);
-            rolesOut.Add(roleOut);
-        }
+        return rolesIn
+            .Select(role => new OrganisationRoleForFormVm(role))
+            .ToList();
+    }
+    // private List<OrganisationRoleForFormVm> SetApprovers(List<OrganisationRoleVm> rolesIn)
+    // {
+    //     var rolesOut = new List<OrganisationRoleForFormVm>();
+
+
+    //     foreach(var role in rolesIn)
+    //     {
+    //         var roleOut = new OrganisationRoleForFormVm(role);
+    //         rolesOut.Add(roleOut);
+    //     }
+    //     return rolesOut;
+    // }
+    private async Task<List<OrganisationRoleForFormVm>> SetApproversL1(List<OrganisationRoleVm> rolesIn)
+    {
+        var manager = await _mediator.Send(new GetEmployeeByEnovaIdQuery(emp.ManagerId));
+
+        // Create the manager role and mark it as default
+        var managerRole = new OrganisationRoleForFormVm
+            {
+                IsDefault = true,
+                EmpId = emp.ManagerId,
+                LongName = manager.LongName
+            };
+
+        // Filter out any roles that have the same EmpId as the manager, set isDefault to false and create new OrganisationRoleForFormVm objects
+        var rolesOut = rolesIn
+            .Where(role => role.EmpId != emp.ManagerId)
+            .Select(role =>
+                {
+                    var roleOut = new OrganisationRoleForFormVm(role)
+                        {
+                            IsDefault = false
+                        };
+                    return roleOut;
+                })
+            .ToList();
+
+        // Insert the manager role at the start of the list
+        rolesOut.Insert(0, managerRole);
+
         return rolesOut;
     }
+    // private async Task<List<OrganisationRoleForFormVm>> SetApproversL1(List<OrganisationRoleVm> rolesIn)
+    // {
+    //     var rolesOut = new List<OrganisationRoleForFormVm>();
+    //     var manager = await _mediator.Send(new GetEmployeeByEnovaIdQuery(emp.ManagerId));
+    //     OrganisationRoleForFormVm managerRole = new()
+    //     {
+    //             IsDefault = true,
+    //             EmpId = emp.ManagerId,
+    //             LongName = manager.LongName
+    //     };
+    //     rolesOut.Add(managerRole);
 
+    //     foreach (var role in rolesIn)
+    //     {
+    //         var roleOut = new OrganisationRoleForFormVm(role);
+    //         if(roleOut.EmpId == emp.ManagerId)
+    //         {
+    //             continue;
+    //         }
+
+    //         rolesOut.Add(roleOut);
+    //     }
+    //     return rolesOut;
+    // }
     private void ChangeNote (ChangeEventArgs e)
     {
         // if (formItem.Note )
@@ -273,15 +333,15 @@ else
         Console.WriteLine();
     }
     private async Task TogglePrzelew()
+    {
+        if (customer != null)
         {
-            if (customer != null)
-            {
-                // await _asdbctx.ExecuteSqlRawAsync("EXEC kontrahent_przelew @p0, @p1", Id, !kontrahent.Przelew);
-                customer.Przelew = !customer.Przelew;
-                StateHasChanged();
-                // await LoadKontrahent();
-            }
+            // await _asdbctx.ExecuteSqlRawAsync("EXEC kontrahent_przelew @p0, @p1", Id, !kontrahent.Przelew);
+            customer.Przelew = !customer.Przelew;
+            StateHasChanged();
+            // await LoadKontrahent();
         }
+    }
 
     private void HandleChangeApproverL1(ChangeEventArgs e)
     {
@@ -309,7 +369,7 @@ else
             // Call the mediator to send the command
             var saveResult = await _mediator.Send(new CreateDeferralPaymentCommand(formItem));
 
-            message = $"Wniosek o numerze {saveResult.Number}o opóźnioną płatność dla {saveResult.KontrahentId}, {saveResult.KontrahentName} wysłana!";
+            message = $"Wniosek o numerze {saveResult.Number} o opóźnioną płatność dla {saveResult.KontrahentId}, {saveResult.KontrahentName} wysłana!";
         }
         catch (Exception ex)
         {

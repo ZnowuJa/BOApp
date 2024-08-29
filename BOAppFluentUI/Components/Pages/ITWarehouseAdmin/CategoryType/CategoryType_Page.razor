@@ -5,6 +5,10 @@
 @* @using BOAppFluentUI.Components.Pages.ITWarehouseAdmin.Category *@
 @using Application.ViewModels
 @using MediatR
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+
+@attribute [Authorize(Policy = "Technician")]
 
 @inject IMediator _mediator
 @inject ILogger<CategoryType_Page> _logger

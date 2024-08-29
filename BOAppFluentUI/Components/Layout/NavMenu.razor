@@ -1,4 +1,4 @@
-
+﻿
 <div class="navmenu">
 @*     <input type="checkbox" title="Menu expand/collapse toggle" id="navmenu-toggle" class="navmenu-icon" />
     <label for="navmenu-toggle" class="navmenu-icon"><FluentIcon Value="@(new Icons.Regular.Size20.Navigation())" Color="Color.Fill" /></label> *@
@@ -22,20 +22,19 @@
                 </FluentNavGroup>
             </AuthorizeView>
             <AuthorizeView Policy="User">
-                <FluentNavGroup OnClick="OnClick" Title="IT CMDB User" Icon="@(new Icons.Regular.Size24.DesktopPulse())">
+                
+                <FluentNavLink Href="rozrachunki" Match="NavLinkMatch.All" Icon="@(new Icons.Regular.Size20.Home())" IconColor="Color.Accent">Rozrachunki</FluentNavLink>
+
+                @* <FluentNavGroup OnClick="OnClick" Title="Rozrachunki" Icon="@(new Icons.Regular.Size24.DesktopPulse())">
                     <ChildContent>
-                        <FluentNavLink Href="assets" Icon="@(new Icons.Regular.Size20.ReceiptMoney())">Assets</FluentNavLink>
-                        <FluentNavLink Href="invoices" Icon="@(new Icons.Regular.Size20.AlbumAdd())">Invoices</FluentNavLink>
-                        <FluentNavLink Href="invoiceitems" Icon="@(new Icons.Regular.Size20.AddSubtractCircle())">InvoiceItems</FluentNavLink>
-
-                        <FluentNavLink Href="itcmdbsettings" Icon="@(new Icons.Regular.Size20.TrayItemAdd())">IT CMDB Settings</FluentNavLink>
-
-
+                        
+                        <FluentNavLink Href="platnosciodroczone/pracownik" Icon="@(new Icons.Regular.Size20.ReceiptMoney())">Płatności odroczone</FluentNavLink>
+                        <FluentNavLink Href="platnosciodroczone/kierownik" Icon="@(new Icons.Regular.Size20.ReceiptMoney())">Płatności odroczone - akceptacja</FluentNavLink>
 
                     </ChildContent>
-                </FluentNavGroup>
+                </FluentNavGroup> *@
             </AuthorizeView>
-            <FluentNavGroup OnClick="OnClick" Title="Empty Slot for future" Icon="@(new Icons.Regular.Size20.EarthLeaf())">
+@*             <FluentNavGroup OnClick="OnClick" Title="Empty Slot for future" Icon="@(new Icons.Regular.Size20.EarthLeaf())">
                 <ChildContent>
 
 
@@ -106,7 +105,7 @@
                     </FluentNavGroup>
 
                 </ChildContent>
-            </FluentNavGroup>
+            </FluentNavGroup> *@
         </FluentNavMenu>
     </nav>
 </div>

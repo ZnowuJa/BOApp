@@ -4,6 +4,10 @@
 @using Application.ITWarehouseCQRS.Parts.Commands
 @using BOAppFluentUI.Components.Pages.ITWarehouseAdmin.Part
 @using MediatR
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+
+@attribute [Authorize(Policy = "Technician")]
 
 @inject IMediator _mediator
 @inject ILogger<Part_Page> _logger

@@ -2,12 +2,17 @@
 using BackOfficeApp_Domain.Common;
 using Domain.Entities.Accounting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace Persistance;
 public class AsDbContext : DbContext, IAsDbContext
 {
-    public AsDbContext(DbContextOptions<AsDbContext> options) : base(options)
+    private readonly IConfiguration _configuration;
+    private readonly string _environment;
+    public AsDbContext(DbContextOptions<AsDbContext> options, IConfiguration configuration) : base(options)
     {
+        _configuration = configuration;
+        _environment = _configuration.GetValue<string>("Environment");
     }
 
     public DbSet<Customer> Kontrahenci { get; set; }
@@ -61,11 +66,13 @@ public class AsDbContext : DbContext, IAsDbContext
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
+        Console.WriteLine(_environment);
+        Console.WriteLine(_environment == "PROD" ? "v_KONTRAHENCI_LISTA" : "Kontrahenci");
         builder.Entity<Customer>(entity =>
         {
             entity
                 .HasNoKey()
-                .ToTable("Kontrahenci");
+                .ToTable(_environment == "PROD" ? "v_KONTRAHENCI_LISTA" : "Kontrahenci");
 
             entity.Property(e => e.KontrahentId).HasColumnName("KONTRAHENT_ID");
             entity.Property(e => e.Nazwa)

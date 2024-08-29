@@ -1,5 +1,5 @@
-﻿@page "/deferralpayments/{role}"
-@page "/platnosciodroczone/{role}"
+﻿@page "/deferralpayments/manager"
+@page "/platnosciodroczone/kierownik"
 
 
 @using Application.CQRS.AccountingCQRS.DeferralPayment.Commands
@@ -69,8 +69,8 @@
             var deleteId = $"deleteid-{context.Id}";
             // var addId = $"addid-{context.Id}";
         }
-        <FluentButton Id="@viewId" IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" Disabled="@viewDisabled" />
-        <FluentTooltip Anchor="@viewId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Left Delay=50>View Asset</FluentTooltip>
+                    @* <FluentButton Id="@viewId" IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" Disabled="@actionsDisabled" />
+        <FluentTooltip Anchor="@viewId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Left Delay=50>View Asset</FluentTooltip> *@
 
         <FluentButton Id="@editId" IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => Edit(context))" Disabled="@IsEditDisabled(context)" />
             @*WARNING it is not tested if isEditDisabled works*@
@@ -87,14 +87,13 @@
     <FluentPaginator State="@pagination" />
 
 @code {
-    [Parameter]
-    public string role { get; set; }
+    
 
     private IQueryable<DeferralPaymentFormVm> items { get; set; } = Enumerable.Empty<DeferralPaymentFormVm>().AsQueryable();
 
     private IQueryable<DeferralPaymentFormVm> filteredItems => items.Where(x =>
     filterColumns.All(column => string.IsNullOrWhiteSpace(column.Filter) ||
-    column.Property(x).Contains(column.Filter, StringComparison.CurrentCultureIgnoreCase))).OrderByDescending(r => r.Number);
+    column.Property(x).Contains(column.Filter, StringComparison.CurrentCultureIgnoreCase)));
 
     private DebounceDispatcher debounceDispatcher = new DebounceDispatcher();
     private PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
@@ -117,7 +116,7 @@
     private string EmplEnovaEmpId { get; set; }
 
     private bool actionsDisabled = false;
-    private bool viewDisabled = false;
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -129,24 +128,20 @@
     {
 
         // var deferralForms = await _mediator.Send(new GetDeferralPaymentByApproverQuery(EmplEnovaEmpId));
-        items = role switch
-        {
-            "kierownik" or "manager" => await _mediator.Send(new GetDeferralPaymentByApproverQuery(EmplEnovaEmpId)),
-            "pracownik" or "employee" => await _mediator.Send(new GetDeferralPaymentByEmpIdQuery(EmplEnovaEmpId)),
-            "rozrachunki" or "settlements" => await _mediator.Send(new GetAllDeferralPaymentFormQuery()),
-            _ => throw new ArgumentException("Błędny adres strony!")
-        };
-        // var deferralForms = await _mediator.Send(new GetAllDeferralPaymentFormQuery());
-        // Console.WriteLine(deferralForms.Count());
-        // Console.WriteLine(deferralForms.Count());
-        // items = deferralForms.AsQueryable();
+        var deferralForms = await _mediator.Send(new GetAllDeferralPaymentFormQuery());
+
+        // IQueryable<DeferralPaymentFormVm> = role
+
+        Console.WriteLine(deferralForms.Count());
+        Console.WriteLine(deferralForms.Count());
+        items = deferralForms.AsQueryable();
     }
 
     private void HandleClearFilter(ref string filter) => filter = string.IsNullOrWhiteSpace(filter) ? string.Empty : filter;
 
     private void HandleFilterDebounced(FilterColumn<DeferralPaymentFormVm> column, ChangeEventArgs args)
     {
-        debounceDispatcher.Debounce(400, _ =>
+        debounceDispatcher.Debounce(300, _ =>
         {
             column.Filter = args.Value.ToString();
             InvokeAsync(StateHasChanged);
@@ -163,12 +158,12 @@
         if (usernameClaim != null)
         {
             username = usernameClaim.Value;
-            // Console.WriteLine($"Claim of type {claimType} found, value {username}.");
+            Console.WriteLine($"Claim of type {claimType} found, value {username}.");
         }
         else
         {
             username = "unknown";
-            // Console.WriteLine($"No claim of type {claimType} found.");
+            Console.WriteLine($"No claim of type {claimType} found.");
         }
 
         claimType = "EnovaEmpId"; // or use ClaimTypes.Title
@@ -177,12 +172,12 @@
         {
             EmplEnovaEmpId = EnovaEmpIdClaim.Value;
             employee = await _mediator.Send(new GetEmployeeByEnovaIdQuery(int.Parse(EmplEnovaEmpId)));
-            // Console.WriteLine($"Claim of type {claimType} found, value {EmplEnovaEmpId}.");
+            Console.WriteLine($"Claim of type {claimType} found, value {EmplEnovaEmpId}.");
         }
         else
         {
             EmplEnovaEmpId = "unknown";
-            // Console.WriteLine($"No claim of type {claimType} found.");
+            Console.WriteLine($"No claim of type {claimType} found.");
         }
 
     }
@@ -198,19 +193,7 @@
     }
     private async Task Delete(DeferralPaymentFormVm item = null)
     {
-
-    }
-    private async Task View(DeferralPaymentFormVm item = null)
-    {
-        var dialog = await _dialogService.ShowPanelAsync<DeferralPaymentViewComponent>(item, new DialogParameters()
-                    {
-                        Height = "240px",
-                        Width = "720px",
-                        Title = item.Id > 0 ? "Wniosoek o Odroczoną płatność" : "Create new PartVm",
-                        PreventDismissOnOverlayClick = false,
-                        PreventScroll = true,
-                    });
-            //     var result = await dialog.Result;
+        
     }
 
     private bool IsEditDisabled(DeferralPaymentFormVm context)
@@ -227,4 +210,104 @@
         return true; // Default to disabled if none of the conditions match
     }
 
+    // private async Task Edit(DeferralPaymentFormVm item = null)
+    // {
+    //     ToastIntent intent;
+    //     string message = string.Empty;
+    //     int i = 0;
+    //     bool isNew = item == null;
+
+    //     // if (isNew)
+    //     // {
+    //     //     item = new DeferralPaymentFormVm
+    //     //         {
+    //     //             Role_ServiceManager = new List<OrganisationRoleVm> { new OrganisationRoleVm() },
+    //     //             Role_SalesManager = new List<OrganisationRoleVm> { new OrganisationRoleVm() },
+    //     //             Role_DealerDirector = new List<OrganisationRoleVm> { new OrganisationRoleVm() },
+    //     //             Role_RegionDirector = new List<OrganisationRoleVm> { new OrganisationRoleVm() }
+    //     //         };
+    //     // }
+
+    //     _logger.LogInformation("Organisations | Edit(item) | Opening dialog...");
+
+    //     var dialog = await _dialogService.ShowDialogAsync<DeferralPaymentEditComponent>(item.Id, new DialogParameters()
+    //         {
+    //             Height = "750px",
+    //             Width = "800px",
+    //             Title = item.Id > 0 ? "Update Organisation..." : "Create new Organisation...",
+    //             PreventDismissOnOverlayClick = true,
+    //             PreventScroll = false,
+    //         });
+
+    //     _logger.LogInformation("Organisations | Edit(item) | Dialog Closed...");
+    //     actionsDisabled = true;
+    //     var result = await dialog.Result;
+
+    //     if (!result.Cancelled && result.Data != null)
+    //     {
+    //         var final = (DeferralPaymentFormVm)result.Data;
+
+    //         if (final.Id > 0)
+    //         {
+    //             _logger.LogInformation("DeferralPaymentFormVm | Edit(item) | Update DeferralPaymentFormVm start...");
+    //             var itemVm = await _mediator.Send(new UpdateDeferralPaymentCommand(final));
+    //             _logger.LogInformation("DeferralPaymentFormVm | Edit(item) | Update DeferralPaymentFormVm finished...");
+    //             intent = ToastIntent.Success;
+    //             message = "DeferralPaymentFormVm has been updated!";
+    //         }
+    //         else
+    //         {
+    //             _logger.LogInformation("Organisations | Edit(item)| Create Organisation start...");
+    //             var itemVm = await _mediator.Send(new CreateDeferralPaymentCommand(final));
+    //             _logger.LogInformation("Organisations | Edit(item) | Create Organisation finished...");
+    //             intent = ToastIntent.Success;
+    //             message = "Organisation has been created!";
+    //         }
+    //         await Load();
+    //     }
+    //     else if (result.Cancelled)
+    //     {
+    //         intent = ToastIntent.Info;
+    //         message = "Operation Cancelled...";
+    //     }
+    //     else
+    //     {
+    //         intent = ToastIntent.Error;
+    //         message = "Something went wrong!";
+    //     }
+
+    //     _toastService.ShowToast(intent, message, 3000);
+    //     actionsDisabled = false;
+    // }
+
+    // private async Task Delete(DeferralPaymentFormVm item)
+    // {
+
+    //     var dialog = await _dialogService.ShowConfirmationAsync("You are about to delete Organisation: " + item.SapNumber + "\n Are you sure?", "Yes", "No", "Confirm delete operation");
+    //     var result = await dialog.Result;
+    //     deleteConfirm = result.Cancelled;
+
+    //     ToastIntent intent;
+    //     string message = string.Empty;
+
+    //     if (deleteConfirm)
+    //     {
+    //         Console.WriteLine();
+    //         intent = ToastIntent.Error;
+    //         message = "Asset has not been deleted";
+
+    //     }
+    //     else
+    //     {
+    //         Console.WriteLine();
+    //         var i = await _mediator.Send(new DeleteOrganisationCommand(item.Id));
+    //         // var i = await _mediator.Send(new (item.Id));
+    //         intent = ToastIntent.Success;
+    //         message = "Asset has been deleted";
+
+    //     }
+
+    //     _toastService.ShowToast(intent, message, 3000);
+    //     Load();
+    // }
 }

@@ -4,6 +4,10 @@
 @using Application.ITWarehouseCQRS.Invoices.Commands
 @using BOAppFluentUI.Components.Pages.ITWarehouseAdmin.Invoice
 @using MediatR
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+
+@attribute [Authorize(Policy = "Technician")]
 
 @inject IMediator _mediator
 @inject ILogger<Invoice_Page> _logger

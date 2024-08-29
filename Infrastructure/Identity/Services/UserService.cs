@@ -62,10 +62,8 @@ public class UserService : IUserService
     {
         return await _roleManager.Roles.Select(x => x.Name).ToListAsync();
     }
-
     public async Task<IdentityResult> UpdateAppUser(AppUser user)
     {
-
         return await _userManager.UpdateAsync(user);
     }
     //public async Task<List<String>> GetUserRoles(AppUser user)

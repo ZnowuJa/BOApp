@@ -30,6 +30,8 @@ public static class DiPersistance
         });
 
         // Register AsDbContext
+        services.AddSingleton<AsDbContextFactory>(provider => new AsDbContextFactory(configuration));
+
         services.AddDbContextFactory<AsDbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("AsDbContextConnection")));
         services.AddScoped<IAsDbContext>(provider =>
@@ -73,21 +75,27 @@ public static class DiPersistance
         {
             options.AddPolicy("Accountant", policy => policy
             .RequireRole("Accountant", "AccountantTL", "Technician", "Administrator", "AppAdmin"));
-            
+
+            options.AddPolicy("Settlements", policy => policy
+            .RequireRole("Settlement", "Technician", "Administrator", "AppAdmin"));
+
             options.AddPolicy("User", policy => policy
-            .RequireRole("User", "Accountant", "AccountantTL", "Manager", "Technician", "Administrator", "AppAdmin"));
+            .RequireRole("User", "Accountant", "AccountantTL", "Settlement", "Manager", "Technician", "Administrator", "AppAdmin"));
 
             options.AddPolicy("Manager", policy => policy
             .RequireRole("Manager", "Technician", "Administrator", "AppAdmin"));
 
             options.AddPolicy("Technician", policy => policy
             .RequireRole("Technician", "Administrator", "AppAdmin"));
+            //Technician - every IT employee
 
             options.AddPolicy("Administrator", policy => policy
             .RequireRole("Administrator", "AppAdmin"));
+            //Administrator - Every TeamLeader
 
             options.AddPolicy("AppAdmin", policy => policy
             .RequireRole("AppAdmin"));
+            //Only Developers
 
             options.FallbackPolicy = options.DefaultPolicy;
         });
