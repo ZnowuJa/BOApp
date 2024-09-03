@@ -1,20 +1,30 @@
 ﻿@page "/"
 @using Application.Entities
-@using System.Security.Claims
+@using Application.ViewModels.General
 @using Infrastructure.Identity.Services
+@using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.FluentUI.AspNetCore.Components.Extensions
+@using MediatR
+@using System.Security.Claims
 
+
+@attribute [Authorize(Policy = "User")]
+
+@inject IMediator _mediator
+@inject ILogger<Home> _logger
 @inject AuthenticationStateProvider AuthenticationStateProvider
+
 
 <PageTitle>Home</PageTitle>
 
-<h1>Hello, world!</h1>
-Hello!
+<h1>Hello @username!</h1>
+@* Hello!
 Welcome to your new app.
 
-<h3>User Claims</h3>
+<h3>User Claims</h3> *@
 
-@if (claims != null && claims.Any())
+@* @if (claims != null && claims.Any())
 {
     <ul>
         @foreach (var claim in claims)
@@ -27,14 +37,19 @@ else
 {
     <p>No claims available.</p>
 }
-
+ *@
 @code {
     private Claim[] claims;
     private bool isInRole;
 
+    private ClaimsPrincipal? user { get; set; }
+    private string username { get; set; }
+    private EmployeeVm emp { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
-        await RefreshClaims();
+        // await RefreshClaims();
+        await GetUserName();
     }
 
     private async Task RefreshClaims()
@@ -50,6 +65,43 @@ else
         {
             // Handle any errors
         }
+    }
+
+    private async Task GetUserName()
+    {
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        user = authenticationState.User;
+        var claimType = "name"; // or use ClaimTypes.Title
+        var claimTypeAID = "http://schemas.microsoft.com/identity/claims/objectidentifier";
+        // new Guid();
+
+        var usernameClaim = user.Claims.FirstOrDefault(c => c.Type == claimType);
+        if (usernameClaim != null)
+        {
+            username = usernameClaim.Value;
+        }
+        else
+        {
+            username = "unknown";
+            // Console.WriteLine($"No claim of type {claimType} found.");
+        }
+
+        var aidClaim = user.Claims.FirstOrDefault(c => c.Type == claimTypeAID);
+        if (aidClaim != null)
+        {
+            Guid aidGuid = new Guid();
+            Guid.TryParse(aidClaim.Value, out aidGuid);
+            emp = await _mediator.Send(new GetEmployeeByAIDQuery(aidGuid));
+            // Console.WriteLine($"claim of type {claimTypeAID} found.");
+        }
+        else
+        {
+            emp = new EmployeeVm();
+            // Console.WriteLine($"No claim of type {claimTypeAID} found.");
+        }
+
+        Console.WriteLine("");
+
     }
 }
 

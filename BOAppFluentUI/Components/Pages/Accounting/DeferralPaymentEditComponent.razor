@@ -15,7 +15,7 @@
 @using MediatR
 @using System.Security.Claims
 
-@attribute [Authorize(Policy = "Technician")]
+@attribute [Authorize(Policy = "User")]
 
 @inject IMediator _mediator
 @inject ILogger<DeferralPaymentListPage> _logger
@@ -29,7 +29,7 @@
 {
     <FluentProgressRing>Loading...</FluentProgressRing>
 }
-else
+else if (showForm)
 {
 
     <EditForm EditContext="_editContext">
@@ -121,6 +121,9 @@ else
         <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
                       Appearance="Appearance.Accent" OnClick="() => Save(cancelled)" BackgroundColor="#808080" Color="#FFFFFF" Style="width: 100px"> Anuluj</FluentButton>
     </EditForm>
+} else
+{
+    <H2>Nic to nie ma dla Ciebie!</H2>
 }
 
 @code {
@@ -166,6 +169,9 @@ else
 
     private int buttonSpacer = 100;
 
+    private List<string> allowedEmp { get; set; } = new List<string>();
+    private bool showForm { get; set; }
+
     #endregion Declarations
 
     protected override async Task OnInitializedAsync()
@@ -182,7 +188,13 @@ else
         }
 
         await GetUserName();
-        await Load();
+        await GetAllowedPersons(formItem);
+        showForm = allowedEmp.Contains(emp.EnovaEmpId.ToString());
+        
+        if (showForm)
+            await Load();
+            
+        
     }
 
     private async Task Load()
@@ -304,7 +316,7 @@ else
         else
         {
             username = "unknown";
-            Console.WriteLine($"No claim of type {claimType} found.");
+            // Console.WriteLine($"No claim of type {claimType} found.");
         }
 
         var aidClaim = user.Claims.FirstOrDefault(c => c.Type == claimTypeAID);
@@ -317,12 +329,27 @@ else
         else
         {
             emp = new EmployeeVm();
-            Console.WriteLine($"No claim of type {claimTypeAID} found.");
+            // Console.WriteLine($"No claim of type {claimTypeAID} found.");
+        }
+    }
+    private async Task GetAllowedPersons(DeferralPaymentFormVm form)
+    {
+
+        if(form.Status == "AprobataL1" || form.Status == "AprobataL2")
+        {
+            allowedEmp.Add(form.EmployeeId.ToString());
+            allowedEmp.Add(form.LVL1_EnovaEmpId); //this is manager of requestor
+            allowedEmp.AddRange(form.Level2Approvers.Select(l => l.EmpId.ToString()));//this is Settlement Department
+        } else
+        {
+            allowedEmp.Add(form.EmployeeId.ToString());
+            allowedEmp.AddRange(form.Level2Approvers.Select(l => l.EmpId.ToString()));
+
         }
     }
     private async Task GoBack()
     {
-        Console.WriteLine("GOBACK");
+        // Console.WriteLine("GOBACK");
         await JS.InvokeVoidAsync("goBack");
     }
 }

@@ -17,7 +17,7 @@
 @using MediatR
 @using System.Security.Claims
 
-@attribute [Authorize(Policy = "Technician")]
+@attribute [Authorize(Policy = "User")]
 
 @inject IMediator _mediator
 @inject ILogger<DeferralPaymentFor> _logger
@@ -399,7 +399,7 @@ else
         else
         {
             username = "unknown";
-            Console.WriteLine($"No claim of type {claimType} found.");
+            // Console.WriteLine($"No claim of type {claimType} found.");
         }
 
         var aidClaim = user.Claims.FirstOrDefault(c => c.Type == claimTypeAID);
@@ -408,14 +408,14 @@ else
             Guid aidGuid = new Guid();
             Guid.TryParse(aidClaim.Value, out aidGuid);
             emp = await _mediator.Send(new GetEmployeeByAIDQuery(aidGuid));
-            Console.WriteLine($"claim of type {claimTypeAID} found.");
+            // Console.WriteLine($"claim of type {claimTypeAID} found.");
         }
         else
         {
             emp = new EmployeeVm();
-            Console.WriteLine($"No claim of type {claimTypeAID} found.");
+            // Console.WriteLine($"No claim of type {claimTypeAID} found.");
         }
 
-        Console.WriteLine("");
+        // Console.WriteLine("");
     }
 }

@@ -44,6 +44,8 @@ public class UpdateDeferralPaymentCommandHandler : IRequestHandler<UpdateDeferra
         string frmNumber = request.Item.Number;
         string reason = request.Item.Note;
         string id = request.Item.Id.ToString();
+        string status = request.Item.Status;
+        string userEmail = employee.Email;
 
         using var transaction = await _appDbContext.BeginTransactionAsync();
         try
@@ -62,15 +64,15 @@ public class UpdateDeferralPaymentCommandHandler : IRequestHandler<UpdateDeferra
             await _appDbContext.SaveChangesAsync();
 
             await transaction.CommitAsync();
-            
-            
+
+
         }
         catch
         {
             await transaction.RollbackAsync();
             throw;
         }
-        await SendEmail(senderName, rcptEmail, rcptName, custName, frmNumber, reason, id);
+        await SendEmail(senderName, rcptEmail, rcptName, custName, frmNumber, reason, id, status, userEmail);
         return request.Item;
 
     }
@@ -85,38 +87,82 @@ public class UpdateDeferralPaymentCommandHandler : IRequestHandler<UpdateDeferra
         return roles == null || roles.Count == 0 ? null : JsonSerializer.Serialize(roles);
     }
 
-    private async Task SendEmail(string senderName, string rcptEmail, string rcptName, string custName, string frmNumber, string reason, string id)
+    private async Task SendEmail(string senderName, string rcptEmail, string rcptName, string custName, string frmNumber, string reason, string id, string status, string userEmail)
     {
         var _baseUrl = _configuration["BaseUrl"];
-        var subject = $"Nowy wniosek o odroczoną płatność ({frmNumber}) :)";
-        var body = $@"
-        <!DOCTYPE html>
-        <html>
-        <head>
-        </head>
-        <body>
-            <div class=""header"">
-                <h1>Wniosek o odroczoną płatność</h1>
-            </div>
-            <div>
-                <p><h3>Nowy wniosek o odroczoną płatność numer {frmNumber} oczekuje na Twoją aprobatę.</h3></p>
-                <p>Wniosek dotyczy klienta: <b>{custName}</b></p>
-                <p>Uzasadnienie: <b>{reason}</b></p>
-                <p>Zgłaszający: <b>{senderName}</b></p>
-            </div>
-            <div>
-                <p>Kliknij w link, aby przejść do wniosku: <a href=""{_baseUrl}/deferralpaymentedit/{id}"">Przejdź do wniosku</a></p>
-                <p>Przejdź do listy wniosków: <a href=""{_baseUrl}/deferralpayments"">Lista wniosków</a></p>
-            </div>
-            <div>
-                <p>Pozdrawiamy!</p>
-                <p>Twój zespół Automatyzacji!</p>
-            </div>
-            <div class=""footer"">
-                <p>© 2024 PIAPL BackOfficeApp Team</p>
-            </div>
-        </body>
-        </html>";
+        string body = string.Empty;
+        string subject = string.Empty;
+        string destEmail = rcptEmail;
+        //AprobataL1
+        //AprobataL2
+        //Odrzucone
+        //Zakończone
+        if (status == "AprobataL1" || status == "AprobataL2")
+        {
+            subject = $"Nowy wniosek o odroczoną płatność ({frmNumber}) :)";
+            body = $@"
+                <!DOCTYPE html>
+                <html>
+                <head>
+                </head>
+                <body>
+                    <div class=""header"">
+                        <h1>Wniosek o odroczoną płatność</h1>
+                    </div>
+                    <div>
+                        <p><h3>Nowy wniosek o odroczoną płatność numer {frmNumber} oczekuje na Twoją aprobatę.</h3></p>
+                        <p>Wniosek dotyczy klienta: <b>{custName}</b></p>
+                        <p>Uzasadnienie: <b>{reason}</b></p>
+                        <p>Zgłaszający: <b>{senderName}</b></p>
+                    </div>
+                    <div>
+                        <p>Kliknij w link, aby przejść do wniosku: <a href=""{_baseUrl}/deferralpaymentedit/{id}"">Przejdź do wniosku</a></p>
+                        <p>Przejdź do listy wniosków: <a href=""{_baseUrl}/deferralpayments"">Lista wniosków</a></p>
+                    </div>
+                    <div>
+                        <p>Pozdrawiamy!</p>
+                        <p>Twój zespół Automatyzacji!</p>
+                    </div>
+                    <div class=""footer"">
+                        <p>© 2024 Porsche Inter Auto Polska Sp. z o.o.</p>
+                    </div>
+                </body>
+                </html>";
+        }
+        else if (status == "Zakończone")
+        {
+            destEmail = userEmail;
+            subject = $"Wniosek o odroczoną płatność ({frmNumber}) został zaaprobowany)";
+            body = $@"
+                <!DOCTYPE html>
+                <html>
+                <head>
+                </head>
+                <body>
+                    <div class=""header"">
+                        <h1>Wniosek o odroczoną płatność</h1>
+                    </div>
+                    <div>
+                        <p><h3>Twój wniosek o odroczoną płatność numer {frmNumber} został zaaprobowany.</h3></p>
+                        <p><h3>Możesz już wystawić dokument z odroczoną płatnością</h3></p>
+                        <p>Wniosek dotyczy klienta: <b>{custName}</b></p>
+                        <p>Uzasadnienie: <b>{reason}</b></p>
+                        <p>Zgłaszający: <b>{senderName}</b></p>
+                    </div>
+                    <div>
+                        <p>Kliknij w link, aby przejść do wniosku: <a href=""{_baseUrl}/deferralpaymentedit/{id}"">Przejdź do wniosku</a></p>
+                        <p>Przejdź do listy wniosków: <a href=""{_baseUrl}/platnosciodroczone/pracownik"">Lista wniosków</a></p>
+                    </div>
+                    <div>
+                        <p>Pozdrawiamy!</p>
+                        <p>Twój zespół Automatyzacji!</p>
+                    </div>
+                    <div class=""footer"">
+                        <p>© 2024 Porsche Inter Auto Polska Sp. z o.o.</p>
+                    </div>
+                </body>
+                </html>";
+        }
 
         var message = new Microsoft.Graph.Models.Message
         {
@@ -132,7 +178,7 @@ public class UpdateDeferralPaymentCommandHandler : IRequestHandler<UpdateDeferra
             {
                 EmailAddress = new EmailAddress
                 {
-                    Address = rcptEmail
+                    Address = destEmail
                 }
             }
         }
