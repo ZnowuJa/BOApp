@@ -20,8 +20,10 @@
 @attribute [Authorize(Policy = "User")]
 
 @inject IMediator _mediator
+@inject IJSRuntime JS
 @inject ILogger<DeferralPaymentFor> _logger
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager _navigationManager
 
 <h3>Wniosek o udzielenie odroczonej płatności</h3>
 
@@ -359,7 +361,7 @@ else
         Console.WriteLine(tempEmp.LongName);
     }
 
-    
+
 
     private async Task Save()
     {
@@ -371,12 +373,14 @@ else
             var saveResult = await _mediator.Send(new CreateDeferralPaymentCommand(formItem));
 
             message = $"Wniosek o numerze {saveResult.Number} o opóźnioną płatność dla {saveResult.KontrahentId}, {saveResult.KontrahentName} wysłana!";
+            _navigationManager.NavigateTo("/platnosciodroczone/pracownik");
+            // GoBack();
         }
         catch (Exception ex)
         {
             _logger.LogInformation($"Error creating deferral payment form: {ex.Message}");
             message = $"An error occurred while creating the deferral payment form: {ex.InnerException.Message}.";
-            Console.WriteLine($"Error creating deferral payment form: {ex.Message}");
+            // Console.WriteLine($"Error creating deferral payment form: {ex.Message}");
             message = $"An error occurred while creating the deferral payment form: {ex.InnerException.Message}.";
         }
     }
@@ -421,4 +425,17 @@ else
 
         // Console.WriteLine("");
     }
+    private async Task GoBack()
+    {
+        // Console.WriteLine("GOBACK");
+        await JS.InvokeVoidAsync("goBack");
+    }
 }
+
+
+
+<script>
+    function goBack() {
+        window.history.back();
+    }
+</script>

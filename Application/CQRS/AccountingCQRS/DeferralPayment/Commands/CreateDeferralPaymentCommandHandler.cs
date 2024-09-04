@@ -32,7 +32,6 @@ public class CreateDeferralPaymentCommandHandler : IRequestHandler<CreateDeferra
         _mapper = mapper;
         _mailService = mailService;
         _configuration = configuration;
-        
     }
 
     public async Task<DeferralPaymentFormVm> Handle(CreateDeferralPaymentCommand request, CancellationToken cancellationToken)
