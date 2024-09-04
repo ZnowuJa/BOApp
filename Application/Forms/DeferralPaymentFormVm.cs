@@ -70,7 +70,7 @@ public class DeferralPaymentFormVm : IMapFrom<DeferralPaymentForm>
     {
         return new List<string>
             {
-                "Rejestracja", "AprobataL1", "AprobataL2", "Zakończone"
+                "Rejestracja", "AprobataL1", "AprobataL2", "Zakończone", "Odrzucone"
             };
     }
 }

@@ -24,21 +24,20 @@ public class CreateDeferralPaymentCommandHandler : IRequestHandler<CreateDeferra
     private readonly IMapper _mapper;
     private readonly IEmailService _mailService;
     private readonly IConfiguration _configuration;
-    private readonly ILogger _logger;
 
-    public CreateDeferralPaymentCommandHandler(IAppDbContext appDbContext, IMapper mapper, IEmailService mailService, IConfiguration configuration, ILogger logger)
+
+    public CreateDeferralPaymentCommandHandler(IAppDbContext appDbContext, IMapper mapper, IEmailService mailService, IConfiguration configuration)
     {
         _appDbContext = appDbContext;
         _mapper = mapper;
         _mailService = mailService;
         _configuration = configuration;
-        _logger = logger;
-        _logger.LogInformation("CreateDeferralPaymentCommandHandler ctor fired");
+        
     }
 
     public async Task<DeferralPaymentFormVm> Handle(CreateDeferralPaymentCommand request, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("CreateDeferralPaymentCommandHandler entered Handle method");
+        
         using var transaction = await _appDbContext.BeginTransactionAsync();
         try
         {
@@ -78,7 +77,7 @@ public class CreateDeferralPaymentCommandHandler : IRequestHandler<CreateDeferra
         {
 
             await transaction.RollbackAsync();
-            _logger.LogInformation($"CreateDeferralPaymentCommandHandler {ex.Message}, {ex.InnerException}");
+            //_logger.LogInformation($"CreateDeferralPaymentCommandHandler {ex.Message}, {ex.InnerException}");
             throw;
         }
         var employee = await _appDbContext.Employees.Where(p => p.EnovaEmpId == request.Item.EmployeeId).FirstOrDefaultAsync();
@@ -94,7 +93,7 @@ public class CreateDeferralPaymentCommandHandler : IRequestHandler<CreateDeferra
 
 
         await SendEmail(senderName, rcptEmail, rcptName, custName, frmNumber, reason, id );
-        _logger.LogInformation($"CreateDeferralPaymentCommandHandler {request.Item.EmployeeName}");
+        //_logger.LogInformation($"CreateDeferralPaymentCommandHandler {request.Item.EmployeeName}");
         return request.Item;
     }
     private string SerializeApprovals(List<ViewModels.General.Approval> approvals)
@@ -135,7 +134,7 @@ public class CreateDeferralPaymentCommandHandler : IRequestHandler<CreateDeferra
                 <p>Twój zespół Automatyzacji!</p>
             </div>
             <div class=""footer"">
-                <p>© 2024 PIAPL BackOfficeApp Team</p>
+                <p>© 2024 Porsche Inter Auto Polska Sp. z o.o.</p>
             </div>
         </body>
         </html>";

@@ -93,13 +93,9 @@ public class UpdateDeferralPaymentCommandHandler : IRequestHandler<UpdateDeferra
         string body = string.Empty;
         string subject = string.Empty;
         string destEmail = rcptEmail;
-        //AprobataL1
-        //AprobataL2
-        //Odrzucone
-        //Zakończone
         if (status == "AprobataL1" || status == "AprobataL2")
         {
-            subject = $"Nowy wniosek o odroczoną płatność ({frmNumber}) :)";
+            subject = $"Nowy wniosek o odroczoną płatność ({frmNumber}) oczekuje na aprobatę)";
             body = $@"
                 <!DOCTYPE html>
                 <html>
@@ -151,6 +147,39 @@ public class UpdateDeferralPaymentCommandHandler : IRequestHandler<UpdateDeferra
                     </div>
                     <div>
                         <p>Kliknij w link, aby przejść do wniosku: <a href=""{_baseUrl}/deferralpaymentedit/{id}"">Przejdź do wniosku</a></p>
+                        <p>Przejdź do listy wniosków: <a href=""{_baseUrl}/platnosciodroczone/pracownik"">Lista wniosków</a></p>
+                    </div>
+                    <div>
+                        <p>Pozdrawiamy!</p>
+                        <p>Twój zespół Automatyzacji!</p>
+                    </div>
+                    <div class=""footer"">
+                        <p>© 2024 Porsche Inter Auto Polska Sp. z o.o.</p>
+                    </div>
+                </body>
+                </html>";
+        }
+        else if (status == "Odrzucone")
+        {
+            destEmail = userEmail;
+            subject = $"Wniosek o odroczoną płatność ({frmNumber}) został odrzucony)";
+            body = $@"
+                <!DOCTYPE html>
+                <html>
+                <head>
+                </head>
+                <body>
+                    <div class=""header"">
+                        <h1>Wniosek o odroczoną płatność</h1>
+                    </div>
+                    <div>
+                        <p><h3>Twój wniosek o odroczoną płatność numer {frmNumber} został odrzucony.</h3></p>
+                        
+                        <p>Wniosek dotyczy klienta: <b>{custName}</b></p>
+                        <p>Uzasadnienie: <b>{reason}</b></p>
+                        <p>Zgłaszający: <b>{senderName}</b></p>
+                    </div>
+                    <div>
                         <p>Przejdź do listy wniosków: <a href=""{_baseUrl}/platnosciodroczone/pracownik"">Lista wniosków</a></p>
                     </div>
                     <div>

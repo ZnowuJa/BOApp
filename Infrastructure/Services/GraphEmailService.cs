@@ -24,7 +24,7 @@ public class GraphEmailService : IEmailService
         string tId = section["TenantId"];
         string cId = section["ClientId"];
         string sId = Environment.GetEnvironmentVariable("Email_Secret");
-
+     
         ClientSecretCredential credentials = new(tId, cId, sId);
 
         _graphServiceClient = new GraphServiceClient(credentials, new[] { "https://graph.microsoft.com/.default" });
