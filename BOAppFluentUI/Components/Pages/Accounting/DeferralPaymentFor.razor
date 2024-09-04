@@ -224,6 +224,7 @@ else
             }
             catch (Exception ex)
             {
+                messageMissing = $"Error loading kontrahent: {ex.Message}";
                 Console.WriteLine($"Error loading kontrahent: {ex.Message}");
             }
         }
@@ -373,6 +374,8 @@ else
         }
         catch (Exception ex)
         {
+            _logger.LogInformation($"Error creating deferral payment form: {ex.Message}");
+            message = $"An error occurred while creating the deferral payment form: {ex.InnerException.Message}.";
             Console.WriteLine($"Error creating deferral payment form: {ex.Message}");
             message = $"An error occurred while creating the deferral payment form: {ex.InnerException.Message}.";
         }

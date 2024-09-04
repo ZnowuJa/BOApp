@@ -14,6 +14,7 @@ using MediatR;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.Graph.Models;
 
 namespace Application.CQRS.AccountingCQRS.DeferralPayment.Commands;
@@ -23,13 +24,15 @@ public class CreateDeferralPaymentCommandHandler : IRequestHandler<CreateDeferra
     private readonly IMapper _mapper;
     private readonly IEmailService _mailService;
     private readonly IConfiguration _configuration;
+    private readonly ILogger _logger;
 
-    public CreateDeferralPaymentCommandHandler(IAppDbContext appDbContext, IMapper mapper, IEmailService mailService, IConfiguration configuration)
+    public CreateDeferralPaymentCommandHandler(IAppDbContext appDbContext, IMapper mapper, IEmailService mailService, IConfiguration configuration, ILogger logger)
     {
         _appDbContext = appDbContext;
         _mapper = mapper;
         _mailService = mailService;
         _configuration = configuration;
+        _logger = logger;
     }
 
     public async Task<DeferralPaymentFormVm> Handle(CreateDeferralPaymentCommand request, CancellationToken cancellationToken)
@@ -74,6 +77,7 @@ public class CreateDeferralPaymentCommandHandler : IRequestHandler<CreateDeferra
         {
 
             await transaction.RollbackAsync();
+            _logger.LogInformation($"CreateDeferralPaymentCommandHandler {ex.Message}, {ex.InnerException}");
             throw;
         }
         var employee = await _appDbContext.Employees.Where(p => p.EnovaEmpId == request.Item.EmployeeId).FirstOrDefaultAsync();
@@ -89,6 +93,7 @@ public class CreateDeferralPaymentCommandHandler : IRequestHandler<CreateDeferra
 
 
         await SendEmail(senderName, rcptEmail, rcptName, custName, frmNumber, reason, id );
+        _logger.LogInformation($"CreateDeferralPaymentCommandHandler {request.Item.EmployeeName}");
         return request.Item;
     }
     private string SerializeApprovals(List<ViewModels.General.Approval> approvals)
