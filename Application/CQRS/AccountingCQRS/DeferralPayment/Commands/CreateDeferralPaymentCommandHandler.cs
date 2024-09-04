@@ -33,11 +33,12 @@ public class CreateDeferralPaymentCommandHandler : IRequestHandler<CreateDeferra
         _mailService = mailService;
         _configuration = configuration;
         _logger = logger;
+        _logger.LogInformation("CreateDeferralPaymentCommandHandler ctor fired");
     }
 
     public async Task<DeferralPaymentFormVm> Handle(CreateDeferralPaymentCommand request, CancellationToken cancellationToken)
     {
-
+        _logger.LogInformation("CreateDeferralPaymentCommandHandler entered Handle method");
         using var transaction = await _appDbContext.BeginTransactionAsync();
         try
         {
