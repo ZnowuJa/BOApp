@@ -123,7 +123,7 @@ else if (showForm)
     </EditForm>
 } else
 {
-    <H2>Nic to nie ma dla Ciebie!</H2>
+    <H2>Niestety nic to nie ma dla Ciebie!</H2>
 }
 
 @code {
@@ -190,11 +190,11 @@ else if (showForm)
         await GetUserName();
         await GetAllowedPersons(formItem);
         showForm = allowedEmp.Contains(emp.EnovaEmpId.ToString());
-        
+
         if (showForm)
             await Load();
-            
-        
+
+
     }
 
     private async Task Load()
@@ -243,6 +243,17 @@ else if (showForm)
 
     private async Task Save(string buttonState)
     {
+        var destination = string.Empty;
+
+        if (formItem.Status == "AprobataL2")
+        {
+            destination = "/platnosciodroczone/rozrachunki";
+        }
+        else 
+        {
+            destination = "/platnosciodroczone/kierownik";
+        }
+
         if (buttonState == "approved")
         {
             formItem.Status = formItem.Status switch
@@ -268,8 +279,8 @@ else if (showForm)
         var saveResult = await _mediator.Send(new UpdateDeferralPaymentCommand(formItem));
 
         message = $"Wniosek o numerze {saveResult.Number} o opóźnioną płatność dla {saveResult.KontrahentId}, {saveResult.KontrahentName} wysłana!";
-
-        GoBack();
+        _navigationManager.NavigateTo(destination);
+        // GoBack();
     }
 
     private async Task Reject()
