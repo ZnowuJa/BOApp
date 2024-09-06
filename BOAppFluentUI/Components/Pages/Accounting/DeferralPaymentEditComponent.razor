@@ -18,8 +18,9 @@
 @attribute [Authorize(Policy = "User")]
 
 @inject IMediator _mediator
-@inject ILogger<DeferralPaymentListPage> _logger
 @inject IJSRuntime JS
+@inject ILogger<DeferralPaymentListPage> _logger
+@inject IToastService _toastService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager _navigationManager
 
@@ -83,7 +84,7 @@ else if (showForm)
                           Multiple="false"
                           OptionValue="@(p => p.EmpId.ToString())"
                           OptionText="@(p => p.LongName)"
-                          OptionSelected="@(p => p.IsDefault)"
+                          OptionSelected="@(p => p.EmpId == int.Parse(formItem.LVL1_EnovaEmpId.ToString()))"
                           @bind-SelectedOption="approverL1"
                           Height="200px"
                           @onchange="HandleChangeApproverL1" />
@@ -97,7 +98,7 @@ else if (showForm)
                           Multiple="false"
                           OptionValue="@(p => p.EmpId.ToString())"
                           OptionText="@(p => p.LongName)"
-                          OptionSelected="@(p => p.IsDefault)"
+                          OptionSelected="@(p => p.EmpId == int.Parse(formItem.LVL2_EnovaEmpId.ToString()))"
                           @bind-SelectedOption="approverL2"
                           Height="200px"
                           @onchange="HandleChangeApproverL2" />
@@ -172,6 +173,9 @@ else if (showForm)
     private List<string> allowedEmp { get; set; } = new List<string>();
     private bool showForm { get; set; }
 
+    private ToastIntent intent { get; set; }
+    private string toastMessage { get; set; } = string.Empty;
+
     #endregion Declarations
 
     protected override async Task OnInitializedAsync()
@@ -189,6 +193,7 @@ else if (showForm)
 
         await GetUserName();
         await GetAllowedPersons(formItem);
+
         showForm = allowedEmp.Contains(emp.EnovaEmpId.ToString());
 
         if (showForm)
@@ -224,6 +229,11 @@ else if (showForm)
 
         messageMissing = "Loaded";
         StateHasChanged();
+    }
+
+    private async Task SetApproversDDL(DeferralPaymentFormVm form)
+    {
+        
     }
 
     private void HandleChangeApproverL1(ChangeEventArgs e)
@@ -283,14 +293,14 @@ else if (showForm)
         // GoBack();
     }
 
-    private async Task Reject()
-    {
-        message = "Wniosek odrzucony!";
-        formItem.Status = "Odrzucony";
-        await _mediator.Send(new UpdateDeferralPaymentCommand(formItem));
-        GoBack();
+    // private async Task Reject()
+    // {
+    //     message = "Wniosek odrzucony!";
+    //     formItem.Status = "Odrzucony";
+    //     await _mediator.Send(new UpdateDeferralPaymentCommand(formItem));
+    //     GoBack();
+    // }
 
-    }
     private async Task GetUserName()
     {
         var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
@@ -334,7 +344,6 @@ else if (showForm)
         {
             allowedEmp.Add(form.EmployeeId.ToString());
             allowedEmp.AddRange(form.Level2Approvers.Select(l => l.EmpId.ToString()));
-
         }
     }
     private async Task GoBack()

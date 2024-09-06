@@ -22,8 +22,10 @@
 @inject IMediator _mediator
 @inject IJSRuntime JS
 @inject ILogger<DeferralPaymentFor> _logger
+@inject IToastService _toastService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager _navigationManager
+
 
 <h3>Wniosek o udzielenie odroczonej płatności</h3>
 
@@ -152,6 +154,9 @@ else
     private string FormName = "DeferralPaymentFormVm";
 
     private int buttonSpacer = 100;
+
+    private ToastIntent intent { get; set; }
+    private string toastMessage { get; set; } = string.Empty;
 
     #endregion InitForm
     protected override async Task OnInitializedAsync()
@@ -373,7 +378,9 @@ else
             var saveResult = await _mediator.Send(new CreateDeferralPaymentCommand(formItem));
 
             message = $"Wniosek o numerze {saveResult.Number} o opóźnioną płatność dla {saveResult.KontrahentId}, {saveResult.KontrahentName} wysłana!";
-            _navigationManager.NavigateTo("/platnosciodroczone/pracownik");
+            _navigationManager.NavigateTo("/platnosciodroczone/zapisane");
+            intent = ToastIntent.Success;
+            toastMessage = "Wniosek wysłany do aprobaty!";
             // GoBack();
         }
         catch (Exception ex)
@@ -382,7 +389,11 @@ else
             message = $"An error occurred while creating the deferral payment form: {ex.InnerException.Message}.";
             // Console.WriteLine($"Error creating deferral payment form: {ex.Message}");
             message = $"An error occurred while creating the deferral payment form: {ex.InnerException.Message}.";
+            _navigationManager.NavigateTo("/platnosciodroczone/niezapisane");
+            // intent = ToastIntent.Error;
+            // toastMessage = "Wystąpił błąd, wniosek nie zapisany!";
         }
+        _toastService.ShowToast(intent, message, 3000);
     }
 
     private async Task Cancel()

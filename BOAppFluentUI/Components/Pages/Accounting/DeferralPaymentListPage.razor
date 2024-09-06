@@ -119,6 +119,9 @@
     private bool actionsDisabled = false;
     private bool viewDisabled = false;
 
+    private ToastIntent intent { get; set; }
+    private string toastMessage { get; set; } = string.Empty;
+
     protected override async Task OnInitializedAsync()
     {
         await GetUserName();
@@ -133,6 +136,8 @@
         {
             "kierownik" or "manager" => await _mediator.Send(new GetDeferralPaymentByApproverQuery(EmplEnovaEmpId)),
             "pracownik" or "employee" => await _mediator.Send(new GetDeferralPaymentByEmpIdQuery(EmplEnovaEmpId)),
+            "zapisane" or "saved" or "niezapisane" or "notsaved" => await HandleSavedCase(),
+
             "rozrachunki" or "settlements" => await _mediator.Send(new GetAllDeferralPaymentFormQuery()),
             _ => throw new ArgumentException("Błędny adres strony!")
         };
@@ -140,6 +145,21 @@
         // Console.WriteLine(deferralForms.Count());
         // Console.WriteLine(deferralForms.Count());
         // items = deferralForms.AsQueryable();
+    }
+    private async Task<IQueryable<DeferralPaymentFormVm>> HandleSavedCase()
+    {
+        var resultss = await _mediator.Send(new GetDeferralPaymentByEmpIdQuery(EmplEnovaEmpId));
+        intent = ToastIntent.Success;
+        if (role is "zapisane" or "saved")
+        {
+            toastMessage = "Wniosek wysłany do aprobaty!";
+        } else
+        {
+            toastMessage = "Wystąpił błąd, wniosek nie zapisany!";
+        }
+
+        _toastService.ShowToast(intent, toastMessage, 3000);
+        return resultss;
     }
 
     private void HandleClearFilter(ref string filter) => filter = string.IsNullOrWhiteSpace(filter) ? string.Empty : filter;
