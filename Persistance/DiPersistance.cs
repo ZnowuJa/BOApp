@@ -30,7 +30,7 @@ public static class DiPersistance
         });
 
         // Register AsDbContext
-        services.AddSingleton<AsDbContextFactory>(provider => new AsDbContextFactory(configuration));
+        //services.AddDbContextFactory<AsDbContextFactory>(provider => new AsDbContextFactory(configuration));
 
         services.AddDbContextFactory<AsDbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("AsDbContextConnection")));

@@ -8,14 +8,18 @@ namespace Persistance;
 public class AsDbContext : DbContext, IAsDbContext
 {
     private readonly IConfiguration _configuration;
-    private readonly string _environment;
-    public AsDbContext(DbContextOptions<AsDbContext> options, IConfiguration configuration) : base(options)
-    {
-        _configuration = configuration;
-        _environment = _configuration.GetValue<string>("Environment");
-    }
+    //private readonly string _environment;
 
-    public DbSet<Customer> Kontrahenci { get; set; }
+    public AsDbContext(DbContextOptions<AsDbContext> options) : base(options)
+    {
+    }
+    //public AsDbContext(DbContextOptions<AsDbContext> options, IConfiguration configuration) : base(options)
+    //{
+    //    _configuration = configuration;
+    //    //_environment = _configuration.GetValue<string>("Environment");
+    //}
+
+    public DbSet<Customer> v_KONTRAHENCI_LISTA { get; set; }
     
 
     Task<int> IAsDbContext.SaveChangesAsync(CancellationToken cancellationToken)
@@ -66,13 +70,13 @@ public class AsDbContext : DbContext, IAsDbContext
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
-        Console.WriteLine(_environment);
-        Console.WriteLine(_environment == "PROD" ? "v_KONTRAHENCI_LISTA" : "Kontrahenci");
+        //Console.WriteLine(_environment);
+        //Console.WriteLine(_environment == "PROD" ? "v_KONTRAHENCI_LISTA" : "Kontrahenci");
         builder.Entity<Customer>(entity =>
         {
             entity
                 .HasNoKey()
-                .ToTable(_environment == "PROD" ? "v_KONTRAHENCI_LISTA" : "Kontrahenci");
+                .ToTable("v_KONTRAHENCI_LISTA");
 
             entity.Property(e => e.KontrahentId).HasColumnName("KONTRAHENT_ID");
             entity.Property(e => e.Nazwa)

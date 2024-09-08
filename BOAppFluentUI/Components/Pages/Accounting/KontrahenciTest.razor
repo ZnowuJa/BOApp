@@ -34,7 +34,7 @@
 
     private async Task Load()
     {
-        var kontrahenciEntities = await _asdbctx.Kontrahenci.ToListAsync();
+        var kontrahenciEntities = await _asdbctx.v_KONTRAHENCI_LISTA.ToListAsync();
         kontrsL = _mapper.Map<List<CustomerVm>>(kontrahenciEntities);
         kontrs = kontrsL.AsQueryable();
 

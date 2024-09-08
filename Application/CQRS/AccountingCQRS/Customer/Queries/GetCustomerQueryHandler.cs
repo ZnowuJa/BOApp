@@ -28,7 +28,7 @@ public class GetCustomerQueryHandler : IRequestHandler<GetCustomerQuery, Custome
     public async Task<CustomerVm> Handle(GetCustomerQuery request, CancellationToken cancellationToken)
     {
         //var temp = new DeferralPaymentFormVm();
-        var item = await _asDbContext.Kontrahenci.Where(p => p.KontrahentId == request.Id).FirstOrDefaultAsync(cancellationToken);
+        var item = await _asDbContext.v_KONTRAHENCI_LISTA.Where(p => p.KontrahentId == request.Id).FirstOrDefaultAsync(cancellationToken);
         var itemVM = _mapper.Map<CustomerVm>(item);
         return itemVM;
         //return temp;

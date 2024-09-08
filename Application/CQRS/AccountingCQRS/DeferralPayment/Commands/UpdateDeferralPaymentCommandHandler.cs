@@ -130,7 +130,15 @@ public class UpdateDeferralPaymentCommandHandler : IRequestHandler<UpdateDeferra
         var _baseUrl = _configuration["BaseUrl"];
         string body = string.Empty;
         string subject = string.Empty;
-        string destEmail = rcptEmail;
+        var emailAddresses = rcptEmail.Split(';');
+        var recipients = emailAddresses.Select(email => new Recipient
+        {
+            EmailAddress = new EmailAddress
+            {
+                Address = email.Trim()
+            }
+        }).ToList();
+
         if (status == "AprobataL1" || status == "AprobataL2")
         {
             subject = $"Nowy wniosek o odroczoną płatność ({frmNumber}) oczekuje na aprobatę)";
@@ -165,7 +173,14 @@ public class UpdateDeferralPaymentCommandHandler : IRequestHandler<UpdateDeferra
         }
         else if (status == "Zakończone")
         {
-            destEmail = userEmail;
+            recipients = new List<Recipient>
+            { 
+                new Recipient
+                { 
+                    EmailAddress = new EmailAddress{ Address = userEmail } 
+                }
+
+            };
             subject = $"Wniosek o odroczoną płatność ({frmNumber}) został zaaprobowany)";
             body = $@"
                 <!DOCTYPE html>
@@ -199,7 +214,14 @@ public class UpdateDeferralPaymentCommandHandler : IRequestHandler<UpdateDeferra
         }
         else if (status == "Odrzucone")
         {
-            destEmail = userEmail;
+            recipients = new List<Recipient>
+            {
+                new Recipient
+                {
+                    EmailAddress = new EmailAddress{ Address = userEmail }
+                }
+
+            };
             subject = $"Wniosek o odroczoną płatność ({frmNumber}) został odrzucony)";
             body = $@"
                 <!DOCTYPE html>
@@ -239,17 +261,18 @@ public class UpdateDeferralPaymentCommandHandler : IRequestHandler<UpdateDeferra
                 ContentType = BodyType.Html,
                 Content = body
             },
-            ToRecipients = new List<Recipient>
-        {
-            new Recipient
-            {
-                EmailAddress = new EmailAddress
-                {
-                    Address = destEmail
-                }
-            }
-        }
+            ToRecipients = recipients
         };
+        //{
+        //    new Recipient
+        //    {
+        //        EmailAddress = new EmailAddress
+        //        {
+        //            Address = destEmail
+        //        }
+        //    }
+        //}
+        
 
         await _mailService.SendEmailAsync(message);
     }

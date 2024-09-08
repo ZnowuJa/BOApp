@@ -52,7 +52,7 @@ else if (message != null)
     {
         try
         {
-            var kontrahentEntity = await _asdbctx.Kontrahenci.Where(k => k.KontrahentId == Id).FirstOrDefaultAsync();
+            var kontrahentEntity = await _asdbctx.v_KONTRAHENCI_LISTA.Where(k => k.KontrahentId == Id).FirstOrDefaultAsync();
             if (kontrahentEntity != null)
             {
                 showCustomer = true;
