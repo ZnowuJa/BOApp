@@ -1,5 +1,6 @@
 @inherits LayoutComponentBase
 @inject IDialogService DialogService
+@inject IConfiguration _configuration
 <FluentLayout>
     <FluentHeader>
          PIAPL BackOffice App
@@ -16,8 +17,8 @@
         </FluentBodyContent>
     </FluentStack>
     <FluentFooter style="display: flex; justify-content: space-between;">
-        <div class="link1">
-            <a href="https://www.fluentui-blazor.net" target="_blank">Documentation and demos</a>
+        <div >
+            <b>Environment: @envi  |  Version: @appVersion</b>
         </div>
         <div class="link2">
             <a href="https://sharepoint" target="_blank">Sharepoint</a>
@@ -38,6 +39,14 @@
 </div>
 
 @code {
+    private string envi { get; set; } = string.Empty;
+    private string appVersion { get; set; } = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        envi = _configuration["Environment"];
+        appVersion = _configuration["AppVersion"];
+    }
     private async Task ShowSettingAsync()
     {
         await DialogService.ShowPanelAsync<Components.Pages.Settings>(new DialogParameters()
