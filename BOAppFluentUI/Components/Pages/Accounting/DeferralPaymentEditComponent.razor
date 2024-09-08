@@ -24,14 +24,13 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager _navigationManager
 
-<h3>Wniosek o udzielenie odroczonej płatności</h3>
-
 @if (formItem == null)
 {
     <FluentProgressRing>Loading...</FluentProgressRing>
 }
 else if (showForm)
 {
+    <h3>Wniosek o udzielenie odroczonej płatności  | Status: @formItem.Status</h3>
 
     <EditForm EditContext="_editContext">
         <div>
@@ -77,7 +76,7 @@ else if (showForm)
             <FluentSelect TOption="OrganisationRoleForFormVm"
                           Style="align-items: center;"
                           Id="AL1Id"
-                          Disabled="@(al1)"
+                          Disabled="@(canEditApprover)"
                           Label="Aprobata L1"
                           Autofocus="true"
                           Items="formItem.Level1Approvers"
@@ -88,8 +87,10 @@ else if (showForm)
                           @bind-SelectedOption="approverL1"
                           Height="200px"
                           @onchange="HandleChangeApproverL1" />
+            Aprobata L2:   &nbsp;&nbsp; Dział Rozrachunki
 
 
+@*             
             <FluentSelect TOption="OrganisationRoleForFormVm"
                           Id="AL2Id"
                           Autofocus="true"
@@ -102,6 +103,7 @@ else if (showForm)
                           @bind-SelectedOption="approverL2"
                           Height="200px"
                           @onchange="HandleChangeApproverL2" />
+             *@
             </FluentStack>
         }
 
@@ -146,6 +148,8 @@ else if (showForm)
     private readonly string approved = "approved";
     private readonly string cancelled = "cancelled";
 
+    private string nextStatus { get; set; } = string.Empty;
+
     private bool caneditfields = false;
 
     private ClaimsPrincipal? user { get; set; }
@@ -159,6 +163,7 @@ else if (showForm)
     private bool al1 = false;
     private bool al2 = false;
     private bool fin = false;
+    private bool canEditApprover = false;
     private bool ApproveButton = true;
     private bool SendButton = true;
 
@@ -171,6 +176,7 @@ else if (showForm)
     private int buttonSpacer = 100;
 
     private List<string> allowedEmp { get; set; } = new List<string>();
+    private List<string> allowedEditor { get; set; } = new List<string>();
     private bool showForm { get; set; }
 
     private ToastIntent intent { get; set; }
@@ -195,6 +201,7 @@ else if (showForm)
         await GetAllowedPersons(formItem);
 
         showForm = allowedEmp.Contains(emp.EnovaEmpId.ToString());
+        canEditApprover = allowedEditor.Contains(emp.EnovaEmpId.ToString());
 
         if (showForm)
             await Load();
@@ -218,14 +225,14 @@ else if (showForm)
                 Date = DateTime.Now,
                 IsApproved = true
         };
-        if (al1)
-        {
-            formItem.Status = "AprobataL2";
-        }
-        else if (al2)
-        {
-            formItem.Status = "Zakończone";
-        }
+        // if (al1)
+        // {
+        //     nextStatus = "AprobataL2";
+        // }
+        // else if (al2)
+        // {
+        //     nextStatus = "Zakończone";
+        // }
 
         messageMissing = "Loaded";
         StateHasChanged();
@@ -340,6 +347,7 @@ else if (showForm)
             allowedEmp.Add(form.EmployeeId.ToString());
             allowedEmp.Add(form.LVL1_EnovaEmpId); //this is manager of requestor
             allowedEmp.AddRange(form.Level2Approvers.Select(l => l.EmpId.ToString()));//this is Settlement Department
+            allowedEditor.AddRange(form.Level2Approvers.Select(l => l.EmpId.ToString()));
         } else
         {
             allowedEmp.Add(form.EmployeeId.ToString());

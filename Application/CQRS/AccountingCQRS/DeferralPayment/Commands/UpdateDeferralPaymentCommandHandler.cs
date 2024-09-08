@@ -15,6 +15,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Graph.Models;
 using Microsoft.Graph.Models.ExternalConnectors;
 using Microsoft.Graph.Models.Security;
+using Microsoft.Graph.Privacy.SubjectRightsRequests.Item.Approvers;
 
 namespace Application.CQRS.AccountingCQRS.DeferralPayment.Commands;
 public class UpdateDeferralPaymentCommandHandler : IRequestHandler<UpdateDeferralPaymentCommand, DeferralPaymentFormVm>
@@ -34,9 +35,9 @@ public class UpdateDeferralPaymentCommandHandler : IRequestHandler<UpdateDeferra
 
     public async Task<DeferralPaymentFormVm> Handle(UpdateDeferralPaymentCommand request, CancellationToken cancellationToken)
     {
-        var employee = await _appDbContext.Employees.Where(p => p.EnovaEmpId == request.Item.EmployeeId).FirstOrDefaultAsync();
-        var manager = await _appDbContext.Employees.Where(p => p.EnovaEmpId == int.Parse(request.Item.LVL1_EnovaEmpId)).FirstOrDefaultAsync();
-
+        var employee = await _appDbContext.Employees.Where(p => p.EnovaEmpId == request.Item.EmployeeId).FirstOrDefaultAsync(cancellationToken);
+        var manager = await _appDbContext.Employees.Where(p => p.EnovaEmpId == int.Parse(request.Item.LVL1_EnovaEmpId)).FirstOrDefaultAsync(cancellationToken);
+        
         string senderName = request.Item.EmployeeName;
         string rcptEmail = manager.Email;
         string rcptName = manager.LongName;
@@ -47,7 +48,41 @@ public class UpdateDeferralPaymentCommandHandler : IRequestHandler<UpdateDeferra
         string status = request.Item.Status;
         string userEmail = employee.Email;
 
-        using var transaction = await _appDbContext.BeginTransactionAsync();
+        //if (request.Item.Status == "AprobataL2")
+        //{
+        //    rcptEmail = string.Empty;
+        //    rcptName = "Dział Rozrachunków";
+
+        //    var emailTasks = request.Item.Level2Approvers.Select(async l => (await _appDbContext.Employees.FirstOrDefaultAsync(p => p.EnovaEmpId == l.EmpId, cancellationToken))?.Email);
+        //    var emails = await Task.WhenAll(emailTasks);
+        //    Console.WriteLine();
+        //    rcptEmail = string.Join(";", emails.Where(email => !string.IsNullOrEmpty(email)));
+        ////    Console.WriteLine();
+        //}
+
+        if (request.Item.Status == "AprobataL2")
+        {
+            rcptEmail = string.Empty;
+            rcptName = "Dział Rozrachunków";
+
+            // Fetch data sequentially rather than using async tasks in parallel
+            var emails = new List<string>();
+            foreach (var approver in request.Item.Level2Approvers)
+            {
+                var empl = await _appDbContext.Employees
+                    .FirstOrDefaultAsync(p => p.EnovaEmpId == approver.EmpId, cancellationToken);
+
+                if (empl != null && !string.IsNullOrEmpty(empl.Email))
+                {
+                    emails.Add(empl.Email);
+                }
+            }
+
+            rcptEmail = string.Join(";", emails);
+            //Console.WriteLine();
+        }
+
+        using var transaction = await _appDbContext.BeginTransactionAsync(cancellationToken);
         try
         {
             var item = await _appDbContext.DeferralPayments.FindAsync(request.Item.Id, cancellationToken);
@@ -72,6 +107,9 @@ public class UpdateDeferralPaymentCommandHandler : IRequestHandler<UpdateDeferra
             await transaction.RollbackAsync();
             throw;
         }
+
+
+        //Console.WriteLine();
         await SendEmail(senderName, rcptEmail, rcptName, custName, frmNumber, reason, id, status, userEmail);
         return request.Item;
 
