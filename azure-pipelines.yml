@@ -52,11 +52,27 @@ steps:
               $appSettings | Add-Member -MemberType NoteProperty -Name 'AppVersion' -Value ''
           }
           $appSettings.AppVersion = "$(CommitId)"
-          $appSettings | ConvertTo-Json -Depth 32 | Set-Content $appSettingsPath
-          Write-Host "AppVersion updated successfully."
-          } else {
-          Write-Error "appsettings.json file not found at path: $appSettingsPath"
+          
+          # Read the Environment property
+          $environment = $appSettings.Environment
+          
+          # Update connection strings based on environment
+          if ($environment -eq "DEV") {
+            $appSettings.ConnectionStrings.AppDbContextConnection = "ata Source=plwawq04n;Initial Catalog=BackOfficeAppDev;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
+            $appSettings.ConnectionStrings.AsDbContextConnection = "Data Source=plwawq01n;Initial Catalog=PIADMS;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
+            $appSettings.BaseUrl = "https://plwaws86dev"
+          } elseif ($environment -eq "PROD") {
+            $appSettings.ConnectionStrings.AppDbContextConnection = "Data Source=plwawq04n;Initial Catalog=BackOfficeAppProd;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
+            $appSettings.ConnectionStrings.AsDbContextConnection = "Data Source=plwawq01n;Initial Catalog=PIADMS;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
+            $appSettings.BaseUrl = "https://plwaws86"
           }
+
+          $appSettings | ConvertTo-Json -Depth 32 | Set-Content $appSettingsPath
+          Write-Host "AppVersion and ConnectionStrings updated successfully."
+        } else {
+          Write-Error "appsettings.json file not found at path: $appSettingsPath"
+        }
+
   - task: DotNetCoreCLI@2
     name: 'Publish'
     displayName: 'Publish'
@@ -74,3 +90,4 @@ steps:
       PathtoPublish: '$(Build.ArtifactStagingDirectory)'
       ArtifactName: 'BoAppTestProject'
       publishLocation: 'Container'
+
