@@ -45,7 +45,7 @@ steps:
     inputs:
       targetType: 'inline'
       script: |
-        $appSettingsPath = "$(Build.SourcesDirectory)\path\to\appsettings.json"
+        $appSettingsPath = "$(Build.SourcesDirectory)\BOAppFluentUI\appsettings.json"
         $appSettings = Get-Content $appSettingsPath -Raw | ConvertFrom-Json
         $appSettings.AppVersion = "$(CommitId)"
         $appSettings | ConvertTo-Json -Depth 32 | Set-Content $appSettingsPath
