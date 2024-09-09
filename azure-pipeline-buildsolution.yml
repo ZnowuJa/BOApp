@@ -10,8 +10,13 @@ trigger:
 
 pool:
   vmImage: 'windows-latest'
-
+  demands:
+  - agent.name -equals Hosted Agent
+  timeoutInMinutes: 60
+  variables:
+    
 variables:
+  SYSTEM_ACCESSTOKEN: $(System.AccessToken)
   builtPlatform: 'Any CPU'
   builtConfiguration: 'Release'
   solution: '**/BOAppFluentUI+.sln'
