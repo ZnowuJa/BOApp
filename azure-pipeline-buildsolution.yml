@@ -17,13 +17,7 @@ variables:
 steps:
   - task: NuGetToolInstaller@1
     displayName: 'Nuget Tool Installer'
-    
-  - task: UseDotNet@2
-    displayName: 'Use .NET 8.0 SDK'
-    inputs:
-      packageType: 'sdk'
-      version: '8.0.x' # Ensure this matches the installed version on your IIS server
-      installationPath: $(Agent.ToolsDirectory)/dotnet
+
 
   - task: NuGetCommand@2
     displayName: 'NuGet Restore'
