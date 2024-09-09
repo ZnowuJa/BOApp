@@ -91,3 +91,26 @@ steps:
       ArtifactName: 'BoAppProject'
       publishLocation: 'Container'
 
+  - task: PowerShell@2
+    name: 'TriggerReleasePipeline'
+    displayName: 'Trigger Release Pipeline'
+    inputs:
+      targetType: 'inline'
+      script: |
+        $appSettingsPath = "$(Build.SourcesDirectory)\BOAppFluentUI\appsettings.json"
+        if (Test-Path $appSettingsPath) {
+          $appSettings = Get-Content $appSettingsPath -Raw | ConvertFrom-Json
+          $environment = $appSettings.Environment
+          
+          if ($environment -eq "PROD") {
+            Write-Host "Triggering BOApp_ReleasePipelinePROD..."
+            Invoke-RestMethod -Uri "https://dev.azure.com/piapl-azb/BackOfficeApp/_apis/pipelines/BOApp_ReleasePipelinePROD/runs?api-version=6.0-preview.1" -Method Post -Headers @{Authorization = "Bearer $(System.AccessToken)"}
+          } elseif ($environment -eq "DEV") {
+            Write-Host "Triggering BOApp_ReleasePipelineDEV..."
+            Invoke-RestMethod -Uri "https://dev.azure.com/piapl-azb/BackOfficeApp/_apis/pipelines/BOApp_ReleasePipelineDEV/runs?api-version=6.0-preview.1" -Method Post -Headers @{Authorization = "Bearer $(System.AccessToken)"}
+          } else {
+            Write-Host "No matching environment found. Skipping release pipeline trigger."
+          }
+        } else {
+          Write-Error "appsettings.json file not found at path: $appSettingsPath"
+        }
