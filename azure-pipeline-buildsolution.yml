@@ -2,7 +2,7 @@ trigger:
   none
 
 pool:
-  vmImage: 'windows-latest'
+  vmImage: 'windows-2022'
   demands:
   - agent.name -equals Hosted Agent
   timeoutInMinutes: 60
