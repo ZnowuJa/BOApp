@@ -3,25 +3,24 @@ trigger:
 
 pool:
   vmImage: 'windows-2022'
-  demands:
-  - agent.name -equals Hosted Agent
   timeoutInMinutes: 60
 
 variables:
   SYSTEM_ACCESSTOKEN: $(System.AccessToken)
   builtPlatform: 'Any CPU'
   builtConfiguration: 'Release'
-  solution: '**/BOAppFluentUI+.sln'
+  solution: '**/BOAppFluentUI.sln'  # Renamed solution without the `+` symbol
   project: '**/BOAppFluentUI/BOAppFluentUI.csproj'
 
 steps:
   - task: NuGetToolInstaller@1
     displayName: 'Nuget Tool Installer'
+
   - task: UseDotNet@2
     displayName: 'Use .NET 8.0 SDK'
     inputs:
       packageType: 'sdk'
-      version: '8.0.x' # Ensure this matches the installed version on your IIS server
+      version: '8.0.x'
       installationPath: $(Agent.ToolsDirectory)/dotnet
 
   - task: NuGetCommand@2
