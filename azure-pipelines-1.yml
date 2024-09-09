@@ -13,7 +13,7 @@ resources:
   pipelines:
     - pipeline: 'buildPipeline'
       project: 'BackOfficeApp'
-      source: 'BOApp Build Pipeline'
+      source: 'BOApp_BuildPipeline'
       branch: 'master'
 
 stages:
