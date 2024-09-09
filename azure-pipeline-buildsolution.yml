@@ -76,7 +76,7 @@ steps:
           $appSettings | ConvertTo-Json -Depth 32 | Set-Content $appSettingsPath
           Write-Host "AppVersion and ConnectionStrings updated successfully."
         } else {
-          Write-Error "appsettings.json file not found at path: $appSettingsPath"
+          Write-Error "appsettings.json file not found at path: $appSettingsPath"}
 
   - task: DotNetCoreCLI@2
     displayName: 'Publish'
@@ -114,4 +114,4 @@ steps:
             Write-Host "No matching environment found. Skipping release pipeline trigger."
           }
         } else {
-          Write-Error "appsettings.json file not found at path: $appSettingsPath"
+          Write-Error "appsettings.json file not found at path: $appSettingsPath"}
