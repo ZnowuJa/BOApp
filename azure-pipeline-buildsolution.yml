@@ -30,13 +30,13 @@ steps:
       feedsToUse: 'select'
       nugetConfigPath: 'NuGet.config'
 
-  - task: VSBuild@1
-    displayName: 'Build Solution'
-    inputs:
-      solution: '$(solution)'
-      msbuildArgs: '/p:Configuration=$(builtConfiguration) /p:Platform=$(builtPlatform)'
-      platform: '$(builtPlatform)'
-      configuration: '$(builtConfiguration)'
+  # - task: VSBuild@1
+  #   displayName: 'Build Solution'
+  #   inputs:
+  #     solution: '$(solution)'
+  #     msbuildArgs: '/p:Configuration=$(builtConfiguration) /p:Platform=$(builtPlatform)'
+  #     platform: '$(builtPlatform)'
+  #     configuration: '$(builtConfiguration)'
 
   - task: PowerShell@2
     displayName: 'Get Latest Commit ID'
