@@ -88,6 +88,6 @@ steps:
     displayName: 'Publish Artifact'
     inputs:
       PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-      ArtifactName: 'BoAppTestProject'
+      ArtifactName: 'BoAppProject'
       publishLocation: 'Container'
 
