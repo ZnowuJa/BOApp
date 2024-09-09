@@ -9,7 +9,7 @@ variables:
   SYSTEM_ACCESSTOKEN: $(System.AccessToken)
   builtPlatform: 'Any CPU'
   builtConfiguration: 'Release'
-  solution: '**/BOAppFluentUI.sln'  # Renamed solution without the `+` symbol
+  solution: '**/BOAppFluentUI+.sln'  # Renamed solution without the `+` symbol
   project: '**/BOAppFluentUI/BOAppFluentUI.csproj'
 
 steps:
