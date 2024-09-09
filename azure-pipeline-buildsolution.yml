@@ -104,14 +104,31 @@ steps:
           $appSettings = Get-Content $appSettingsPath -Raw | ConvertFrom-Json
           $environment = $appSettings.Environment
           
+          $headers = @{
+            Authorization = "Bearer $(System.AccessToken)"
+            "Content-Type" = "application/json"
+          }
+          
+          $body = @{
+            resources = @{
+              repositories = @{
+                self = @{
+                  refName = "$(Build.SourceBranch)"
+                }
+              }
+            }
+          } | ConvertTo-Json
+          
           if ($environment -eq "PROD") {
             Write-Host "Triggering BOApp_ReleasePipelinePROD..."
-            Invoke-RestMethod -Uri "https://dev.azure.com/piapl-azb/38dbce76-cf02-4586-b4bd-e70fb6cfbfe4/_apis/pipelines/12/runs?api-version=6.0-preview.1" -Method Post -Headers @{Authorization = "Bearer $(System.AccessToken)"}
+            Invoke-RestMethod -Uri "https://dev.azure.com/piapl-azb/38dbce76-cf02-4586-b4bd-e70fb6cfbfe4/_apis/pipelines/12/runs?api-version=6.0-preview.1" -Method Post -Headers $headers -Body $body
           } elseif ($environment -eq "DEV") {
             Write-Host "Triggering BOApp_ReleasePipelineDEV..."
-            Invoke-RestMethod -Uri "https://dev.azure.com/piapl-azb/38dbce76-cf02-4586-b4bd-e70fb6cfbfe4/_apis/pipelines/6/runs?api-version=6.0-preview.1" -Method Post -Headers @{Authorization = "Bearer $(System.AccessToken)"}
+            Invoke-RestMethod -Uri "https://dev.azure.com/piapl-azb/38dbce76-cf02-4586-b4bd-e70fb6cfbfe4/_apis/pipelines/6/runs?api-version=6.0-preview.1" -Method Post -Headers $headers -Body $body
           } else {
             Write-Host "No matching environment found. Skipping release pipeline trigger."
           }
         } else {
-          Write-Error "appsettings.json file not found at path: $appSettingsPath"}
+          Write-Error "appsettings.json file not found at path: $appSettingsPath"
+          }
+
