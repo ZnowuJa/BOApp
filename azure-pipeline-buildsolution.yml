@@ -106,10 +106,10 @@ steps:
           
           if ($environment -eq "PROD") {
             Write-Host "Triggering BOApp_ReleasePipelinePROD..."
-            Invoke-RestMethod -Uri "https://dev.azure.com/piapl-azb/BackOfficeApp/_apis/pipelines/BOApp_ReleasePipelinePROD/runs?api-version=6.0-preview.1" -Method Post -Headers @{Authorization = "Bearer $(System.AccessToken)"}
+            Invoke-RestMethod -Uri "https://dev.azure.com/piapl-azb/38dbce76-cf02-4586-b4bd-e70fb6cfbfe4/_apis/pipelines/12/runs?api-version=6.0-preview.1" -Method Post -Headers @{Authorization = "Bearer $(System.AccessToken)"}
           } elseif ($environment -eq "DEV") {
             Write-Host "Triggering BOApp_ReleasePipelineDEV..."
-            Invoke-RestMethod -Uri "https://dev.azure.com/piapl-azb/BackOfficeApp/_apis/pipelines/BOApp_ReleasePipelineDEV/runs?api-version=6.0-preview.1" -Method Post -Headers @{Authorization = "Bearer $(System.AccessToken)"}
+            Invoke-RestMethod -Uri "https://dev.azure.com/piapl-azb/38dbce76-cf02-4586-b4bd-e70fb6cfbfe4/_apis/pipelines/6/runs?api-version=6.0-preview.1" -Method Post -Headers @{Authorization = "Bearer $(System.AccessToken)"}
           } else {
             Write-Host "No matching environment found. Skipping release pipeline trigger."
           }
