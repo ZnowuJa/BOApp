@@ -35,7 +35,7 @@ stages:
                 - download: 'buildPipeline'
                   name: 'DownloadArtifacts'
                   displayName: 'Download Artifacts'
-                  artifact: 'BoAppTestProject'
+                  artifact: 'BoAppProject'
                
                 - task: IISWebAppManagementOnMachineGroup@0
                   name: 'StopIIS'
