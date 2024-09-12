@@ -66,17 +66,19 @@ stages:
                     $appSettings.ConnectionStrings.AppDbContextConnection = "Data Source=plwawq04n;Initial Catalog=BackOfficeAppDev;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
                     $appSettings.ConnectionStrings.AsDbContextConnection = "Data Source=plwawq01n;Initial Catalog=PIADMS;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
                     $appSettings.BaseUrl = "https://plwaws86dev"
+                    $appSettings.EnvNameString = "PLWAWS86DEV.PLWAWS86DEV"
                     $EnvironmentName = "PLWAWS86DEV.PLWAWS86DEV"
                   } elseif ($environment -eq "PROD") {
                     $appSettings.ConnectionStrings.AppDbContextConnection = "Data Source=plwawq04n;Initial Catalog=BackOfficeAppProd;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
                     $appSettings.ConnectionStrings.AsDbContextConnection = "Data Source=plwawq01n;Initial Catalog=PIADMS;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
                     $appSettings.BaseUrl = "https://plwaws86"
+                    $appSettings.EnvNameString = "PLWAWS86.PLWAWS86"
                     $EnvironmentName = "PLWAWS86.PLWAWS86"
                   }
 
                   $appSettings | ConvertTo-Json -Depth 32 | Set-Content $appSettingsPath
                   Write-Host "AppVersion and ConnectionStrings updated successfully."
-                  Write-Host "##vso[task.setvariable variable=EnvironmentName;isOutput=true]$EnvironmentName"
+                  Write-Host "##vso[task.setvariable variable=EnvironmentName]$EnvironmentName"
                 } else {
                   Write-Error "appsettings.json file not found at path: $appSettingsPath"
                 }
@@ -119,11 +121,21 @@ stages:
             inputs:
               targetType: 'inline'
               script: |
-                Write-Host "EnvironmentName: $(EnvironmentName)"
+                $appSettingsPath = "$(Build.ArtifactStagingDirectory)\BoAppProject\BOAppFluentUI\appsettings.json"
+                if (Test-Path $appSettingsPath) {
+                  $environment = $appSettings.Environment
+                  if ($environment -eq "DEV") {
+                    Write-Host "##vso[task.setvariable variable=DevEnv]true"
+                  } elseif ($environment -eq "PROD") {
+                    Write-Host "##vso[task.setvariable variable=DevEnv]false"
+                  }
+
+                }
 
       - deployment: WebAppDeployment
         displayName: Deploy Web Application
         environment: PLWAWS86DEV.PLWAWS86DEV
+        condition: eq(variables['DevEnv'], 'true')
         strategy:
           runOnce:
             deploy:
@@ -180,11 +192,19 @@ stages:
             inputs:
               targetType: 'inline'
               script: |
-                Write-Host "EnvironmentName: $(EnvironmentName)"
-                Write-Host dependencies.BuildStage.outputs['Build_and_Config.EnvironmentName']
+                $appSettingsPath = "$(Build.ArtifactStagingDirectory)\BoAppProject\BOAppFluentUI\appsettings.json"
+                if (Test-Path $appSettingsPath) {
+                  $environment = $appSettings.Environment
+                  if ($environment -eq "DEV") {
+                    Write-Host "##vso[task.setvariable variable=DevEnv]true"
+                  } elseif ($environment -eq "PROD") {
+                    Write-Host "##vso[task.setvariable variable=DevEnv]false"
+                  }
+                }
 
       - deployment: WebAppDeployment
         displayName: Deploy Web Application
+        condition: eq(variables['DevEnv'], 'false')
         environment: PLWAWS86.PLWAWS86
         strategy:
           runOnce:
