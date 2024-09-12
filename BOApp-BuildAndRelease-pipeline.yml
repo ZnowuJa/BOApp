@@ -97,9 +97,10 @@ stages:
               ArtifactName: 'BoAppProject'
               publishLocation: 'Container'
 
-
   - stage: DeployWebApp
     displayName: 'Deploy Application'
+    dependsOn: Build
+    condition: succeeded()
     jobs:
       - deployment: DeployWebApp
         displayName: 'DeployWebApp'
