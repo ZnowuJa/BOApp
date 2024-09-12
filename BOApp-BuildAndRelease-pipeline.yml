@@ -60,7 +60,7 @@ stages:
                     $appSettings.EnvNameString = "PLWAWS86DEV.PLWAWS86DEV"
                     Write-Host "##vso[task.setvariable variable=EnvName;isOutput=true]PLWAWS86DEV.PLWAWS86DEV"
                     # $EnvironmentName = "PLWAWS86DEV.PLWAWS86DEV"
-                    Write-Host "From DEV envname is  $(UpdateSettings.EnvName)"
+                    Write-Host "From DEV envname is  $(EnvName)"
                   } elseif ($environment -eq "PROD") {
                     $appSettings.ConnectionStrings.AppDbContextConnection = "Data Source=plwawq04n;Initial Catalog=BackOfficeAppProd;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
                     $appSettings.ConnectionStrings.AsDbContextConnection = "Data Source=plwawq01n;Initial Catalog=PIADMS;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
@@ -68,7 +68,7 @@ stages:
                     $appSettings.EnvNameString = "PLWAWS86.PLWAWS86"
                     Write-Host "##vso[task.setvariable variable=EnvName;isOutput=true]PLWAWS86.PLWAWS86"
                     # $EnvironmentName = "PLWAWS86.PLWAWS86"
-                    Write-Host "From PROD envname is  $(UpdateSettings.EnvName)"
+                    Write-Host "From PROD envname is  $(EnvName)"
                   }
 
                   $appSettings | ConvertTo-Json -Depth 32 | Set-Content $appSettingsPath
