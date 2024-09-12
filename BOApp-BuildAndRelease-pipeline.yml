@@ -14,83 +14,88 @@ variables:
   IISWebsiteName: 'BackOfficeApp'
   EnvironmentName: ''  # Initialize the EnvironmentName variable
 
-steps:
-  - task: NuGetToolInstaller@1
-    displayName: 'Nuget Tool Installer'
-
-  - task: UseDotNet@2
-    displayName: 'Use .NET 8.0 SDK'
-    inputs:
-      packageType: 'sdk'
-      version: '8.0.x'
-      installationPath: $(Agent.ToolsDirectory)/dotnet
-
-  - task: NuGetCommand@2
-    displayName: 'NuGet Restore'
-    inputs:
-      restoreSolution: '$(solution)'
-      feedsToUse: 'select'
-      nugetConfigPath: 'NuGet.config'
-
-  - task: PowerShell@2
-    displayName: 'Get Latest Commit ID'
-    inputs:
-      targetType: 'inline'
-      script: |
-        $commitId = git rev-parse --short HEAD
-        Write-Host "##vso[task.setvariable variable=CommitId]$commitId"
-
-  - task: PowerShell@2
-    displayName: 'Update appsettings.json'
-    inputs:
-      targetType: 'inline'
-      script: |
-        $appSettingsPath = "$(Build.SourcesDirectory)\BOAppFluentUI\appsettings.json"
-        if (Test-Path $appSettingsPath) {
-          $appSettings = Get-Content $appSettingsPath -Raw | ConvertFrom-Json
-          if (-not $appSettings.PSObject.Properties.Match('AppVersion')) {
-              $appSettings | Add-Member -MemberType NoteProperty -Name 'AppVersion' -Value ''
-          }
-          $appSettings.AppVersion = "$(CommitId)"
-          
-          $environment = $appSettings.Environment
-          
-          if ($environment -eq "DEV") {
-            $appSettings.ConnectionStrings.AppDbContextConnection = "Data Source=plwawq04n;Initial Catalog=BackOfficeAppDev;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
-            $appSettings.ConnectionStrings.AsDbContextConnection = "Data Source=plwawq01n;Initial Catalog=PIADMS;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
-            $appSettings.BaseUrl = "https://plwaws86dev"
-            $EnvironmentName = "PLWAWS86DEV.PLWAWS86DEV"
-          } elseif ($environment -eq "PROD") {
-            $appSettings.ConnectionStrings.AppDbContextConnection = "Data Source=plwawq04n;Initial Catalog=BackOfficeAppProd;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
-            $appSettings.ConnectionStrings.AsDbContextConnection = "Data Source=plwawq01n;Initial Catalog=PIADMS;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
-            $appSettings.BaseUrl = "https://plwaws86"
-            $EnvironmentName = "PLWAWS86.PLWAWS86"
-          }
-
-          $appSettings | ConvertTo-Json -Depth 32 | Set-Content $appSettingsPath
-          Write-Host "AppVersion and ConnectionStrings updated successfully."
-          Write-Host "##vso[task.setvariable variable=EnvironmentName]$EnvironmentName"
-        } else {
-          Write-Error "appsettings.json file not found at path: $appSettingsPath"
-        }
-
-  - task: DotNetCoreCLI@2
-    displayName: 'Publish'
-    inputs:
-      command: 'publish'
-      publishWebProjects: false
-      projects: '$(project)'
-      arguments: '--configuration $(builtConfiguration) --output $(Build.ArtifactStagingDirectory)'
-      zipAfterPublish: false
-
-  - task: PublishBuildArtifacts@1
-    displayName: 'Publish Artifact'
-    inputs:
-      PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-      ArtifactName: 'BoAppProject'
-      publishLocation: 'Container'
-
 stages:
+  - stage: Build
+    jobs:
+     - job: Build_and_Config
+       displayName: 'Build app and change appsettings'
+       steps:
+          - task: NuGetToolInstaller@1
+            displayName: 'Nuget Tool Installer'
+
+          - task: UseDotNet@2
+            displayName: 'Use .NET 8.0 SDK'
+            inputs:
+              packageType: 'sdk'
+              version: '8.0.x'
+              installationPath: $(Agent.ToolsDirectory)/dotnet
+
+          - task: NuGetCommand@2
+            displayName: 'NuGet Restore'
+            inputs:
+              restoreSolution: '$(solution)'
+              feedsToUse: 'select'
+              nugetConfigPath: 'NuGet.config'
+
+          - task: PowerShell@2
+            displayName: 'Get Latest Commit ID'
+            inputs:
+              targetType: 'inline'
+              script: |
+                $commitId = git rev-parse --short HEAD
+                Write-Host "##vso[task.setvariable variable=CommitId]$commitId"
+
+          - task: PowerShell@2
+            displayName: 'Update appsettings.json'
+            inputs:
+              targetType: 'inline'
+              script: |
+                $appSettingsPath = "$(Build.SourcesDirectory)\BOAppFluentUI\appsettings.json"
+                if (Test-Path $appSettingsPath) {
+                  $appSettings = Get-Content $appSettingsPath -Raw | ConvertFrom-Json
+                  if (-not $appSettings.PSObject.Properties.Match('AppVersion')) {
+                      $appSettings | Add-Member -MemberType NoteProperty -Name 'AppVersion' -Value ''
+                  }
+                  $appSettings.AppVersion = "$(CommitId)"
+                  
+                  $environment = $appSettings.Environment
+                  
+                  if ($environment -eq "DEV") {
+                    $appSettings.ConnectionStrings.AppDbContextConnection = "Data Source=plwawq04n;Initial Catalog=BackOfficeAppDev;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
+                    $appSettings.ConnectionStrings.AsDbContextConnection = "Data Source=plwawq01n;Initial Catalog=PIADMS;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
+                    $appSettings.BaseUrl = "https://plwaws86dev"
+                    $EnvironmentName = "PLWAWS86DEV.PLWAWS86DEV"
+                  } elseif ($environment -eq "PROD") {
+                    $appSettings.ConnectionStrings.AppDbContextConnection = "Data Source=plwawq04n;Initial Catalog=BackOfficeAppProd;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
+                    $appSettings.ConnectionStrings.AsDbContextConnection = "Data Source=plwawq01n;Initial Catalog=PIADMS;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
+                    $appSettings.BaseUrl = "https://plwaws86"
+                    $EnvironmentName = "PLWAWS86.PLWAWS86"
+                  }
+
+                  $appSettings | ConvertTo-Json -Depth 32 | Set-Content $appSettingsPath
+                  Write-Host "AppVersion and ConnectionStrings updated successfully."
+                  Write-Host "##vso[task.setvariable variable=EnvironmentName]$EnvironmentName"
+                } else {
+                  Write-Error "appsettings.json file not found at path: $appSettingsPath"
+                }
+
+          - task: DotNetCoreCLI@2
+            displayName: 'Publish'
+            inputs:
+              command: 'publish'
+              publishWebProjects: false
+              projects: '$(project)'
+              arguments: '--configuration $(builtConfiguration) --output $(Build.ArtifactStagingDirectory)'
+              zipAfterPublish: false
+
+          - task: PublishBuildArtifacts@1
+            displayName: 'Publish Artifact'
+            inputs:
+              PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+              ArtifactName: 'BoAppProject'
+              publishLocation: 'Container'
+
+
   - stage: DeployWebApp
     displayName: 'Deploy Application'
     jobs:
