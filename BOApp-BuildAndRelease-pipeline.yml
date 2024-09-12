@@ -110,7 +110,7 @@ stages:
   - stage: DeployWebApp2DEV
     displayName: 'Deploy App to DEV'
     dependsOn: BuildStage
-    condition: eq(dependencies.BuildStage.outputs['Build_and_Config.EnvironmentName'], 'PLWAWS86DEV.PLWAWS86DEV')
+    # condition: eq(dependencies.BuildStage.outputs['Build_and_Config.EnvironmentName'], 'PLWAWS86DEV.PLWAWS86DEV')
     
     jobs:
       - job: CheckEnvName
@@ -182,7 +182,7 @@ stages:
   - stage: DeployWebApp2PROD
     displayName: 'Deploy App to PROD'
     dependsOn: BuildStage
-    condition: eq(dependencies.BuildStage.outputs['Build_and_Config.EnvironmentName'], 'PLWAWS86.PLWAWS86')
+    # condition: eq(dependencies.BuildStage.outputs['Build_and_Config.EnvironmentName'], 'PLWAWS86.PLWAWS86')
     jobs:
       - job: CheckEnvName
         displayName: 'Set DevEnv variable'
