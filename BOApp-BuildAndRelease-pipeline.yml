@@ -112,7 +112,7 @@ stages:
     jobs:
       - deployment: WebAppDeployment
         displayName: Deploy Web Application
-        environment: $EnvironmentName
+        environment: PLWAWS86DEV.PLWAWS86DEV
         strategy:
           runOnce:
             deploy:
