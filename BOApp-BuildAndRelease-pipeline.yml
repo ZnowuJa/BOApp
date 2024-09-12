@@ -104,42 +104,48 @@ stages:
               PathtoPublish: '$(Build.ArtifactStagingDirectory)'
               ArtifactName: 'BoAppProject'
               publishLocation: 'Container'
-          - checkout: none
 
-          - download: 'buildPipeline'
-            name: 'DownloadArtifacts'
-            displayName: 'Download Artifacts'
-            artifact: 'BoAppProject'
+  - stage: DeployWebApp
+    displayName: 'Deploy Application'
+    dependsOn: BuildStage
+    condition: succeeded()
+    jobs:
+     - job: DeployWebApp
+       displayName: 'DeployWebApp'
+       steps:
+        - checkout: none
 
-          - task: PowerShell@2
-            displayName: 'Print EnvironmentName'
-            inputs:
-              targetType: 'inline'
-              script: |
-                Write-Host "EnvironmentName: $(EnvironmentName)"
-          
-          - task: IISWebAppManagementOnMachineGroup@0
-            name: 'StopIIS'
-            displayName: 'Stop IIS'
-            inputs:
-              IISDeploymentType: 'IISWebsite'
-              ActionIISWebsite: 'StopWebsite'
-              StartStopWebsiteName: '$(IISWebsiteName)'
+        - download: 'buildPipeline'
+          displayName: 'Download Artifacts'
+          artifact: 'BoAppProject'
 
-          - task: IISWebAppDeploymentOnMachineGroup@0
-            name: 'DeployApp'
-            displayName: 'Deploy App'
-            inputs:
-              WebSiteName: '$(IISWebsiteName)'
-              Package: '$(Pipeline.Workspace)/buildPipeline/BoAppProject/BOAppFluentUI'
-              TakeAppOfflineFlag: true
-              
-          - task: IISWebAppManagementOnMachineGroup@0
-            name: 'StartApp'
-            displayName: 'Start App'
-            inputs:
-              IISDeploymentType: 'IISWebsite'
-              ActionIISWebsite: 'StartWebsite'
-              StartStopWebsiteName: '$(IISWebsiteName)'
+        - task: PowerShell@2
+          displayName: 'Print EnvironmentName'
+          inputs:
+            targetType: 'inline'
+            script: |
+              Write-Host "EnvironmentName: $(EnvironmentName)"
+        
+        - task: IISWebAppManagementOnMachineGroup@0
+          name: 'StopIIS'
+          displayName: 'Stop IIS'
+          inputs:
+            IISDeploymentType: 'IISWebsite'
+            ActionIISWebsite: 'StopWebsite'
+            StartStopWebsiteName: '$(IISWebsiteName)'
 
- 
+        - task: IISWebAppDeploymentOnMachineGroup@0
+          name: 'DeployApp'
+          displayName: 'Deploy App'
+          inputs:
+            WebSiteName: '$(IISWebsiteName)'
+            Package: '$(Pipeline.Workspace)/BoAppProject/BOAppFluentUI'
+            TakeAppOfflineFlag: true
+            
+        - task: IISWebAppManagementOnMachineGroup@0
+          name: 'StartApp'
+          displayName: 'Start App'
+          inputs:
+            IISDeploymentType: 'IISWebsite'
+            ActionIISWebsite: 'StartWebsite'
+            StartStopWebsiteName: '$(IISWebsiteName)'
