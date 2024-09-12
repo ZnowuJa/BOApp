@@ -76,7 +76,7 @@ stages:
 
                   $appSettings | ConvertTo-Json -Depth 32 | Set-Content $appSettingsPath
                   Write-Host "AppVersion and ConnectionStrings updated successfully."
-                  Write-Host "##vso[task.setvariable variable=EnvironmentName]$EnvironmentName"
+                  Write-Host "##vso[task.setvariable variable=EnvironmentName;isOutput=true]$EnvironmentName"
                 } else {
                   Write-Error "appsettings.json file not found at path: $appSettingsPath"
                 }
@@ -108,7 +108,7 @@ stages:
   - stage: DeployWebApp2DEV
     displayName: 'Deploy Application to DEV'
     dependsOn: BuildStage
-    condition: eq(variables['EnvironmentName'],'PLWAWS86DEV.PLWAWS86DEV')
+    condition: eq(dependencies.BuildStage.outputs['Build_and_Config.EnvironmentName'], 'PLWAWS86DEV.PLWAWS86DEV')
     jobs:
       - deployment: WebAppDeployment
         displayName: Deploy Web Application
@@ -130,6 +130,7 @@ stages:
                   targetType: 'inline'
                   script: |
                     Write-Host "EnvironmentName: $(EnvironmentName)"
+                    Write-Host dependencies.BuildStage.outputs['Build_and_Config.EnvironmentName']
               
               - task: IISWebAppManagementOnMachineGroup@0
                 name: 'StopIIS'
@@ -158,7 +159,7 @@ stages:
   - stage: DeployWebApp2PROD
     displayName: 'Deploy Application to PROD'
     dependsOn: BuildStage
-    condition: eq(variables['EnvironmentName'],'PLWAWS86.PLWAWS86')
+    condition: eq(dependencies.BuildStage.outputs['Build_and_Config.EnvironmentName'], 'PLWAWS86.PLWAWS86')
     jobs:
       - deployment: WebAppDeployment
         displayName: Deploy Web Application
