@@ -89,6 +89,7 @@ stages:
               projects: '$(project)'
               arguments: '--configuration $(builtConfiguration) --output $(Build.ArtifactStagingDirectory)'
               zipAfterPublish: false
+            continueOnError: true
 
           - task: PublishBuildArtifacts@1
             displayName: 'Publish Artifact'
