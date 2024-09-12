@@ -117,6 +117,7 @@ stages:
         displayName: 'Set DevEnv variable'
         steps:
           - task: PowerShell@2
+            name: setvarStep
             displayName: 'Print EnvironmentName'
             inputs:
               targetType: 'inline'
@@ -136,7 +137,7 @@ stages:
       - deployment: WebAppDeployment
         displayName: Deploy Web Application
         environment: PLWAWS86DEV.PLWAWS86DEV
-        condition: eq(dependencies.DeployWebApp2DEV.outputs['CheckEnvName.DevEnv'], 'true')
+        condition: eq(dependencies.DeployWebApp2DEV.outputs['CheckEnvName.setvarStep.DevEnv'], 'true')
         strategy:
           runOnce:
             deploy:
@@ -189,6 +190,7 @@ stages:
         displayName: 'Set DevEnv variable'
         steps:
           - task: PowerShell@2
+            name: setvarStep
             displayName: 'Print EnvironmentName'
             inputs:
               targetType: 'inline'
@@ -207,7 +209,7 @@ stages:
 
       - deployment: WebAppDeployment
         displayName: Deploy Web Application
-        condition: eq(dependencies.DeployWebApp2DEV.outputs['CheckEnvName.DevEnv'], 'false')
+        condition: eq(dependencies.DeployWebApp2PROD.outputs['CheckEnvName.setvarStep.DevEnv'], 'false')
         environment: PLWAWS86.PLWAWS86
         strategy:
           runOnce:
