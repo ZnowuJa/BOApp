@@ -32,12 +32,7 @@ stages:
               version: '8.0.x'
               installationPath: $(Agent.ToolsDirectory)/dotnet
 
-          - task: NuGetCommand@2
-            displayName: 'NuGet Restore'
-            inputs:
-              restoreSolution: '$(solution)'
-              feedsToUse: 'select'
-              nugetConfigPath: 'NuGet.config'
+
 
           - task: PowerShell@2
             displayName: 'Get Latest Commit ID'
@@ -82,7 +77,12 @@ stages:
                 } else {
                   Write-Error "appsettings.json file not found at path: $appSettingsPath"
                 }
-
+          - task: NuGetCommand@2
+            displayName: 'NuGet Restore'
+            inputs:
+              restoreSolution: '$(solution)'
+              feedsToUse: 'select'
+              nugetConfigPath: 'NuGet.config'
           - task: PowerShell@2
             displayName: 'Print EnvironmentName'
             inputs:
