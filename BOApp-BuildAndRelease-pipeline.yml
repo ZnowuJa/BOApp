@@ -58,17 +58,17 @@ stages:
                     $appSettings.ConnectionStrings.AsDbContextConnection = "Data Source=plwawq01n;Initial Catalog=PIADMS;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
                     $appSettings.BaseUrl = "https://plwaws86dev"
                     $appSettings.EnvNameString = "PLWAWS86DEV.PLWAWS86DEV"
-                    Write-Host "##vso[task.setvariable variable=EnvironmentName;isOutput=true]PLWAWS86DEV.PLWAWS86DEV"
+                    Write-Host "##vso[task.setvariable variable=EnvName;isOutput=true]PLWAWS86DEV.PLWAWS86DEV"
                     # $EnvironmentName = "PLWAWS86DEV.PLWAWS86DEV"
-                    Write-Host "From DEV envname is  $(EnvironmentName)"
+                    Write-Host "From DEV envname is  $(UpdateSettings.EnvName)"
                   } elseif ($environment -eq "PROD") {
                     $appSettings.ConnectionStrings.AppDbContextConnection = "Data Source=plwawq04n;Initial Catalog=BackOfficeAppProd;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
                     $appSettings.ConnectionStrings.AsDbContextConnection = "Data Source=plwawq01n;Initial Catalog=PIADMS;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
                     $appSettings.BaseUrl = "https://plwaws86"
                     $appSettings.EnvNameString = "PLWAWS86.PLWAWS86"
-                    Write-Host "##vso[task.setvariable variable=EnvironmentName;isOutput=true]PLWAWS86.PLWAWS86"
+                    Write-Host "##vso[task.setvariable variable=EnvName;isOutput=true]PLWAWS86.PLWAWS86"
                     # $EnvironmentName = "PLWAWS86.PLWAWS86"
-                    Write-Host "From PROD envname is  $(EnvironmentName)"
+                    Write-Host "From PROD envname is  $(UpdateSettings.EnvName)"
                   }
 
                   $appSettings | ConvertTo-Json -Depth 32 | Set-Content $appSettingsPath
@@ -109,10 +109,20 @@ stages:
     displayName: 'Deploy App'
     dependsOn: Build
     variables:
-      StageEnvironment: $[stageDependencies.Build.Build_and_Config.outputs['UpdateSettings.EnvironmentName']]
+      StageEnvironment: $[stageDependencies.Build.Build_and_Config.outputs['UpdateSettings.EnvName']]
     # condition: eq(dependencies.BuildStage.outputs['Build_and_Config.EnvironmentName'], 'PLWAWS86DEV.PLWAWS86DEV')
     
     jobs:
+      - job: TestVar
+        steps:
+        - task: PowerShell@2
+          displayName: 'Print EnvironmentName'
+           
+          inputs:
+              targetType: 'inline'
+              script: |
+                Write-Host "StageEnvironment: $(StageEnvironment)" 
+
       - deployment: WebAppDeployment
         displayName: Deploy Web Application
         environment: $(StageEnvironment)
