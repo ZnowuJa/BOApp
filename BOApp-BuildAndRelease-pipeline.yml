@@ -108,13 +108,13 @@ stages:
               publishLocation: 'Container'
 
   - stage: DeployWebApp2DEV
-    displayName: 'Deploy Application to DEV'
+    displayName: 'Deploy App to DEV'
     dependsOn: BuildStage
     condition: eq(dependencies.BuildStage.outputs['Build_and_Config.EnvironmentName'], 'PLWAWS86DEV.PLWAWS86DEV')
     
     jobs:
       - job: CheckEnvName
-        displayName: 'Build app and change appsettings'
+        displayName: 'Set DevEnv variable'
         steps:
           - task: PowerShell@2
             displayName: 'Print EnvironmentName'
@@ -180,12 +180,12 @@ stages:
                   StartStopWebsiteName: '$(IISWebsiteName)'
 
   - stage: DeployWebApp2PROD
-    displayName: 'Deploy Application to PROD'
+    displayName: 'Deploy App to PROD'
     dependsOn: BuildStage
     condition: eq(dependencies.BuildStage.outputs['Build_and_Config.EnvironmentName'], 'PLWAWS86.PLWAWS86')
     jobs:
       - job: CheckEnvName
-        displayName: 'Build app and change appsettings'
+        displayName: 'Set DevEnv variable'
         steps:
           - task: PowerShell@2
             displayName: 'Print EnvironmentName'
