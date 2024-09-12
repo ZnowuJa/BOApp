@@ -109,7 +109,18 @@ stages:
     displayName: 'Deploy Application to DEV'
     dependsOn: BuildStage
     condition: eq(dependencies.BuildStage.outputs['Build_and_Config.EnvironmentName'], 'PLWAWS86DEV.PLWAWS86DEV')
+    
     jobs:
+      - job: CheckEnvName
+        displayName: 'Build app and change appsettings'
+        steps:
+          - task: PowerShell@2
+            displayName: 'Print EnvironmentName'
+            inputs:
+              targetType: 'inline'
+              script: |
+                Write-Host "EnvironmentName: $(EnvironmentName)"
+
       - deployment: WebAppDeployment
         displayName: Deploy Web Application
         environment: PLWAWS86DEV.PLWAWS86DEV
@@ -161,6 +172,17 @@ stages:
     dependsOn: BuildStage
     condition: eq(dependencies.BuildStage.outputs['Build_and_Config.EnvironmentName'], 'PLWAWS86.PLWAWS86')
     jobs:
+      - job: CheckEnvName
+        displayName: 'Build app and change appsettings'
+        steps:
+          - task: PowerShell@2
+            displayName: 'Print EnvironmentName'
+            inputs:
+              targetType: 'inline'
+              script: |
+                Write-Host "EnvironmentName: $(EnvironmentName)"
+                Write-Host dependencies.BuildStage.outputs['Build_and_Config.EnvironmentName']
+
       - deployment: WebAppDeployment
         displayName: Deploy Web Application
         environment: PLWAWS86.PLWAWS86
