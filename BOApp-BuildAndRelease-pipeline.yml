@@ -14,7 +14,7 @@ variables:
   solution: '**/BOAppFluentUI+.sln'
   project: '**/BOAppFluentUI/BOAppFluentUI.csproj'
   IISWebsiteName: 'BackOfficeApp'
-  EnvironmentName: ''  # Initialize the EnvironmentName variable
+  EnvironmentName: ' '  # Initialize the EnvironmentName variable
 
 stages:
   - stage: Build
