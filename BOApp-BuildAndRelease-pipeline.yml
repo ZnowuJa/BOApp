@@ -14,10 +14,10 @@ variables:
   solution: '**/BOAppFluentUI+.sln'
   project: '**/BOAppFluentUI/BOAppFluentUI.csproj'
   IISWebsiteName: 'BackOfficeApp'
-  EnvironmentName: 'testit'  # Initialize the EnvironmentName variable
+  EnvironmentName: 'PLWAWS86DEV.PLWAWS86DEV'  # Initialize the EnvironmentName variable
 
 stages:
-  - stage: Build
+  - stage: BuildStage
     jobs:
      - job: Build_and_Config
        displayName: 'Build app and change appsettings'
@@ -81,6 +81,13 @@ stages:
                   Write-Error "appsettings.json file not found at path: $appSettingsPath"
                 }
 
+          - task: PowerShell@2
+            displayName: 'Print EnvironmentName'
+            inputs:
+              targetType: 'inline'
+              script: |
+                Write-Host "EnvironmentName: $(EnvironmentName)"
+                
           - task: DotNetCoreCLI@2
             displayName: 'Publish'
             inputs:
@@ -100,43 +107,46 @@ stages:
 
   - stage: DeployWebApp
     displayName: 'Deploy Application'
-    dependsOn: Build
+    dependsOn: BuildStage
     condition: succeeded()
     jobs:
-      - deployment: DeployWebApp
-        displayName: 'DeployWebApp'
-        environment: $(EnvironmentName)
-        strategy:
-          runOnce:
-            deploy:
-              steps:
-                - checkout: none
+     - job: DeployWebApp
+       displayName: 'DeployWebApp'
+       steps:
+        - checkout: none
 
-                - download: 'buildPipeline'
-                  name: 'DownloadArtifacts'
-                  displayName: 'Download Artifacts'
-                  artifact: 'BoAppProject'
-               
-                - task: IISWebAppManagementOnMachineGroup@0
-                  name: 'StopIIS'
-                  displayName: 'Stop IIS'
-                  inputs:
-                    IISDeploymentType: 'IISWebsite'
-                    ActionIISWebsite: 'StopWebsite'
-                    StartStopWebsiteName: '$(IISWebsiteName)'
+        - download: 'buildPipeline'
+          name: 'DownloadArtifacts'
+          displayName: 'Download Artifacts'
+          artifact: 'BoAppProject'
 
-                - task: IISWebAppDeploymentOnMachineGroup@0
-                  name: 'DeployApp'
-                  displayName: 'Deploy App'
-                  inputs:
-                    WebSiteName: '$(IISWebsiteName)'
-                    Package: '$(Pipeline.Workspace)/buildPipeline/BoAppProject/BOAppFluentUI'
-                    TakeAppOfflineFlag: true
-                    
-                - task: IISWebAppManagementOnMachineGroup@0
-                  name: 'StartApp'
-                  displayName: 'Start App'
-                  inputs:
-                    IISDeploymentType: 'IISWebsite'
-                    ActionIISWebsite: 'StartWebsite'
-                    StartStopWebsiteName: '$(IISWebsiteName)'
+        - task: PowerShell@2
+          displayName: 'Print EnvironmentName'
+          inputs:
+            targetType: 'inline'
+            script: |
+              Write-Host "EnvironmentName: $(EnvironmentName)"
+        
+        - task: IISWebAppManagementOnMachineGroup@0
+          name: 'StopIIS'
+          displayName: 'Stop IIS'
+          inputs:
+            IISDeploymentType: 'IISWebsite'
+            ActionIISWebsite: 'StopWebsite'
+            StartStopWebsiteName: '$(IISWebsiteName)'
+
+        - task: IISWebAppDeploymentOnMachineGroup@0
+          name: 'DeployApp'
+          displayName: 'Deploy App'
+          inputs:
+            WebSiteName: '$(IISWebsiteName)'
+            Package: '$(Pipeline.Workspace)/buildPipeline/BoAppProject/BOAppFluentUI'
+            TakeAppOfflineFlag: true
+            
+        - task: IISWebAppManagementOnMachineGroup@0
+          name: 'StartApp'
+          displayName: 'Start App'
+          inputs:
+            IISDeploymentType: 'IISWebsite'
+            ActionIISWebsite: 'StartWebsite'
+            StartStopWebsiteName: '$(IISWebsiteName)'
