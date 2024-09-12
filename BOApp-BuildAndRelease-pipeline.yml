@@ -17,23 +17,19 @@ variables:
   EnvironmentName: 'PLWAWS86DEV.PLWAWS86DEV'  # Initialize the EnvironmentName variable
 
 stages:
-  - stage: BuildStage
+  - stage: Build
     jobs:
      - job: Build_and_Config
        displayName: 'Build app and change appsettings'
        steps:
           - task: NuGetToolInstaller@1
             displayName: 'Nuget Tool Installer'
-
           - task: UseDotNet@2
             displayName: 'Use .NET 8.0 SDK'
             inputs:
               packageType: 'sdk'
               version: '8.0.x'
               installationPath: $(Agent.ToolsDirectory)/dotnet
-
-
-
           - task: PowerShell@2
             displayName: 'Get Latest Commit ID'
             inputs:
@@ -41,8 +37,8 @@ stages:
               script: |
                 $commitId = git rev-parse --short HEAD
                 Write-Host "##vso[task.setvariable variable=CommitId]$commitId"
-
           - task: PowerShell@2
+            name: UpdateSettings
             displayName: 'Update appsettings.json'
             inputs:
               targetType: 'inline'
@@ -62,13 +58,15 @@ stages:
                     $appSettings.ConnectionStrings.AsDbContextConnection = "Data Source=plwawq01n;Initial Catalog=PIADMS;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
                     $appSettings.BaseUrl = "https://plwaws86dev"
                     $appSettings.EnvNameString = "PLWAWS86DEV.PLWAWS86DEV"
-                    $EnvironmentName = "PLWAWS86DEV.PLWAWS86DEV"
+                    Write-Host "##vso[task.setvariable variable=EnvironmentName;isOutput=true]PLWAWS86DEV.PLWAWS86DEV"
+                    # $EnvironmentName = "PLWAWS86DEV.PLWAWS86DEV"
                   } elseif ($environment -eq "PROD") {
                     $appSettings.ConnectionStrings.AppDbContextConnection = "Data Source=plwawq04n;Initial Catalog=BackOfficeAppProd;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
                     $appSettings.ConnectionStrings.AsDbContextConnection = "Data Source=plwawq01n;Initial Catalog=PIADMS;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
                     $appSettings.BaseUrl = "https://plwaws86"
                     $appSettings.EnvNameString = "PLWAWS86.PLWAWS86"
-                    $EnvironmentName = "PLWAWS86.PLWAWS86"
+                    Write-Host "##vso[task.setvariable variable=EnvironmentName;isOutput=true]PLWAWS86.PLWAWS86"
+                    # $EnvironmentName = "PLWAWS86.PLWAWS86"
                   }
 
                   $appSettings | ConvertTo-Json -Depth 32 | Set-Content $appSettingsPath
@@ -88,8 +86,7 @@ stages:
             inputs:
               targetType: 'inline'
               script: |
-                Write-Host "EnvironmentName: $(EnvironmentName)"
-                
+                Write-Host "EnvironmentName: $(EnvironmentName)"     
           - task: DotNetCoreCLI@2
             displayName: 'Publish'
             inputs:
@@ -99,7 +96,6 @@ stages:
               arguments: '--configuration $(builtConfiguration) --output $(Build.ArtifactStagingDirectory)'
               zipAfterPublish: false
             continueOnError: true
-
           - task: PublishBuildArtifacts@1
             displayName: 'Publish Artifact'
             inputs:
@@ -107,37 +103,18 @@ stages:
               ArtifactName: 'BoAppProject'
               publishLocation: 'Container'
 
-  - stage: DeployWebApp2DEV
-    displayName: 'Deploy App to DEV'
-    dependsOn: BuildStage
+  - stage: DeployWebApp
+    displayName: 'Deploy App'
+    dependsOn: Build
+    variables:
+      StageEnvironment: $[stageDependencies.Build.Build_and_Config.outputs['UpdateSettings.EnvironmentName']]
     # condition: eq(dependencies.BuildStage.outputs['Build_and_Config.EnvironmentName'], 'PLWAWS86DEV.PLWAWS86DEV')
     
     jobs:
-      - job: CheckEnvName
-        displayName: 'Set DevEnv variable'
-        steps:
-          - task: PowerShell@2
-            name: setvarStep
-            displayName: 'Print EnvironmentName'
-            inputs:
-              targetType: 'inline'
-              script: |
-                $appSettingsPath = "$(Build.ArtifactStagingDirectory)\BoAppProject\BOAppFluentUI\appsettings.json"
-                if (Test-Path $appSettingsPath) {
-                  $environment = $appSettings.Environment
-                  if ($environment -eq "DEV") {
-                    Write-Host "##vso[task.setvariable variable=DevEnv;isOutput=true]true"
-                    Write-Host "DevEnv: $(DevEnv)"
-                  } elseif ($environment -eq "PROD") {
-                    Write-Host "##vso[task.setvariable variable=DevEnv;isOutput=true]false"
-                    Write-Host "DevEnv: $(DevEnv)"
-                  }
-                }
-
       - deployment: WebAppDeployment
         displayName: Deploy Web Application
-        environment: PLWAWS86DEV.PLWAWS86DEV
-        condition: eq(dependencies.DeployWebApp2DEV.outputs['CheckEnvName.setvarStep.DevEnv'], 'true')
+        environment: $(StageEnvironment)
+        # condition: eq(dependencies.DeployWebApp2DEV.outputs['CheckEnvName.setvarStep.DevEnv'], 'true')
         strategy:
           runOnce:
             deploy:
@@ -154,8 +131,8 @@ stages:
                 inputs:
                   targetType: 'inline'
                   script: |
-                    Write-Host "EnvironmentName: $(EnvironmentName)"
-                    Write-Host dependencies.BuildStage.outputs['Build_and_Config.EnvironmentName']
+                    Write-Host "EnvironmentName: $(StageEnvironment)"
+                    # Write-Host dependencies.BuildStage.outputs['Build_and_Config.EnvironmentName']
               
               - task: IISWebAppManagementOnMachineGroup@0
                 name: 'StopIIS'
@@ -181,74 +158,74 @@ stages:
                   ActionIISWebsite: 'StartWebsite'
                   StartStopWebsiteName: '$(IISWebsiteName)'
 
-  - stage: DeployWebApp2PROD
-    displayName: 'Deploy App to PROD'
-    dependsOn: BuildStage
-    # condition: eq(dependencies.BuildStage.outputs['Build_and_Config.EnvironmentName'], 'PLWAWS86.PLWAWS86')
-    jobs:
-      - job: CheckEnvName
-        displayName: 'Set DevEnv variable'
-        steps:
-          - task: PowerShell@2
-            name: setvarStep
-            displayName: 'Print EnvironmentName'
-            inputs:
-              targetType: 'inline'
-              script: |
-                $appSettingsPath = "$(Build.ArtifactStagingDirectory)\BoAppProject\BOAppFluentUI\appsettings.json"
-                if (Test-Path $appSettingsPath) {
-                  $environment = $appSettings.Environment
-                  if ($environment -eq "DEV") {
-                    Write-Host "##vso[task.setvariable variable=DevEnv;isOutput=true]true"
-                    Write-Host "DevEnv: $(DevEnv)"
-                  } elseif ($environment -eq "PROD") {
-                    Write-Host "##vso[task.setvariable variable=DevEnv;isOutput=true]false"
-                    Write-Host "DevEnv: $(DevEnv)"
-                  }
-                }
+  # - stage: DeployWebApp2PROD
+  #   displayName: 'Deploy App to PROD'
+  #   dependsOn: BuildStage
+  #   # condition: eq(dependencies.BuildStage.outputs['Build_and_Config.EnvironmentName'], 'PLWAWS86.PLWAWS86')
+  #   jobs:
+  #     - job: CheckEnvName
+  #       displayName: 'Set DevEnv variable'
+  #       steps:
+  #         - task: PowerShell@2
+  #           name: setvarStep
+  #           displayName: 'Print EnvironmentName'
+  #           inputs:
+  #             targetType: 'inline'
+  #             script: |
+  #               $appSettingsPath = "$(Build.ArtifactStagingDirectory)\BoAppProject\BOAppFluentUI\appsettings.json"
+  #               if (Test-Path $appSettingsPath) {
+  #                 $environment = $appSettings.Environment
+  #                 if ($environment -eq "DEV") {
+  #                   Write-Host "##vso[task.setvariable variable=DevEnv;isOutput=true]true"
+  #                   Write-Host "DevEnv: $(DevEnv)"
+  #                 } elseif ($environment -eq "PROD") {
+  #                   Write-Host "##vso[task.setvariable variable=DevEnv;isOutput=true]false"
+  #                   Write-Host "DevEnv: $(DevEnv)"
+  #                 }
+  #               }
 
-      - deployment: WebAppDeployment
-        displayName: Deploy Web Application
-        condition: eq(dependencies.DeployWebApp2PROD.outputs['CheckEnvName.setvarStep.DevEnv'], 'false')
-        environment: PLWAWS86.PLWAWS86
-        strategy:
-          runOnce:
-            deploy:
-              steps:
-              - task: DownloadBuildArtifacts@1
-                inputs:
-                  buildType: 'current'
-                  downloadType: 'single'
-                  artifactName: 'BoAppProject'
-                  downloadPath: '$(System.ArtifactsDirectory)'
-                  cleanDestinationFolder: true
-              - task: PowerShell@2
-                displayName: 'Print EnvironmentName'
-                inputs:
-                  targetType: 'inline'
-                  script: |
-                    Write-Host "EnvironmentName: $(EnvironmentName)"
+  #     - deployment: WebAppDeployment
+  #       displayName: Deploy Web Application
+  #       condition: eq(dependencies.DeployWebApp2PROD.outputs['CheckEnvName.setvarStep.DevEnv'], 'false')
+  #       environment: PLWAWS86.PLWAWS86
+  #       strategy:
+  #         runOnce:
+  #           deploy:
+  #             steps:
+  #             - task: DownloadBuildArtifacts@1
+  #               inputs:
+  #                 buildType: 'current'
+  #                 downloadType: 'single'
+  #                 artifactName: 'BoAppProject'
+  #                 downloadPath: '$(System.ArtifactsDirectory)'
+  #                 cleanDestinationFolder: true
+  #             - task: PowerShell@2
+  #               displayName: 'Print EnvironmentName'
+  #               inputs:
+  #                 targetType: 'inline'
+  #                 script: |
+  #                   Write-Host "EnvironmentName: $(EnvironmentName)"
               
-              - task: IISWebAppManagementOnMachineGroup@0
-                name: 'StopIIS'
-                displayName: 'Stop IIS'
-                inputs:
-                  IISDeploymentType: 'IISWebsite'
-                  ActionIISWebsite: 'StopWebsite'
-                  StartStopWebsiteName: '$(IISWebsiteName)'
+  #             - task: IISWebAppManagementOnMachineGroup@0
+  #               name: 'StopIIS'
+  #               displayName: 'Stop IIS'
+  #               inputs:
+  #                 IISDeploymentType: 'IISWebsite'
+  #                 ActionIISWebsite: 'StopWebsite'
+  #                 StartStopWebsiteName: '$(IISWebsiteName)'
 
-              - task: IISWebAppDeploymentOnMachineGroup@0
-                name: 'DeployApp'
-                displayName: 'Deploy App'
-                inputs:
-                  WebSiteName: '$(IISWebsiteName)'
-                  Package: '$(Pipeline.Workspace)/BoAppProject/BOAppFluentUI'
-                  TakeAppOfflineFlag: true
+  #             - task: IISWebAppDeploymentOnMachineGroup@0
+  #               name: 'DeployApp'
+  #               displayName: 'Deploy App'
+  #               inputs:
+  #                 WebSiteName: '$(IISWebsiteName)'
+  #                 Package: '$(Pipeline.Workspace)/BoAppProject/BOAppFluentUI'
+  #                 TakeAppOfflineFlag: true
                   
-              - task: IISWebAppManagementOnMachineGroup@0
-                name: 'StartApp'
-                displayName: 'Start App'
-                inputs:
-                  IISDeploymentType: 'IISWebsite'
-                  ActionIISWebsite: 'StartWebsite'
-                  StartStopWebsiteName: '$(IISWebsiteName)'
+  #             - task: IISWebAppManagementOnMachineGroup@0
+  #               name: 'StartApp'
+  #               displayName: 'Start App'
+  #               inputs:
+  #                 IISDeploymentType: 'IISWebsite'
+  #                 ActionIISWebsite: 'StartWebsite'
+  #                 StartStopWebsiteName: '$(IISWebsiteName)'
