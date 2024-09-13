@@ -75,12 +75,12 @@ stages:
               script: |
                 Write-Host "EnvName: $(EnvName)" 
 
-  - stage: DeployWebApp
-    displayName: 'Deploy App'
+  - stage: DeployWebAppProd
+    displayName: 'Deploy AppProd'
     dependsOn: Build
     variables:
       StageEnvironment: $[stageDependencies.Build.Build_and_Config.outputs['UpdateSettings.EnvName']]
-    # condition: eq($[stageDependencies.Build.Build_and_Config.outputs['UpdateSettings.EnvName']], 'PLWAWS86.PLWAWS86')
+    condition: eq(variables.StageEnvironment, 'PLWAWS86.PLWAWS86')
     
     jobs:
       - job: PrintVars
@@ -93,22 +93,26 @@ stages:
               script: |
                 Write-Host "StageEnvironment: $(StageEnvironment)"
                 Write-Host $(EnvName)
-      # - deployment: testDeploy
-      #   environment: 
-      - deployment: WebAppDeployment
-        displayName: Deploy Web Application
-        environment: $(StageEnvironment)
-        strategy:
-          runOnce:
-            deploy:
-              steps:
-              - task: DownloadBuildArtifacts@1
-                inputs:
-                  buildType: 'current'
-                  downloadType: 'single'
-                  artifactName: 'BoAppProject'
-                  downloadPath: '$(System.ArtifactsDirectory)'
-                  cleanDestinationFolder: true
+
+  - stage: DeployWebAppDEV
+    displayName: 'Deploy AppDEV'
+    dependsOn: Build
+    variables:
+      StageEnvironment: $[stageDependencies.Build.Build_and_Config.outputs['UpdateSettings.EnvName']]
+    condition: eq(variables.StageEnvironment, 'PLWAWS86DEV.PLWAWS86DEV')
+    
+    jobs:
+      - job: PrintVars
+        displayName: 'Print Variables from prev Stage'
+        steps:
+          - task: PowerShell@2
+            displayName: 'Get Latest Commit ID'
+            inputs:
+              targetType: 'inline'
+              script: |
+                Write-Host "StageEnvironment: $(StageEnvironment)"
+                Write-Host $(EnvName)
+      
           
               
               
