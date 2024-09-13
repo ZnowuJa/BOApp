@@ -16,7 +16,7 @@ variables:
   IISWebsiteName: 'BackOfficeApp'
 
 stages:
-  - stage: 'Build'
+  - stage: Build
     jobs:
     - job: SetVarsAndSettings
         # dependsOn: 'Nugets'
