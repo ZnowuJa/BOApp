@@ -20,7 +20,7 @@ stages:
     jobs:
 
       - job: 'Nugets'
-        displayName: 'Change appsettings and set variables'
+        displayName: 'Restore dependencies and set SDK'
         steps:
           - task: NuGetToolInstaller@1
             displayName: 'Nuget Tool Installer'
@@ -81,6 +81,7 @@ stages:
                 }
 
       - job: Artifacts
+        displayName: 'Publish Artifact to Staging Directory'
         dependsOn: 'SetVarsAndSettings'
         steps:  # Missing key for steps
           - task: DotNetCoreCLI@2
