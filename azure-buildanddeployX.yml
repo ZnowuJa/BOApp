@@ -43,12 +43,17 @@ stages:
         dependsOn: 'Nugets'
         steps:  # Missing key for steps
           - task: PowerShell@2
-            displayName: 'Update appsettings.json'
+            displayName: 'Get Latest Commit ID'
             inputs:
               targetType: 'inline'
               script: |
                 $commitId = git rev-parse --short HEAD
                 Write-Host "##vso[task.setvariable variable=CommitId]$commitId"
+          - task: PowerShell@2
+            displayName: 'Update appsettings.json'
+            inputs:
+              targetType: 'inline'
+              script: |
                 $appSettingsPath = "$(Build.SourcesDirectory)\BOAppFluentUI\appsettings.json"
                 if (Test-Path $appSettingsPath) {
                   $appSettings = Get-Content $appSettingsPath -Raw | ConvertFrom-Json
