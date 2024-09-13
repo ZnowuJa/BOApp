@@ -49,6 +49,7 @@ stages:
                     $appSettings.BaseUrl = "https://plwaws86dev"
                     Write-Host "##vso[task.setvariable variable=RunDEV;isOutput=true]true"
                     Write-Host "##vso[task.setvariable variable=RunPROD;isOutput=true]false"
+                    Write-Host "Sets for env eq DEV"
                     
                   } elseif ($environment -eq "PROD") {
                     $appSettings.ConnectionStrings.AppDbContextConnection = "Data Source=plwawq04n;Initial Catalog=BackOfficeAppProd;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
@@ -56,6 +57,7 @@ stages:
                     $appSettings.BaseUrl = "https://plwaws86"
                     Write-Host "##vso[task.setvariable variable=RunDEV;isOutput=true]false"
                     Write-Host "##vso[task.setvariable variable=RunPROD;isOutput=true]true"
+                    Write-Host "Sets for env eq PROD"
                   }
 
                   $appSettings | ConvertTo-Json -Depth 32 | Set-Content $appSettingsPath
