@@ -31,14 +31,14 @@ stages:
                 } else {
                   Write-Host "Proceeding with the pipeline."
                   Write-Host "##vso[task.setvariable variable=skipStages;isOutput=true]false"
-                }
           - task: PowerShell@2
             displayName: 'Output skipStages'
             inputs:
               targetType: 'inline'
               script: |
-                Write-Host "skipStages=$(skipStages)"
-                Write-Host "##vso[task.setvariable variable=skipStages;isOutput=true]$(skipStages)"
+                $skipStages = "$(skipStages)"
+                Write-Host "skipStages=$skipStages"
+                Write-Host "##vso[task.setvariable variable=skipStages;isOutput=true]$skipStages"
         # The 'isOutput=true' makes this variable available for subsequent stages.
 
   - stage: Deploy
