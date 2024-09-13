@@ -51,11 +51,6 @@ stages:
               restoreSolution: '$(solution)'
               feedsToUse: 'select'
               nugetConfigPath: 'NuGet.config'
-            displayName: 'NuGet Restore'
-            inputs:
-              restoreSolution: '$(solution)'
-              feedsToUse: 'select'
-              nugetConfigPath: 'NuGet.config'
 
       - job: SetVarsAndSettings
         dependsOn: 'Nugets'
