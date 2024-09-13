@@ -78,7 +78,7 @@ stages:
     dependsOn: Build
     variables:
       StageEnvironment: $[stageDependencies.Build.Build_and_Config.outputs['UpdateSettings.EnvName']]
-    # condition: eq(dependencies.BuildStage.outputs['Build_and_Config.EnvName'], 'PLWAWS86DEV.PLWAWS86DEV')
+    # condition: eq($[stageDependencies.Build.Build_and_Config.outputs['UpdateSettings.EnvName']], 'PLWAWS86DEV.PLWAWS86DEV')
     
     jobs:
       - job: PrintVars
@@ -90,7 +90,9 @@ stages:
               targetType: 'inline'
               script: |
                 Write-Host "StageEnvironment: $(StageEnvironment)"
-                Write-Host dependencies.BuildStage.outputs['Build_and_Config.EnvName']
+                Write-Host variables.EnvName
+      # - deployment: testDeploy
+      #   environment: 
           
               
               
