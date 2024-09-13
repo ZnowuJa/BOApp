@@ -75,6 +75,35 @@ stages:
               script: |
                 Write-Host "EnvName: $(EnvName)" 
 
+  - stage: DeployWebAppDEV
+    displayName: 'Deploy AppDEV'
+    dependsOn: Build
+    variables:
+      StageEnvironment: $[stageDependencies.Build.Build_and_Config.outputs['UpdateSettings.EnvName']]
+      # condition: eq(variables['StageEnvironment'], 'PLWAWS86DEV.PLWAWS86DEV')
+      condition: eq(variables['StageEnvironment'], 'PLWAWS86DEV.PLWAWS86DEV')
+    
+    jobs:
+      - job: PrintVars
+        displayName: 'Print Variables from prev Stage'
+        steps:
+          - task: PowerShell@2
+            displayName: 'Force Exit to Validate Condition'
+            inputs:
+              targetType: 'inline'
+              script: |
+                if ('$(StageEnvironment)' -ne 'PLWAWS86DEV.PLWAWS86DEV') {
+                  Write-Error "Unexpected StageEnvironment, exiting..."
+                  exit 1
+                }
+          - task: PowerShell@2
+            displayName: 'Get Latest Commit ID'
+            inputs:
+              targetType: 'inline'
+              script: |
+                Write-Host "StageEnvironment: $(StageEnvironment)"
+                Write-Host $(EnvName)
+
   - stage: DeployWebAppProd
     displayName: 'Deploy AppProd'
     dependsOn: Build
@@ -104,35 +133,6 @@ stages:
                 Write-Host "StageEnvironment: $(StageEnvironment)"
                 Write-Host $(EnvName)
 
-  - stage: DeployWebAppDEV
-    displayName: 'Deploy AppDEV'
-    dependsOn: Build
-    variables:
-      StageEnvironment: $[stageDependencies.Build.Build_and_Config.outputs['UpdateSettings.EnvName']]
-      # condition: eq(variables['StageEnvironment'], 'PLWAWS86DEV.PLWAWS86DEV')
-      condition: eq(variables['StageEnvironment'], 'PLWAWS86DEV.PLWAWS86DEV')
-    
-    jobs:
-      - job: PrintVars
-        displayName: 'Print Variables from prev Stage'
-        steps:
-          - task: PowerShell@2
-            displayName: 'Force Exit to Validate Condition'
-            inputs:
-              targetType: 'inline'
-              script: |
-                if ('$(StageEnvironment)' -ne 'PLWAWS86DEV.PLWAWS86DEV') {
-                  Write-Error "Unexpected StageEnvironment, exiting..."
-                  exit 1
-                }
-          - task: PowerShell@2
-            displayName: 'Get Latest Commit ID'
-            inputs:
-              targetType: 'inline'
-              script: |
-                Write-Host "StageEnvironment: $(StageEnvironment)"
-                Write-Host $(EnvName)
-      
           
               
               
