@@ -26,24 +26,18 @@ stages:
                 if ('$(StageEnvironment)' -eq 'PLWAWS86DEV') {
                   Write-Host "Skipping further stages for DEV"
                   Write-Host "##vso[task.setvariable variable=skipStages;isOutput=true]true"
+                  Write-Host "##vso[task.setvariable variable=currentEnv]nowawartosc"
                 } else {
                   Write-Host "Proceeding with the pipeline."
                   Write-Host "##vso[task.setvariable variable=skipStages;isOutput=true]false"
+                  Write-Host "##vso[task.setvariable variable=currentEnv]nowawartoscelse"
                 }
-          - task: PowerShell@2
-            displayName: 'Output skipStages'
-            inputs:
-              targetType: 'inline'
-              script: |
-                $skipStages = "$(skipStages)"
-                Write-Host "skipStages=$skipStages"
-                Write-Host "##vso[task.setvariable variable=skipStages;isOutput=true]$skipStages"
-        # The 'isOutput=true' makes this variable available for subsequent stages.
+          #The 'isOutput=true' makes this variable available for subsequent stages.
 
   - stage: Deploy
     displayName: 'Deploy Stage'
     dependsOn: Build
-    condition: eq(dependencies.Build.outputs['SetSkipVariable.skipStages'], 'false')
+    condition: eq(variables['currentEnv'], 'nowawartoscelse')
     jobs:
       - job: DeployJob
         steps:
