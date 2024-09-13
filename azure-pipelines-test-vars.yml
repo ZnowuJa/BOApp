@@ -16,9 +16,9 @@ variables:
   IISWebsiteName: 'BackOfficeApp'
 
 stages:
-  - stage: Build
+  - stage: 'Build'
     jobs:
-     - job: Build_and_Config
+     - job: 'BaC'
        displayName: 'Change appsettings and set variables'
        steps:
           - task: NuGetToolInstaller@1
@@ -37,7 +37,7 @@ stages:
                 $commitId = git rev-parse --short HEAD
                 Write-Host "##vso[task.setvariable variable=CommitId]$commitId"
           - task: PowerShell@2
-            name: UpdateSettings
+            name: US
             displayName: 'Update appsettings.json'
             inputs:
               targetType: 'inline'
@@ -120,12 +120,12 @@ stages:
     variables:
       StageRunDEV: $[stageDependencies.Build.Build_and_Config.outputs['UpdateSettings.RunDEV']]
       StageRunPROD: $[stageDependencies.Build.Build_and_Config.outputs['UpdateSettings.RunPROD']]
-    
+    condition: and(succeded(Build),eq(dependencies.Build.outputs['BaC.US.RunDEV'], 'true'))
     jobs:
       - deployment: Deploy2DEV
         displayName: Deploy App 2 DEV
         environment: "PLWAWS86DEV.PLWAWS86DEV"
-        condition: eq(dependencies.Build.outputs['Build_and_Config.UpdateSettings.RunDEV'], 'true')
+        
         strategy:
           runOnce:
             deploy:
@@ -168,12 +168,12 @@ stages:
     variables:
       StageRunDEV: $[stageDependencies.Build.Build_and_Config.outputs['UpdateSettings.RunDEV']]
       StageRunPROD: $[stageDependencies.Build.Build_and_Config.outputs['UpdateSettings.RunPROD']]
-    
+    condition: and(succeded(Build),eq(dependencies.Build.outputs['BaC.US.RunPROD'], 'true'))
     jobs:
       - deployment: Deploy2PROD
         displayName: Deploy App to PROD
         environment: "PLWAWS86.PLWAWS86"
-        condition: eq(dependencies.Build.outputs['Build_and_Config.UpdateSettings.RunDEV'], 'true')
+        
         strategy:
           runOnce:
             deploy:
