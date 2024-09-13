@@ -1,12 +1,11 @@
+#Current Test
 name: BOAppTestVars
 
 trigger:
   none
-
 pool:
   vmImage: 'windows-2022'
   timeoutInMinutes: 60
-
 variables:
   SYSTEM_ACCESSTOKEN: $(System.AccessToken)
   builtPlatform: 'Any CPU'
