@@ -47,4 +47,4 @@ stages:
               targetType: 'inline'
               script: |
                 Write-Host "Deploying to production."
-                Write-Host stageDependencies.Build.outputs['Build.SetSkipVariable.currentEnv']
+                Write-Host $[stageDependencies.Build.outputs['Build.SetSkipVariable.currentEnv']
