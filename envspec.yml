@@ -1,3 +1,15 @@
 variables:
 - name: currentEnv
   value: "This is to be set"
+- name: SYSTEM_ACCESSTOKEN
+  value: $(System.AccessToken)
+- name: builtPlatform
+  value: 'Any CPU'
+- name: builtConfiguration
+  value: 'Release'
+- name: solution
+  value: '**/BOAppFluentUI+.sln'
+- name: project
+  value: '**/BOAppFluentUI/BOAppFluentUI.csproj'
+- name: EnvName
+  value: 'replaceit' 
