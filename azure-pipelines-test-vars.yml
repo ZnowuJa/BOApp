@@ -80,7 +80,7 @@ stages:
     dependsOn: Build
     variables:
       StageEnvironment: $[stageDependencies.Build.Build_and_Config.outputs['UpdateSettings.EnvName']]
-    # condition: eq($[stageDependencies.Build.Build_and_Config.outputs['UpdateSettings.EnvName']], 'PLWAWS86DEV.PLWAWS86DEV')
+    # condition: eq($[stageDependencies.Build.Build_and_Config.outputs['UpdateSettings.EnvName']], 'PLWAWS86.PLWAWS86')
     
     jobs:
       - job: PrintVars
