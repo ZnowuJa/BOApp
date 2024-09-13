@@ -31,6 +31,7 @@ stages:
                 } else {
                   Write-Host "Proceeding with the pipeline."
                   Write-Host "##vso[task.setvariable variable=skipStages;isOutput=true]false"
+                }
           - task: PowerShell@2
             displayName: 'Output skipStages'
             inputs:
