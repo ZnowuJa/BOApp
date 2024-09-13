@@ -40,6 +40,7 @@ stages:
               nugetConfigPath: 'NuGet.config'
 
       - job: SetVarsAndSettings
+        dependsOn: 'Nugets'
         steps:  # Missing key for steps
           - task: PowerShell@2
             displayName: 'Update appsettings.json'
@@ -80,6 +81,7 @@ stages:
                 }
 
       - job: Artifacts
+        dependsOn: 'SetVarsAndSettings'
         steps:  # Missing key for steps
           - task: DotNetCoreCLI@2
             displayName: 'Publish'
