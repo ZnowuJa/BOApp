@@ -90,7 +90,7 @@ stages:
               targetType: 'inline'
               script: |
                 Write-Host "StageEnvironment: $(StageEnvironment)"
-                Write-Host variables.EnvName
+                Write-Host $(EnvName)
       # - deployment: testDeploy
       #   environment: 
           
