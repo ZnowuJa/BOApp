@@ -19,37 +19,35 @@ stages:
   - stage: 'Build'
     jobs:
 
-     - job: 'Nugets'
-       displayName: 'Change appsettings and set variables'
-       steps:
+      - job: 'Nugets'
+        displayName: 'Change appsettings and set variables'
+        steps:
           - task: NuGetToolInstaller@1
             displayName: 'Nuget Tool Installer'
+
           - task: UseDotNet@2
             displayName: 'Use .NET 8.0 SDK'
             inputs:
               packageType: 'sdk'
               version: '8.0.x'
               installationPath: $(Agent.ToolsDirectory)/dotnet
+
           - task: NuGetCommand@2
             displayName: 'NuGet Restore'
             inputs:
               restoreSolution: '$(solution)'
               feedsToUse: 'select'
-              nugetConfigPath: 'NuGet.config' 
-          
-     - job: SetVarsAndSettings
-          - task: PowerShell@2
-            displayName: 'Get Latest Commit ID'
-            inputs:
-              targetType: 'inline'
-              script: |
-                $commitId = git rev-parse --short HEAD
-                Write-Host "##vso[task.setvariable variable=CommitId]$commitId"
+              nugetConfigPath: 'NuGet.config'
+
+      - job: SetVarsAndSettings
+        steps:  # Missing key for steps
           - task: PowerShell@2
             displayName: 'Update appsettings.json'
             inputs:
               targetType: 'inline'
               script: |
+                $commitId = git rev-parse --short HEAD
+                Write-Host "##vso[task.setvariable variable=CommitId]$commitId"
                 $appSettingsPath = "$(Build.SourcesDirectory)\BOAppFluentUI\appsettings.json"
                 if (Test-Path $appSettingsPath) {
                   $appSettings = Get-Content $appSettingsPath -Raw | ConvertFrom-Json
@@ -79,8 +77,9 @@ stages:
                   Write-Host "AppVersion and ConnectionStrings updated successfully."
                 } else {
                   Write-Error "appsettings.json file not found at path: $appSettingsPath"
-                }
+
       - job: Artifacts
+        steps:  # Missing key for steps
           - task: DotNetCoreCLI@2
             displayName: 'Publish'
             inputs:
@@ -90,13 +89,13 @@ stages:
               arguments: '--configuration $(builtConfiguration) --output $(Build.ArtifactStagingDirectory)'
               zipAfterPublish: false
             continueOnError: true
+
           - task: PublishBuildArtifacts@1
             displayName: 'Publish Artifact'
             inputs:
               PathtoPublish: '$(Build.ArtifactStagingDirectory)'
               ArtifactName: 'BoAppProject'
               publishLocation: 'Container'
-
 
   - stage: TestVARsFromBuild
     displayName: 'Test Variables from Build stage'
@@ -133,37 +132,37 @@ stages:
           runOnce:
             deploy:
               steps:
-              - task: DownloadBuildArtifacts@1
-                inputs:
-                  buildType: 'current'
-                  downloadType: 'single'
-                  artifactName: 'BoAppProject'
-                  downloadPath: '$(System.ArtifactsDirectory)'
-                  cleanDestinationFolder: true
+                - task: DownloadBuildArtifacts@1
+                  inputs:
+                    buildType: 'current'
+                    downloadType: 'single'
+                    artifactName: 'BoAppProject'
+                    downloadPath: '$(System.ArtifactsDirectory)'
+                    cleanDestinationFolder: true
 
-              - task: IISWebAppManagementOnMachineGroup@0
-                name: 'StopIIS'
-                displayName: 'Stop IIS'
-                inputs:
-                  IISDeploymentType: 'IISWebsite'
-                  ActionIISWebsite: 'StopWebsite'
-                  StartStopWebsiteName: '$(IISWebsiteName)'
+                - task: IISWebAppManagementOnMachineGroup@0
+                  name: 'StopIIS'
+                  displayName: 'Stop IIS'
+                  inputs:
+                    IISDeploymentType: 'IISWebsite'
+                    ActionIISWebsite: 'StopWebsite'
+                    StartStopWebsiteName: '$(IISWebsiteName)'
 
-              - task: IISWebAppDeploymentOnMachineGroup@0
-                name: 'DeployApp'
-                displayName: 'Deploy App'
-                inputs:
-                  WebSiteName: '$(IISWebsiteName)'
-                  Package: '$(Pipeline.Workspace)/BoAppProject/BOAppFluentUI'
-                  TakeAppOfflineFlag: true
+                - task: IISWebAppDeploymentOnMachineGroup@0
+                  name: 'DeployApp'
+                  displayName: 'Deploy App'
+                  inputs:
+                    WebSiteName: '$(IISWebsiteName)'
+                    Package: '$(Pipeline.Workspace)/BoAppProject/BOAppFluentUI'
+                    TakeAppOfflineFlag: true
                   
-              - task: IISWebAppManagementOnMachineGroup@0
-                name: 'StartApp'
-                displayName: 'Start App'
-                inputs:
-                  IISDeploymentType: 'IISWebsite'
-                  ActionIISWebsite: 'StartWebsite'
-                  StartStopWebsiteName: '$(IISWebsiteName)'
+                - task: IISWebAppManagementOnMachineGroup@0
+                  name: 'StartApp'
+                  displayName: 'Start App'
+                  inputs:
+                    IISDeploymentType: 'IISWebsite'
+                    ActionIISWebsite: 'StartWebsite'
+                    StartStopWebsiteName: '$(IISWebsiteName)'
 
   - stage: DeployWebAppPROD
     displayName: 'Deploy App 2 PROD'
@@ -172,7 +171,6 @@ stages:
     variables:
       StageRunDEV: $[stageDependencies.Build.SetVarsAndSettings.outputs['SetVarsAndSettings.RunDEV']]
       StageRunPROD: $[stageDependencies.Build.SetVarsAndSettings.outputs['SetVarsAndSettings.RunPROD']]
-    condition: and(succeded(), eq(dependencies.Build.outputs['BaC.US.RunPROD'], 'true'))
     jobs:
       - deployment: Deploy2PROD
         displayName: Deploy App to PROD
@@ -182,34 +180,34 @@ stages:
           runOnce:
             deploy:
               steps:
-              - task: DownloadBuildArtifacts@1
-                inputs:
-                  buildType: 'current'
-                  downloadType: 'single'
-                  artifactName: 'BoAppProject'
-                  downloadPath: '$(System.ArtifactsDirectory)'
-                  cleanDestinationFolder: true
+                - task: DownloadBuildArtifacts@1
+                  inputs:
+                    buildType: 'current'
+                    downloadType: 'single'
+                    artifactName: 'BoAppProject'
+                    downloadPath: '$(System.ArtifactsDirectory)'
+                    cleanDestinationFolder: true
                   
-              - task: IISWebAppManagementOnMachineGroup@0
-                name: 'StopIIS'
-                displayName: 'Stop IIS'
-                inputs:
-                  IISDeploymentType: 'IISWebsite'
-                  ActionIISWebsite: 'StopWebsite'
-                  StartStopWebsiteName: '$(IISWebsiteName)'
+                - task: IISWebAppManagementOnMachineGroup@0
+                  name: 'StopIIS'
+                  displayName: 'Stop IIS'
+                  inputs:
+                    IISDeploymentType: 'IISWebsite'
+                    ActionIISWebsite: 'StopWebsite'
+                    StartStopWebsiteName: '$(IISWebsiteName)'
 
-              - task: IISWebAppDeploymentOnMachineGroup@0
-                name: 'DeployApp'
-                displayName: 'Deploy App'
-                inputs:
-                  WebSiteName: '$(IISWebsiteName)'
-                  Package: '$(Pipeline.Workspace)/BoAppProject/BOAppFluentUI'
-                  TakeAppOfflineFlag: true
+                - task: IISWebAppDeploymentOnMachineGroup@0
+                  name: 'DeployApp'
+                  displayName: 'Deploy App'
+                  inputs:
+                    WebSiteName: '$(IISWebsiteName)'
+                    Package: '$(Pipeline.Workspace)/BoAppProject/BOAppFluentUI'
+                    TakeAppOfflineFlag: true
                   
-              - task: IISWebAppManagementOnMachineGroup@0
-                name: 'StartApp'
-                displayName: 'Start App'
-                inputs:
-                  IISDeploymentType: 'IISWebsite'
-                  ActionIISWebsite: 'StartWebsite'
-                  StartStopWebsiteName: '$(IISWebsiteName)'
+                - task: IISWebAppManagementOnMachineGroup@0
+                  name: 'StartApp'
+                  displayName: 'Start App'
+                  inputs:
+                    IISDeploymentType: 'IISWebsite'
+                    ActionIISWebsite: 'StartWebsite'
+                    StartStopWebsiteName: '$(IISWebsiteName)'
