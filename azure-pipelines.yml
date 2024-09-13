@@ -37,7 +37,7 @@ stages:
   - stage: Deploy
     displayName: 'Deploy Stage'
     dependsOn: Build
-    condition: eq(dependencies.Build.outputs['Build.SetSkipVariable.currentEnv'], 'nowawartoscelse')
+    # condition: eq(dependencies.Build.outputs['Build.SetSkipVariable.currentEnv'], 'nowawartoscelse')
     jobs:
       - job: DeployJob
         steps:
@@ -47,3 +47,4 @@ stages:
               targetType: 'inline'
               script: |
                 Write-Host "Deploying to production."
+                Write-Host stageDependencies.Build.outputs['Build.SetSkipVariable.currentEnv']
