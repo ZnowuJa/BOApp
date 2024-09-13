@@ -77,6 +77,33 @@ stages:
               script: |
                 Write-Host "EnvName: $(EnvName)" 
 
+  - stage: TestVARsFromBuild
+    displayName: 'Test Variables from Build stage'
+    dependsOn: Build
+    variables:
+      StageEnvironment: $[stageDependencies.Build.Build_and_Config.outputs['UpdateSettings.EnvName']]
+      StageRunDEV: $[stageDependencies.Build.Build_and_Config.outputs['UpdateSettings.RunDEV']]
+      StageRunPROD: $[stageDependencies.Build.Build_and_Config.outputs['UpdateSettings.RunPROD']]
+    # condition: eq(dependencies.Build.outputs['Build_and_Config.UpdateSettings.RunDEV'], 'true')
+    # condition: eq($[variables.StageEnvironment], 'PLWAWS86DEV.PLWAWS86DEV')
+    # condition: eq(variables.StageEnvironment, 'PLWAWS86DEV.PLWAWS86DEV')
+    # condition: eq($[stageDependencies.Build.Build_and_Config.outputs['UpdateSettings.EnvName']], 'PLWAWS86DEV.PLWAWS86DEV')
+    
+    jobs:
+      - job: PrintVars
+        displayName: 'Print Variables from prev Stage'
+        steps:
+          - task: PowerShell@2
+            displayName: 'Get Latest Commit ID'
+            inputs:
+              targetType: 'inline'
+              script: |
+                Write-Host "StageEnvironment: $(StageEnvironment)"
+                Write-Host "StageRunDEV: $(StageRunDEV)"
+                Write-Host "StageRunPROD: $(StageRunPROD)"
+
+    
+
   - stage: DeployWebAppDEV
     displayName: 'Deploy AppDEV'
     dependsOn: Build
