@@ -8,12 +8,7 @@ pool:
   timeoutInMinutes: 60
 
 variables:
-  SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-  builtPlatform: 'Any CPU'
-  builtConfiguration: 'Release'
-  solution: '**/BOAppFluentUI+.sln'
-  project: '**/BOAppFluentUI/BOAppFluentUI.csproj'
-  EnvName: 'replaceit'  
+- template: envspec.yml
 
 stages:
   - stage: Build
