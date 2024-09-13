@@ -88,6 +88,13 @@ stages:
         displayName: 'Print Variables from prev Stage'
         steps:
           - task: PowerShell@2
+            displayName: 'Get Latest Commit ID'
+            inputs:
+              targetType: 'inline'
+              script: |
+                Write-Host "StageEnvironment: $(StageEnvironment)"
+                Write-Host $(EnvName)
+          - task: PowerShell@2
             displayName: 'Force Exit to Validate Condition'
             inputs:
               targetType: 'inline'
@@ -96,13 +103,7 @@ stages:
                   Write-Error "Unexpected StageEnvironment, exiting..."
                   exit 1
                 }
-          - task: PowerShell@2
-            displayName: 'Get Latest Commit ID'
-            inputs:
-              targetType: 'inline'
-              script: |
-                Write-Host "StageEnvironment: $(StageEnvironment)"
-                Write-Host $(EnvName)
+          
 
   - stage: DeployWebAppProd
     displayName: 'Deploy AppProd'
@@ -117,6 +118,13 @@ stages:
         displayName: 'Print Variables from prev Stage'
         steps:
           - task: PowerShell@2
+            displayName: 'Get Latest Commit ID'
+            inputs:
+              targetType: 'inline'
+              script: |
+                Write-Host "StageEnvironment: $(StageEnvironment)"
+                Write-Host $(EnvName)
+          - task: PowerShell@2
             displayName: 'Force Exit to Validate Condition'
             inputs:
               targetType: 'inline'
@@ -125,13 +133,7 @@ stages:
                   Write-Error "Unexpected StageEnvironment, exiting..."
                   exit 1
                 }
-          - task: PowerShell@2
-            displayName: 'Get Latest Commit ID'
-            inputs:
-              targetType: 'inline'
-              script: |
-                Write-Host "StageEnvironment: $(StageEnvironment)"
-                Write-Host $(EnvName)
+
 
           
               
