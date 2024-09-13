@@ -77,7 +77,7 @@ stages:
     displayName: 'Deploy App'
     dependsOn: Build
     variables:
-      StageEnvironment: $[stageDependencies.Build.Build_and_Config.outputs[UpdateSettings.EnvName]]
+      StageEnvironment: $[stageDependencies.Build.Build_and_Config.outputs['UpdateSettings.EnvName']]
     # condition: eq(dependencies.BuildStage.outputs['Build_and_Config.EnvName'], 'PLWAWS86DEV.PLWAWS86DEV')
     
     jobs:
