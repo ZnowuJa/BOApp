@@ -37,7 +37,7 @@ stages:
   - stage: Deploy
     displayName: 'Deploy Stage'
     dependsOn: Build
-    condition: ne(dependencies.Build.SetSkipVariable.outputs['SetSkipVariable.skipStages'], 'true')
+    condition: eq(dependencies.Build.SetSkipVariable.outputs['SetSkipVariable.skipStages'], 'true')
     jobs:
       - job: DeployJob
         steps:
