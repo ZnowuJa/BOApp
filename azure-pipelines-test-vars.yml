@@ -80,8 +80,8 @@ stages:
     dependsOn: Build
     variables:
       StageEnvironment: $[stageDependencies.Build.Build_and_Config.outputs['UpdateSettings.EnvName']]
-      # condition: eq(variables['StageEnvironment'], 'PLWAWS86DEV.PLWAWS86DEV')
-    condition: eq(variables['StageEnvironment'], 'PLWAWS86DEV.PLWAWS86DEV')
+    condition: eq(variables.StageEnvironment, 'PLWAWS86DEV.PLWAWS86DEV')
+    # condition: eq($[stageDependencies.Build.Build_and_Config.outputs['UpdateSettings.EnvName']], 'PLWAWS86DEV.PLWAWS86DEV')
     
     jobs:
       - job: PrintVars
@@ -111,7 +111,7 @@ stages:
     variables:
       StageEnvironment: $[stageDependencies.Build.Build_and_Config.outputs['UpdateSettings.EnvName']]
     #condition: eq(variables['StageEnvironment'], 'PLWAWS86.PLWAWS86')
-    condition: eq(variables['StageEnvironment'], 'PLWAWS86.PLWAWS86')
+    condition: eq(variables.StageEnvironment, 'PLWAWS86.PLWAWS86')
     
     jobs:
       - job: PrintVars
@@ -133,8 +133,3 @@ stages:
                   Write-Error "Unexpected StageEnvironment, exiting..."
                   exit 1
                 }
-
-
-          
-              
-              
