@@ -120,13 +120,12 @@ stages:
     variables:
       StageRunDEV: $[stageDependencies.Build.Build_and_Config.outputs['UpdateSettings.RunDEV']]
       StageRunPROD: $[stageDependencies.Build.Build_and_Config.outputs['UpdateSettings.RunPROD']]
- 
-    condition: eq(dependencies.Build.outputs['Build_and_Config.UpdateSettings.RunDEV'], 'true')
     
     jobs:
       - deployment: Deploy2DEV
         displayName: Deploy App 2 DEV
         environment: "PLWAWS86DEV.PLWAWS86DEV"
+        condition: eq(dependencies.Build.outputs['Build_and_Config.UpdateSettings.RunDEV'], 'true')
         strategy:
           runOnce:
             deploy:
@@ -169,12 +168,12 @@ stages:
     variables:
       StageRunDEV: $[stageDependencies.Build.Build_and_Config.outputs['UpdateSettings.RunDEV']]
       StageRunPROD: $[stageDependencies.Build.Build_and_Config.outputs['UpdateSettings.RunPROD']]
-    condition: eq(dependencies.Build.outputs['Build_and_Config.UpdateSettings.RunDEV'], 'true')
     
     jobs:
       - deployment: Deploy2PROD
         displayName: Deploy App to PROD
         environment: "PLWAWS86.PLWAWS86"
+        condition: eq(dependencies.Build.outputs['Build_and_Config.UpdateSettings.RunDEV'], 'true')
         strategy:
           runOnce:
             deploy:
