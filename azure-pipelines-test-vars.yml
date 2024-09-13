@@ -88,6 +88,15 @@ stages:
         displayName: 'Print Variables from prev Stage'
         steps:
           - task: PowerShell@2
+            displayName: 'Force Exit to Validate Condition'
+            inputs:
+              targetType: 'inline'
+              script: |
+                if ('$(StageEnvironment)' -ne 'PLWAWS86.PLWAWS86') {
+                  Write-Error "Unexpected StageEnvironment, exiting..."
+                  exit 1
+                }
+          - task: PowerShell@2
             displayName: 'Get Latest Commit ID'
             inputs:
               targetType: 'inline'
@@ -107,6 +116,15 @@ stages:
       - job: PrintVars
         displayName: 'Print Variables from prev Stage'
         steps:
+          - task: PowerShell@2
+            displayName: 'Force Exit to Validate Condition'
+            inputs:
+              targetType: 'inline'
+              script: |
+                if ('$(StageEnvironment)' -ne 'PLWAWS86DEV.PLWAWS86DEV') {
+                  Write-Error "Unexpected StageEnvironment, exiting..."
+                  exit 1
+                }
           - task: PowerShell@2
             displayName: 'Get Latest Commit ID'
             inputs:
