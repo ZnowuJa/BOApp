@@ -108,4 +108,4 @@ stages:
                   name: dupa
                   inputs: 
                     targetType: 'inline'
-                    script: Write-Host "I'm in DEV"
+                    script: Write-Host "I'm in PROD"
