@@ -1,0 +1,49 @@
+name: BOAppTestVars
+
+trigger:
+  none
+
+pool:
+  vmImage: 'windows-2022'
+  timeoutInMinutes: 60
+
+variables:
+  SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+  builtPlatform: 'Any CPU'
+  builtConfiguration: 'Release'
+  solution: '**/BOAppFluentUI+.sln'
+  project: '**/BOAppFluentUI/BOAppFluentUI.csproj'
+  EnvName: 'replaceit'  
+
+stages:
+  - stage: Build
+    jobs:
+      - job: SetSkipVariable
+        steps:
+          - task: PowerShell@2
+            displayName: 'Set Variable to Skip Stages'
+            inputs:
+              targetType: 'inline'
+              script: |
+                if ('$(StageEnvironment)' -eq 'PLWAWS86DEV') {
+                  Write-Host "Skipping further stages for DEV"
+                  Write-Host "##vso[task.setvariable variable=skipStages;isOutput=true]true"
+                } else {
+                  Write-Host "Proceeding with the pipeline."
+                  Write-Host "##vso[task.setvariable variable=skipStages;isOutput=true]false"
+                }
+        # The 'isOutput=true' makes this variable available for subsequent stages.
+
+  - stage: Deploy
+    displayName: 'Deploy Stage'
+    dependsOn: Build
+    condition: ne(dependencies.Build.SetSkipVariable.outputs['SetSkipVariable.skipStages'], 'true')
+    jobs:
+      - job: DeployJob
+        steps:
+          - task: PowerShell@2
+            displayName: 'Deploy to Production'
+            inputs:
+              targetType: 'inline'
+              script: |
+                Write-Host "Deploying to production."
