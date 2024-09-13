@@ -95,6 +95,20 @@ stages:
                 Write-Host $(EnvName)
       # - deployment: testDeploy
       #   environment: 
+      - deployment: WebAppDeployment
+        displayName: Deploy Web Application
+        environment: $(StageEnvironment)
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+              - task: DownloadBuildArtifacts@1
+                inputs:
+                  buildType: 'current'
+                  downloadType: 'single'
+                  artifactName: 'BoAppProject'
+                  downloadPath: '$(System.ArtifactsDirectory)'
+                  cleanDestinationFolder: true
           
               
               
