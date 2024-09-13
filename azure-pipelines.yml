@@ -20,6 +20,9 @@ stages:
             inputs:
               targetType: 'inline'
               script: |
+                Write-Host "$(currentEnv)"
+                Write-Host "$(solution)"
+                Write-Host "$(project)"
                 if ('$(StageEnvironment)' -eq 'PLWAWS86DEV') {
                   Write-Host "Skipping further stages for DEV"
                   Write-Host "##vso[task.setvariable variable=skipStages;isOutput=true]true"
