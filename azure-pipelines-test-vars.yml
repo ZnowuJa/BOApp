@@ -1,0 +1,96 @@
+name: BOAppTestVars
+
+trigger:
+  none
+
+pool:
+  vmImage: 'windows-2022'
+  timeoutInMinutes: 60
+
+variables:
+  SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+  builtPlatform: 'Any CPU'
+  builtConfiguration: 'Release'
+  solution: '**/BOAppFluentUI+.sln'
+  project: '**/BOAppFluentUI/BOAppFluentUI.csproj'
+  EnvName: 'replaceit'  
+# PLWAWS86DEV.PLWAWS86DEV
+stages:
+  - stage: Build
+    jobs:
+     - job: Build_and_Config
+       displayName: 'Change appsettings and set variables'
+       steps:
+          - task: PowerShell@2
+            displayName: 'Get Latest Commit ID'
+            inputs:
+              targetType: 'inline'
+              script: |
+                $commitId = git rev-parse --short HEAD
+                Write-Host "##vso[task.setvariable variable=CommitId]$commitId"
+          - task: PowerShell@2
+            name: UpdateSettings
+            displayName: 'Update appsettings.json'
+            inputs:
+              targetType: 'inline'
+              script: |
+                $appSettingsPath = "$(Build.SourcesDirectory)\BOAppFluentUI\appsettings.json"
+                if (Test-Path $appSettingsPath) {
+                  $appSettings = Get-Content $appSettingsPath -Raw | ConvertFrom-Json
+                  if (-not $appSettings.PSObject.Properties.Match('AppVersion')) {
+                      $appSettings | Add-Member -MemberType NoteProperty -Name 'AppVersion' -Value ''
+                  }
+                  $appSettings.AppVersion = "$(CommitId)"
+                  
+                  $environment = $appSettings.Environment
+                  
+                  if ($environment -eq "DEV") {
+                    $appSettings.ConnectionStrings.AppDbContextConnection = "Data Source=plwawq04n;Initial Catalog=BackOfficeAppDev;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
+                    $appSettings.ConnectionStrings.AsDbContextConnection = "Data Source=plwawq01n;Initial Catalog=PIADMS;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
+                    $appSettings.BaseUrl = "https://plwaws86dev"
+                    $appSettings.EnvNameString = "PLWAWS86DEV.PLWAWS86DEV"
+                    Write-Host "##vso[task.setvariable variable=EnvName;isOutput=true]PLWAWS86DEV.PLWAWS86DEV"
+                    # $EnvironmentName = "PLWAWS86DEV.PLWAWS86DEV"
+                  } elseif ($environment -eq "PROD") {
+                    $appSettings.ConnectionStrings.AppDbContextConnection = "Data Source=plwawq04n;Initial Catalog=BackOfficeAppProd;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
+                    $appSettings.ConnectionStrings.AsDbContextConnection = "Data Source=plwawq01n;Initial Catalog=PIADMS;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
+                    $appSettings.BaseUrl = "https://plwaws86"
+                    $appSettings.EnvNameString = "PLWAWS86.PLWAWS86"
+                    Write-Host "##vso[task.setvariable variable=EnvName;isOutput=true]PLWAWS86.PLWAWS86"
+                    # $EnvironmentName = "PLWAWS86.PLWAWS86"
+                  }
+
+                  $appSettings | ConvertTo-Json -Depth 32 | Set-Content $appSettingsPath
+                  Write-Host "AppVersion and ConnectionStrings updated successfully."
+                  # Write-Host "##vso[task.setvariable variable=EnvironmentName]$EnvironmentName"
+                } else {
+                  Write-Error "appsettings.json file not found at path: $appSettingsPath"
+                }
+          - task: PowerShell@2
+            displayName: 'Print EnvName'
+            inputs:
+              targetType: 'inline'
+              script: |
+                Write-Host "EnvName: $(EnvName)" 
+
+  - stage: DeployWebApp
+    displayName: 'Deploy App'
+    dependsOn: Build
+    variables:
+      StageEnvironment: $[stageDependencies.Build.Build_and_Config.outputs[UpdateSettings.EnvName]]
+    # condition: eq(dependencies.BuildStage.outputs['Build_and_Config.EnvName'], 'PLWAWS86DEV.PLWAWS86DEV')
+    
+    jobs:
+      - job: PrintVars
+        displayName: 'Print Variables from prev Stage'
+        steps:
+          - task: PowerShell@2
+            displayName: 'Get Latest Commit ID'
+            inputs:
+              targetType: 'inline'
+              script: |
+                Write-Host "StageEnvironment: $(StageEnvironment)"
+                Write-Host dependencies.BuildStage.outputs['Build_and_Config.EnvName']
+          
+              
+              
