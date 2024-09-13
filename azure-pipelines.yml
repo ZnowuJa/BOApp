@@ -30,14 +30,14 @@ stages:
                 } else {
                   Write-Host "Proceeding with the pipeline."
                   Write-Host "##vso[task.setvariable variable=skipStages;isOutput=true]false"
-                  Write-Host "##vso[task.setvariable variable=currentEnv]nowawartoscelse"
+                  Write-Host "##vso[task.setvariable variable=currentEnv;isOutput=true]nowawartoscelse"
                 }
           #The 'isOutput=true' makes this variable available for subsequent stages.
 
   - stage: Deploy
     displayName: 'Deploy Stage'
     dependsOn: Build
-    condition: eq(variables['currentEnv'], 'nowawartoscelse')
+    condition: eq(dependencies.Build.outputs['Build.SetSkipVariable.currentEnv'], 'nowawartoscelse')
     jobs:
       - job: DeployJob
         steps:
