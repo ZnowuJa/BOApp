@@ -31,13 +31,19 @@ stages:
                 } else {
                   Write-Host "Proceeding with the pipeline."
                   Write-Host "##vso[task.setvariable variable=skipStages;isOutput=true]false"
-                }
+          - task: PowerShell@2
+            displayName: 'Output skipStages'
+            inputs:
+              targetType: 'inline'
+              script: |
+                Write-Host "skipStages=$(skipStages)"
+                Write-Host "##vso[task.setvariable variable=skipStages;isOutput=true]$(skipStages)"
         # The 'isOutput=true' makes this variable available for subsequent stages.
 
   - stage: Deploy
     displayName: 'Deploy Stage'
     dependsOn: Build
-    condition: eq(stageDependencies.Build.outputs['SetSkipVariable.skipStages'], 'false')
+    condition: eq(dependencies.Build.outputs['SetSkipVariable.skipStages'], 'false')
     jobs:
       - job: DeployJob
         steps:
