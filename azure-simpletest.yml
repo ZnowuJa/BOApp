@@ -87,6 +87,18 @@ stages:
       StageRunDEV: $[stageDependencies.Build.Build_and_Config.outputs['UpdateSettings.RunDEV']]
       StageRunPROD: $[stageDependencies.Build.Build_and_Config.outputs['UpdateSettings.RunPROD']]
     jobs:
+      - job: CheckCond
+        displayName: 'Check condition in job'
+        condition: eq(stageDependencies.Build.Build_and_Config.outputs['UpdateSettings.RunDEV'], 'true')
+        steps:
+          - task: PowerShell@2
+            displayName: 'Get Latest Commit ID'
+            inputs:
+              targetType: 'inline'
+              script: |
+                Write-Host "StageEnvironment: $(StageEnvironment)"
+                Write-Host "StageRunDEV: $(StageRunDEV)"
+                Write-Host "StageRunPROD: $(StageRunPROD)"
       - job: PrintVars
         displayName: 'Print Variables from prev Stage'
         steps:
