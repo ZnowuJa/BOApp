@@ -26,7 +26,7 @@ stages:
                 $appSettingsPath = "$(Build.SourcesDirectory)\BOAppFluentUI\appsettings.json"
                 if (Test-Path $appSettingsPath) {
                     $appSettings = Get-Content $appSettingsPath -Raw | ConvertFrom-Json
-                    $appSettings.AppVersion = "$(CommitId)"
+                    $appSettings.AppVersion = git rev-parse --short HEAD
                     $environment = $appSettings.Environment
                     if ($environment -eq "DEV") {
                         $appSettings.ConnectionStrings.AppDbContextConnection = "Data Source=plwawq04n;Initial Catalog=BackOfficeAppDev;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
