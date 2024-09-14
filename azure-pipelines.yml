@@ -45,11 +45,23 @@ stages:
                 } else {
                     Write-Error "appsettings.json file not found at path: $appSettingsPath"
                 }
+                Write-Host "PATT: $patt"
 
-                $base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(":$(pat)"))
-                $base64AuthInfo | Write-Host
-                $base64AuthInfo2 = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(":$patt"))
-                $base64AuthInfo2 | Write-Host
+                try{
+                  $base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(":$(pat)"))
+                  Write-Host "Base63 for pat: $base64AuthInfo"
+                } catch {
+                  Write-Host "Base63 for pat: to nie dziala"
+                }
+                
+                try{
+                  $base64AuthInfo2 = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(":$patt"))
+                  Write-Host "Base63 for patt: $base64AuthInfo2"
+                } catch {
+                  Write-Host "Base63 for patt: to nie dziala"
+                }
+
+                
                 $uri = "https://dev.azure.com/piapl-azb/BackOfficeApp/_apis/distributedtask/variablegroups/3?version=6.0-preview.2"
 
                 try {
