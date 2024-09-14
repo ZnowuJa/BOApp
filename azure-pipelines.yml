@@ -20,8 +20,9 @@ stages:
             inputs:
               targetType: 'inline'
               script: |
+
                 $variableName = "EnvName"
-                $patt = $(pat)
+                $patt = "$(pat)"
                 $newValue = "testit"
                 $commitId = git rev-parse --short HEAD
                 $appSettingsPath = "$(Build.SourcesDirectory)\BOAppFluentUI\appsettings.json"
@@ -45,7 +46,8 @@ stages:
                 } else {
                     Write-Error "appsettings.json file not found at path: $appSettingsPath"
                 }
-                
+                Write-Host "PATT: $patt"
+
                 try{
                   $base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(":$(pat)"))
                   Write-Host "Base63 for pat: $base64AuthInfo"
