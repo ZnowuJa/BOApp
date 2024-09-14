@@ -27,10 +27,12 @@ stages:
                   Write-Host "Skipping further stages for DEV"
                   Write-Host "##vso[task.setvariable variable=skipStages;isOutput=true]true"
                   Write-Host "##vso[task.setvariable variable=currentEnv]nowawartosc"
+                  $(PROD) = false
                 } else {
                   Write-Host "Proceeding with the pipeline."
                   Write-Host "##vso[task.setvariable variable=skipStages;isOutput=true]false"
                   Write-Host "##vso[task.setvariable variable=currentEnv;isOutput=true]nowawartoscelse"
+                  $(PROD) = true
                 }
           #The 'isOutput=true' makes this variable available for subsequent stages.
 
@@ -48,3 +50,4 @@ stages:
               script: |
                 Write-Host "Deploying to production."
                 Write-Host $[stageDependencies.Build.outputs['Build.SetSkipVariable.currentEnv']
+                Write-Host "Deploying to production with variable PROD = $(PROD)."
