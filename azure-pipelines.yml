@@ -86,7 +86,7 @@ stages:
   - stage: Deploy
     displayName: 'Deploy Stage DEV'
     dependsOn: Build
-    condition: eq(variables['EnvName'], 'DEV1')
+    condition: eq(variables['EnvName'], 'DEV')
     jobs:
       - job: DeployJobDev
         steps:
@@ -102,7 +102,7 @@ stages:
   - stage: Deploy2
     displayName: 'Deploy Stage PROD'
     dependsOn: Build
-    condition: eq(variables['EnvName'], 'PROD1')
+    condition: eq(variables['EnvName'], 'PROD')
     jobs:
       - job: DeployJobProd
         steps:
