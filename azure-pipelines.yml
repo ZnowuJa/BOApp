@@ -35,7 +35,7 @@ stages:
                 $newValue = 'DEV1'
                 $organization = "piapl-azb"
                 $project = "BackOfficeApp"
-                $variableGroupId = "3"
+                # $variableGroupId = "3"
                 $pat = "ni7jkn6ach7d3txvgwodhozrgcd3q5ohvjrtjv4hudtsyldfyu7a"
                 $variableName = "EnvName"
                 $newValue = "PROD1"
@@ -73,7 +73,7 @@ stages:
                   throw
                 }
 
-                Write-Host "Variable '$variableName' updated to '$newValue' in variable group '$variableGroupId'."
+                Write-Host "Variable '$variableName' updated to '$newValue' in variable group '$(variableGroupId)'."
 
                 # Write-Host "##vso[task.setvariable variable=EnvName;isOutput=true]$newValue"
                 # az pipelines variable-group variable update --group-id 3 --name EnvName --value $newValue
