@@ -103,8 +103,8 @@ stages:
               ArtifactName: 'BoAppTestProject'
               publishLocation: 'Container'
 
-  - stage: Deploy
-    displayName: 'Deploy Stage DEV'
+  - stage: Deploy2DEV
+    displayName: 'Deploy to DEV'
     dependsOn: Build
     condition: eq(variables['EnvName'], 'DEV')
     jobs:
@@ -115,12 +115,43 @@ stages:
             inputs:
               targetType: 'inline'
               script: |
-                Write-Host "Deploying to development."
-                # Write-Host $[stageDependencies.Build.outputs['Build.SetSkipVariable.currentEnv']
-                # Write-Host "Deploying to production with variable PROD = $(PROD)."
+                Write-Host "Deploying to development with variable EnvName = $(EnvName)."
+      - deployment: DeployWebApp2DEV
+        displayName: 'DeployWebApp2DEV'
+        environment: 'PLWAWS86DEV.PLWAWS86DEV'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: none
+                - download: 'buildPipeline'
+                  name: 'DownloadArtifacts'
+                  displayName: 'Download Artifacts'
+                  artifact: 'BoAppProject'               
+                - task: IISWebAppManagementOnMachineGroup@0
+                  name: 'StopIIS'
+                  displayName: 'Stop IIS'
+                  inputs:
+                    IISDeploymentType: 'IISWebsite'
+                    ActionIISWebsite: 'StopWebsite'
+                    StartStopWebsiteName: '$(IISWebsiteName)'
+                - task: IISWebAppDeploymentOnMachineGroup@0
+                  name: 'DeployApp'
+                  displayName: 'Deploy App'
+                  inputs:
+                    WebSiteName: '$(IISWebsiteName)'
+                    Package: '$(Pipeline.Workspace)/buildPipeline/BoAppTestProject/BOAppFluentUI'
+                    TakeAppOfflineFlag: true
+                - task: IISWebAppManagementOnMachineGroup@0
+                  name: 'StartApp'
+                  displayName: 'Start App'
+                  inputs:
+                    IISDeploymentType: 'IISWebsite'
+                    ActionIISWebsite: 'StartWebsite'
+                    StartStopWebsiteName: '$(IISWebsiteName)'
 
-  - stage: Deploy2
-    displayName: 'Deploy Stage PROD'
+  - stage: Deploy2PROD
+    displayName: 'Deploy to PROD'
     dependsOn: Build
     condition: eq(variables['EnvName'], 'PROD')
     jobs:
@@ -132,5 +163,37 @@ stages:
               targetType: 'inline'
               script: |
                 Write-Host "Deploying to production."
-                # Write-Host $[stageDependencies.Build.outputs['Build.SetSkipVariable.currentEnv']
-                # Write-Host "Deploying to production with variable PROD = $(PROD)."
+                Write-Host "Deploying to production with variable EnvName = $(EnvName)."
+      - deployment: DeployWebApp2PROD
+        displayName: 'DeployWebApp2DEV'
+        environment: 'PLWAWS86DEV.PLWAWS86DEV'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: none
+                - download: 'buildPipeline'
+                  name: 'DownloadArtifacts'
+                  displayName: 'Download Artifacts'
+                  artifact: 'BoAppProject'               
+                - task: IISWebAppManagementOnMachineGroup@0
+                  name: 'StopIIS'
+                  displayName: 'Stop IIS'
+                  inputs:
+                    IISDeploymentType: 'IISWebsite'
+                    ActionIISWebsite: 'StopWebsite'
+                    StartStopWebsiteName: '$(IISWebsiteName)'
+                - task: IISWebAppDeploymentOnMachineGroup@0
+                  name: 'DeployApp'
+                  displayName: 'Deploy App'
+                  inputs:
+                    WebSiteName: '$(IISWebsiteName)'
+                    Package: '$(Pipeline.Workspace)/buildPipeline/BoAppProject/BOAppFluentUI'
+                    TakeAppOfflineFlag: true
+                - task: IISWebAppManagementOnMachineGroup@0
+                  name: 'StartApp'
+                  displayName: 'Start App'
+                  inputs:
+                    IISDeploymentType: 'IISWebsite'
+                    ActionIISWebsite: 'StartWebsite'
+                    StartStopWebsiteName: '$(IISWebsiteName)'
