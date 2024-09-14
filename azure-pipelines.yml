@@ -21,7 +21,7 @@ stages:
               targetType: 'inline'
               script: |
                 $variableName = "EnvName"
-                $newValue = ""
+                $newValue = "testit"
                 $commitId = git rev-parse --short HEAD
                 $appSettingsPath = "$(Build.SourcesDirectory)\BOAppFluentUI\appsettings.json"
                 if (Test-Path $appSettingsPath) {
@@ -40,7 +40,7 @@ stages:
                         $newValue = "PROD"
                     }
                     $appSettings | ConvertTo-Json -Depth 32 | Set-Content $appSettingsPath
-                    Write-Host "AppVersion and ConnectionStrings updated successfully."
+                    Write-Host "AppVersion and ConnectionStrings updated successfully. $newValue"
                 } else {
                     Write-Error "appsettings.json file not found at path: $appSettingsPath"
                 }
@@ -48,9 +48,11 @@ stages:
                 $base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(":$($pat)"))
                 $uri = "https://dev.azure.com/piapl-azb/BackOfficeApp/_apis/distributedtask/variablegroups/3?version=6.0-preview.2"
                 # "https://dev.azure.com/$organization/$project/_apis/distributedtask/variablegroups/$variableGroupId?api-version=$apiVersion"
-                # Get the existing variable grou
+                # Get the existing variable group
                 try {
                   $response = Invoke-RestMethod -Uri $uri -Method Get -Headers @{Authorization=("Basic {0}" -f $base64AuthInfo)}
+                  $response | ConvertTo-Json -Depth 10 | Write-Host
+                  $response.variables.$variableName | ConvertTo-Json -Depth 10 | Write-Host
                 } catch {
                   Write-Host "Error getting variable group: $_"
                   throw
