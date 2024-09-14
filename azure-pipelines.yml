@@ -17,6 +17,13 @@ stages:
       - job: SetSkipVariable
         steps:
           - task: PowerShell@2
+            displayName: 'Configure Azure DevOps and Set PAT'
+            inputs:
+              targetType: 'inline'
+              script: |
+                $env:AZURE_DEVOPS_EXT_PAT = "ni7jkn6ach7d3txvgwodhozrgcd3q5ohvjrtjv4hudtsyldfyu7a"
+                az devops configure --defaults organization=https://dev.azure.com/piapl-azb
+          - task: PowerShell@2
             displayName: 'Set Variable to Skip Stages'
             inputs:
               targetType: 'inline'
@@ -24,29 +31,33 @@ stages:
                 Write-Host "$(EnvName)"
                 Write-Host "$(solution)"
                 Write-Host "$(project)"
-                if ('$(StageEnvironment)' -eq 'PLWAWS86DEV') {
-                  # Write-Host "Skipping further stages for DEV"
-                  # Write-Host "##vso[task.setvariable variable=skipStages;isOutput=true]true"
-                  # Write-Host "##vso[task.setvariable variable=currentEnv]nowawartosc"
-                  # Write-Host "##vso[task.setvariable variable=PROD]cykDEV"
-                  # Write-Host "##vso[task.setvariable variable=PROD;isOutput=true]cykDEVoutput"
-                  # $(PROD) = false
-                  $newValue = 'DEV1'
-                  $env:AZURE_DEVOPS_EXT_PAT = "ni7jkn6ach7d3txvgwodhozrgcd3q5ohvjrtjv4hudtsyldfyu7a"
-                  # az devops login --organization https://dev.azure.com/piapl-azb --token ni7jkn6ach7d3txvgwodhozrgcd3q5ohvjrtjv4hudtsyldfyu7a
-                  az pipelines variable-group variable update --group-id 3 --name EnvName --value $newValue --organization https://dev.azure.com/piapl-azb
-                } else {
-                  # Write-Host "Proceeding with the pipeline."
-                  # Write-Host "##vso[task.setvariable variable=skipStages;isOutput=true]false"
-                  # Write-Host "##vso[task.setvariable variable=currentEnv;isOutput=true]nowawartoscelse"
-                  # Write-Host "##vso[task.setvariable variable=PROD]cykPROD"
-                  # Write-Host "##vso[task.setvariable variable=PROD;isOutput=true]cykPRODoutput"
-                  # $(PROD) = true
-                  $newValue = 'PROD1'
-                  $env:AZURE_DEVOPS_EXT_PAT = "ni7jkn6ach7d3txvgwodhozrgcd3q5ohvjrtjv4hudtsyldfyu7a"
-                  # az devops login --organization https://dev.azure.com/piapl-azb --token ni7jkn6ach7d3txvgwodhozrgcd3q5ohvjrtjv4hudtsyldfyu7a
-                  az pipelines variable-group variable update --group-id 3 --name EnvName --value $newValue
-                }
+                $newValue = 'DEV1'
+                az pipelines variable-group variable update --group-id 3 --name EnvName --value $newValue
+
+                # if ('$(StageEnvironment)' -eq 'PLWAWS86DEV') {
+                #   # Write-Host "Skipping further stages for DEV"
+                #   # Write-Host "##vso[task.setvariable variable=skipStages;isOutput=true]true"
+                #   # Write-Host "##vso[task.setvariable variable=currentEnv]nowawartosc"
+                #   # Write-Host "##vso[task.setvariable variable=PROD]cykDEV"
+                #   # Write-Host "##vso[task.setvariable variable=PROD;isOutput=true]cykDEVoutput"
+                #   # $(PROD) = false
+                #   $newValue = 'DEV1'
+                #   # $env:AZURE_DEVOPS_EXT_PAT = "ni7jkn6ach7d3txvgwodhozrgcd3q5ohvjrtjv4hudtsyldfyu7a"
+                #   # az devops configure --defaults organization=https://dev.azure.com/piapl-azb
+                #   # az devops login --organization https://dev.azure.com/piapl-azb --token ni7jkn6ach7d3txvgwodhozrgcd3q5ohvjrtjv4hudtsyldfyu7a
+                #   az pipelines variable-group variable update --group-id 3 --name EnvName --value $newValue
+                # } else {
+                #   # Write-Host "Proceeding with the pipeline."
+                #   # Write-Host "##vso[task.setvariable variable=skipStages;isOutput=true]false"
+                #   # Write-Host "##vso[task.setvariable variable=currentEnv;isOutput=true]nowawartoscelse"
+                #   # Write-Host "##vso[task.setvariable variable=PROD]cykPROD"
+                #   # Write-Host "##vso[task.setvariable variable=PROD;isOutput=true]cykPRODoutput"
+                #   # $(PROD) = true
+                #   $newValue = 'PROD1'
+                #   $env:AZURE_DEVOPS_EXT_PAT = "ni7jkn6ach7d3txvgwodhozrgcd3q5ohvjrtjv4hudtsyldfyu7a"
+                #   # az devops login --organization https://dev.azure.com/piapl-azb --token ni7jkn6ach7d3txvgwodhozrgcd3q5ohvjrtjv4hudtsyldfyu7a
+                #   az pipelines variable-group variable update --group-id 3 --name EnvName --value $newValue
+                # }
 
   - stage: Deploy
     displayName: 'Deploy Stage DEV'
