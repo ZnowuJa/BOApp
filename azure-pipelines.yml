@@ -15,7 +15,6 @@ stages:
     jobs:
       - job: SetSkipVariable
         steps:
-          
           - task: PowerShell@2
             displayName: 'Set Variable to Skip Stages'
             inputs:
@@ -23,6 +22,7 @@ stages:
               script: |
                 $variableName = "EnvName"
                 $newValue = ""
+                $commitId = git rev-parse --short HEAD
                 $appSettingsPath = "$(Build.SourcesDirectory)\BOAppFluentUI\appsettings.json"
                 if (Test-Path $appSettingsPath) {
                     $appSettings = Get-Content $appSettingsPath -Raw | ConvertFrom-Json
