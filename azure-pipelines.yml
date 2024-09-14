@@ -21,7 +21,7 @@ stages:
             inputs:
               targetType: 'inline'
               script: |
-                Write-Host "$(currentEnv)"
+                Write-Host "$(EnvName)"
                 Write-Host "$(solution)"
                 Write-Host "$(project)"
 
