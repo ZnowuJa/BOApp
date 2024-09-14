@@ -16,14 +16,14 @@ stages:
     jobs:
       - job: SetSkipVariable
         steps:
-          - task: PowerShell@2
-            displayName: 'Configure Azure DevOps and Set PAT'
-            inputs:
-              targetType: 'inline'
-              script: |
-                $env:AZURE_DEVOPS_EXT_PAT = "ni7jkn6ach7d3txvgwodhozrgcd3q5ohvjrtjv4hudtsyldfyu7a"
-                az devops configure --defaults organization=https://dev.azure.com/piapl-azb
-                az devops login --organization https://dev.azure.com/piapl-azb
+          # - task: PowerShell@2
+          #   displayName: 'Configure Azure DevOps and Set PAT'
+          #   inputs:
+          #     targetType: 'inline'
+          #     script: |
+          #       $env:AZURE_DEVOPS_EXT_PAT = "ni7jkn6ach7d3txvgwodhozrgcd3q5ohvjrtjv4hudtsyldfyu7a"
+          #       az devops configure --defaults organization=https://dev.azure.com/piapl-azb
+          #       az devops login --organization https://dev.azure.com/piapl-azb
           - task: PowerShell@2
             displayName: 'Set Variable to Skip Stages'
             inputs:
@@ -33,7 +33,8 @@ stages:
                 Write-Host "$(solution)"
                 Write-Host "$(project)"
                 $newValue = 'DEV1'
-                az pipelines variable-group variable update --group-id 3 --name EnvName --value $newValue
+                Write-Host "##vso[task.setvariable variable=EnvName;isOutput=true]$newValue"
+                # az pipelines variable-group variable update --group-id 3 --name EnvName --value $newValue
 
                 # if ('$(StageEnvironment)' -eq 'PLWAWS86DEV') {
                 #   # Write-Host "Skipping further stages for DEV"
