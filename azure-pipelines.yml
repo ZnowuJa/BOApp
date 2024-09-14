@@ -8,7 +8,7 @@ pool:
   timeoutInMinutes: 60
 
 variables:
-  -group: DeployBOApp
+  - group: DeployBOApp
 # - template: envspec.yml
 
 stages:
