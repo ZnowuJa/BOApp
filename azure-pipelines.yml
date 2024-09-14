@@ -45,6 +45,7 @@ stages:
 
                 # Get the existing variable group
                 $uri = "https://dev.azure.com/$organization/$project/_apis/distributedtask/variablegroups/$variableGroupId?api-version=6.0-preview.2"
+                Write-Host "Constructed URL: $uri"
                 $response = Invoke-RestMethod -Uri $uri -Method Get -Headers @{Authorization=("Basic {0}" -f $base64AuthInfo)}
 
                 # Update the variable value
