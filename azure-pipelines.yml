@@ -32,7 +32,8 @@ stages:
                   # Write-Host "##vso[task.setvariable variable=PROD;isOutput=true]cykDEVoutput"
                   # $(PROD) = false
                   $newValue = 'DEV1'
-                  az devops login --organization https://dev.azure.com/piapl-azb --token ni7jkn6ach7d3txvgwodhozrgcd3q5ohvjrtjv4hudtsyldfyu7a
+                  $env:AZURE_DEVOPS_EXT_PAT = "ni7jkn6ach7d3txvgwodhozrgcd3q5ohvjrtjv4hudtsyldfyu7a"
+                  # az devops login --organization https://dev.azure.com/piapl-azb --token ni7jkn6ach7d3txvgwodhozrgcd3q5ohvjrtjv4hudtsyldfyu7a
                   az pipelines variable-group variable update --group-id 3 --name EnvName --value $newValue
                 } else {
                   # Write-Host "Proceeding with the pipeline."
@@ -42,7 +43,8 @@ stages:
                   # Write-Host "##vso[task.setvariable variable=PROD;isOutput=true]cykPRODoutput"
                   # $(PROD) = true
                   $newValue = 'PROD1'
-                  az devops login --organization https://dev.azure.com/piapl-azb --token ni7jkn6ach7d3txvgwodhozrgcd3q5ohvjrtjv4hudtsyldfyu7a
+                  $env:AZURE_DEVOPS_EXT_PAT = "ni7jkn6ach7d3txvgwodhozrgcd3q5ohvjrtjv4hudtsyldfyu7a"
+                  # az devops login --organization https://dev.azure.com/piapl-azb --token ni7jkn6ach7d3txvgwodhozrgcd3q5ohvjrtjv4hudtsyldfyu7a
                   az pipelines variable-group variable update --group-id 3 --name EnvName --value $newValue
                 }
 
