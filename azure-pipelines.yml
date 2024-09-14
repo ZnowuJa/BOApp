@@ -45,8 +45,7 @@ stages:
                 } else {
                     Write-Error "appsettings.json file not found at path: $appSettingsPath"
                 }
-                Write-Host "PATT: $patt"
-
+                
                 try{
                   $base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(":$(pat)"))
                   Write-Host "Base63 for pat: $base64AuthInfo"
