@@ -27,12 +27,16 @@ stages:
                   Write-Host "Skipping further stages for DEV"
                   Write-Host "##vso[task.setvariable variable=skipStages;isOutput=true]true"
                   Write-Host "##vso[task.setvariable variable=currentEnv]nowawartosc"
-                  $(PROD) = false
+                  Write-Host "##vso[task.setvariable variable=PROD]cykDEV"
+                  Write-Host "##vso[task.setvariable variable=PROD;isOutput=true]cykDEVoutput"
+                  # $(PROD) = false
                 } else {
                   Write-Host "Proceeding with the pipeline."
                   Write-Host "##vso[task.setvariable variable=skipStages;isOutput=true]false"
                   Write-Host "##vso[task.setvariable variable=currentEnv;isOutput=true]nowawartoscelse"
-                  $(PROD) = true
+                  Write-Host "##vso[task.setvariable variable=PROD]cykPROD"
+                  Write-Host "##vso[task.setvariable variable=PROD;isOutput=true]cykPRODoutput"
+                  # $(PROD) = true
                 }
 
   - stage: Deploy
