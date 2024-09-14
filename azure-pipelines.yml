@@ -45,7 +45,8 @@ stages:
                 $base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(":$($pat)"))
 
                 # Construct the URI
-                $uri = "https://dev.azure.com/$organization/$project/_apis/distributedtask/variablegroups/$variableGroupId?api-version=$apiVersion"
+                $uri = "https://dev.azure.com/piapl-azb/BackOfficeApp/_apis/distributedtask/variablegroups/3?version=6.0-preview.2"
+                # "https://dev.azure.com/$organization/$project/_apis/distributedtask/variablegroups/$variableGroupId?api-version=$apiVersion"
                 Write-Host "Constructed URL: $uri"
 
                 # Get the existing variable group
