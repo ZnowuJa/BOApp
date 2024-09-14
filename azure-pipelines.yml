@@ -21,6 +21,7 @@ stages:
               targetType: 'inline'
               script: |
                 $variableName = "EnvName"
+                $patt = $(pat)
                 $newValue = "testit"
                 $commitId = git rev-parse --short HEAD
                 $appSettingsPath = "$(Build.SourcesDirectory)\BOAppFluentUI\appsettings.json"
@@ -45,8 +46,10 @@ stages:
                     Write-Error "appsettings.json file not found at path: $appSettingsPath"
                 }
 
-                $base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(":$($pat)"))
+                $base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(":$(pat)"))
                 $base64AuthInfo | Write-Host
+                $base64AuthInfo2 = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(":$patt"))
+                $base64AuthInfo2 | Write-Host
                 $uri = "https://dev.azure.com/piapl-azb/BackOfficeApp/_apis/distributedtask/variablegroups/3?version=6.0-preview.2"
 
                 try {
