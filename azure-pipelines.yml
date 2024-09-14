@@ -22,7 +22,6 @@ stages:
               script: |
 
                 $variableName = "EnvName"
-                $patt = "$(pat)"
                 $newValue = "testit"
                 $commitId = git rev-parse --short HEAD
                 $appSettingsPath = "$(Build.SourcesDirectory)\BOAppFluentUI\appsettings.json"
@@ -30,23 +29,25 @@ stages:
                     $appSettings = Get-Content $appSettingsPath -Raw | ConvertFrom-Json
                     $appSettings.AppVersion = git rev-parse --short HEAD
                     $environment = $appSettings.Environment
+                    Write-Host "Environment variable: $environment"
                     if ($environment -eq "DEV") {
                         $appSettings.ConnectionStrings.AppDbContextConnection = "Data Source=plwawq04n;Initial Catalog=BackOfficeAppDev;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
                         $appSettings.ConnectionStrings.AsDbContextConnection = "Data Source=plwawq01n;Initial Catalog=PIADMS;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
                         $appSettings.BaseUrl = "https://plwaws86dev"
                         $newValue = "DEV"
+                        Write-Host "Settings for DEV"
                     } elseif ($environment -eq "PROD") {
                         $appSettings.ConnectionStrings.AppDbContextConnection = "Data Source=plwawq04n;Initial Catalog=BackOfficeAppProd;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
                         $appSettings.ConnectionStrings.AsDbContextConnection = "Data Source=plwawq01n;Initial Catalog=PIADMS;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
                         $appSettings.BaseUrl = "https://plwaws86"
                         $newValue = "PROD"
+                        Write-Host "Settings for PROD"
                     }
                     $appSettings | ConvertTo-Json -Depth 32 | Set-Content $appSettingsPath
                     Write-Host "AppVersion and ConnectionStrings updated successfully. $newValue"
                 } else {
                     Write-Error "appsettings.json file not found at path: $appSettingsPath"
                 }
-                Write-Host "PATT: $patt"
 
                 try{
                   $base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(":$(pat)"))
@@ -54,21 +55,13 @@ stages:
                 } catch {
                   Write-Host "Base63 for pat: to nie dziala"
                 }
-                
-                try{
-                  $base64AuthInfo2 = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(":$patt"))
-                  Write-Host "Base63 for patt: $base64AuthInfo2"
-                } catch {
-                  Write-Host "Base63 for patt: to nie dziala"
-                }
 
-                
                 $uri = "https://dev.azure.com/piapl-azb/BackOfficeApp/_apis/distributedtask/variablegroups/3?version=6.0-preview.2"
 
                 try {
                   $response = Invoke-RestMethod -Uri $uri -Method Get -Headers @{Authorization=("Basic {0}" -f $base64AuthInfo)}
-                  $response | ConvertTo-Json -Depth 10 | Write-Host
-                  $response.variables.$variableName | ConvertTo-Json -Depth 10 | Write-Host
+                  # $response | ConvertTo-Json -Depth 10 | Write-Host
+                  # $response.variables.$variableName | ConvertTo-Json -Depth 10 | Write-Host
                 } catch {
                   Write-Host "Error getting variable group: $_"
                   throw
