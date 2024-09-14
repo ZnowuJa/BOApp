@@ -9,99 +9,68 @@ pool:
 
 variables:
   - group: DeployBOApp
-# - template: envspec.yml
 
 stages:
   - stage: Build
     jobs:
       - job: SetSkipVariable
         steps:
-          # - task: PowerShell@2
-          #   displayName: 'Configure Azure DevOps and Set PAT'
-          #   inputs:
-          #     targetType: 'inline'
-          #     script: |
-          #       $env:AZURE_DEVOPS_EXT_PAT = "ni7jkn6ach7d3txvgwodhozrgcd3q5ohvjrtjv4hudtsyldfyu7a"
-          #       az devops configure --defaults organization=https://dev.azure.com/piapl-azb
-          #       az devops login --organization https://dev.azure.com/piapl-azb
+          
           - task: PowerShell@2
             displayName: 'Set Variable to Skip Stages'
             inputs:
               targetType: 'inline'
               script: |
-                Write-Host "$(EnvName)"
-                Write-Host "$(solution)"
-                Write-Host "$(project)"
-                $newValue = 'DEV1'
-                $organization = "piapl-azb"
-                $project = "BackOfficeApp"
-                # $variableGroupId = "3"
-                $pat = "ni7jkn6ach7d3txvgwodhozrgcd3q5ohvjrtjv4hudtsyldfyu7a"
                 $variableName = "EnvName"
-                $newValue = "PROD1"
-                $apiVersion = "6.0-preview.2"
+                $newValue = ""
+                $appSettingsPath = "$(Build.SourcesDirectory)\BOAppFluentUI\appsettings.json"
+                if (Test-Path $appSettingsPath) {
+                    $appSettings = Get-Content $appSettingsPath -Raw | ConvertFrom-Json
+                    $appSettings.AppVersion = "$(CommitId)"
+                    $environment = $appSettings.Environment
+                    if ($environment -eq "DEV") {
+                        $appSettings.ConnectionStrings.AppDbContextConnection = "Data Source=plwawq04n;Initial Catalog=BackOfficeAppDev;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
+                        $appSettings.ConnectionStrings.AsDbContextConnection = "Data Source=plwawq01n;Initial Catalog=PIADMS;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
+                        $appSettings.BaseUrl = "https://plwaws86dev"
+                        $newValue = "DEV"
+                    } elseif ($environment -eq "PROD") {
+                        $appSettings.ConnectionStrings.AppDbContextConnection = "Data Source=plwawq04n;Initial Catalog=BackOfficeAppProd;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
+                        $appSettings.ConnectionStrings.AsDbContextConnection = "Data Source=plwawq01n;Initial Catalog=PIADMS;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
+                        $appSettings.BaseUrl = "https://plwaws86"
+                        $newValue = "PROD"
+                    }
+                    $appSettings | ConvertTo-Json -Depth 32 | Set-Content $appSettingsPath
+                    Write-Host "AppVersion and ConnectionStrings updated successfully."
+                } else {
+                    Write-Error "appsettings.json file not found at path: $appSettingsPath"
+                }
 
-                # Base64-encode the PAT
                 $base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(":$($pat)"))
-
-                # Construct the URI
                 $uri = "https://dev.azure.com/piapl-azb/BackOfficeApp/_apis/distributedtask/variablegroups/3?version=6.0-preview.2"
                 # "https://dev.azure.com/$organization/$project/_apis/distributedtask/variablegroups/$variableGroupId?api-version=$apiVersion"
-                Write-Host "Constructed URL: $uri"
-
-                # Get the existing variable group
+                # Get the existing variable grou
                 try {
                   $response = Invoke-RestMethod -Uri $uri -Method Get -Headers @{Authorization=("Basic {0}" -f $base64AuthInfo)}
                 } catch {
                   Write-Host "Error getting variable group: $_"
                   throw
                 }
-
                 # Update the variable value
                 $response.variables.$variableName.value = $newValue
-
                 # Update the variable group
                 $body = $response | ConvertTo-Json -Depth 10
                 try {
                   Invoke-RestMethod -Uri $uri -Method Put -Headers @{
                     Authorization=("Basic {0}" -f $base64AuthInfo)
                     "Content-Type"="application/json"
-                    "Accept"="application/json; api-version=$apiVersion"
+                    "Accept"="application/json; api-version=$(apiVersion)"
                   } -Body $body
                 } catch {
                   Write-Host "Error updating variable group: $_"
                   throw
                 }
 
-                Write-Host "Variable '$variableName' updated to '$newValue' in variable group '$(variableGroupId)'."
 
-                # Write-Host "##vso[task.setvariable variable=EnvName;isOutput=true]$newValue"
-                # az pipelines variable-group variable update --group-id 3 --name EnvName --value $newValue
-
-                # if ('$(StageEnvironment)' -eq 'PLWAWS86DEV') {
-                #   # Write-Host "Skipping further stages for DEV"
-                #   # Write-Host "##vso[task.setvariable variable=skipStages;isOutput=true]true"
-                #   # Write-Host "##vso[task.setvariable variable=currentEnv]nowawartosc"
-                #   # Write-Host "##vso[task.setvariable variable=PROD]cykDEV"
-                #   # Write-Host "##vso[task.setvariable variable=PROD;isOutput=true]cykDEVoutput"
-                #   # $(PROD) = false
-                #   $newValue = 'DEV1'
-                #   # $env:AZURE_DEVOPS_EXT_PAT = "ni7jkn6ach7d3txvgwodhozrgcd3q5ohvjrtjv4hudtsyldfyu7a"
-                #   # az devops configure --defaults organization=https://dev.azure.com/piapl-azb
-                #   # az devops login --organization https://dev.azure.com/piapl-azb --token ni7jkn6ach7d3txvgwodhozrgcd3q5ohvjrtjv4hudtsyldfyu7a
-                #   az pipelines variable-group variable update --group-id 3 --name EnvName --value $newValue
-                # } else {
-                #   # Write-Host "Proceeding with the pipeline."
-                #   # Write-Host "##vso[task.setvariable variable=skipStages;isOutput=true]false"
-                #   # Write-Host "##vso[task.setvariable variable=currentEnv;isOutput=true]nowawartoscelse"
-                #   # Write-Host "##vso[task.setvariable variable=PROD]cykPROD"
-                #   # Write-Host "##vso[task.setvariable variable=PROD;isOutput=true]cykPRODoutput"
-                #   # $(PROD) = true
-                #   $newValue = 'PROD1'
-                #   $env:AZURE_DEVOPS_EXT_PAT = "ni7jkn6ach7d3txvgwodhozrgcd3q5ohvjrtjv4hudtsyldfyu7a"
-                #   # az devops login --organization https://dev.azure.com/piapl-azb --token ni7jkn6ach7d3txvgwodhozrgcd3q5ohvjrtjv4hudtsyldfyu7a
-                #   az pipelines variable-group variable update --group-id 3 --name EnvName --value $newValue
-                # }
 
   - stage: Deploy
     displayName: 'Deploy Stage DEV'
