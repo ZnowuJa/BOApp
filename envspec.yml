@@ -1,5 +1,6 @@
 variables:
  currentEnv: "This is to be set"
+ PROD: true
  SYSTEM_ACCESSTOKEN: $(System.AccessToken)
  builtPlatform: 'Any CPU'
  builtConfiguration: 'Release'
