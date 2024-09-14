@@ -34,7 +34,6 @@ stages:
                   Write-Host "##vso[task.setvariable variable=currentEnv;isOutput=true]nowawartoscelse"
                   $(PROD) = true
                 }
-          #The 'isOutput=true' makes this variable available for subsequent stages.
 
   - stage: Deploy
     displayName: 'Deploy Stage'
