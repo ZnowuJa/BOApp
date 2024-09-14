@@ -8,7 +8,8 @@ pool:
   timeoutInMinutes: 60
 
 variables:
-- template: envspec.yml
+  -group: DeployBOApp
+# - template: envspec.yml
 
 stages:
   - stage: Build
@@ -23,21 +24,21 @@ stages:
                 Write-Host "$(currentEnv)"
                 Write-Host "$(solution)"
                 Write-Host "$(project)"
-                if ('$(StageEnvironment)' -eq 'PLWAWS86DEV') {
-                  Write-Host "Skipping further stages for DEV"
-                  Write-Host "##vso[task.setvariable variable=skipStages;isOutput=true]true"
-                  Write-Host "##vso[task.setvariable variable=currentEnv]nowawartosc"
-                  Write-Host "##vso[task.setvariable variable=PROD]cykDEV"
-                  Write-Host "##vso[task.setvariable variable=PROD;isOutput=true]cykDEVoutput"
-                  # $(PROD) = false
-                } else {
-                  Write-Host "Proceeding with the pipeline."
-                  Write-Host "##vso[task.setvariable variable=skipStages;isOutput=true]false"
-                  Write-Host "##vso[task.setvariable variable=currentEnv;isOutput=true]nowawartoscelse"
-                  Write-Host "##vso[task.setvariable variable=PROD]cykPROD"
-                  Write-Host "##vso[task.setvariable variable=PROD;isOutput=true]cykPRODoutput"
-                  # $(PROD) = true
-                }
+                # if ('$(StageEnvironment)' -eq 'PLWAWS86DEV') {
+                #   Write-Host "Skipping further stages for DEV"
+                #   Write-Host "##vso[task.setvariable variable=skipStages;isOutput=true]true"
+                #   Write-Host "##vso[task.setvariable variable=currentEnv]nowawartosc"
+                #   Write-Host "##vso[task.setvariable variable=PROD]cykDEV"
+                #   Write-Host "##vso[task.setvariable variable=PROD;isOutput=true]cykDEVoutput"
+                #   # $(PROD) = false
+                # } else {
+                #   Write-Host "Proceeding with the pipeline."
+                #   Write-Host "##vso[task.setvariable variable=skipStages;isOutput=true]false"
+                #   Write-Host "##vso[task.setvariable variable=currentEnv;isOutput=true]nowawartoscelse"
+                #   Write-Host "##vso[task.setvariable variable=PROD]cykPROD"
+                #   Write-Host "##vso[task.setvariable variable=PROD;isOutput=true]cykPRODoutput"
+                #   # $(PROD) = true
+                # }
 
   - stage: Deploy
     displayName: 'Deploy Stage'
@@ -52,5 +53,5 @@ stages:
               targetType: 'inline'
               script: |
                 Write-Host "Deploying to production."
-                Write-Host $[stageDependencies.Build.outputs['Build.SetSkipVariable.currentEnv']
-                Write-Host "Deploying to production with variable PROD = $(PROD)."
+                # Write-Host $[stageDependencies.Build.outputs['Build.SetSkipVariable.currentEnv']
+                # Write-Host "Deploying to production with variable PROD = $(PROD)."
