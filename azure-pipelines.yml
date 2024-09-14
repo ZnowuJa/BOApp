@@ -23,6 +23,7 @@ stages:
               script: |
                 $env:AZURE_DEVOPS_EXT_PAT = "ni7jkn6ach7d3txvgwodhozrgcd3q5ohvjrtjv4hudtsyldfyu7a"
                 az devops configure --defaults organization=https://dev.azure.com/piapl-azb
+                az devops login --organization https://dev.azure.com/piapl-azb
           - task: PowerShell@2
             displayName: 'Set Variable to Skip Stages'
             inputs:
