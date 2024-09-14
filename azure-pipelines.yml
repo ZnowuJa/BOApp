@@ -24,13 +24,48 @@ stages:
                 Write-Host "$(EnvName)"
                 Write-Host "$(solution)"
                 Write-Host "$(project)"
+                if ('$(StageEnvironment)' -eq 'PLWAWS86DEV') {
+                  # Write-Host "Skipping further stages for DEV"
+                  # Write-Host "##vso[task.setvariable variable=skipStages;isOutput=true]true"
+                  # Write-Host "##vso[task.setvariable variable=currentEnv]nowawartosc"
+                  # Write-Host "##vso[task.setvariable variable=PROD]cykDEV"
+                  # Write-Host "##vso[task.setvariable variable=PROD;isOutput=true]cykDEVoutput"
+                  # $(PROD) = false
+                  $newValue = 'DEV1'
+                  az pipelines variable-group variable update --group-id 3 --name EnvName --value $newValue
+                } else {
+                  # Write-Host "Proceeding with the pipeline."
+                  # Write-Host "##vso[task.setvariable variable=skipStages;isOutput=true]false"
+                  # Write-Host "##vso[task.setvariable variable=currentEnv;isOutput=true]nowawartoscelse"
+                  # Write-Host "##vso[task.setvariable variable=PROD]cykPROD"
+                  # Write-Host "##vso[task.setvariable variable=PROD;isOutput=true]cykPRODoutput"
+                  # $(PROD) = true
+                  $newValue = 'PROD1'
+                  az pipelines variable-group variable update --group-id 3 --name EnvName --value $newValue
+                }
 
   - stage: Deploy
-    displayName: 'Deploy Stage'
+    displayName: 'Deploy Stage DEV'
     dependsOn: Build
-    # condition: eq(dependencies.Build.outputs['Build.SetSkipVariable.currentEnv'], 'nowawartoscelse')
+    condition: eq(variables['EnvName'], 'DEV1')
     jobs:
-      - job: DeployJob
+      - job: DeployJobDev
+        steps:
+          - task: PowerShell@2
+            displayName: 'Deploy to Development'
+            inputs:
+              targetType: 'inline'
+              script: |
+                Write-Host "Deploying to development."
+                # Write-Host $[stageDependencies.Build.outputs['Build.SetSkipVariable.currentEnv']
+                # Write-Host "Deploying to production with variable PROD = $(PROD)."
+
+  - stage: Deploy2
+    displayName: 'Deploy Stage PROD'
+    dependsOn: Build
+    condition: eq(variables['EnvName'], 'PROD1')
+    jobs:
+      - job: DeployJobProd
         steps:
           - task: PowerShell@2
             displayName: 'Deploy to Production'
