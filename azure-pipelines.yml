@@ -38,7 +38,7 @@ stages:
                 $variableGroupId = "3"
                 $pat = "ni7jkn6ach7d3txvgwodhozrgcd3q5ohvjrtjv4hudtsyldfyu7a"
                 $variableName = "EnvName"
-                $newValue = "DEV1"
+                $newValue = "PROD1"
                 $apiVersion = "6.0-preview.2"
 
                 # Base64-encode the PAT
