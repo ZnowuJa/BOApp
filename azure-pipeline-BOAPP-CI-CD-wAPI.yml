@@ -93,8 +93,8 @@ stages:
 
                 $variableName = "EnvName"
                 $newValue = "testit"
-                $commitId = git rev-parse --short HEAD
-                Write-Host 'CommitId: $commitId'
+                # $commitId = git rev-parse --short HEAD
+                # Write-Host 'CommitId: $commitId'
                 $appSettingsPath = "$(Build.SourcesDirectory)\BOAppFluentUI\appsettings.json"
                 if (Test-Path $appSettingsPath) {
                     $appSettings = Get-Content $appSettingsPath -Raw | ConvertFrom-Json
