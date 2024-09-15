@@ -100,7 +100,7 @@ stages:
             displayName: 'Publish Artifact'
             inputs:
               PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-              ArtifactName: 'BoAppTestProject'
+              ArtifactName: '$(artifactName)'
               publishLocation: 'Container'
 
   - stage: Deploy2DEV
@@ -127,7 +127,7 @@ stages:
                 - download: 'buildPipeline'
                   name: 'DownloadArtifacts'
                   displayName: 'Download Artifacts'
-                  artifact: 'BoAppProject'               
+                  artifact: '$(artifactName)'               
                 - task: IISWebAppManagementOnMachineGroup@0
                   name: 'StopIIS'
                   displayName: 'Stop IIS'
@@ -140,7 +140,7 @@ stages:
                   displayName: 'Deploy App'
                   inputs:
                     WebSiteName: '$(IISWebsiteName)'
-                    Package: '$(Pipeline.Workspace)/buildPipeline/BoAppTestProject/BOAppFluentUI'
+                    Package: '$(Pipeline.Workspace)/buildPipeline/BoAppProject/BOAppFluentUI'
                     TakeAppOfflineFlag: true
                 - task: IISWebAppManagementOnMachineGroup@0
                   name: 'StartApp'
@@ -175,7 +175,7 @@ stages:
                 - download: 'buildPipeline'
                   name: 'DownloadArtifacts'
                   displayName: 'Download Artifacts'
-                  artifact: 'BoAppProject'               
+                  artifact: '$(artifactName)'              
                 - task: IISWebAppManagementOnMachineGroup@0
                   name: 'StopIIS'
                   displayName: 'Stop IIS'
