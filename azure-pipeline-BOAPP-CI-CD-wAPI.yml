@@ -126,27 +126,27 @@ stages:
                     Write-Error "appsettings.json file not found at path: $appSettingsPath"
                 }
 
-          - task: DotNetCoreCLI@2
-            name: 'PublishDEV'
-            displayName: 'Publish DEV'
-            condition: and(succeeded(), in(variables['EnvName'], 'DEV', 'BOTH'))
-            inputs:
-              command: 'publish'
-              publishWebProjects: false
-              projects: '$(project)'
-              arguments: '--configuration $(builtConfiguration) --output $(Build.ArtifactStagingDirectory)\DEV'
-              zipAfterPublish: false
+          # - task: DotNetCoreCLI@2
+          #   name: 'PublishDEV'
+          #   displayName: 'Publish DEV'
+          #   condition: and(succeeded(), in(variables['EnvName'], 'DEV', 'BOTH'))
+          #   inputs:
+          #     command: 'publish'
+          #     publishWebProjects: false
+          #     projects: '$(project)'
+          #     arguments: '--configuration $(builtConfiguration) --output $(Build.ArtifactStagingDirectory)\DEV'
+          #     zipAfterPublish: false
 
-          - task: DotNetCoreCLI@2
-            name: 'PublishPROD'
-            displayName: 'Publish PROD'
-            condition: and(succeeded(), in(variables['EnvName'], 'PROD', 'BOTH'))
-            inputs:
-              command: 'publish'
-              publishWebProjects: false
-              projects: '$(project)'
-              arguments: '--configuration $(builtConfiguration) --output $(Build.ArtifactStagingDirectory)\PROD'
-              zipAfterPublish: false
+          # - task: DotNetCoreCLI@2
+          #   name: 'PublishPROD'
+          #   displayName: 'Publish PROD'
+          #   condition: and(succeeded(), in(variables['EnvName'], 'PROD', 'BOTH'))
+          #   inputs:
+          #     command: 'publish'
+          #     publishWebProjects: false
+          #     projects: '$(project)'
+          #     arguments: '--configuration $(builtConfiguration) --output $(Build.ArtifactStagingDirectory)\PROD'
+          #     zipAfterPublish: false
 
           - task: PublishBuildArtifacts@1
             name: 'PublishArtifactDEV'
