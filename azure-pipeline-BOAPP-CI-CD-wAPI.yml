@@ -58,7 +58,7 @@ stages:
                     $appSettings.Environment = "DEV"
                     $appSettings | ConvertTo-Json -Depth 32 | Set-Content $appSettingsPath
                     Write-Host "DEV artifact generated and appsettings updated."
-                    dotnet publish -c Release -o "$(Build.ArtifactStagingDirectory)\DEV" --verbosity minimal
+                    dotnet publish -c Release -o "$(Build.ArtifactStagingDirectory)\DEV" 
                 }
 
                 function GeneratePRODArtifact {
@@ -70,7 +70,7 @@ stages:
                     $appSettings.Environment = "PROD"
                     $appSettings | ConvertTo-Json -Depth 32 | Set-Content $appSettingsPath
                     Write-Host "PROD artifact generated and appsettings updated."
-                    dotnet publish -c Release -o "$(Build.ArtifactStagingDirectory)\PROD" --verbosity minimal
+                    dotnet publish -c Release -o "$(Build.ArtifactStagingDirectory)\PROD" 
                 }
 
                 function UpdateVariables {
@@ -133,6 +133,16 @@ stages:
          - SetSkipVariable
          - Nugets
         steps:
+          - script: echo $(EnvName)
+            displayName: 'Check EnvName Value'
+          - script: |
+              if [ -d "$(Build.ArtifactStagingDirectory)\DEV" ]; then
+                echo "Directory exists"
+              else
+                echo "Directory does not exist"
+                exit 1
+              fi
+            displayName: 'Check if DEV Directory Exists'
           - task: PublishBuildArtifacts@1
             name: 'PublishArtifactDEV'
             displayName: 'Publish Artifact DEV'
