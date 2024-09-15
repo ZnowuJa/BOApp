@@ -40,6 +40,7 @@ stages:
               feedsToUse: 'select'
 
           - task: PowerShell@2
+            name: SetVars
             displayName: 'Set Variable to Skip Stages'
             inputs:
               targetType: 'inline'
@@ -121,7 +122,7 @@ stages:
           - task: DotNetCoreCLI@2
             name: 'PublishDEV'
             displayName: 'Publish DEV'
-            condition: in(variables['EnvName'], 'DEV', 'BOTH')
+            condition: and(succeeded(), in(variables['EnvName'], 'DEV', 'BOTH'))
             inputs:
               command: 'publish'
               publishWebProjects: false
@@ -132,7 +133,7 @@ stages:
           - task: DotNetCoreCLI@2
             name: 'PublishPROD'
             displayName: 'Publish PROD'
-            condition: in(variables['EnvName'], 'PROD', 'BOTH')
+            condition: and(succeeded(), in(variables['EnvName'], 'PROD', 'BOTH'))
             inputs:
               command: 'publish'
               publishWebProjects: false
@@ -143,7 +144,7 @@ stages:
           - task: PublishBuildArtifacts@1
             name: 'PublishArtifactDEV'
             displayName: 'Publish Artifact DEV'
-            condition: in(variables['EnvName'], 'DEV', 'BOTH')
+            condition: and(succeeded(), in(variables['EnvName'], 'DEV', 'BOTH'))
             inputs:
               PathtoPublish: '$(Build.ArtifactStagingDirectory)\DEV'
               ArtifactName: 'BoAppProjectDEV'
@@ -152,7 +153,7 @@ stages:
           - task: PublishBuildArtifacts@1
             name: 'PublishArtifactPROD'
             displayName: 'Publish Artifact PROD'
-            condition: in(variables['EnvName'], 'PROD', 'BOTH')
+            condition: and(succeeded(), in(variables['EnvName'], 'PROD', 'BOTH'))
             inputs:
               PathtoPublish: '$(Build.ArtifactStagingDirectory)\PROD'
               ArtifactName: 'BoAppProjectPROD'
