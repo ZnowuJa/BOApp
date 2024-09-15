@@ -1,12 +1,12 @@
 name: BOAppCICD
 
-# trigger:
-#   none
-
 trigger:
-  branches:
-    include:
-      - master
+  none
+
+# trigger:
+#   branches:
+#     include:
+#       - master
 
 pool:
   vmImage: 'windows-2022'
@@ -21,96 +21,16 @@ resources:
       project: 'BackOfficeApp'
       source: 'BOApp_BuildPipeline'
       branch: 'master'
-
+      
 stages:
   - stage: Build
     jobs:
       - job: SetSkipVariable
         steps:
-          # - task: PowerShell@2
-          #   displayName: 'Clean Build Directories'
-          #   inputs:
-          #     targetType: 'inline'
-          #     script: |
-          #       function Unlock-File {
-          #         param (
-          #           [string]$path
-          #         )
-          #         $file = Get-Item -Path $path
-          #         $file.Attributes = 'Normal'
-          #       }
-
-          #       Unlock-File -path "$(Build.ArtifactStagingDirectory)"
-          #       Unlock-File -path "$(Pipeline.Workspace)"
-          #       Unlock-File -path "$(Build.SourcesDirectory)"
-                
-          #       Remove-Item -Recurse -Force "$(Build.ArtifactStagingDirectory)\*"
-          #       Remove-Item -Recurse -Force "$(Pipeline.Workspace)\*"
-          #       Remove-Item -Recurse -Force "$(Build.SourcesDirectory)\*"
-          - task: PowerShell@2
-            displayName: 'Set Variable to Skip Stages'
-            inputs:
-              targetType: 'inline'
-              script: |
-
-                $variableName = "EnvName"
-                $newValue = "testit"
-                $commitId = git rev-parse --short HEAD
-                $appSettingsPath = "$(Build.SourcesDirectory)\BOAppFluentUI\appsettings.json"
-                if (Test-Path $appSettingsPath) {
-                    $appSettings = Get-Content $appSettingsPath -Raw | ConvertFrom-Json
-                    $appSettings.AppVersion = git rev-parse --short HEAD
-                    $environment = $appSettings.Environment
-                    Write-Host "Environment variable: $environment"
-                    if ($environment -eq "DEV") {
-                        $appSettings.ConnectionStrings.AppDbContextConnection = "Data Source=plwawq04n;Initial Catalog=BackOfficeAppDev;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
-                        $appSettings.ConnectionStrings.AsDbContextConnection = "Data Source=plwawq01n;Initial Catalog=PIADMS;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
-                        $appSettings.BaseUrl = "https://plwaws86dev"
-                        $newValue = "DEV"
-                        Write-Host "Settings for DEV"
-                    } elseif ($environment -eq "PROD") {
-                        $appSettings.ConnectionStrings.AppDbContextConnection = "Data Source=plwawq04n;Initial Catalog=BackOfficeAppProd;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
-                        $appSettings.ConnectionStrings.AsDbContextConnection = "Data Source=plwawq01n;Initial Catalog=PIADMS;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
-                        $appSettings.BaseUrl = "https://plwaws86"
-                        $newValue = "PROD"
-                        Write-Host "Settings for PROD"
-                    }
-                    $appSettings | ConvertTo-Json -Depth 32 | Set-Content $appSettingsPath
-                    Write-Host "AppVersion and ConnectionStrings updated successfully. $newValue"
-                } else {
-                    Write-Error "appsettings.json file not found at path: $appSettingsPath"
-                }
-
-                try{
-                  $base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(":$(pat)"))
-                  Write-Host "Base64 for pat: $base64AuthInfo"
-                } catch {
-                  Write-Host "Base63 for pat: to nie dziala"
-                }
-
-                $uri = "https://dev.azure.com/piapl-azb/BackOfficeApp/_apis/distributedtask/variablegroups/3?version=6.0-preview.2"
-                try {
-                  $response = Invoke-RestMethod -Uri $uri -Method Get -Headers @{Authorization=("Basic {0}" -f $base64AuthInfo)}
-                } catch {
-                  Write-Host "Error getting variable group: $_"
-                  throw
-                }
-                $response.variables.$variableName.value = $newValue
-                # Update the variable group
-                $body = $response | ConvertTo-Json -Depth 10
-                try {
-                  Invoke-RestMethod -Uri $uri -Method Put -Headers @{
-                    Authorization=("Basic {0}" -f $base64AuthInfo)
-                    "Content-Type"="application/json"
-                    "Accept"="application/json; api-version=$(apiVersion)"
-                  } -Body $body
-                } catch {
-                  Write-Host "Error updating variable group: $_"
-                  throw
-                }
           - task: NuGetToolInstaller@1
             name: 'NugetToolInstaller'
             displayName: 'Nuget Tool Installer'
+
           - task: NuGetCommand@2
             name: 'NugetRestore'
             displayName: 'Nuget Restore'
@@ -118,27 +38,130 @@ stages:
               command: 'restore'
               restoreSolution: '$(solution)'
               feedsToUse: 'select'
+
+          - task: PowerShell@2
+            displayName: 'Set Variable to Skip Stages'
+            inputs:
+              targetType: 'inline'
+              script: |
+                function GenerateDEVArtifact {
+                    $appSettings = Get-Content $appSettingsPath -Raw | ConvertFrom-Json
+                    $appSettings.ConnectionStrings.AppDbContextConnection = "Data Source=plwawq04n;Initial Catalog=BackOfficeAppDev;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
+                    $appSettings.ConnectionStrings.AsDbContextConnection = "Data Source=plwawq01n;Initial Catalog=PIADMS;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
+                    $appSettings.BaseUrl = "https://plwaws86dev"
+                    $appSettings | ConvertTo-Json -Depth 32 | Set-Content $appSettingsPath
+                    Write-Host "DEV artifact generated and appsettings updated."
+                    dotnet publish -c Release -o "$(Build.ArtifactStagingDirectory)\DEV"
+                }
+
+                function GeneratePRODArtifact {
+                    $appSettings = Get-Content $appSettingsPath -Raw | ConvertFrom-Json
+                    $appSettings.ConnectionStrings.AppDbContextConnection = "Data Source=plwawq04n;Initial Catalog=BackOfficeAppProd;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
+                    $appSettings.ConnectionStrings.AsDbContextConnection = "Data Source=plwawq01n;Initial Catalog=PIADMS;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
+                    $appSettings.BaseUrl = "https://plwaws86"
+                    $appSettings | ConvertTo-Json -Depth 32 | Set-Content $appSettingsPath
+                    Write-Host "PROD artifact generated and appsettings updated."
+                    dotnet publish -c Release -o "$(Build.ArtifactStagingDirectory)\PROD"
+                }
+
+                function UpdateVariables {
+                    try {
+                        $base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(":$pat"))
+                        Write-Host "Base64 for pat: $base64AuthInfo"
+                    } catch {
+                        Write-Host "Base64 for pat: to nie dziala"
+                    }
+
+                    $uri = "https://dev.azure.com/piapl-azb/BackOfficeApp/_apis/distributedtask/variablegroups/3?version=6.0-preview.2"
+                    try {
+                        $response = Invoke-RestMethod -Uri $uri -Method Get -Headers @{Authorization=("Basic {0}" -f $base64AuthInfo)}
+                    } catch {
+                        Write-Host "Error getting variable group: $_"
+                        throw
+                    }
+                    $response.variables.$variableName.value = $newValue
+                    $body = $response | ConvertTo-Json -Depth 10
+                    try {
+                        Invoke-RestMethod -Uri $uri -Method Put -Headers @{
+                            Authorization=("Basic {0}" -f $base64AuthInfo)
+                            "Content-Type"="application/json"
+                            "Accept"="application/json; api-version=$(apiVersion)"
+                        } -Body $body
+                    } catch {
+                        Write-Host "Error updating variable group: $_"
+                        throw
+                    }
+                }
+
+                $variableName = "EnvName"
+                $newValue = "testit"
+                $commitId = git rev-parse --short HEAD
+                $appSettingsPath = "$(Build.SourcesDirectory)\BOAppFluentUI\appsettings.json"
+                if (Test-Path $appSettingsPath) {
+                    $appSettings = Get-Content $appSettingsPath -Raw | ConvertFrom-Json
+                    $environment = $appSettings.Environment
+                    Write-Host "Environment variable: $environment"
+                    if ($environment -eq "DEV") {
+                        GenerateDEVArtifact -appSettingsPath $appSettingsPath
+                        $newValue = "DEV"
+                    } elseif ($environment -eq "PROD") {
+                        GeneratePRODArtifact -appSettingsPath $appSettingsPath
+                        $newValue = "PROD"
+                    } elseif ($environment -eq "BOTH") {
+                        GenerateDEVArtifact -appSettingsPath $appSettingsPath
+                        GeneratePRODArtifact -appSettingsPath $appSettingsPath
+                        $newValue = "BOTH"
+                    }
+                    UpdateVariables -variableName $variableName -newValue $newValue -pat $(pat)
+                    Write-Host "AppVersion and ConnectionStrings updated successfully. $newValue"
+                } else {
+                    Write-Error "appsettings.json file not found at path: $appSettingsPath"
+                }
+
           - task: DotNetCoreCLI@2
-            name: 'Publish'
-            displayName: 'Publish'
+            name: 'PublishDEV'
+            displayName: 'Publish DEV'
+            condition: in(variables['EnvName'], 'DEV', 'BOTH')
             inputs:
               command: 'publish'
               publishWebProjects: false
               projects: '$(project)'
-              arguments: '--configuration $(builtConfiguration) --output $(Build.ArtifactStagingDirectory)'
+              arguments: '--configuration $(builtConfiguration) --output $(Build.ArtifactStagingDirectory)\DEV'
               zipAfterPublish: false
-          - task: PublishBuildArtifacts@1
-            name: 'PublishArtifact'
-            displayName: 'Publish Artifact'
+
+          - task: DotNetCoreCLI@2
+            name: 'PublishPROD'
+            displayName: 'Publish PROD'
+            condition: in(variables['EnvName'], 'PROD', 'BOTH')
             inputs:
-              PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-              ArtifactName: 'BoAppProject'
+              command: 'publish'
+              publishWebProjects: false
+              projects: '$(project)'
+              arguments: '--configuration $(builtConfiguration) --output $(Build.ArtifactStagingDirectory)\PROD'
+              zipAfterPublish: false
+
+          - task: PublishBuildArtifacts@1
+            name: 'PublishArtifactDEV'
+            displayName: 'Publish Artifact DEV'
+            condition: in(variables['EnvName'], 'DEV', 'BOTH')
+            inputs:
+              PathtoPublish: '$(Build.ArtifactStagingDirectory)\DEV'
+              ArtifactName: 'BoAppProjectDEV'
+              publishLocation: 'Container'
+
+          - task: PublishBuildArtifacts@1
+            name: 'PublishArtifactPROD'
+            displayName: 'Publish Artifact PROD'
+            condition: in(variables['EnvName'], 'PROD', 'BOTH')
+            inputs:
+              PathtoPublish: '$(Build.ArtifactStagingDirectory)\PROD'
+              ArtifactName: 'BoAppProjectPROD'
               publishLocation: 'Container'
 
   - stage: Deploy2DEV
     displayName: 'Deploy to DEV'
     dependsOn: Build
-    condition: eq(variables['EnvName'], 'DEV')
+    condition: in(variables['EnvName'], 'DEV', 'BOTH')
     jobs:
       - deployment: DeployWebApp2DEV
         displayName: 'DeployWebApp2DEV'
@@ -147,24 +170,12 @@ stages:
           runOnce:
             deploy:
               steps:
-                # - task: PowerShell@2
-                #   displayName: 'Clean Specific Directories on Agent'
-                #   inputs:
-                #     targetType: 'inline'
-                #     script: |
-                #       # Clean only specific directories that won't interfere with artifact download
-                #       Remove-Item -Recurse -Force "$(Pipeline.Workspace)\buildPipeline\*"
-                #       Remove-Item -Recurse -Force "$(Build.ArtifactStagingDirectory)\*"
                 - checkout: none
-                # - download: 'buildPipeline'
-                #   name: 'DownloadArtifacts'
-                #   displayName: 'Download Artifacts'
-                #   artifact: 'BoAppProject' 
                 - task: DownloadPipelineArtifact@2
                   name: 'DownloadArtifacts'
                   displayName: 'Download Artifacts'
                   inputs:
-                    ArtifactName: 'BoAppProject'
+                    ArtifactName: 'BoAppProjectDEV'
                     targetPath: '$(Pipeline.Workspace)/buildPipeline'              
                 - task: IISWebAppManagementOnMachineGroup@0
                   name: 'StopIIS'
@@ -187,11 +198,10 @@ stages:
                     IISDeploymentType: 'IISWebsite'
                     ActionIISWebsite: 'StartWebsite'
                     StartStopWebsiteName: '$(IISWebsiteName)'
-
   - stage: Deploy2PROD
     displayName: 'Deploy to PROD'
     dependsOn: Build
-    condition: eq(variables['EnvName'], 'PROD')
+    condition: in(variables['EnvName'], 'PROD', 'BOTH')
     jobs:
       - deployment: DeployWebApp2PROD
         displayName: 'DeployWebApp2PROD'
@@ -201,15 +211,11 @@ stages:
             deploy:
               steps:
                 - checkout: none
-                # - download: 'buildPipeline'
-                #   name: 'DownloadArtifacts'
-                #   displayName: 'Download Artifacts'
-                #   artifact: 'BoAppProject' 
                 - task: DownloadPipelineArtifact@2
                   name: 'DownloadArtifacts'
                   displayName: 'Download Artifacts'
                   inputs:
-                    ArtifactName: 'BoAppProject'
+                    ArtifactName: 'BoAppProjectPROD'
                     targetPath: '$(Pipeline.Workspace)/buildPipeline'
                 - task: IISWebAppManagementOnMachineGroup@0
                   name: 'StopIIS'
