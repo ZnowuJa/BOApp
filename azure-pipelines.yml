@@ -22,9 +22,6 @@ stages:
     jobs:
       - job: SetSkipVariable
         steps:
-          - script: |
-                  echo "Listing contents of downloaded artifacts..."
-                  ls $(Pipeline.Workspace)/buildPipeline/BoAppProject
           - task: PowerShell@2
             displayName: 'Set Variable to Skip Stages'
             inputs:
