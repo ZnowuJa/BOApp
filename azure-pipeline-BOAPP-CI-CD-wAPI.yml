@@ -56,7 +56,7 @@ stages:
                     $appSettings.Environment = "DEV"
                     $appSettings | ConvertTo-Json -Depth 32 | Set-Content $appSettingsPath
                     Write-Host "DEV artifact generated and appsettings updated."
-                    dotnet publish -c Release -o "$(Build.ArtifactStagingDirectory)\DEV"
+                    dotnet publish -c Release -o "$(Build.ArtifactStagingDirectory)\DEV" --verbosity minimal
                 }
 
                 function GeneratePRODArtifact {
@@ -68,7 +68,7 @@ stages:
                     $appSettings.Environment = "PROD"
                     $appSettings | ConvertTo-Json -Depth 32 | Set-Content $appSettingsPath
                     Write-Host "PROD artifact generated and appsettings updated."
-                    dotnet publish -c Release -o "$(Build.ArtifactStagingDirectory)\PROD"
+                    dotnet publish -c Release -o "$(Build.ArtifactStagingDirectory)\PROD" --verbosity minimal
                 }
 
                 function UpdateVariables {
