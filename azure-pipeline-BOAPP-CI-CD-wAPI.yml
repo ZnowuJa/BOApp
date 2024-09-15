@@ -192,7 +192,7 @@ stages:
                   displayName: 'Download Artifacts'
                   inputs:
                     ArtifactName: 'BoAppProjectDEV'
-                    targetPath: '$(Pipeline.Workspace)'              
+                    targetPath: '$(Pipeline.Workspace)/DEV'              
                 - task: IISWebAppManagementOnMachineGroup@0
                   name: 'StopIIS'
                   displayName: 'Stop IIS'
@@ -205,7 +205,7 @@ stages:
                   displayName: 'Deploy App'
                   inputs:
                     WebSiteName: '$(IISWebsiteName)'
-                    Package: '$(Pipeline.Workspace)/BOAppFluentUI'
+                    Package: '$(Pipeline.Workspace)/DEV'
                     TakeAppOfflineFlag: true
                 - task: IISWebAppManagementOnMachineGroup@0
                   name: 'StartApp'
@@ -232,7 +232,7 @@ stages:
                   displayName: 'Download Artifacts'
                   inputs:
                     ArtifactName: 'BoAppProjectPROD'
-                    targetPath: '$(Pipeline.Workspace)'
+                    targetPath: '$(Pipeline.Workspace)/PROD'
                 - task: IISWebAppManagementOnMachineGroup@0
                   name: 'StopIIS'
                   displayName: 'Stop IIS'
@@ -245,7 +245,7 @@ stages:
                   displayName: 'Deploy App'
                   inputs:
                     WebSiteName: '$(IISWebsiteName)'
-                    Package: '$(Pipeline.Workspace)/BOAppFluentUI'
+                    Package: '$(Pipeline.Workspace)/PROD'
                     TakeAppOfflineFlag: true
                 - task: IISWebAppManagementOnMachineGroup@0
                   name: 'StartApp'
