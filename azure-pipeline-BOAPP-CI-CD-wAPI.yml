@@ -18,7 +18,7 @@ variables:
 stages:
   - stage: Build
     jobs:
-      - job: SetSkipVariable
+      - job: Nugets
         steps:
           - task: NuGetToolInstaller@1
             name: 'NugetToolInstaller'
@@ -31,7 +31,9 @@ stages:
               command: 'restore'
               restoreSolution: '$(solution)'
               feedsToUse: 'select'
-          
+
+      - job: SetSkipVariable
+        steps:
           - task: PowerShell@2
             name: 'GetCommitId'
             displayName: 'Get Latest Commit ID'
@@ -126,28 +128,11 @@ stages:
                     Write-Error "appsettings.json file not found at path: $appSettingsPath"
                 }
 
-          # - task: DotNetCoreCLI@2
-          #   name: 'PublishDEV'
-          #   displayName: 'Publish DEV'
-          #   condition: and(succeeded(), in(variables['EnvName'], 'DEV', 'BOTH'))
-          #   inputs:
-          #     command: 'publish'
-          #     publishWebProjects: false
-          #     projects: '$(project)'
-          #     arguments: '--configuration $(builtConfiguration) --output $(Build.ArtifactStagingDirectory)\DEV'
-          #     zipAfterPublish: false
-
-          # - task: DotNetCoreCLI@2
-          #   name: 'PublishPROD'
-          #   displayName: 'Publish PROD'
-          #   condition: and(succeeded(), in(variables['EnvName'], 'PROD', 'BOTH'))
-          #   inputs:
-          #     command: 'publish'
-          #     publishWebProjects: false
-          #     projects: '$(project)'
-          #     arguments: '--configuration $(builtConfiguration) --output $(Build.ArtifactStagingDirectory)\PROD'
-          #     zipAfterPublish: false
-
+      - job: PublishArtifacts
+        dependsOn:
+         - SetSkipVariable
+         - Nugets
+        steps:
           - task: PublishBuildArtifacts@1
             name: 'PublishArtifactDEV'
             displayName: 'Publish Artifact DEV'
