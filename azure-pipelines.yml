@@ -135,6 +135,14 @@ stages:
           runOnce:
             deploy:
               steps:
+                - task: PowerShell@2
+                  displayName: 'Clean Specific Directories on Agent'
+                  inputs:
+                    targetType: 'inline'
+                    script: |
+                      # Clean only specific directories that won't interfere with artifact download
+                      Remove-Item -Recurse -Force "$(Pipeline.Workspace)\buildPipeline\*"
+                      Remove-Item -Recurse -Force "$(Build.ArtifactStagingDirectory)\*"
                 - checkout: none
                 # - download: 'buildPipeline'
                 #   name: 'DownloadArtifacts'
