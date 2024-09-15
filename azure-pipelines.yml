@@ -128,10 +128,16 @@ stages:
             deploy:
               steps:
                 - checkout: none
-                - download: 'buildPipeline'
+                # - download: 'buildPipeline'
+                #   name: 'DownloadArtifacts'
+                #   displayName: 'Download Artifacts'
+                #   artifact: 'BoAppProject' 
+                - task: DownloadPipelineArtifact@2
                   name: 'DownloadArtifacts'
                   displayName: 'Download Artifacts'
-                  artifact: 'BoAppProject'               
+                  inputs:
+                    ArtifactName: 'BoAppProject'
+                    targetPath: '$(Pipeline.Workspace)/buildPipeline'              
                 - task: IISWebAppManagementOnMachineGroup@0
                   name: 'StopIIS'
                   displayName: 'Stop IIS'
