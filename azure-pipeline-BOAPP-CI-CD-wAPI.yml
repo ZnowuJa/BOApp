@@ -31,6 +31,15 @@ stages:
               command: 'restore'
               restoreSolution: '$(solution)'
               feedsToUse: 'select'
+          
+          - task: PowerShell@2
+            name: 'GetCommitId'
+            displayName: 'Get Latest Commit ID'
+            inputs:
+              targetType: 'inline'
+              script: |
+                $commitId = git rev-parse --short HEAD
+                Write-Host "##vso[task.setvariable variable=CommitId]$commitId"
 
           - task: PowerShell@2
             name: SetVars
@@ -43,7 +52,7 @@ stages:
                     $appSettings.ConnectionStrings.AppDbContextConnection = "Data Source=plwawq04n;Initial Catalog=BackOfficeAppDev;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
                     $appSettings.ConnectionStrings.AsDbContextConnection = "Data Source=plwawq01n;Initial Catalog=PIADMS;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
                     $appSettings.BaseUrl = "https://plwaws86dev"
-                    $appSettings.AppVersion = git rev-parse --short HEAD
+                    $appSettings.AppVersion = "$(CommitId)"
                     $appSettings.Environment = "DEV"
                     $appSettings | ConvertTo-Json -Depth 32 | Set-Content $appSettingsPath
                     Write-Host "DEV artifact generated and appsettings updated."
@@ -55,7 +64,7 @@ stages:
                     $appSettings.ConnectionStrings.AppDbContextConnection = "Data Source=plwawq04n;Initial Catalog=BackOfficeAppProd;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
                     $appSettings.ConnectionStrings.AsDbContextConnection = "Data Source=plwawq01n;Initial Catalog=PIADMS;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
                     $appSettings.BaseUrl = "https://plwaws86"
-                    $appSetting.AppVersion = git rev-parse --short HEAD
+                    $appSetting.AppVersion = "$(CommitId)"
                     $appSettings.Environment = "PROD"
                     $appSettings | ConvertTo-Json -Depth 32 | Set-Content $appSettingsPath
                     Write-Host "PROD artifact generated and appsettings updated."
