@@ -1,7 +1,12 @@
 name: BOAppCICD
 
+# trigger:
+#   none
+
 trigger:
-  none
+  branches:
+    include:
+      - master
 
 pool:
   vmImage: 'windows-2022'
