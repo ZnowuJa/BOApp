@@ -28,6 +28,14 @@ stages:
       - job: SetSkipVariable
         steps:
           - task: PowerShell@2
+            displayName: 'Clean Build Directories'
+            inputs:
+              targetType: 'inline'
+              script: |
+                Remove-Item -Recurse -Force "$(Build.ArtifactStagingDirectory)\*"
+                Remove-Item -Recurse -Force "$(Pipeline.Workspace)\*"
+                Remove-Item -Recurse -Force "$(Build.SourcesDirectory)\*"
+          - task: PowerShell@2
             displayName: 'Set Variable to Skip Stages'
             inputs:
               targetType: 'inline'
