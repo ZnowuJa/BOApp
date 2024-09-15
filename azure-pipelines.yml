@@ -27,26 +27,26 @@ stages:
     jobs:
       - job: SetSkipVariable
         steps:
-          - task: PowerShell@2
-            displayName: 'Clean Build Directories'
-            inputs:
-              targetType: 'inline'
-              script: |
-                function Unlock-File {
-                  param (
-                    [string]$path
-                  )
-                  $file = Get-Item -Path $path
-                  $file.Attributes = 'Normal'
-                }
+          # - task: PowerShell@2
+          #   displayName: 'Clean Build Directories'
+          #   inputs:
+          #     targetType: 'inline'
+          #     script: |
+          #       function Unlock-File {
+          #         param (
+          #           [string]$path
+          #         )
+          #         $file = Get-Item -Path $path
+          #         $file.Attributes = 'Normal'
+          #       }
 
-                Unlock-File -path "$(Build.ArtifactStagingDirectory)"
-                Unlock-File -path "$(Pipeline.Workspace)"
-                Unlock-File -path "$(Build.SourcesDirectory)"
+          #       Unlock-File -path "$(Build.ArtifactStagingDirectory)"
+          #       Unlock-File -path "$(Pipeline.Workspace)"
+          #       Unlock-File -path "$(Build.SourcesDirectory)"
                 
-                Remove-Item -Recurse -Force "$(Build.ArtifactStagingDirectory)\*"
-                Remove-Item -Recurse -Force "$(Pipeline.Workspace)\*"
-                Remove-Item -Recurse -Force "$(Build.SourcesDirectory)\*"
+          #       Remove-Item -Recurse -Force "$(Build.ArtifactStagingDirectory)\*"
+          #       Remove-Item -Recurse -Force "$(Pipeline.Workspace)\*"
+          #       Remove-Item -Recurse -Force "$(Build.SourcesDirectory)\*"
           - task: PowerShell@2
             displayName: 'Set Variable to Skip Stages'
             inputs:
@@ -147,14 +147,14 @@ stages:
           runOnce:
             deploy:
               steps:
-                - task: PowerShell@2
-                  displayName: 'Clean Specific Directories on Agent'
-                  inputs:
-                    targetType: 'inline'
-                    script: |
-                      # Clean only specific directories that won't interfere with artifact download
-                      Remove-Item -Recurse -Force "$(Pipeline.Workspace)\buildPipeline\*"
-                      Remove-Item -Recurse -Force "$(Build.ArtifactStagingDirectory)\*"
+                # - task: PowerShell@2
+                #   displayName: 'Clean Specific Directories on Agent'
+                #   inputs:
+                #     targetType: 'inline'
+                #     script: |
+                #       # Clean only specific directories that won't interfere with artifact download
+                #       Remove-Item -Recurse -Force "$(Pipeline.Workspace)\buildPipeline\*"
+                #       Remove-Item -Recurse -Force "$(Build.ArtifactStagingDirectory)\*"
                 - checkout: none
                 # - download: 'buildPipeline'
                 #   name: 'DownloadArtifacts'
