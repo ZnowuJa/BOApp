@@ -14,13 +14,6 @@ pool:
 
 variables:
   - group: DeployBOApp
-
-resources:
-  pipelines:
-    - pipeline: 'buildPipeline'
-      project: 'BackOfficeApp'
-      source: 'BOApp_BuildPipeline'
-      branch: 'master'
       
 stages:
   - stage: Build
@@ -178,14 +171,14 @@ stages:
                     targetType: 'inline'
                     script: |
                       Write-Host "Listing artifacts in the pipeline workspace:"
-                      Get-ChildItem -Path "$(Pipeline.Workspace)/buildPipeline" -Recurse
+                      Get-ChildItem -Path "$(Pipeline.Workspace)" -Recurse
 
                 - task: DownloadPipelineArtifact@2
                   name: 'DownloadArtifacts'
                   displayName: 'Download Artifacts'
                   inputs:
                     ArtifactName: 'BoAppProjectDEV'
-                    targetPath: '$(Pipeline.Workspace)/buildPipeline'              
+                    targetPath: '$(Pipeline.Workspace)'              
                 - task: IISWebAppManagementOnMachineGroup@0
                   name: 'StopIIS'
                   displayName: 'Stop IIS'
@@ -198,7 +191,7 @@ stages:
                   displayName: 'Deploy App'
                   inputs:
                     WebSiteName: '$(IISWebsiteName)'
-                    Package: '$(Pipeline.Workspace)/buildPipeline/BOAppFluentUI'
+                    Package: '$(Pipeline.Workspace)/BOAppFluentUI'
                     TakeAppOfflineFlag: true
                 - task: IISWebAppManagementOnMachineGroup@0
                   name: 'StartApp'
@@ -225,7 +218,7 @@ stages:
                   displayName: 'Download Artifacts'
                   inputs:
                     ArtifactName: 'BoAppProjectPROD'
-                    targetPath: '$(Pipeline.Workspace)/buildPipeline'
+                    targetPath: '$(Pipeline.Workspace)'
                 - task: IISWebAppManagementOnMachineGroup@0
                   name: 'StopIIS'
                   displayName: 'Stop IIS'
@@ -238,7 +231,7 @@ stages:
                   displayName: 'Deploy App'
                   inputs:
                     WebSiteName: '$(IISWebsiteName)'
-                    Package: '$(Pipeline.Workspace)/buildPipeline/BOAppFluentUI'
+                    Package: '$(Pipeline.Workspace)/BOAppFluentUI'
                     TakeAppOfflineFlag: true
                 - task: IISWebAppManagementOnMachineGroup@0
                   name: 'StartApp'
