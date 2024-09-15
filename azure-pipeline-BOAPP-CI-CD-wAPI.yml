@@ -185,6 +185,7 @@ stages:
                     targetType: 'inline'
                     script: |
                       Write-Host "Listing artifacts in the pipeline workspace:"
+                      Write-Host "Pipeline.Workspace: $(Pipeline.Workspace)"
                       Get-ChildItem -Path "$(Pipeline.Workspace)" -Recurse
 
                 - task: DownloadPipelineArtifact@2
@@ -227,6 +228,14 @@ stages:
             deploy:
               steps:
                 - checkout: none
+                - task: PowerShell@2
+                  displayName: 'List Artifacts'
+                  inputs:
+                    targetType: 'inline'
+                    script: |
+                      Write-Host "Listing artifacts in the pipeline workspace:"
+                      Write-Host "Pipeline.Workspace: $(Pipeline.Workspace)"
+                      Get-ChildItem -Path "$(Pipeline.Workspace)" -Recurse
                 - task: DownloadPipelineArtifact@2
                   name: 'DownloadArtifacts'
                   displayName: 'Download Artifacts'
