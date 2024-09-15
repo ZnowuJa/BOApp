@@ -136,12 +136,12 @@ stages:
           - script: echo $(EnvName)
             displayName: 'Check EnvName Value'
           - script: |
-              if [ -d "$(Build.ArtifactStagingDirectory)\DEV" ]; then
-                echo "Directory exists"
-              else
-                echo "Directory does not exist"
-                exit 1
-              fi
+              if exist "$(Build.ArtifactStagingDirectory)\DEV" (
+                echo Directory exists
+              ) else (
+                echo Directory does not exist
+                exit /b 1
+              )
             displayName: 'Check if DEV Directory Exists'
           - task: PublishBuildArtifacts@1
             name: 'PublishArtifactDEV'
