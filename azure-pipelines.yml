@@ -32,6 +32,18 @@ stages:
             inputs:
               targetType: 'inline'
               script: |
+                function Unlock-File {
+                  param (
+                    [string]$path
+                  )
+                  $file = Get-Item -Path $path
+                  $file.Attributes = 'Normal'
+                }
+
+                Unlock-File -path "$(Build.ArtifactStagingDirectory)"
+                Unlock-File -path "$(Pipeline.Workspace)"
+                Unlock-File -path "$(Build.SourcesDirectory)"
+                
                 Remove-Item -Recurse -Force "$(Build.ArtifactStagingDirectory)\*"
                 Remove-Item -Recurse -Force "$(Pipeline.Workspace)\*"
                 Remove-Item -Recurse -Force "$(Build.SourcesDirectory)\*"
