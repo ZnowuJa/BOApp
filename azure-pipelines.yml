@@ -10,6 +10,13 @@ pool:
 variables:
   - group: DeployBOApp
 
+resources:
+  pipelines:
+    - pipeline: 'buildPipeline'
+      project: 'BackOfficeApp'
+      source: 'BOApp_BuildPipeline'
+      branch: 'master'
+
 stages:
   - stage: Build
     jobs:
