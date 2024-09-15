@@ -172,6 +172,14 @@ stages:
             deploy:
               steps:
                 - checkout: none
+                - task: PowerShell@2
+                  displayName: 'List Artifacts'
+                  inputs:
+                    targetType: 'inline'
+                    script: |
+                      Write-Host "Listing artifacts in the pipeline workspace:"
+                      Get-ChildItem -Path "$(Pipeline.Workspace)/buildPipeline" -Recurse
+
                 - task: DownloadPipelineArtifact@2
                   name: 'DownloadArtifacts'
                   displayName: 'Download Artifacts'
