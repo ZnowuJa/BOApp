@@ -43,6 +43,8 @@ stages:
                     $appSettings.ConnectionStrings.AppDbContextConnection = "Data Source=plwawq04n;Initial Catalog=BackOfficeAppDev;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
                     $appSettings.ConnectionStrings.AsDbContextConnection = "Data Source=plwawq01n;Initial Catalog=PIADMS;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
                     $appSettings.BaseUrl = "https://plwaws86dev"
+                    $appSettings.AppVersion = $commitId
+                    $appSettings.Environment = "DEV"
                     $appSettings | ConvertTo-Json -Depth 32 | Set-Content $appSettingsPath
                     Write-Host "DEV artifact generated and appsettings updated."
                     dotnet publish -c Release -o "$(Build.ArtifactStagingDirectory)\DEV"
@@ -53,6 +55,8 @@ stages:
                     $appSettings.ConnectionStrings.AppDbContextConnection = "Data Source=plwawq04n;Initial Catalog=BackOfficeAppProd;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
                     $appSettings.ConnectionStrings.AsDbContextConnection = "Data Source=plwawq01n;Initial Catalog=PIADMS;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
                     $appSettings.BaseUrl = "https://plwaws86"
+                    $appSetting.AppVersion = $commitId
+                    $appSettings.Environment = "PROD"
                     $appSettings | ConvertTo-Json -Depth 32 | Set-Content $appSettingsPath
                     Write-Host "PROD artifact generated and appsettings updated."
                     dotnet publish -c Release -o "$(Build.ArtifactStagingDirectory)\PROD"
@@ -90,20 +94,21 @@ stages:
                 $variableName = "EnvName"
                 $newValue = "testit"
                 $commitId = git rev-parse --short HEAD
+                Write-Host 'CommitId: $commitId'
                 $appSettingsPath = "$(Build.SourcesDirectory)\BOAppFluentUI\appsettings.json"
                 if (Test-Path $appSettingsPath) {
                     $appSettings = Get-Content $appSettingsPath -Raw | ConvertFrom-Json
                     $environment = $appSettings.Environment
                     Write-Host "Environment variable: $environment"
                     if ($environment -eq "DEV") {
-                        GenerateDEVArtifact -appSettingsPath $appSettingsPath
+                        GenerateDEVArtifact 
                         $newValue = "DEV"
                     } elseif ($environment -eq "PROD") {
-                        GeneratePRODArtifact -appSettingsPath $appSettingsPath
+                        GeneratePRODArtifact 
                         $newValue = "PROD"
                     } elseif ($environment -eq "BOTH") {
-                        GenerateDEVArtifact -appSettingsPath $appSettingsPath
-                        GeneratePRODArtifact -appSettingsPath $appSettingsPath
+                        GenerateDEVArtifact 
+                        GeneratePRODArtifact 
                         $newValue = "BOTH"
                     }
                     UpdateVariables -variableName $variableName -newValue $newValue -pat $(pat)
