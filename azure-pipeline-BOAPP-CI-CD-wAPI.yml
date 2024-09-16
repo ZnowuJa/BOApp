@@ -47,7 +47,7 @@ stages:
                   $commitId = git rev-parse --short $(Build.SourceVersion)
 
                   # Output the commit ID as a pipeline variable
-                  Write-Host "##vso[task.setvariable variable=CommitId;isOutput=true]$commitId"
+                  Write-Host "##vso[task.setvariable variable=CommitNumber;isOutput=true]$commitId"
                   Write-Host "Fetched CommitId: $commitId"
                   Write-Host "CommitId stored as variable for future tasks."
           - task: PowerShell@2
@@ -72,7 +72,7 @@ stages:
                           throw
                       }
                       $response.variables.EnvName.value = $environment
-                      $response.variables.commitId.value = "$(CommitId)"
+                      $response.variables.commitId.value = "$(CommitNumber)"
 
                       $body = $response | ConvertTo-Json -Depth 10
                       try {
@@ -103,6 +103,8 @@ stages:
                   Write-Host "Variables updated successfully."
                   Write-Host "commitId $(commitId) | CommitId $(CommitId)"
                   Write-Host "EnvName $(EnvName)"
+                  Write-Host "CommitNumber $(CommitNumber)"
+                  
           
   - stage: BuildDEV
     dependsOn: GeneralSetup
