@@ -205,6 +205,15 @@ stages:
     jobs:
       - job: SetAppSettingsForPROD
         steps:
+          - task: DotNetCoreCLI@2
+            name: 'Publish'
+            displayName: 'Publish'
+            inputs:
+              command: 'publish'
+              publishWebProjects: false
+              projects: '$(project)'
+              arguments: '--configuration $(builtConfiguration) --output $(Build.ArtifactStagingDirectory)'
+              zipAfterPublish: false
           - task: PowerShell@2
             name: SetAppSettinsPROD
             displayName: 'Set appsettings.json for PROD'
@@ -245,6 +254,9 @@ stages:
               script: |
                 $appSettingsSource = "$(Build.SourcesDirectory)/BOAppFluentUI/appsettings.json"
                 $appSettingsDestination = "$(Build.ArtifactStagingDirectory)/BOAppFluentUI/appsettings.json"
+                if (Test-Path $appSettingsDestination) {
+                  Write-Host " FOLDER EXISTS "
+                }
                 Copy-Item $appSettingsSource -Destination $appSettingsDestination -Force
                 $copiedAppSettings = Get-Content $appSettingsDestination -Raw
                 Write-Host "Copied appsettings.json content: $copiedAppSettings"
@@ -254,15 +266,7 @@ stages:
          - SetAppSettingsForPROD
         condition: succeeded()
         steps:
-          - task: DotNetCoreCLI@2
-            name: 'Publish'
-            displayName: 'Publish'
-            inputs:
-              command: 'publish'
-              publishWebProjects: false
-              projects: '$(project)'
-              arguments: '--configuration $(builtConfiguration) --output $(Build.ArtifactStagingDirectory)'
-              zipAfterPublish: false
+
           - task: PowerShell@2
             displayName: "list Build.ArtifactStagingDirectory"
             inputs:
