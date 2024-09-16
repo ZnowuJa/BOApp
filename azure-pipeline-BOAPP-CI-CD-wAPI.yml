@@ -237,6 +237,15 @@ stages:
               script: |
                 $appSettings = Get-Content $(appSettingsPath) -Raw
                 Write-Host "AppSettings before publishing: $appSettings"
+          - task: PowerShell@2
+            name: 'CopyAppSettings'
+            displayName: 'Copy updated appsettings.json to Artifact Staging Directory'
+            inputs:
+              targetType: 'inline'
+              script: |
+                $appSettingsSource = "$(Build.SourcesDirectory)/BOAppFluentUI/appsettings.json"
+                $appSettingsDestination = "$(Build.ArtifactStagingDirectory)/appsettings.json"
+                Copy-Item $appSettingsSource -Destination $appSettingsDestination -Force
 
       - job: PublishArtifactsPROD
         dependsOn:
@@ -297,7 +306,7 @@ stages:
                   displayName: 'Deploy App'
                   inputs:
                     WebSiteName: '$(IISWebsiteName)'
-                    Package: '$(Pipeline.Workspace)/BOAppFluentUI'
+                    Package: '$(Pipeline.Workspace)/BoAppProject'
                     TakeAppOfflineFlag: true
                 - task: IISWebAppManagementOnMachineGroup@0
                   name: 'StartApp'
