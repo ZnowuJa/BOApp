@@ -120,6 +120,11 @@ stages:
                     Write-Host "DEV artifact generated and appsettings updated."
                     # dotnet publish "$(Build.SourcesDirectory)\BOAppFluentUI\BOAppFluentUI.csproj" -c Release -o "$(Build.ArtifactStagingDirectory)\DEV" -nowarn:CS8618,CS8604
                     Write-Host "AppVersion and ConnectionStrings updated successfully. $(EnvName))"
+                    Write-Host "Check Appsettings vaues::"
+                    $appSettings = Get-Content $(appSettingsPath) -Raw | ConvertFrom-Json
+                    Write-Host "appSettings.BaseUrl: $appSettings.BaseUrl"
+                    Write-Host "appSettings.AppVersion : $appSettings.AppVersion"
+                    Write-Host "appSettings.Environment : $appSettings.Environment"
 
       - job: PublishArtifactsDEV
         dependsOn:
