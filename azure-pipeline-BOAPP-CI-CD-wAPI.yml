@@ -33,14 +33,14 @@ stages:
       #         feedsToUse: 'select'
       - job: SetVariables
         steps:
-          # - task: PowerShell@2
-          #   name: 'GetCommitId'
-          #   displayName: 'Get Latest Commit ID'
-          #   inputs:
-          #     targetType: 'inline'
-          #     script: |
-          #       $commitId = git rev-parse --short HEAD
-          #       Write-Host "##vso[task.setvariable variable=CommitId]$commitId"
+          - task: PowerShell@2
+            name: 'GetCommitId'
+            displayName: 'Get Latest Commit ID'
+            inputs:
+              targetType: 'inline'
+              script: |
+                $commitId = git rev-parse --short HEAD
+                Write-Host "##vso[task.setvariable variable=CommitId;isOutput=true]$commitId"
 
           - task: PowerShell@2
             name: SetVars
@@ -64,7 +64,7 @@ stages:
                           throw
                       }
                       $response.variables.EnvName.value = $environment
-                      $response.variables.commitId.value = $commitId
+                      $response.variables.commitId.value = $(CommitId)
 
                       $body = $response | ConvertTo-Json -Depth 10
                       try {
@@ -77,10 +77,10 @@ stages:
                           Write-Host "Error updating variable group: $_"
                           throw
                       }
-                      Write-Host "UpdateVariables function result: EnvName = $(EnvName), commitId = $(commitId)."
+                      Write-Host "UpdateVariables function result: EnvName = $(EnvName), commitId = $(CommitId)."
                   }
                   
-                  $commitId = git rev-parse --short HEAD
+                  # $commitId = git rev-parse --short HEAD
                   $environment = "updateit"
                   if (Test-Path $(appSettingsPath)) {
                     Write-Host "DEBUG: appsettingsPath exists: $(appSettingsPath)"
@@ -92,39 +92,9 @@ stages:
                   UpdateVariables
 
                   Write-Host "Variables updated successfully."
-                  Write-Host " "
-          - task: PowerShell@2
-            name: ListVariableGroupVars
-            displayName: 'List all variables from variable group'
-            inputs:
-              targetType: 'inline'
-              script: |
-                # Define the Variable Group ID and the PAT (Personal Access Token)
-                $variableGroupId = 3  # Change this to your variable group ID
-                # $pat = "$(pat)"  # Uses Azure Pipelines System Access Token
-                $organization = "piapl-azb"  # Replace with your organization name
-                $project = "$(project)"  # Replace with your project name
-
-                # Base64-encode the PAT for authentication
-                $base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(":$(pat)"))
-
-                # API URL to fetch variable group information
-                $uri = "https://dev.azure.com/piapl-azb/BackOfficeApp/_apis/distributedtask/variablegroups/3?version=6.0-preview.2"
-
-                # Make the API request to get the variable group
-                try {
-                  $response = Invoke-RestMethod -Uri $uri -Method Get -Headers @{
-                      Authorization=("Basic {0}" -f $base64AuthInfo)
-                  }
-                } catch {
-                  Write-Host "Error fetching variable group: $_"
-                  throw
-                }
-
-                # List all variables and their values
-                foreach ($variable in $response.variables.GetEnumerator()) {
-                  Write-Host "Variable: $($variable.Key) = $($variable.Value.value)"
-                }
+                  Write-Host "commitId $(commitId) | CommitId $(CommitId)"
+                  Write-Host "EnvName $(EnvName)"
+          
   - stage: BuildDEV
     dependsOn: GeneralSetup
     condition: and(succeeded(), in(variables['EnvName'], 'DEV', 'BOTH'))
