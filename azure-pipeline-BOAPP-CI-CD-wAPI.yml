@@ -192,7 +192,7 @@ stages:
                     $appSettings = Get-Content $(appSettingsPath) -Raw | ConvertFrom-Json
                     $appSettings.ConnectionStrings.AppDbContextConnection = "$(AppDbContextConnectionPROD)"
                     $appSettings.ConnectionStrings.AsDbContextConnection = "$(AsDbContextConnection)"
-                    $appSettings.BaseUrl = $(baseUrlPROD)
+                    $appSettings.BaseUrl = "$(baseUrlPROD)"
                     $appSettings.AppVersion = "$(commitId)"
                     $appSettings.Environment = "PROD"
                     $appSettings | ConvertTo-Json -Depth 32 | Set-Content $(appSettingsPath)
