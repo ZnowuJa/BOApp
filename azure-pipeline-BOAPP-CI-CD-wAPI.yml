@@ -72,7 +72,7 @@ stages:
                           throw
                       }
                       $response.variables.EnvName.value = $environment
-                      $response.variables.commitId.value = "$(CommitNumber)"
+                      $response.variables.commitId.value = "$(GetCommitId.CommitNumber)"
 
                       $body = $response | ConvertTo-Json -Depth 10
                       try {
@@ -95,15 +95,15 @@ stages:
                     $appSettings = Get-Content $(appSettingsPath) -Raw | ConvertFrom-Json
                     $environment = $appSettings.Environment
                     Write-Host "DEBUG: appSettings.Environment: $environment"
-                    Write-Host "DEBUG: appSettings.Environment: $(CommitId)"
+                    Write-Host "DEBUG: appSettings.Environment: $(GetCommitId.CommitNumber)"
                   }
 
                   UpdateVariables
 
                   Write-Host "Variables updated successfully."
-                  Write-Host "commitId $(commitId) | CommitId $(CommitId)"
+                  # Write-Host "commitId $(commitId) | CommitId $(CommitId)"
                   Write-Host "EnvName $(EnvName)"
-                  Write-Host "CommitNumber $(CommitNumber)"
+                  Write-Host "CommitNumber $(GetCommitId.CommitNumber)"
                   
           
   - stage: BuildDEV
