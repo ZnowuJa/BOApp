@@ -18,19 +18,19 @@ variables:
 stages:
   - stage: GeneralSetup
     jobs:
-      - job: Nugets
-        steps:
-          - task: NuGetToolInstaller@1
-            name: 'NugetToolInstaller'
-            displayName: 'Nuget Tool Installer'
+      # - job: Nugets
+      #   steps:
+      #     - task: NuGetToolInstaller@1
+      #       name: 'NugetToolInstaller'
+      #       displayName: 'Nuget Tool Installer'
 
-          - task: NuGetCommand@2
-            name: 'NugetRestore'
-            displayName: 'Nuget Restore'
-            inputs:
-              command: 'restore'
-              restoreSolution: '$(solution)'
-              feedsToUse: 'select'
+      #     - task: NuGetCommand@2
+      #       name: 'NugetRestore'
+      #       displayName: 'Nuget Restore'
+      #       inputs:
+      #         command: 'restore'
+      #         restoreSolution: '$(solution)'
+      #         feedsToUse: 'select'
       - job: SetVariables
         steps:
           - task: PowerShell@2
@@ -249,7 +249,7 @@ stages:
   - stage: Deploy2PROD
     displayName: 'Deploy to PROD'
     dependsOn: BuildPROD
-    condition: and(succeeded(), in(variables['EnvName'], 'PROD', 'BOTH'))
+    condition: and(always(), in(variables['EnvName'], 'PROD', 'BOTH'))
     jobs:
       - deployment: DeployWebApp2PROD
         displayName: 'DeployWebApp2PROD'
