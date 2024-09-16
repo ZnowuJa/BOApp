@@ -33,14 +33,14 @@ stages:
               feedsToUse: 'select'
       - job: SetVariables
         steps:
-          - task: PowerShell@2
-            name: 'GetCommitId'
-            displayName: 'Get Latest Commit ID'
-            inputs:
-              targetType: 'inline'
-              script: |
-                $commitId = git rev-parse --short HEAD
-                Write-Host "##vso[task.setvariable variable=CommitId]$commitId"
+          # - task: PowerShell@2
+          #   name: 'GetCommitId'
+          #   displayName: 'Get Latest Commit ID'
+          #   inputs:
+          #     targetType: 'inline'
+          #     script: |
+          #       $commitId = git rev-parse --short HEAD
+          #       Write-Host "##vso[task.setvariable variable=CommitId]$commitId"
 
           - task: PowerShell@2
             name: SetVars
@@ -82,7 +82,7 @@ stages:
                   
                   $commitId = git rev-parse --short HEAD
                   $environment = "updateit"
-                  if (Test-Path $appSettingsPath) {
+                  if (Test-Path $(appSettingsPath)) {
                     $appSettings = Get-Content $(appSettingsPath) -Raw | ConvertFrom-Json
                     $environment = $appSettings.Environment
                   }
@@ -103,13 +103,13 @@ stages:
             inputs:
               targetType: 'inline'
               script: |
-                    $appSettings = Get-Content $appSettingsPath -Raw | ConvertFrom-Json
+                    $appSettings = Get-Content $(appSettingsPath) -Raw | ConvertFrom-Json
                     $appSettings.ConnectionStrings.AppDbContextConnection = $(AppDbContextConnectionDEV)
                     $appSettings.ConnectionStrings.AsDbContextConnection = $(AsDbContextConnection)
                     $appSettings.BaseUrl = $(baseUrlDEV)
                     $appSettings.AppVersion = "$(commitId)"
                     $appSettings.Environment = "DEV"
-                    $appSettings | ConvertTo-Json -Depth 32 | Set-Content $appSettingsPath
+                    $appSettings | ConvertTo-Json -Depth 32 | Set-Content $(appSettingsPath)
                     Write-Host "DEV artifact generated and appsettings updated."
                     # dotnet publish "$(Build.SourcesDirectory)\BOAppFluentUI\BOAppFluentUI.csproj" -c Release -o "$(Build.ArtifactStagingDirectory)\DEV" -nowarn:CS8618,CS8604
                     Write-Host "AppVersion and ConnectionStrings updated successfully. $(EnvName))"
@@ -189,13 +189,13 @@ stages:
             inputs:
               targetType: 'inline'
               script: |
-                    $appSettings = Get-Content $appSettingsPath -Raw | ConvertFrom-Json
+                    $appSettings = Get-Content $(appSettingsPath) -Raw | ConvertFrom-Json
                     $appSettings.ConnectionStrings.AppDbContextConnection = $(AppDbContextConnectionPROD)
                     $appSettings.ConnectionStrings.AsDbContextConnection = $(AsDbContextConnection)
                     $appSettings.BaseUrl = $(baseUrlPROD)
                     $appSettings.AppVersion = "$(commitId)"
                     $appSettings.Environment = "PROD"
-                    $appSettings | ConvertTo-Json -Depth 32 | Set-Content $appSettingsPath
+                    $appSettings | ConvertTo-Json -Depth 32 | Set-Content $(appSettingsPath)
                     Write-Host "PROD artifact generated and appsettings updated."
                     # dotnet publish "$(Build.SourcesDirectory)\BOAppFluentUI\BOAppFluentUI.csproj" -c Release -o "$(Build.ArtifactStagingDirectory)\DEV" -nowarn:CS8618,CS8604
                     Write-Host "AppVersion and ConnectionStrings updated successfully. $(EnvName)"
