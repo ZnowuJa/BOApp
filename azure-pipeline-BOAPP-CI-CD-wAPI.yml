@@ -41,7 +41,7 @@ stages:
               script: |
                 $commitId = git rev-parse --short HEAD
                 Write-Host "##vso[task.setvariable variable=CommitId;isOutput=true]$commitId"
-
+                Write-Host "commitId $(commitId) | CommitId $(CommitId)"
           - task: PowerShell@2
             name: SetVars
             displayName: 'Set Variable for steering Pipeline'
