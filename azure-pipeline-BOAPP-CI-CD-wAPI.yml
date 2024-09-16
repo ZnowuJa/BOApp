@@ -23,6 +23,8 @@ stages:
           - task: NuGetToolInstaller@1
             name: 'NugetToolInstaller'
             displayName: 'Nuget Tool Installer'
+            inputs:
+              versionSpec: '>=5.8.0'
           - task: NuGetCommand@2
             name: 'NugetRestore'
             displayName: 'Nuget Restore'
