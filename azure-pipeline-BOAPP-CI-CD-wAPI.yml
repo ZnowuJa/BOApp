@@ -297,7 +297,7 @@ stages:
                   displayName: 'Deploy App'
                   inputs:
                     WebSiteName: '$(IISWebsiteName)'
-                    Package: '$(Pipeline.Workspace)'
+                    Package: '$(Pipeline.Workspace)/BOAppFluentUI'
                     TakeAppOfflineFlag: true
                 - task: IISWebAppManagementOnMachineGroup@0
                   name: 'StartApp'
