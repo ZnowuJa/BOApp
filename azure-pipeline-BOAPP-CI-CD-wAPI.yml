@@ -44,7 +44,7 @@ stages:
 
           - task: PowerShell@2
             name: SetVars
-            displayName: 'Set Variable to Skip Stages'
+            displayName: 'Set Variable for steering Pipeline'
             inputs:
               targetType: 'inline'
               script: |
@@ -64,7 +64,7 @@ stages:
                           throw
                       }
                       $response.variables.EnvName.value = $environment
-                      $response.variables.commitId.value = $(CommitId)
+                      $response.variables.commitId.value = "$(CommitId)"
 
                       $body = $response | ConvertTo-Json -Depth 10
                       try {
@@ -87,6 +87,7 @@ stages:
                     $appSettings = Get-Content $(appSettingsPath) -Raw | ConvertFrom-Json
                     $environment = $appSettings.Environment
                     Write-Host "DEBUG: appSettings.Environment: $environment"
+                    Write-Host "DEBUG: appSettings.Environment: $(CommitId)"
                   }
 
                   UpdateVariables
