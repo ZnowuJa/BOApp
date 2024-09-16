@@ -50,6 +50,7 @@ stages:
               targetType: 'inline'
               script: |
                 function GenerateDEVArtifact {
+                    New-Item -Path "$(Build.ArtifactStagingDirectory)\DEV" -ItemType Directory -Force
                     $appSettings = Get-Content $appSettingsPath -Raw | ConvertFrom-Json
                     $appSettings.ConnectionStrings.AppDbContextConnection = "Data Source=plwawq04n;Initial Catalog=BackOfficeAppDev;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
                     $appSettings.ConnectionStrings.AsDbContextConnection = "Data Source=plwawq01n;Initial Catalog=PIADMS;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
@@ -62,6 +63,7 @@ stages:
                 }
 
                 function GeneratePRODArtifact {
+                    New-Item -Path "$(Build.ArtifactStagingDirectory)\PROD" -ItemType Directory -Force
                     $appSettings = Get-Content $appSettingsPath -Raw | ConvertFrom-Json
                     $appSettings.ConnectionStrings.AppDbContextConnection = "Data Source=plwawq04n;Initial Catalog=BackOfficeAppProd;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
                     $appSettings.ConnectionStrings.AsDbContextConnection = "Data Source=plwawq01n;Initial Catalog=PIADMS;Integrated Security=True;Connect Timeout=30;Encrypt=False;Trust Server Certificate=True;Application Intent=ReadWrite;Multi Subnet Failover=False"
