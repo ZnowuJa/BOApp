@@ -228,7 +228,7 @@ stages:
                     Write-Host "appSettings.BaseUrl: $appSettings.BaseUrl"
                     Write-Host "appSettings.AppVersion : $appSettings.AppVersion"
                     Write-Host "appSettings.Environment : $appSettings.Environment"
-                    $tmp = "$(appSettingsPath)""
+                    $tmp = "$(appSettingsPath)"
                     Write-Host "appsettingspath is: $tmp"
           - task: PowerShell@2
             displayName: "Verify appsettings.json before publishing"
