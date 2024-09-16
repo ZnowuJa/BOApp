@@ -217,7 +217,7 @@ stages:
                     $appSettings.ConnectionStrings.AppDbContextConnection = "$(AppDbContextConnectionPROD)"
                     $appSettings.ConnectionStrings.AsDbContextConnection = "$(AsDbContextConnection)"
                     $appSettings.BaseUrl = "$(baseUrlPROD)"
-                    $appSettings.AppVersio-n = "$(commitId)"
+                    $appSettings.AppVersion = "$(commitId)"
                     $appSettings.Environment = "PROD"
                     $appSettings | ConvertTo-Json -Depth 32 | Set-Content $(appSettingsPath)
                     Write-Host "PROD artifact generated and appsettings updated."
