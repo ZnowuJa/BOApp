@@ -267,13 +267,13 @@ stages:
                 Copy-Item $appSettingsSource -Destination $appSettingsDestination -Force
                 $copiedAppSettings = Get-Content $appSettingsDestination -Raw
                 Write-Host "Copied appsettings.json content: $copiedAppSettings"
-
-      - job: PublishArtifactsPROD
-        dependsOn:
-         - SetAppSettingsForPROD
-        condition: succeeded()
-        steps:
-
+          - task: PowerShell@2
+            displayName: "List files before Artifact Publish"
+            inputs:
+              targetType: 'inline'
+              script: |
+                Write-Host "Checking contents of $(Build.ArtifactStagingDirectory) after DotNet Publish:"
+                ls $(Build.ArtifactStagingDirectory)
           - task: PowerShell@2
             displayName: "list Build.ArtifactStagingDirectory"
             inputs:
@@ -287,6 +287,12 @@ stages:
               PathtoPublish: '$(Build.ArtifactStagingDirectory)'
               ArtifactName: 'BoAppProject'
               publishLocation: 'Container'
+      # - job: PublishArtifactsPROD
+      #   dependsOn:
+      #    - SetAppSettingsForPROD
+      #   condition: succeeded()
+      #   steps:
+
 
   - stage: Deploy2PROD
     displayName: 'Deploy to PROD'
