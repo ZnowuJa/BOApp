@@ -107,6 +107,8 @@ stages:
             inputs:
               targetType: 'inline'
               script: |
+                    Write-Host "CommitId: $(CommitId)"
+                    Write-Host "EnvName: $(EnvName)"
                     $appSettings = Get-Content $(appSettingsPath) -Raw | ConvertFrom-Json
                     $appSettings.ConnectionStrings.AppDbContextConnection = "$(AppDbContextConnectionDEV)"
                     $appSettings.ConnectionStrings.AsDbContextConnection = "$(AsDbContextConnection)"
@@ -193,6 +195,8 @@ stages:
             inputs:
               targetType: 'inline'
               script: |
+                    Write-Host "CommitId: $(CommitId)"
+                    Write-Host "EnvName: $(EnvName)"
                     $appSettings = Get-Content $(appSettingsPath) -Raw | ConvertFrom-Json
                     $appSettings.ConnectionStrings.AppDbContextConnection = "$(AppDbContextConnectionPROD)"
                     $appSettings.ConnectionStrings.AsDbContextConnection = "$(AsDbContextConnection)"
