@@ -235,7 +235,7 @@ stages:
             inputs:
               targetType: 'inline'
               script: |
-                $appSettings = Get-Content "$(appSettingsPath)" -Raw
+                $appSettings = Get-Content $(appSettingsPath) -Raw
                 Write-Host "AppSettings before publishing: $appSettings"
 
       - job: PublishArtifactsPROD
