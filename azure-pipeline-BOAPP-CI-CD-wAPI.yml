@@ -58,7 +58,7 @@ stages:
                     $appSettings.Environment = "DEV"
                     $appSettings | ConvertTo-Json -Depth 32 | Set-Content $appSettingsPath
                     Write-Host "DEV artifact generated and appsettings updated."
-                    dotnet publish "$(Build.SourcesDirectory)\BOAppFluentUI\BOAppFluentUI.csproj" -c Release -o "$(Build.ArtifactStagingDirectory)\DEV" -nowarn 
+                    dotnet publish "$(Build.SourcesDirectory)\BOAppFluentUI\BOAppFluentUI.csproj" -c Release -o "$(Build.ArtifactStagingDirectory)\DEV" -nowarn:CS8618,CS8604
                 }
 
                 function GeneratePRODArtifact {
@@ -70,7 +70,7 @@ stages:
                     $appSettings.Environment = "PROD"
                     $appSettings | ConvertTo-Json -Depth 32 | Set-Content $appSettingsPath
                     Write-Host "PROD artifact generated and appsettings updated."
-                    dotnet publish "$(Build.SourcesDirectory)\BOAppFluentUI\BOAppFluentUI.csproj" -c Release -o "$(Build.ArtifactStagingDirectory)\PROD" -nowarn 
+                    dotnet publish "$(Build.SourcesDirectory)\BOAppFluentUI\BOAppFluentUI.csproj" -c Release -o "$(Build.ArtifactStagingDirectory)\PROD" -nowarn:CS8618,CS8604 
                 }
 
                 function UpdateVariables {
