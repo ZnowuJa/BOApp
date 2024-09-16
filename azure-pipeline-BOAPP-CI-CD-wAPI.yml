@@ -39,9 +39,17 @@ stages:
             inputs:
               targetType: 'inline'
               script: |
-                $commitId = git rev-parse --short HEAD
-                Write-Host "##vso[task.setvariable variable=CommitId;isOutput=true]$commitId"
-                Write-Host "commitId $(commitId) | CommitId $(CommitId)"
+                  # Navigate to the repo folder if necessary
+                  Write-Host "Checking current directory: $(Build.SourcesDirectory)"
+                  cd $(Build.SourcesDirectory)
+
+                  # Fetch the latest commit ID from the current branch
+                  $commitId = git rev-parse --short $(Build.SourceVersion)
+
+                  # Output the commit ID as a pipeline variable
+                  Write-Host "##vso[task.setvariable variable=CommitId;isOutput=true]$commitId"
+                  Write-Host "Fetched CommitId: $commitId"
+                  Write-Host "CommitId stored as variable for future tasks."
           - task: PowerShell@2
             name: SetVars
             displayName: 'Set Variable for steering Pipeline'
