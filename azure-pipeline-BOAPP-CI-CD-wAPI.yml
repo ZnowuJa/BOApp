@@ -215,6 +215,13 @@ stages:
               arguments: '--configuration $(builtConfiguration) --output $(Build.ArtifactStagingDirectory)'
               zipAfterPublish: false
           - task: PowerShell@2
+            displayName: "List files after DotNet Publish"
+            inputs:
+              targetType: 'inline'
+              script: |
+                Write-Host "Checking contents of $(Build.ArtifactStagingDirectory) after DotNet Publish:"
+                ls $(Build.ArtifactStagingDirectory)
+          - task: PowerShell@2
             name: SetAppSettinsPROD
             displayName: 'Set appsettings.json for PROD'
             inputs:
