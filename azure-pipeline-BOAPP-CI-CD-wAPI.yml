@@ -18,19 +18,19 @@ variables:
 stages:
   - stage: GeneralSetup
     jobs:
-      - job: Nugets
-        steps:
-          - task: NuGetToolInstaller@1
-            name: 'NugetToolInstaller'
-            displayName: 'Nuget Tool Installer'
+      # - job: Nugets
+      #   steps:
+      #     - task: NuGetToolInstaller@1
+      #       name: 'NugetToolInstaller'
+      #       displayName: 'Nuget Tool Installer'
 
-          - task: NuGetCommand@2
-            name: 'NugetRestore'
-            displayName: 'Nuget Restore'
-            inputs:
-              command: 'restore'
-              restoreSolution: '$(solution)'
-              feedsToUse: 'select'
+      #     - task: NuGetCommand@2
+      #       name: 'NugetRestore'
+      #       displayName: 'Nuget Restore'
+      #       inputs:
+      #         command: 'restore'
+      #         restoreSolution: '$(solution)'
+      #         feedsToUse: 'select'
       - job: SetVariables
         steps:
           # - task: PowerShell@2
@@ -83,14 +83,48 @@ stages:
                   $commitId = git rev-parse --short HEAD
                   $environment = "updateit"
                   if (Test-Path $(appSettingsPath)) {
+                    Write-Host "DEBUG: appsettingsPath exists: $(appSettingsPath)"
                     $appSettings = Get-Content $(appSettingsPath) -Raw | ConvertFrom-Json
                     $environment = $appSettings.Environment
+                    Write-Host "DEBUG: appSettings.Environment: $environment"
                   }
 
                   UpdateVariables
 
                   Write-Host "Variables updated successfully."
+                  Write-Host " "
+          - task: PowerShell@2
+            name: ListVariableGroupVars
+            displayName: 'List all variables from variable group'
+            inputs:
+              targetType: 'inline'
+              script: |
+                # Define the Variable Group ID and the PAT (Personal Access Token)
+                $variableGroupId = 3  # Change this to your variable group ID
+                # $pat = "$(pat)"  # Uses Azure Pipelines System Access Token
+                $organization = "piapl-azb"  # Replace with your organization name
+                $project = "$(project)"  # Replace with your project name
 
+                # Base64-encode the PAT for authentication
+                $base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(":$(pat)"))
+
+                # API URL to fetch variable group information
+                $uri = "https://dev.azure.com/$organization/$project/_apis/distributedtask/variablegroups/$variableGroupId?api-version=6.0-preview.2"
+
+                # Make the API request to get the variable group
+                try {
+                  $response = Invoke-RestMethod -Uri $uri -Method Get -Headers @{
+                      Authorization=("Basic {0}" -f $base64AuthInfo)
+                  }
+                } catch {
+                  Write-Host "Error fetching variable group: $_"
+                  throw
+                }
+
+                # List all variables and their values
+                foreach ($variable in $response.variables.GetEnumerator()) {
+                  Write-Host "Variable: $($variable.Key) = $($variable.Value.value)"
+                }
   - stage: BuildDEV
     dependsOn: GeneralSetup
     condition: and(succeeded(), in(variables['EnvName'], 'DEV', 'BOTH'))
