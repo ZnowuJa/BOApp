@@ -104,9 +104,9 @@ stages:
               targetType: 'inline'
               script: |
                     $appSettings = Get-Content $(appSettingsPath) -Raw | ConvertFrom-Json
-                    $appSettings.ConnectionStrings.AppDbContextConnection = $(AppDbContextConnectionDEV)
-                    $appSettings.ConnectionStrings.AsDbContextConnection = $(AsDbContextConnection)
-                    $appSettings.BaseUrl = $(baseUrlDEV)
+                    $appSettings.ConnectionStrings.AppDbContextConnection = "$(AppDbContextConnectionDEV)"
+                    $appSettings.ConnectionStrings.AsDbContextConnection = "$(AsDbContextConnection)"
+                    $appSettings.BaseUrl = "$(baseUrlDEV)"
                     $appSettings.AppVersion = "$(commitId)"
                     $appSettings.Environment = "DEV"
                     $appSettings | ConvertTo-Json -Depth 32 | Set-Content $(appSettingsPath)
@@ -190,8 +190,8 @@ stages:
               targetType: 'inline'
               script: |
                     $appSettings = Get-Content $(appSettingsPath) -Raw | ConvertFrom-Json
-                    $appSettings.ConnectionStrings.AppDbContextConnection = $(AppDbContextConnectionPROD)
-                    $appSettings.ConnectionStrings.AsDbContextConnection = $(AsDbContextConnection)
+                    $appSettings.ConnectionStrings.AppDbContextConnection = "$(AppDbContextConnectionPROD)"
+                    $appSettings.ConnectionStrings.AsDbContextConnection = "$(AsDbContextConnection)"
                     $appSettings.BaseUrl = $(baseUrlPROD)
                     $appSettings.AppVersion = "$(commitId)"
                     $appSettings.Environment = "PROD"
