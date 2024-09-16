@@ -244,7 +244,7 @@ stages:
               targetType: 'inline'
               script: |
                 $appSettingsSource = "$(Build.SourcesDirectory)/BOAppFluentUI/appsettings.json"
-                $appSettingsDestination = "$(Build.ArtifactStagingDirectory)/appsettings.json"
+                $appSettingsDestination = "$(Build.ArtifactStagingDirectory)/BOAppFluentUI/appsettings.json"
                 Copy-Item $appSettingsSource -Destination $appSettingsDestination -Force
                 $copiedAppSettings = Get-Content $appSettingsDestination -Raw
                 Write-Host "Copied appsettings.json content: $copiedAppSettings"
