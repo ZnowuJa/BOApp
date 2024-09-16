@@ -23,7 +23,6 @@ stages:
           - task: NuGetToolInstaller@1
             name: 'NugetToolInstaller'
             displayName: 'Nuget Tool Installer'
-
           - task: NuGetCommand@2
             name: 'NugetRestore'
             displayName: 'Nuget Restore'
@@ -105,7 +104,6 @@ stages:
                   Write-Host "EnvName $(EnvName)"
                   Write-Host "CommitNumber $(GetCommitId.CommitNumber)"
                   
-          
   - stage: BuildDEV
     dependsOn: GeneralSetup
     condition: and(succeeded(), in(variables['EnvName'], 'DEV', 'BOTH'))
@@ -130,11 +128,13 @@ stages:
                     Write-Host "DEV artifact generated and appsettings updated."
                     # dotnet publish "$(Build.SourcesDirectory)\BOAppFluentUI\BOAppFluentUI.csproj" -c Release -o "$(Build.ArtifactStagingDirectory)\DEV" -nowarn:CS8618,CS8604
                     Write-Host "AppVersion and ConnectionStrings updated successfully. $(EnvName))"
-                    Write-Host "Check Appsettings vaues::"
+                    Write-Host "Check Appsettings values::"
                     $appSettings = Get-Content $(appSettingsPath) -Raw | ConvertFrom-Json
                     Write-Host "appSettings.BaseUrl: $appSettings.BaseUrl"
                     Write-Host "appSettings.AppVersion : $appSettings.AppVersion"
                     Write-Host "appSettings.Environment : $appSettings.Environment"
+                    $tmp = $(appSettingsPath)
+                    Write-Host "appsettingspath is: $tmp"
 
       - job: PublishArtifactsDEV
         dependsOn:
@@ -217,12 +217,26 @@ stages:
                     $appSettings.ConnectionStrings.AppDbContextConnection = "$(AppDbContextConnectionPROD)"
                     $appSettings.ConnectionStrings.AsDbContextConnection = "$(AsDbContextConnection)"
                     $appSettings.BaseUrl = "$(baseUrlPROD)"
-                    $appSettings.AppVersion = "$(commitId)"
+                    $appSettings.AppVersio-n = "$(commitId)"
                     $appSettings.Environment = "PROD"
                     $appSettings | ConvertTo-Json -Depth 32 | Set-Content $(appSettingsPath)
                     Write-Host "PROD artifact generated and appsettings updated."
                     # dotnet publish "$(Build.SourcesDirectory)\BOAppFluentUI\BOAppFluentUI.csproj" -c Release -o "$(Build.ArtifactStagingDirectory)\DEV" -nowarn:CS8618,CS8604
-                    Write-Host "AppVersion and ConnectionStrings updated successfully. $(EnvName)"
+                    Write-Host "AppVersion and ConnectionStrings updated successfully. $(EnvName))"
+                    Write-Host "Check Appsettings values::"
+                    $appSettings = Get-Content $(appSettingsPath) -Raw | ConvertFrom-Json
+                    Write-Host "appSettings.BaseUrl: $appSettings.BaseUrl"
+                    Write-Host "appSettings.AppVersion : $appSettings.AppVersion"
+                    Write-Host "appSettings.Environment : $appSettings.Environment"
+                    $tmp = $(appSettingsPath)
+                    Write-Host "appsettingspath is: $tmp""
+          - task: PowerShell@2
+            displayName: "Verify appsettings.json before publishing"
+            inputs:
+              targetType: 'inline'
+              script: |
+                $appSettings = Get-Content "$(appSettingsPath)" -Raw
+                Write-Host "AppSettings before publishing: $appSettings"
 
       - job: PublishArtifactsPROD
         dependsOn:
@@ -238,6 +252,12 @@ stages:
               projects: '$(project)'
               arguments: '--configuration $(builtConfiguration) --output $(Build.ArtifactStagingDirectory)'
               zipAfterPublish: false
+          - task: PowerShell@2
+            displayName: "list Build.ArtifactStagingDirectory"
+            inputs:
+              targetType: 'inline'
+              script: |
+                ls $(Build.ArtifactStagingDirectory)
           - task: PublishBuildArtifacts@1
             name: 'PublishArtifactPROD'
             displayName: 'Publish Artifact PROD'
