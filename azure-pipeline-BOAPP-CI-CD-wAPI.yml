@@ -109,7 +109,7 @@ stages:
                 $base64AuthInfo = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes(":$(pat)"))
 
                 # API URL to fetch variable group information
-                $uri = "https://dev.azure.com/$organization/$project/_apis/distributedtask/variablegroups/$variableGroupId?api-version=6.0-preview.2"
+                $uri = "https://dev.azure.com/piapl-azb/BackOfficeApp/_apis/distributedtask/variablegroups/3?version=6.0-preview.2"
 
                 # Make the API request to get the variable group
                 try {
