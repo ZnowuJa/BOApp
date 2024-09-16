@@ -106,7 +106,7 @@ stages:
                   
   - stage: BuildDEV
     dependsOn: GeneralSetup
-    condition: and(always(), in(variables['EnvName'], 'PROD', 'BOTH'))
+    condition: and(always(), in(variables['EnvName'], 'DEV', 'BOTH'))
     jobs:
       - job: SetAppSettingsForDEV
         steps:
@@ -327,7 +327,6 @@ stages:
       #    - SetAppSettingsForPROD
       #   condition: succeeded()
       #   steps:
-
 
   - stage: Deploy2PROD
     displayName: 'Deploy to PROD'
