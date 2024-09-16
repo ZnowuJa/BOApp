@@ -135,18 +135,18 @@ stages:
          - SetSkipVariable
          - Nugets
         steps:
-          - script: echo $(EnvName)
-            displayName: 'Check EnvName Value'
-          - script: |
-              if exist "$(Build.ArtifactStagingDirectory)\DEV" (
-                echo Directory DEV exists
-              ) else if exists "$(Build.ArtifactStagingDirectory)\PROD" (
-                echo Directory PROD exists
-              )else (
-                echo Directory DEV or PROD does not exist
-                exit /b 1
-              )
-            displayName: 'Check if DEV Directory Exists'
+          # - script: echo $(EnvName)
+          #   displayName: 'Check EnvName Value'
+          # - script: |
+          #     if exist "$(Build.ArtifactStagingDirectory)\DEV" (
+          #       echo Directory DEV exists
+          #     ) else if exists "$(Build.ArtifactStagingDirectory)\PROD" (
+          #       echo Directory PROD exists
+          #     )else (
+          #       echo Directory DEV or PROD does not exist
+          #       exit /b 1
+          #     )
+          #   displayName: 'Check if DEV Directory Exists'
           - task: PublishBuildArtifacts@1
             name: 'PublishArtifactDEV'
             displayName: 'Publish Artifact DEV'
