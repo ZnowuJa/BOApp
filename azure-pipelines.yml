@@ -1,0 +1,46 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- master
+
+pool:
+  vmImage: ubuntu-latest
+
+stages:
+- stage: Stage1
+  jobs:
+  - job: Job1
+    steps:
+    - script: echo "This is Stage 1"
+    - script: echo "##vso[task.setvariable variable=Stage1Completed;isOutput=true]true"
+
+- stage: Stage2
+  dependsOn: Stage1
+  condition: and(succeededOrFailed(), eq(dependencies.Stage1.outputs['Job1.Stage1Completed'], 'true'))
+  jobs:
+  - job: Job2
+    steps:
+    - script: echo "This is Stage 2"
+    - script: echo "##vso[task.setvariable variable=Stage2Completed;isOutput=true]true"
+
+- stage: Stage3
+  dependsOn: Stage2
+  condition: always()
+  jobs:
+  - job: Job3
+    steps:
+    - script: |
+        if [ "$(Stage1Completed)" == "true" ]; then
+          echo "Stage 1 was completed"
+        else
+          echo "Stage 1 was skipped"
+        if [ "$(Stage2Completed)" == "true" ]; then
+          echo "Stage 2 was completed"
+        else
+          echo "Stage 2 was skipped"
+      env:
+        Stage1Completed: $[ dependencies.Stage1.outputs['Job1.Stage1Completed'] ]
+        Stage2Completed: $[ dependencies.Stage2.outputs['Job2.Stage2Completed'] ]
