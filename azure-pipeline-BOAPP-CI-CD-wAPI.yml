@@ -137,13 +137,13 @@ stages:
                     Write-Host "CommitId: $(CommitId)"
                     Write-Host "EnvName: $(EnvName)"
                     $appSettings = Get-Content $(appSettingsPath) -Raw | ConvertFrom-Json
-                    $appSettings.ConnectionStrings.AppDbContextConnection = "$(AppDbContextConnectionPROD)"
+                    $appSettings.ConnectionStrings.AppDbContextConnection = "$(AppDbContextConnectionDEV)"
                     $appSettings.ConnectionStrings.AsDbContextConnection = "$(AsDbContextConnection)"
-                    $appSettings.BaseUrl = "$(baseUrlPROD)"
+                    $appSettings.BaseUrl = "$(baseUrlDEV)"
                     $appSettings.AppVersion = "$(commitId)"
-                    $appSettings.Environment = "PROD"
+                    $appSettings.Environment = "DEV"
                     $appSettings | ConvertTo-Json -Depth 32 | Set-Content $(appSettingsPath)
-                    Write-Host "PROD artifact generated and appsettings updated."
+                    Write-Host "DEV artifact generated and appsettings updated."
                     # dotnet publish "$(Build.SourcesDirectory)\BOAppFluentUI\BOAppFluentUI.csproj" -c Release -o "$(Build.ArtifactStagingDirectory)\DEV" -nowarn:CS8618,CS8604
                     Write-Host "AppVersion and ConnectionStrings updated successfully. $(EnvName))"
                     Write-Host "Check Appsettings values::"
