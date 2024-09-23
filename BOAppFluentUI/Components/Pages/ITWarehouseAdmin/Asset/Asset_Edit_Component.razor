@@ -319,6 +319,8 @@ else
     #region Properties
     [Parameter]
     public AssetDTO Content { get; set; } = default!;
+    [Parameter]
+    public IQueryable<IAssigneeVm> Assgns { get; set; } = default;
 
     [CascadingParameter]
     public FluentDialog Dialog { get; set; } = default!;
@@ -357,14 +359,15 @@ else
     protected override async Task OnInitializedAsync()
     {
         _editContext = new EditContext(Content);
-
-        itemEmployeesList = await _mediator.Send(new GetAllEmployeesQuery(), cts.Token);
+        
+        itemEmployeesList = await _mediator.Send(new GetAllEmployeesForSelectQuery());
         itemDepartmentsList = await _mediator.Send(new GetAllDepartmentsQuery());
 
         var assignees = new List<IAssigneeVm>();
         assignees.AddRange(itemEmployeesList.Select(employee => (IAssigneeVm)new EmployeeVm { Id = employee.EnovaEmpId, LongName = employee.LongName, typeName = "EmployeeVm" }));
         assignees.AddRange(itemDepartmentsList.Select(department => (IAssigneeVm)new DepartmentVm { Id = department.Id, LongName = department.LongName, typeName = "DepartmentVm" }));
-        itemAssigneesList = assignees.AsQueryable();
+        // itemAssigneesList = assignees.AsQueryable();
+        itemAssigneesList = Assgns;
 
 
         if (Content.Id > 0)
@@ -462,10 +465,12 @@ else
     }
     private void HandlePartChange(string newValue)
     {
-        if (Content.partVm.Id != null)
-        {
-            Content.PartVmId = Content.partVm.Id;
-        }
+        Content.PartVmId = Content.partVm.Id;
+
+        // if (Content.partVm.Id != null)
+        // {
+        //     Content.PartVmId = Content.partVm.Id;
+        // }
 
     }
     private void HandleCurrencyChange(string newValue)

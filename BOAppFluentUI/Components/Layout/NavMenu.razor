@@ -1,4 +1,5 @@
-﻿
+﻿@inject IConfiguration _configuration
+
 <div class="navmenu">
 @*     <input type="checkbox" title="Menu expand/collapse toggle" id="navmenu-toggle" class="navmenu-icon" />
     <label for="navmenu-toggle" class="navmenu-icon"><FluentIcon Value="@(new Icons.Regular.Size20.Navigation())" Color="Color.Fill" /></label> *@
@@ -24,7 +25,14 @@
             <AuthorizeView Policy="User">
                 
                 <FluentNavLink Href="rozrachunki" Match="NavLinkMatch.All" Icon="@(new Icons.Regular.Size20.Home())" IconColor="Color.Accent">Rozrachunki</FluentNavLink>
+                <FluentNavLink Href="/coc" Match="NavLinkMatch.All" Icon="@(new Icons.Regular.Size20.Home())" IconColor="Color.Accent">Compliance</FluentNavLink>
 
+                @if (envi == "DEV")
+                {
+                    <FluentNavLink Href="/testforms" Match="NavLinkMatch.All" Icon="@(new Icons.Regular.Size20.Home())" IconColor="Color.Accent">TestForm</FluentNavLink>
+                    
+                }
+                
                 @* <FluentNavGroup OnClick="OnClick" Title="Rozrachunki" Icon="@(new Icons.Regular.Size24.DesktopPulse())">
                     <ChildContent>
                         
@@ -112,7 +120,14 @@
 
 @code {
     private bool expanded = true;
-    
+    private string envi { get; set; } = string.Empty;
+    private string appVersion { get; set; } = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        envi = _configuration["Environment"];
+        appVersion = _configuration["AppVersion"];
+    }
     void OnClick(MouseEventArgs e)
     {
         Console.WriteLine("NavMenu item clicked");

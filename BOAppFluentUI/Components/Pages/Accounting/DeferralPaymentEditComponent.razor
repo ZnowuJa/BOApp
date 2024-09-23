@@ -107,7 +107,7 @@ else if (showForm)
             </FluentStack>
         }
 
-        <H3></H3>
+        <h3></h3>
         <p></p>
         <p></p>
         <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
@@ -126,7 +126,7 @@ else if (showForm)
     </EditForm>
 } else
 {
-    <H2>Niestety nic to nie ma dla Ciebie!</H2>
+    <h2>Niestety nic to nie ma dla Ciebie!</h2>
 }
 
 @code {
@@ -141,7 +141,7 @@ else if (showForm)
     private string message { get; set; }
     private string messageMissing { get; set; }
     private bool showCustomer { get; set; }
-    private bool showApproval = false;
+    // private bool showApproval = false;
 
     private readonly string sent = "sent";
     private readonly string rejected = "rejected";
@@ -150,7 +150,7 @@ else if (showForm)
 
     private string nextStatus { get; set; } = string.Empty;
 
-    private bool caneditfields = false;
+    // private bool caneditfields = false;
 
     private ClaimsPrincipal? user { get; set; }
     private string username { get; set; }
@@ -171,7 +171,7 @@ else if (showForm)
 
     private OrganisationVm _organisation { get; set; }
     private WorkflowTemplateVm wf { get; set; }
-    private string FormName = "DeferralPaymentFormVm";
+    // private string FormName = "DeferralPaymentFormVm";
 
     private int buttonSpacer = 100;
 

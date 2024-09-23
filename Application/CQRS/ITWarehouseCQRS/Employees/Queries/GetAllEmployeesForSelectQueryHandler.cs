@@ -12,8 +12,8 @@ internal class GetAllEmployeesForSelectQueryHandler : IRequestHandler<GetAllEmpl
 {
     private readonly IAppDbContext _appDbContext;
     private IMapper _mapper;
-    private readonly Stopwatch _stopwatch;
-    private Logger _logger;
+    //private readonly Stopwatch _stopwatch;
+    //private Logger _logger;
     public GetAllEmployeesForSelectQueryHandler(IAppDbContext appDbContext, IMapper mapper)
     {
         _appDbContext = appDbContext;

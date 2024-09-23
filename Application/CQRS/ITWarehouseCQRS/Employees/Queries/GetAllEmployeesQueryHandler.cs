@@ -24,6 +24,12 @@ public class GetAllEmployeesQueryHandler : IRequestHandler<GetAllEmployeesQuery,
     }
     public async Task<IQueryable<EmployeeVm>> Handle(GetAllEmployeesQuery request, CancellationToken cancellationToken)
     {
+        if (_appDbContext.Employees == null)
+        {
+            
+            throw new InvalidOperationException("Employees DbSet is null");
+        }
+
         var result = await _appDbContext.Employees.Where(p => p.IsActive == 1).Include(i => i.Type).ToListAsync(cancellationToken);
        
         // Create a dictionary for quick lookup of managers by their EnovaEmpId

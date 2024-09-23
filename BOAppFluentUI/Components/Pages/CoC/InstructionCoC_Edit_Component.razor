@@ -1,0 +1,150 @@
+﻿@using Application.CQRS.CoCCQRS.GroupCoCs.Queries
+@using Application.CQRS.CoCCQRS.InstructionCoCs.Queries
+@using Application.CQRS.CoCCQRS.Positions.Queries
+@using Application.ViewModels.CoC
+
+@inject IMediator _mediator
+@inject ILogger<InstructionCoC_Edit_Component> _logger
+@implements IDialogContentComponent<InstructionCoCVm>
+
+<FluentDialogHeader ShowDismiss="true">
+    <FluentStack VerticalAlignment="VerticalAlignment.Center">
+        <FluentIcon Value="@(new Icons.Regular.Size24.WindowApps())" />
+        <FluentLabel Typo="Typography.PaneHeader">
+            @Dialog.Instance.Parameters.Title
+        </FluentLabel>
+    </FluentStack>
+</FluentDialogHeader>
+
+<FluentDialogFooter>
+    <FluentButton Appearance="Appearance.Accent" OnClick="@SaveAsync"
+                  Disabled="@(!_editContext.Validate())">Save</FluentButton>
+    <FluentButton Appearance="Appearance.Neutral" OnClick="@CancelAsync">Cancel</FluentButton>
+</FluentDialogFooter>
+
+<FluentDialogBody>
+    <EditForm EditContext="_editContext">
+        <FluentValidationValidator @ref="_fluentValidator" />
+
+        <FluentTextField @bind-Value="@Content.Title" Placeholder="Title">Title:</FluentTextField>
+        <FluentValidationMessage For="@(() => Content.Title)" />
+        
+        <FluentTextField @bind-Value="@Content.Description" Placeholder="Description">Description:</FluentTextField>
+        <FluentValidationMessage For="@(() => Content.Description)" />
+        
+        <FluentTextField @bind-Value="@Content.Link" Placeholder="Link">Link:</FluentTextField>
+        <FluentValidationMessage For="@(() => Content.Link)" />
+        
+        <FluentTextField @bind-Value="@Content.Number" Placeholder="Number">Number:</FluentTextField>
+        <FluentValidationMessage For="@(() => Content.Number)" />
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="validation-error"><p style="color:red;">@errorMessage</p></div>
+        }
+        <FluentDataGrid Items="@Content.Groups.AsQueryable()" TGridItem="GroupCoCVm" GridTemplateColumns="50px repeat(3, 1fr)" ResizableColumns=true>
+            <PropertyColumn Property="@(p=>p.Id)" Sortable="true" Align="Align.Start" Tooltip="true" />
+            <PropertyColumn Property="@(p=>p.GroupName)" Sortable="true" Align="Align.Start" Tooltip="true" />
+            <TemplateColumn Title="Actions" Align="Align.End">
+                <ChildContent Context="rowContext">
+                @{
+                        var deleteId = $"deleteid-{rowContext.Id}";
+                }
+
+                    <FluentButton Id="@deleteId" IconEnd="@(new Icons.Regular.Size20.Delete())" Disabled="IsEditDisabled(rowContext)" OnClick="@(() => RemoveGroup(rowContext))" />
+                <FluentTooltip Anchor="@deleteId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Remove Group</FluentTooltip>
+                </ChildContent>
+            </TemplateColumn>
+        </FluentDataGrid>
+        <FluentCombobox TOption="GroupCoCVm"
+                        Autocomplete="ComboboxAutocomplete.Inline"
+                        Label="Group:"
+                        Items="@itemGroups"
+                        Id="GroupId"
+                        Width="150px"
+                        Height="250px"
+                        OptionValue="@(p => p.Id.ToString())"
+                        OptionText="@(p => p.GroupName)"
+                        @bind-SelectedOption="@selectedGroup"
+                         />
+        <FluentButton IconStart="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddGroup())" />
+    </EditForm>
+</FluentDialogBody>
+
+@code {
+    [Parameter]
+    public InstructionCoCVm Content { get; set; } = default!;
+
+    [CascadingParameter]
+    public FluentDialog Dialog { get; set; } = default!;
+
+    private EditContext _editContext;
+
+    private FluentValidationValidator? _fluentValidator;
+
+    private string errorMessage;
+    private IQueryable<GroupCoCVm> itemGroups { get; set; }
+    private GroupCoCVm selectedGroup { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _editContext = new EditContext(Content);
+        itemGroups = await _mediator.Send(new GetAllGroupCoCsQuery());
+        base.OnInitialized();
+    }
+
+
+    private async Task SaveAsync()
+    {
+        if (_fluentValidator.Validate())
+        {
+            Console.WriteLine("Validating....");
+        }
+        else
+        {
+            Console.WriteLine("Validation failed!!!");
+        }
+        itemGroups = new List<GroupCoCVm>().AsQueryable();  // Reinitialize as empty if needed
+
+        await Dialog.CloseAsync(Content);
+    }
+
+    private async Task CancelAsync()
+    {
+        await Dialog.CancelAsync();
+    }
+    private async Task AddGroup()
+    {
+        if (Content.Groups.Any(p => p.Id == selectedGroup.Id))
+        {
+            selectedGroup = new GroupCoCVm();
+            return;
+        }
+        Content.Groups.Add(selectedGroup);
+        selectedGroup = new GroupCoCVm();
+    }
+    private async Task RemoveGroup(GroupCoCVm groupToRemove)
+    {
+        var existingGroup = Content.Groups.FirstOrDefault(p => p.Id == groupToRemove.Id); // Assuming Id is the unique identifier
+
+        if (existingGroup != null)
+        {
+            Content.Groups.Remove(existingGroup);
+            Console.WriteLine($"Group with Id {groupToRemove.Id} has been removed.");
+        }
+        else
+        {
+            Console.WriteLine($"Position with Id {groupToRemove.Id} not found in the list.");
+        }
+
+        StateHasChanged();
+    }
+    private bool IsEditDisabled(GroupCoCVm pos)
+    {
+        if (Content.Groups.Any(p => p.Id == pos.Id))
+        {
+            return false;
+        }
+
+        return true;
+    }
+}

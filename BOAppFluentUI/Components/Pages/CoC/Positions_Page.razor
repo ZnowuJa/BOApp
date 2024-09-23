@@ -1,0 +1,154 @@
+﻿@page "/coc/positions"
+@using Application.CQRS.CoCCQRS.Positions.Commands
+@using Application.CQRS.CoCCQRS.Positions.Queries
+@using Application.ITWarehouseCQRS.Warehouses.Commands
+@using Application.ITWarehouseCQRS.Warehouses.Queries
+@using Application.ViewModels
+@using Application.ViewModels.CoC
+@using MediatR
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+
+@attribute [Authorize(Policy = "Technician")]
+
+@inject IMediator _mediator
+@inject ILogger<Positions_Page> _logger
+@inject IDialogService _dialogService
+@inject IToastService _toastService
+
+
+<h3>Positions</h3>
+
+@if (_items == null)
+{
+    <FluentProgressRing>Loading...</FluentProgressRing>
+
+}
+else
+{
+
+    <FluentDataGrid Items="@_items" TGridItem="PositionVm" GridTemplateColumns="50px repeat(3, 1fr)" ResizableColumns=true>
+
+
+        <PropertyColumn Property="@(c => c.Id)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.Name)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <TemplateColumn Title="Actions" Align="Align.End">
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" />
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => EditItem(context))" />
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" />
+
+        </TemplateColumn>
+    </FluentDataGrid>
+    <FluentButton IconStart="@(new Icons.Regular.Size20.Add())" OnClick="@(() => Add())" />
+}
+
+
+
+@code {
+    // public WarehouseVm Selected { get; set; }
+
+    // CreateWarehouseCommandValidator cctcV = new();
+
+    private IQueryable<PositionVm> _items;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Load();
+    }
+
+    private async Task Load()
+    {
+        _items = await _mediator.Send(new GetAllPositionsQuery());
+        Console.WriteLine(_items.Count());
+    }
+
+    private async Task EditItem(PositionVm item)
+    {
+        ToastIntent intent;
+        string message = string.Empty;
+        int i = 0;
+
+        var data = item;
+        var dialog = await _dialogService.ShowDialogAsync<Position_Edit_Component>(data, new DialogParameters()
+            {
+                Height = "240px",
+                Title = data.Id > 0 ? "Update Position..." : "Create new Position...",
+                PreventDismissOnOverlayClick = false,
+                PreventScroll = true,
+            });
+        var result = await dialog.Result;
+        if (!result.Cancelled && result.Data != null)
+        {
+            item = (PositionVm)result.Data;
+            if (item.Id > 0)
+            {
+                i = await _mediator.Send(new UpdatePositionCommand(item));
+                intent = ToastIntent.Success;
+                message = "Position has been updated!";
+            }
+            else if (item.Id == 0)
+            {
+                i = await _mediator.Send(new CreatePositionCommand(item));
+                intent = ToastIntent.Success;
+                message = "Position has been Created!";
+            }
+            else
+            {
+                intent = ToastIntent.Warning;
+                message = "Position went realy wrong!";
+            }
+
+        }
+        else if (result.Cancelled)
+        {
+            intent = ToastIntent.Info;
+            message = "Update Cancelled...";
+        }
+        else
+        {
+            intent = ToastIntent.Error;
+            message = "Something went wrong!!!";
+        }
+
+
+        await Load();
+        _toastService.ShowToast(intent, message, 3000);
+
+        Console.WriteLine(result.GetType());
+    }
+
+    private async Task View(PositionVm item)
+    {
+        await _dialogService.ShowInfoAsync(message: $"Position id: {item.Id}, Position name: {item.Name}");
+    }
+
+    private async Task Add()
+    {
+        PositionVm item = new PositionVm (0, string.Empty);
+        await EditItem(item);
+    }
+
+    private async Task Delete(PositionVm item)
+    {
+        ToastIntent intent;
+        string message = string.Empty;
+
+        var i = await _mediator.Send(new DeletePositionCommand(item.Id));
+
+        if (i == item.Id)
+        {
+            intent = ToastIntent.Success;
+            message = "Position has been deleted!";
+        }
+        else
+        {
+            intent = ToastIntent.Error;
+            message = "Position went wrong!!!";
+        }
+        await Load();
+        _toastService.ShowToast(intent, message, 3000);
+
+    }
+}
+@* Disabled="@(string.IsNullOrEmpty(Content.Name) || string.IsNullOrWhiteSpace(Content.Name))" *@

@@ -109,7 +109,7 @@ else
     private string EmplEnovaEmpId { get; set; }
 
     private string errorMessageUpdate = string.Empty;
-    private bool showUpdate = false;
+    // private bool showUpdate = false;
     private bool deleteConfirm = false;
     private bool actionsDisabled = false;
 
@@ -236,7 +236,7 @@ else
         }
 
         _toastService.ShowToast(intent, message, 3000);
-        Load();
+        await Load();
     }
     private void HandleClearFilter(ref string filter) => filter = string.IsNullOrWhiteSpace(filter) ? string.Empty : filter;
     private void HandleFilterDebounced(FilterColumn<OrganisationVm> column, ChangeEventArgs args)

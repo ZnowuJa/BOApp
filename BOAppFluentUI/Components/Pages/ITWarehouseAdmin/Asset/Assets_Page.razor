@@ -108,7 +108,7 @@ else
         <FluentProgressRing>Loading...</FluentProgressRing>
     }
     
-    <FluentButton IconStart="@(new Icons.Regular.Size24.Add())" OnClick="@(() => AddPanel())" />
+   @*  <FluentButton IconStart="@(new Icons.Regular.Size24.Add())" OnClick="@(() => AddPanel())" /> *@
     @if (showUpdate)
     {
         <FluentDataGrid Items="@assetsToChange" TGridItem="AssetDTO" GridTemplateColumns="80px repeat(4, 1fr)" ResizableColumns=true>
@@ -145,7 +145,7 @@ else
         </div>
         if (errorMessageUpdate.Count() > 0)
         {
-            <H2>Error</H2>
+            <h2>Error</h2>
             @errorMessageUpdate
         }
         <div>
@@ -254,6 +254,7 @@ else
         string message = string.Empty;
         int i = 0;
 
+
         _logger.LogInformation("AssetsPage | EditType(item) | Opening dialog...");
         var dialog = await _dialogService.ShowDialogAsync<Asset_Edit_Component>(item, new DialogParameters()
             {
@@ -262,6 +263,7 @@ else
                 Title = item.Id > 0 ? "Update Asset..." : "Create new Asset...",
                 PreventDismissOnOverlayClick = false,
                 PreventScroll = true,
+
             });
         _logger.LogInformation("AssetsPage | EditType(item) | Dialog Closed...");
         actionsDisabled = true;
@@ -350,7 +352,7 @@ else
         }
        
         _toastService.ShowToast(intent, message, 3000);
-        Load();
+        await Load();
     }
 
     private void AddToList(AssetDTO item)

@@ -1,0 +1,45 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+using Application.Mappings;
+
+using AutoMapper;
+
+using Domain.Entities.CoC;
+
+namespace Application.ViewModels.CoC;
+public class InstructionCoCVm : IMapFrom<InstructionCoC>
+{
+    public int Id { get; set; }
+    public int? StatusId { get; set; }
+    public string? InactivatedBy { get; set; }
+    public DateTime? Inactivated { get; set; }
+    public string Title { get; set; }
+    public string Number { get; set; }
+    public string Description { get; set; }
+    public DateOnly Published { get; set; }
+    public string Link { get; set; }
+    public ICollection<GroupCoCVm>? Groups { get; set; }
+
+    public InstructionCoCVm()
+    {
+        
+    }
+
+    public void Mapping(Profile profile)
+    {
+        profile.CreateMap<InstructionCoC, InstructionCoCVm>()
+            .ForMember(dest => dest.Groups, opt => opt.MapFrom(src => src.Groups))
+            .ReverseMap();
+
+    }
+
+    public void AddGroup(GroupCoCVm group)
+    {
+        Groups.Add(group);
+    }
+
+}

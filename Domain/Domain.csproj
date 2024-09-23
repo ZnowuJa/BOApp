@@ -16,6 +16,8 @@
 
   <ItemGroup>
     <Folder Include="Entities\Administration\" />
+    <Folder Include="Entities\CoC\Enums\" />
+    <Folder Include="Entities\Settlements\" />
   </ItemGroup>
 
 </Project>

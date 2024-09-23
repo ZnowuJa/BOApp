@@ -260,7 +260,7 @@
     private bool leasing { get; set; } = false;
     private DateTime? leasingUntil { get; set; }
 
-    FluentTextArea assetsArea;
+    // FluentTextArea assetsArea;
     FluentTextArea assetsAreaExt;
 
     private ClaimsPrincipal? user { get; set; }
@@ -327,7 +327,7 @@
             itemAssetVms = Content.AssetsVm.AsQueryable();
         }
 
-        GetUserName();
+        await GetUserName();
 
         // var userClaim = user.Claims.Where(c => c.Type == ClaimTypes.Title).SingleOrDefault();
         // username = userClaim.Value;
@@ -448,7 +448,7 @@
             // itemAssetVms = await )
         }
     }
-    private async Task setDisabledTA()
+    private void setDisabledTA()
     {
 
         Console.WriteLine("setDisabledTA : " + serial + " " + imei + " " + mac);

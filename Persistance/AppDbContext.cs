@@ -4,6 +4,7 @@ using Application.Entities;
 using Application.Interfaces;
 using BackOfficeApp_Domain.Common;
 
+using Domain.Entities.CoC;
 using Domain.Entities.Common;
 using Domain.Entities.ITWarehouse;
 using Domain.Forms;
@@ -46,6 +47,10 @@ public class AppDbContext : IdentityDbContext<AppUser>, IAppDbContext
     public DbSet<Organisation> Organisations { get; set; }
     public DbSet<TestForm> TestForms { get; set; }
     public DbSet<FormFile> FormFiles { get; set; }
+    public DbSet<GroupCoC> Groups { get; set; }
+    public DbSet<Position> Positions { get; set; }
+    public DbSet<InstructionCoC> Instructions { get; set; }
+
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -67,6 +72,17 @@ public class AppDbContext : IdentityDbContext<AppUser>, IAppDbContext
             e.Property(e => e.Price).HasColumnType("decimal(10,2)");
         });
         builder.Entity<Organisation>().ToTable("Organisations");
+
+        builder.Entity<GroupCoC>()
+            .HasMany(g => g.Positions)
+            .WithOne(p => p.GroupCoC)
+            .HasForeignKey(p => p.GroupCoCId)
+            .IsRequired(false);
+        builder.Entity<InstructionCoC>()
+            .HasMany(x => x.Groups)
+            .WithMany(y => y.Instructions)
+            .UsingEntity(e => e.ToTable("InstructionGroup"));
+
 
         base.OnModelCreating(builder);
 
