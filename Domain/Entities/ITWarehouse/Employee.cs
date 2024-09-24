@@ -1,5 +1,7 @@
 ﻿using BackOfficeApp_Domain.Common;
 
+using Domain.Interfaces;
+
 namespace Domain.Entities.ITWarehouse;
 
 public class Employee : AuditableEntity, IAssignee

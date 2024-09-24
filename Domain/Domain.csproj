@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <Compile Remove="Entities\Common\FormTemplate.cs" />
+    <Compile Remove="Entities\ITWarehouse\Interface1.cs" />
   </ItemGroup>
 
   <ItemGroup>

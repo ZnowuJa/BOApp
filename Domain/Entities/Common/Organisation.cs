@@ -24,6 +24,7 @@ public class Organisation : SmallAuditableEntity
     public string Role_HRSpecialists { get; set; }
     public string Role_InvestmentsDept { get; set; }
     public string Role_SourcingDept { get; set; }
+    public string Role_ComplianceAssistant { get; set; }
 
 
 }

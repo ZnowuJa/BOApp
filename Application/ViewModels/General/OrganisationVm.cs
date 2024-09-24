@@ -31,7 +31,9 @@ public class OrganisationVm : IMapFrom<Organisation>
     public List<OrganisationRoleVm> Role_HRSpecialists { get; set; }
     public List<OrganisationRoleVm> Role_InvestmentsDept {  get; set; }
     public List<OrganisationRoleVm> Role_SourcingDept { get; set; }
- 
+    public List<OrganisationRoleVm> Role_ComplianceAssistant { get; set; }
+
+
     public void Mapping(Profile profile)
     {
 

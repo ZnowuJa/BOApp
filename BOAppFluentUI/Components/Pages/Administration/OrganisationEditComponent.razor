@@ -31,7 +31,7 @@
     <FluentButton Appearance="Appearance.Neutral" OnClick="@CancelAsync">Cancel</FluentButton>
 </FluentDialogFooter>
 
-<FluentDialogBody Orientation="Orientation.Horizontal" >
+<FluentDialogBody Orientation="Orientation.Horizontal" Style="overflow-y: auto; overflow-x: hidden;">
     <EditForm EditContext="_editContext">
         <FluentValidationValidator @ref="_fluentValidator" />
 
@@ -60,6 +60,7 @@
             </FluentGrid>
 
             <p></p>
+            <div style="overflow-y: auto; overflow-x: hidden;">
             <FluentDivider Style="width: 100%;" Orientation=Orientation.Horizontal Role="DividerRole.Separator"></FluentDivider>
             <FluentTabs Orientation="Orientation.Horizontal" ActiveTabId="tab-v1">
                 <FluentTab Label =" Sales Manager" Id="tab-v1">
@@ -100,6 +101,26 @@
                     <OrganisationRoleListComponent Roles="@Content.Role_SourcingDept" Employees="@empsList" Title="Sourcing Department" />
                 </FluentTab>
             </FluentTabs>
+                <p></p>
+            <FluentDivider Style="width: 100%;" Orientation=Orientation.Horizontal Role="DividerRole.Separator"></FluentDivider>
+            <FluentTabs Orientation="Orientation.Horizontal" ActiveTabId="tab-v2">
+                <FluentTab Label="Compliance Assistants" Id="tab-v7">
+                    <OrganisationRoleListComponent Roles="@Content.Role_ComplianceAssistant" Employees="@empsList" Title="Compliance Assistants" />
+                </FluentTab>
+@*                 <FluentTab Label="Accountants TeamLeader" Id="tab-v8">
+                    <OrganisationRoleListComponent Roles="@Content.Role_AccountantsTeamLeader" Employees="@empsList" Title="Accountants TeamLeader" />
+                </FluentTab>
+                <FluentTab Label="HR Specialists" Id="tab-v9">
+                    <OrganisationRoleListComponent Roles="@Content.Role_HRSpecialists" Employees="@empsList" Title="HR Specialists" />
+                </FluentTab>
+                <FluentTab Label="Investments Department" Id="tab-v10">
+                    <OrganisationRoleListComponent Roles="@Content.Role_InvestmentsDept" Employees="@empsList" Title="Investments Department" />
+                </FluentTab>
+                <FluentTab Label="Sourcing Department" Id="tab-v11">
+                    <OrganisationRoleListComponent Roles="@Content.Role_SourcingDept" Employees="@empsList" Title="Sourcing Department" />
+                </FluentTab> *@
+            </FluentTabs>
+            </div>
 @*             <p></p>
             <FluentDivider Style="width: 100%;" Orientation=Orientation.Horizontal Role="DividerRole.Separator"></FluentDivider>
             <FluentTabs Orientation="Orientation.Horizontal" ActiveTabId="tab-v2">

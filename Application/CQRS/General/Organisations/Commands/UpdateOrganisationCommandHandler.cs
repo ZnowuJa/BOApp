@@ -43,6 +43,7 @@ public class UpdateOrganisationCommandHandler : IRequestHandler<UpdateOrganisati
         existingOrganisation.Role_HRSpecialists = SerializeRoles(request.Item.Role_HRSpecialists);
         existingOrganisation.Role_InvestmentsDept = SerializeRoles(request.Item.Role_InvestmentsDept);
         existingOrganisation.Role_SourcingDept = SerializeRoles(request.Item.Role_SourcingDept);
+        existingOrganisation.Role_ComplianceAssistant = SerializeRoles(request.Item.Role_ComplianceAssistant);
 
         var res = await _appDbContext.SaveChangesAsync(cancellationToken);
 
