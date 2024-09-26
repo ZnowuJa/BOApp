@@ -16,4 +16,6 @@ public class InstructionCoC : SmallAuditableEntity
     public DateOnly Published { get; set; }
     public ICollection<GroupCoC> Groups { get; set; }
     public string Link { get; set; }
+    public string Colour { get; set; }
+    public int Priority { get; set; }
 }

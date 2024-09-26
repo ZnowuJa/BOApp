@@ -1,4 +1,5 @@
-﻿using Domain.Entities.CoC;
+﻿using Domain.Entities.Administration;
+using Domain.Entities.CoC;
 using Domain.Entities.Common;
 using Domain.Entities.ITWarehouse;
 using Domain.Forms;
@@ -39,6 +40,7 @@ public interface IAppDbContext
     public DbSet<GroupCoC> Groups { get; set; }
     public DbSet<Position> Positions { get; set; }
     public DbSet<InstructionCoC> Instructions { get; set; }
+    public DbSet<BackgroundJob> BackgroundJobs { get; set; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default);

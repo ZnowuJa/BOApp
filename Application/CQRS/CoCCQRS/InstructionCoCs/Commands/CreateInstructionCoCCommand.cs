@@ -50,7 +50,9 @@ public class CreateInstructionCoCCommandHandler : IRequestHandler<CreateInstruct
             Published = request.Instruction.Published,
             //Groups = request.Instruction.Groups.Select(g => new GroupCoC { Id = g.Id }).ToList(),
             Groups =groups,
-            Link = request.Instruction.Link
+            Link = request.Instruction.Link,
+            Priority = (int)request.Instruction.Priority,
+            Colour = request.Instruction.Colour
         };
 
         _context.Instructions.Add(instruction);

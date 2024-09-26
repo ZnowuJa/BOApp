@@ -45,6 +45,8 @@ public class UpdateInstructionCoCCommandHandler : IRequestHandler<UpdateInstruct
         instruction.Published = request.Instruction.Published;
         instruction.Groups = groups;
         instruction.Link = request.Instruction.Link;
+        instruction.Priority = (int)request.Instruction.Priority;
+        instruction.Colour = request.Instruction.Colour;
 
         await _context.SaveChangesAsync(cancellationToken);
 

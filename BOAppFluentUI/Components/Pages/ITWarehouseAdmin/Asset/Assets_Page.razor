@@ -66,12 +66,12 @@ else
             }
         </FluentStack>
     </p>
-
-    <FluentDataGrid Items="@filteredProducts" Pagination="@pagination" TGridItem="AssetDTO" GridTemplateColumns="80px repeat(6, 0.75fr) repeat(3, 0.5fr)" ResizableColumns="true">
+    @* GridTemplateColumns = "80px repeat(6, 0.75fr) repeat(3, 0.5fr)" *@
+    <FluentDataGrid Items="@filteredProducts" Pagination="@pagination" TGridItem="AssetDTO" Style="width: 100%;" AutoFit="true"         ResizableColumns="true">
        
         @foreach (var column in filterColumns.Where(c => c.IsVisible))
         {
-            <PropertyColumn TGridItem="AssetDTO" TProp="string" Property="@(GetPropertyExpression(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label" Filtered="!string.IsNullOrWhiteSpace(column.Filter)">
+            <PropertyColumn TGridItem="AssetDTO" TProp="string" Property="@(GetPropertyExpression(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label" Filtered="!string.IsNullOrWhiteSpace(column.Filter)" Width = "@column.Width">
                 <ColumnOptions>
                     <div class="search-box">
                         <FluentSearch type="search" Autofocus="true" @bind-Value="column.Filter" @oninput="(args) => HandleFilterDebounced(column, args)" Placeholder="@($"{column.Label.ToLower()}...")" />

@@ -25,22 +25,68 @@
 <FluentDialogBody>
     <EditForm EditContext="_editContext">
         <FluentValidationValidator @ref="_fluentValidator" />
+        
+        <FluentGrid>
+            <FluentGridItem lg="4" xl="4" xxl="4" md="4" Class="width210">
+                <FluentTextField @bind-Value="@Content.Title" Placeholder="Title" Class="width200">Title:</FluentTextField>
+                <FluentValidationMessage For="@(() => Content.Title)" />
+            </FluentGridItem>
 
-        <FluentTextField @bind-Value="@Content.Title" Placeholder="Title">Title:</FluentTextField>
-        <FluentValidationMessage For="@(() => Content.Title)" />
-        
-        <FluentTextField @bind-Value="@Content.Description" Placeholder="Description">Description:</FluentTextField>
+            <FluentGridItem lg="4" xl="4" xxl="4" md="4" Class="width210">
+                <FluentTextField @bind-Value="@Content.Link" Placeholder="Link" Class="width200">Link:</FluentTextField>
+                <FluentValidationMessage For="@(() => Content.Link)" />
+            </FluentGridItem>
+
+            <FluentGridItem lg="4" xl="4" xxl="4" md="4" Class="width210">
+                <FluentTextField @bind-Value="@Content.Number" Placeholder="Number" Class="width200">Number:</FluentTextField>
+                <FluentValidationMessage For="@(() => Content.Number)" />
+            </FluentGridItem>
+            
+            <FluentGridItem lg="4" xl="4" xxl ="4" md="4">
+                <FluentCombobox TOption="PriorityLevel"
+                                Autocomplete="ComboboxAutocomplete.Inline"
+                                Label="Priorytet:"
+                                Items="Enum.GetValues(typeof(PriorityLevel)).Cast<PriorityLevel>()"
+                                Id="PriorityId"
+                                Width="200px"
+                                Height="250px"
+                                OptionValue="@(p => ((int)p).ToString())"
+                                OptionText="@(p => p.ToString())"
+                                @bind-SelectedOption="@Content.Priority"
+                                ValueChanged="HandlePriorityChange"
+                >
+                </FluentCombobox>
+            </FluentGridItem>
+            
+            <FluentGridItem lg="4" xl="4" xxl ="4" md="4">
+                <FluentCombobox TOption="string"
+                                Autocomplete="ComboboxAutocomplete.Inline"
+                                Label="Kolor:"
+                                Items="@colours"
+                                Id="ColourId"
+                                Width="200px"
+                                Height="250px"
+                                OptionValue="@(p => p.ToString())"
+                                OptionText="@(p => p.ToString())"
+                                @bind-Value="@Content.Colour"
+                                
+                >
+                                
+                </FluentCombobox>
+            </FluentGridItem>
+            
+            <FluentGridItem lg="4" xl="4" xxl="4" md="4" Class="width200">
+                <FluentTextArea @bind-Value="@Content.Description" Placeholder="Description" Class="width200">DescriptionTA: </FluentTextArea>
+            </FluentGridItem>
+
+        </FluentGrid>
         <FluentValidationMessage For="@(() => Content.Description)" />
-        
-        <FluentTextField @bind-Value="@Content.Link" Placeholder="Link">Link:</FluentTextField>
-        <FluentValidationMessage For="@(() => Content.Link)" />
-        
-        <FluentTextField @bind-Value="@Content.Number" Placeholder="Number">Number:</FluentTextField>
-        <FluentValidationMessage For="@(() => Content.Number)" />
         @if (!string.IsNullOrEmpty(errorMessage))
         {
             <div class="validation-error"><p style="color:red;">@errorMessage</p></div>
         }
+        <p></p>
+        <FluentDivider Style="width: 100%; height: 20px;" Role="DividerRole.Separator" Orientation="Orientation.Horizontal"></FluentDivider>
         <FluentDataGrid Items="@Content.Groups.AsQueryable()" TGridItem="GroupCoCVm" GridTemplateColumns="50px repeat(3, 1fr)" ResizableColumns=true>
             <PropertyColumn Property="@(p=>p.Id)" Sortable="true" Align="Align.Start" Tooltip="true" />
             <PropertyColumn Property="@(p=>p.GroupName)" Sortable="true" Align="Align.Start" Tooltip="true" />
@@ -55,17 +101,21 @@
                 </ChildContent>
             </TemplateColumn>
         </FluentDataGrid>
-        <FluentCombobox TOption="GroupCoCVm"
-                        Autocomplete="ComboboxAutocomplete.Inline"
-                        Label="Group:"
-                        Items="@itemGroups"
-                        Id="GroupId"
-                        Width="150px"
-                        Height="250px"
-                        OptionValue="@(p => p.Id.ToString())"
-                        OptionText="@(p => p.GroupName)"
-                        @bind-SelectedOption="@selectedGroup"
-                         />
+        <p></p>
+        
+        <FluentGridItem>
+            <FluentCombobox TOption="GroupCoCVm"
+                            Autocomplete="ComboboxAutocomplete.Inline"
+                            Label="Group:"
+                            Items="@itemGroups"
+                            Id="GroupId"
+                            Width="200px"
+                            Height="250px"
+                            OptionValue="@(p => p.Id.ToString())"
+                            OptionText="@(p => p.GroupName)"
+                            @bind-SelectedOption="@selectedGroup" />
+        </FluentGridItem>
+        <p></p>
         <FluentButton IconStart="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddGroup())" />
     </EditForm>
 </FluentDialogBody>
@@ -84,6 +134,9 @@
     private string errorMessage;
     private IQueryable<GroupCoCVm> itemGroups { get; set; }
     private GroupCoCVm selectedGroup { get; set; }
+    private PriorityLevel selectedPriority { get; set; }
+    private List<string> colours { get; set; } = new List<string>() { "RED", "ORANGE", "GREEN" }; //these colours I want to use later in Onboarding Form to color list with instructions
+    private int controlsSpacer { get; set; } = 10;
 
     protected override async Task OnInitializedAsync()
     {
@@ -103,6 +156,7 @@
         {
             Console.WriteLine("Validation failed!!!");
         }
+        // Content.Priority = selectedPriority;
         itemGroups = new List<GroupCoCVm>().AsQueryable();  // Reinitialize as empty if needed
 
         await Dialog.CloseAsync(Content);
@@ -147,4 +201,37 @@
 
         return true;
     }
+    private void HandlePriorityChange(string newValue)
+    {
+        Content.Colour = newValue switch
+        {
+            "High" => "RED",
+            "Medium" => "ORANGE",
+            "Low" => "GREEN",
+            _ => "UNKNOWN" 
+        };
+        
+
+    }
 }
+<style>
+    .width200{
+        width: 200px;
+    }
+
+    .width210 {
+        width: 210px;
+    }
+    .flex-column {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 50px;
+        width: 175px;
+    }
+    .flex-controls{
+        display: flex; 
+        gap: 10px;
+    }
+</style>
+

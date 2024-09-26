@@ -8,6 +8,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Graph;
 using Microsoft.Identity.Client;
 
+using Quartz;
+
 namespace Infrastructure;
 public static class DiInfrastructure
 {
@@ -20,7 +22,12 @@ public static class DiInfrastructure
         services.AddScoped<IFileService, FileService>();
 
         services.AddScoped<IEmailService, GraphEmailService>();
+        
+        services.AddQuartz();
 
+        services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
+
+        services.AddTransient<JobSchedulerService>();
         //services.AddScoped<GraphServiceClient>(provider =>
         //{
         //    var confidentialClientApplication = ConfidentialClientApplicationBuilder

@@ -81,9 +81,11 @@ else
     {
         new FilterColumn<InstructionCoCVm> { FirstRow = true, Label = "ID", Property = c => c.Id.ToString(), IsVisible = true, Width = "80px" },
         new FilterColumn<InstructionCoCVm> { FirstRow = true, Label = "Title", Property = c => c.Title, IsVisible = true, Width = "1FR" },
-        new FilterColumn<InstructionCoCVm> { FirstRow = true, Label = "Number", Property = c => c.Number, IsVisible = true, Width = "1FR" },
+        new FilterColumn<InstructionCoCVm> { FirstRow = true, Label = "Number", Property = c => c.Number, IsVisible = true, Width = "0.5FR" },
         new FilterColumn<InstructionCoCVm> { FirstRow = true, Label = "Link", Property = c => c.Link, IsVisible = true, Width = "1FR" },
-        new FilterColumn<InstructionCoCVm> { FirstRow = true, Label = "Grupy", Property = c => c.Groups.Count().ToString(), IsVisible = true, Width = "1FR" }
+        new FilterColumn<InstructionCoCVm> { FirstRow = true, Label = "Grupy", Property = c => c.Groups.Count().ToString(), IsVisible = true, Width = "0.5FR" },
+        new FilterColumn<InstructionCoCVm> { FirstRow = true, Label = "Priorytet", Property = c => c.Priority.ToString(), IsVisible = true, Width = "0.5FR" },
+        new FilterColumn<InstructionCoCVm> { FirstRow = true, Label = "Kolor", Property = c => c.Colour, IsVisible = true, Width = "0.5FR" }
 
     };
 

@@ -36,10 +36,10 @@ public class TokenValidatedHandlerService : ITokenValidatedHandlerService
         await _userRegistrationService.CheckRoles();
 
         var claims = context.Principal.Claims;
-        var preferredUsername = claims.FirstOrDefault(c => c.Type == "preferred_username")?.Value;
-        _logger.LogInformation("preferred_username : " + preferredUsername);
+        var preferredUserName = claims.FirstOrDefault(c => c.Type == "preferred_username")?.Value;
+        _logger.LogInformation("preferred_username : " + preferredUserName);
         // rejects any user out of @porscheinterauto.pl domain
-        if (preferredUsername == null || !preferredUsername.EndsWith("@porscheinterauto.pl"))
+        if (preferredUserName == null || !preferredUserName.EndsWith("@porscheinterauto.pl"))
         {
             context.Response.Redirect("/unauthorized");
             context.Fail("Access denied. Your email domain is not allowed.");
@@ -49,7 +49,7 @@ public class TokenValidatedHandlerService : ITokenValidatedHandlerService
         //var name = claims.FirstOrDefault(c => c.Type == "name")?.Value;
 
         //add roles to already registered user
-        var user = await _userService.GetUserByPreferredUsername(preferredUsername);
+        var user = await _userService.GetUserByPreferredUsername(preferredUserName);
         try
         {
             _logger.LogInformation($" Username: {user.UserName}");
@@ -93,7 +93,7 @@ public class TokenValidatedHandlerService : ITokenValidatedHandlerService
             http://schemas.microsoft.com/ws/2008/06/identity/claims/role: User
          */
 
-        //await _userRegistrationService.RegisterUserFromExternalProviderAsync(preferredUsername, preferredUsername, name);
+        //await _userRegistrationService.RegisterUserFromExternalProviderAsync(preferredUserName, preferredUserName, name);
     }
 
     public async Task UpdateUserOnSignIn(TokenValidatedContext ctx)

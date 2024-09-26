@@ -13,10 +13,10 @@
 
   <ItemGroup>
     <PackageReference Include="AutoMapper" Version="13.0.1" />
+    <PackageReference Include="Quartz" Version="3.13.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Entities\Administration\" />
     <Folder Include="Entities\CoC\Enums\" />
     <Folder Include="Entities\Settlements\" />
   </ItemGroup>

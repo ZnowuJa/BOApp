@@ -63,7 +63,6 @@ public class DeferralPaymentFormVm : IMapFrom<DeferralPaymentForm>
         Status = "Rejestracja";
         Statuses = GetDefaultStatuses();
         Note = string.Empty;
-
     }
 
     public static List<string> GetDefaultStatuses()

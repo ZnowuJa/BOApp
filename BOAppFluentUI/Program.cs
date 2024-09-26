@@ -8,12 +8,13 @@ using Microsoft.FluentUI.AspNetCore.Components;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.FluentUI.AspNetCore.Components.Components.Tooltip;
+using Infrastructure.Services;
 
 
 namespace BOAppFluentUI;
 public class Program
 {
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
         var configuration = builder.Configuration;
@@ -71,7 +72,11 @@ public class Program
 
             var context = services.GetRequiredService<AppDbContext>();
             context.Database.Migrate();
+
+            var jobScheduler = services.GetRequiredService<JobSchedulerService>();
+            await jobScheduler.ScheduleJobsAsync();
         }
-        app.Run();
+
+        await app.RunAsync();
     }
 }

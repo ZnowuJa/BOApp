@@ -4,6 +4,7 @@ using Application.Entities;
 using Application.Interfaces;
 using BackOfficeApp_Domain.Common;
 
+using Domain.Entities.Administration;
 using Domain.Entities.CoC;
 using Domain.Entities.Common;
 using Domain.Entities.ITWarehouse;
@@ -50,6 +51,7 @@ public class AppDbContext : IdentityDbContext<AppUser>, IAppDbContext
     public DbSet<GroupCoC> Groups { get; set; }
     public DbSet<Position> Positions { get; set; }
     public DbSet<InstructionCoC> Instructions { get; set; }
+    public DbSet<BackgroundJob> BackgroundJobs { get; set; }
 
 
     protected override void OnModelCreating(ModelBuilder builder)
