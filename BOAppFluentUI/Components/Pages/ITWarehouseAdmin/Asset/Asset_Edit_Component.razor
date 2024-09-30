@@ -320,7 +320,7 @@ else
     [Parameter]
     public AssetDTO Content { get; set; } = default!;
     [Parameter]
-    public IQueryable<IAssigneeVm> Assgns { get; set; } = default;
+    // public IQueryable<IAssigneeVm> Assgns { get; set; } = default;
 
     [CascadingParameter]
     public FluentDialog Dialog { get; set; } = default!;
@@ -367,7 +367,7 @@ else
         assignees.AddRange(itemEmployeesList.Select(employee => (IAssigneeVm)new EmployeeVm { Id = employee.EnovaEmpId, LongName = employee.LongName, typeName = "EmployeeVm" }));
         assignees.AddRange(itemDepartmentsList.Select(department => (IAssigneeVm)new DepartmentVm { Id = department.Id, LongName = department.LongName, typeName = "DepartmentVm" }));
         // itemAssigneesList = assignees.AsQueryable();
-        itemAssigneesList = Assgns;
+        itemAssigneesList = assignees.AsQueryable();
 
 
         if (Content.Id > 0)
