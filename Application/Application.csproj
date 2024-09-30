@@ -77,6 +77,7 @@
 
   <ItemGroup>
     <Folder Include="AAA_IDEAS\" />
+    <Folder Include="CQRS\CoCCQRS\Onboarding\Queries\" />
     <Folder Include="ViewModels\ITWarehouse\" />
   </ItemGroup>
 

@@ -45,17 +45,7 @@ public class CreateDeferralPaymentCommandHandler : IRequestHandler<CreateDeferra
             item.Approvals = SerializeApprovals(request.Item.Approvals);
             item.Level1Approvers = SerializeRole(request.Item.Level1Approvers);
             item.Level2Approvers = SerializeRole(request.Item.Level2Approvers);
-            //// Check if the WorkflowTemplate is already being tracked
-            //var trackedWorkflowTemplate = await _appDbContext.WorkflowTemplates
-            //    .AsNoTracking()
-            //    .FirstOrDefaultAsync(wt => wt.Id == item.WorkflowTemplateId);
 
-            //if (trackedWorkflowTemplate != null)
-            //{
-            //    // Attach the existing instance to avoid tracking issues
-            //    _appDbContext.WorkflowTemplates.Attach(trackedWorkflowTemplate);
-            //    item.WorkflowTemplate = trackedWorkflowTemplate;
-            //}
             _appDbContext.DeferralPayments.Add(item);
             await _appDbContext.SaveChangesAsync();
 
