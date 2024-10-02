@@ -126,7 +126,7 @@ else
                                                 OnOptionsSearch="OnAssigneeSearch"
                                                 Placeholder="Select assignee"
                                                 MaximumSelectedOptions="1"
-                                                OptionText="@(p => p.LongName)"
+                                                OptionText="@(p => p.LongName + ' '  + @p.Id)"
                                                 Value="@Content.AssigneeVM.LongName"
                                                 @bind-SelectedOptions="@SelectedAssignee"
                                                 Height="550px"

@@ -4,15 +4,19 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using Application.Interfaces;
+using Application.Mappings;
+using Application.ViewModels.CoC;
 using Application.ViewModels.General;
 using AutoMapper;
 
 using Domain.Entities.CoC;
 using Domain.Entities.Common;
+using Domain.Forms;
 
 namespace Application.Forms
 {
-    public class OnboardingFormVm
+    public class OnboardingFormVm : IMapFrom<OnboardingForm>, IFormVm
     {
         // Properties from FormTemplate
         public int Id { get; set; }
@@ -32,8 +36,8 @@ namespace Application.Forms
         public string? EmployeeName { get; set; }
         public DateTime? Requested { get; set; }
         public List<Approval>? Approvals { get; set; }
-        public List<OrganisationRoleForFormVm> Level1Approvers { get; set; }
-        public List<OrganisationRoleForFormVm> Level2Approvers { get; set; }
+        public List<OrganisationRoleForFormVm> Level1Approvers { get; set; } // tu przypisać dziewczyny z Regionów które będą mogły coś z tym całym formularzem zrobić (nowa rola w Organizacjach - CoC Assistants)
+        public List<OrganisationRoleForFormVm> Level2Approvers { get; set; } // tu przypisać Aleksandrę i Anię (nowa rola w Organizacjach - CoC Managers)
         public string LVL1_EnovaEmpId { get; set; }
         public string LVL2_EnovaEmpId { get; set; }
         public string LVL1_EmployeeName { get; set; }
@@ -41,7 +45,7 @@ namespace Application.Forms
         public int ManagerId { get; set; }
 
         // Core Properties 
-        public List<InstructionCoC> InstructionCoC { get; set; }
+        public List<InstructionStatus> Instructions { get; set; }
         public string Group { get; set; }
         public string? Note { get; set; }
         public int? Progress { get; set; } = 0;
@@ -50,14 +54,13 @@ namespace Application.Forms
 
         public void Mapping(Profile profile)
         {
-
+            profile.CreateMap<OnboardingForm, OnboardingFormVm>().ReverseMap();
         }
 
         public OnboardingFormVm()
         {
             Status = "Rejestracja";
             Statuses = GetDefaultStatuses();
-
         }
 
         public static List<string> GetDefaultStatuses()

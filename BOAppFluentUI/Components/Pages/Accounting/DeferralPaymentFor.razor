@@ -126,7 +126,7 @@ else
 }
 
 @code {
-    #region InitForm
+    #region Declarations
     [Parameter]
     public int Id { get; set; }
 
@@ -159,7 +159,7 @@ else
     private ToastIntent intent { get; set; }
     private string toastMessage { get; set; } = string.Empty;
 
-    #endregion InitForm
+    #endregion Declarations
     protected override async Task OnInitializedAsync()
     {
         await GetUserName();

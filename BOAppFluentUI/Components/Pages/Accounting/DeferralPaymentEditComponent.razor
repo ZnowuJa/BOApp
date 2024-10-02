@@ -21,7 +21,7 @@
 @inject IJSRuntime JS
 @inject ILogger<DeferralPaymentListPage> _logger
 @inject IToastService _toastService
-@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject AuthenticationStateProvider formAuthenticationStateProvider
 @inject NavigationManager _navigationManager
 
 @if (formItem == null)
@@ -86,7 +86,7 @@ else if (showForm)
                           OptionSelected="@(p => p.EmpId == int.Parse(formItem.LVL1_EnovaEmpId.ToString()))"
                           @bind-SelectedOption="approverL1"
                           Height="200px"
-                          @onchange="HandleChangeApproverL1" />
+                          @onchange="@(e => Utils.HandleChangeApprover(e, itemEmployeesList, formItem, "L1"))" />
             Aprobata L2:   &nbsp;&nbsp; Dział Rozrachunki
 
 
@@ -156,6 +156,8 @@ else if (showForm)
     private string username { get; set; }
     private EmployeeVm emp { get; set; }
 
+    private FormUserContext _userContext = new FormUserContext();
+
     private IQueryable<EmployeeVm> itemEmployeesList { get; set; }
     private OrganisationRoleForFormVm approverL1 { get; set; }
     private OrganisationRoleForFormVm approverL2 { get; set; }
@@ -196,12 +198,15 @@ else if (showForm)
         {
             // Console.WriteLine($"Error loading kontrahent: {ex.Message}");
         }
+        itemEmployeesList = await _mediator.Send(new GetAllEmployeesQuery());
+        emp = itemEmployeesList.Where(em => em.EnovaEmpId == formItem.EmployeeId).FirstOrDefault();
+        await Utils.GetUserName(formAuthenticationStateProvider, _userContext, _mediator);
 
-        await GetUserName();
+        // await GetUserName();
         await GetAllowedPersons(formItem);
 
-        showForm = allowedEmp.Contains(emp.EnovaEmpId.ToString());
-        canEditApprover = allowedEditor.Contains(emp.EnovaEmpId.ToString());
+        showForm = allowedEmp.Contains(_userContext.EnovaEmpId);
+        canEditApprover = allowedEditor.Contains(_userContext.EnovaEmpId);
 
         if (showForm)
             await Load();
@@ -215,24 +220,16 @@ else if (showForm)
         al2 = formItem.Status == "AprobataL2";
         fin = formItem.Status == "Zakończone";
 
-        itemEmployeesList = await _mediator.Send(new GetAllEmployeesQuery());
+        
         _organisation = await _mediator.Send(new GetOrganisationByEmpSapNumberQuery(emp.SapNumber));
         approval = new Approval()
         {
                 Status = formItem.Status,
-                EnovaEmpId = emp.EnovaEmpId.ToString(),
-                LongName = emp.LongName,
+                EnovaEmpId = _userContext.EnovaEmpId,
+                LongName = _userContext.LongName,
                 Date = DateTime.Now,
                 IsApproved = true
         };
-        // if (al1)
-        // {
-        //     nextStatus = "AprobataL2";
-        // }
-        // else if (al2)
-        // {
-        //     nextStatus = "Zakończone";
-        // }
 
         messageMissing = "Loaded";
         StateHasChanged();
@@ -300,45 +297,37 @@ else if (showForm)
         // GoBack();
     }
 
-    // private async Task Reject()
+    // private async Task GetUserName()
     // {
-    //     message = "Wniosek odrzucony!";
-    //     formItem.Status = "Odrzucony";
-    //     await _mediator.Send(new UpdateDeferralPaymentCommand(formItem));
-    //     GoBack();
+    //     var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+    //     user = authenticationState.User;
+    //     var claimType = "name"; // or use ClaimTypes.Title
+    //     var claimTypeAID = "http://schemas.microsoft.com/identity/claims/objectidentifier";
+
+    //     var usernameClaim = user.Claims.FirstOrDefault(c => c.Type == claimType);
+    //     if (usernameClaim != null)
+    //     {
+    //         username = usernameClaim.Value;
+    //     }
+    //     else
+    //     {
+    //         username = "unknown";
+    //         // Console.WriteLine($"No claim of type {claimType} found.");
+    //     }
+
+    //     var aidClaim = user.Claims.FirstOrDefault(c => c.Type == claimTypeAID);
+    //     if (aidClaim != null)
+    //     {
+    //         Guid aidGuid;
+    //         Guid.TryParse(aidClaim.Value, out aidGuid);
+    //         emp = await _mediator.Send(new GetEmployeeByAIDQuery(aidGuid));
+    //     }
+    //     else
+    //     {
+    //         emp = new EmployeeVm();
+    //         // Console.WriteLine($"No claim of type {claimTypeAID} found.");
+    //     }
     // }
-
-    private async Task GetUserName()
-    {
-        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        user = authenticationState.User;
-        var claimType = "name"; // or use ClaimTypes.Title
-        var claimTypeAID = "http://schemas.microsoft.com/identity/claims/objectidentifier";
-
-        var usernameClaim = user.Claims.FirstOrDefault(c => c.Type == claimType);
-        if (usernameClaim != null)
-        {
-            username = usernameClaim.Value;
-        }
-        else
-        {
-            username = "unknown";
-            // Console.WriteLine($"No claim of type {claimType} found.");
-        }
-
-        var aidClaim = user.Claims.FirstOrDefault(c => c.Type == claimTypeAID);
-        if (aidClaim != null)
-        {
-            Guid aidGuid;
-            Guid.TryParse(aidClaim.Value, out aidGuid);
-            emp = await _mediator.Send(new GetEmployeeByAIDQuery(aidGuid));
-        }
-        else
-        {
-            emp = new EmployeeVm();
-            // Console.WriteLine($"No claim of type {claimTypeAID} found.");
-        }
-    }
     private async Task GetAllowedPersons(DeferralPaymentFormVm form)
     {
 

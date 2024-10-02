@@ -73,6 +73,8 @@ public static class DiPersistance
 
         services.AddAuthorization(options =>
         {
+            options.AddPolicy("Compliance", policy => policy
+            .RequireRole("Compliance", "Technician", "Administrator", "AppAdmin"));
 
             options.AddPolicy("Accountant", policy => policy
             .RequireRole("Accountant", "AccountantTL", "Technician", "Administrator", "AppAdmin"));

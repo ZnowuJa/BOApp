@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Persistance;
 
@@ -11,9 +12,11 @@ using Persistance;
 namespace Persistance.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240930095532_OnboardingForms")]
+    partial class OnboardingForms
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -177,6 +180,9 @@ namespace Persistance.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("OnboardingFormId")
+                        .HasColumnType("int");
+
                     b.Property<int>("Priority")
                         .HasColumnType("int");
 
@@ -191,6 +197,8 @@ namespace Persistance.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("OnboardingFormId");
 
                     b.ToTable("Instructions");
                 });
@@ -325,10 +333,6 @@ namespace Persistance.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Role_ComplianceAssistant")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Role_ComplianceManager")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -1549,10 +1553,6 @@ namespace Persistance.Migrations
                     b.Property<string>("InactivatedBy")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Instructions")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("LVL1_EmployeeName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -1944,6 +1944,13 @@ namespace Persistance.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("Domain.Entities.CoC.InstructionCoC", b =>
+                {
+                    b.HasOne("Domain.Forms.OnboardingForm", null)
+                        .WithMany("InstructionCoC")
+                        .HasForeignKey("OnboardingFormId");
+                });
+
             modelBuilder.Entity("Domain.Entities.CoC.Position", b =>
                 {
                     b.HasOne("Domain.Entities.CoC.GroupCoC", "GroupCoC")
@@ -2118,6 +2125,8 @@ namespace Persistance.Migrations
             modelBuilder.Entity("Domain.Forms.OnboardingForm", b =>
                 {
                     b.Navigation("FormFiles");
+
+                    b.Navigation("InstructionCoC");
                 });
 
             modelBuilder.Entity("Domain.Forms.TestForm", b =>

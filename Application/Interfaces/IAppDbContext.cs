@@ -41,6 +41,7 @@ public interface IAppDbContext
     public DbSet<Position> Positions { get; set; }
     public DbSet<InstructionCoC> Instructions { get; set; }
     public DbSet<BackgroundJob> BackgroundJobs { get; set; }
+    public DbSet<OnboardingForm> OnboardingForms { get; set; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default);

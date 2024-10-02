@@ -1,0 +1,89 @@
+﻿using System.Linq.Expressions;
+using System.Security.Claims;
+
+using Application.Forms;
+using Application.Interfaces;
+using Application.ITWarehouseCQRS.Employees.Queries;
+
+using Application.ViewModels.General;
+
+using MediatR;
+
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
+
+namespace BOAppFluentUI.Components.Pages;
+
+public static class Utils
+{
+    public static Expression<Func<T, string>> GetPropertyExpression<T>(Func<T, string> propertyFunc)
+    {
+        return x => propertyFunc(x);
+    }
+
+    public static void HandleFilterDebounced<T>(FilterColumn<T> column,
+        ChangeEventArgs args,
+        DebounceDispatcher debounceDispatcher,
+        Func<Task> stateHasChangedInvoker)
+    {
+        debounceDispatcher.Debounce(400, _ =>
+        {
+            column.Filter = args.Value.ToString();
+            stateHasChangedInvoker();
+        });
+    }
+
+    public static async Task GetUserName(
+        AuthenticationStateProvider authenticationStateProvider,
+        FormUserContext userContext,
+        IMediator mediator)
+    {
+        var authenticationState = await authenticationStateProvider.GetAuthenticationStateAsync();
+        userContext.User = authenticationState.User;
+
+        var claimType = "name";
+        var usernameClaim = userContext.User.Claims.FirstOrDefault(c => c.Type == claimType);
+        userContext.LongName = usernameClaim?.Value ?? "unknown";
+
+        claimType = "EnovaEmpId";
+        var enovaEmpIdClaim = userContext.User.Claims.FirstOrDefault(c => c.Type == claimType);
+        if (enovaEmpIdClaim != null)
+        {
+            userContext.EnovaEmpId = enovaEmpIdClaim.Value;
+            userContext.Employee = await mediator.Send(new GetEmployeeByEnovaIdQuery(int.Parse(userContext.EnovaEmpId)));
+        }
+        else
+        {
+            userContext.EnovaEmpId = "unknown";
+        }
+    }
+
+    public static bool IsEditDisabled<T>(T context, FormUserContext _userContext) where T : IFormVm
+    {
+        if (context.Status == "AprobataL1")
+        {
+            return !(context.LVL1_EnovaEmpId == _userContext.EnovaEmpId);
+        }
+        if (context.Status == "AprobataL2")
+        {
+            return !context.Level2Approvers.Any(approver => approver.EmpId.ToString() == _userContext.EnovaEmpId);
+        }
+        return true; // Default to disabled if none of the conditions match
+    }
+
+    public static void HandleChangeApprover<T>(ChangeEventArgs e, IQueryable<EmployeeVm> itemEmployeesList, T formItem, string approverLevel) where T : IFormVm
+    {
+        var tempEmp = itemEmployeesList.First(p => p.EnovaEmpId == int.Parse(e.Value.ToString()));
+        if (approverLevel == "L1")
+        {
+            formItem.LVL1_EnovaEmpId = tempEmp.EnovaEmpId.ToString();
+            formItem.LVL1_EmployeeName = tempEmp.LongName;
+        }
+        else if (approverLevel == "L2")
+        {
+            formItem.LVL2_EnovaEmpId = tempEmp.EnovaEmpId.ToString();
+            formItem.LVL2_EmployeeName = tempEmp.LongName;
+        }
+        //Console.WriteLine(tempEmp.LongName);
+    }
+}

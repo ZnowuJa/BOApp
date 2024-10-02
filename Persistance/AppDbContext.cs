@@ -52,6 +52,7 @@ public class AppDbContext : IdentityDbContext<AppUser>, IAppDbContext
     public DbSet<Position> Positions { get; set; }
     public DbSet<InstructionCoC> Instructions { get; set; }
     public DbSet<BackgroundJob> BackgroundJobs { get; set; }
+    public DbSet<OnboardingForm> OnboardingForms { get; set; }
 
 
     protected override void OnModelCreating(ModelBuilder builder)

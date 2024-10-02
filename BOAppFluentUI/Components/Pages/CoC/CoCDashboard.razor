@@ -34,10 +34,9 @@
             @(new Icons.Regular.Size24.Desktop().ToMarkup("48px"))
             <h4 style="margin: 0;">Moje zgłoszenia</h4>
             <FluentButton BackgroundColor="var(--accent-fill-rest)"
-                          Disabled = "true"
+                          Disabled = "false"
                           Color="var(--neutral-fill-rest)"
-                          OnClick="@(()=>_navigationManager.NavigateTo("/platnosciodroczone/pracownik"))"
-                          >
+                              OnClick="@(()=>_navigationManager.NavigateTo("/onboarding/pracownik"))">
                 Moje zgłoszenia
             </FluentButton>
         </FluentStack>

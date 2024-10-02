@@ -23,15 +23,10 @@ public class GetDeferralPaymentQueryHandler : IRequestHandler<GetDeferralPayment
         _appDbContext = appDbContext;
         _mapper = mapper;
     }
-
-    public IMapper Mapper { get; }
-
     public async Task<DeferralPaymentFormVm> Handle(GetDeferralPaymentQuery request, CancellationToken cancellationToken)
     {
         Console.WriteLine();
-        //var temp = new DeferralPaymentFormVm();
         var model = await _appDbContext.DeferralPayments.Where(p => p.Id == request.Id).FirstOrDefaultAsync(cancellationToken);
-        //var itemVM = _mapper.Map<DeferralPaymentFormVm>(model);
         var itemVm = new DeferralPaymentFormVm
         {
             Id = model.Id,
@@ -60,7 +55,6 @@ public class GetDeferralPaymentQueryHandler : IRequestHandler<GetDeferralPayment
         };
 
         return itemVm;
-        //return temp;
     }
     private List<Approval> DeserializeApprovals(string json)
     {

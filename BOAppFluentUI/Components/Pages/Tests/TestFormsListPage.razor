@@ -120,7 +120,7 @@
     private async Task Load()
     {
 
-        // var deferralForms = await _mediator.Send(new GetDeferralPaymentByApproverQuery(EmplEnovaEmpId));
+        // var deferralForms = await _mediator.Send(new GetDeferralPaymentByApproverQuery(EnovaEmpId));
             var testForms = await _mediator.Send(new GetAllTestFormsQuery());
             Console.WriteLine(testForms.Count());
             Console.WriteLine(testForms.Count());
@@ -191,7 +191,7 @@
         if (context.Status == "AprobataL1")
         {
             return !(context.LVL1_EnovaEmpId == EmplEnovaEmpId);
-            // return !context.Level1Approvers.Any(approver => approver.EmpId.ToString() == EmplEnovaEmpId);
+            // return !context.Level1Approvers.Any(approver => approver.EmpId.ToString() == EnovaEmpId);
         }
         if (context.Status == "AprobataL2")
         {

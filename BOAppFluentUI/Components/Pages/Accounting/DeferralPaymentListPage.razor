@@ -1,8 +1,7 @@
 ﻿@page "/deferralpayments/{role}"
 @page "/platnosciodroczone/{role}"
 
-
-@using Application.CQRS.AccountingCQRS.DeferralPayment.Commands
+@using Application.CQRS.CoCCQRS.Onboarding.Commands
 @using Application.CQRS.AccountingCQRS.DeferralPayment.Queries
 @using Application.Forms;
 @using Application.ViewModels.General
@@ -23,68 +22,67 @@
 @inject NavigationManager _navigationManager
 
 
-
 <h3>Wnioski o odroczoną płatność</h3>
 
-        <FluentStack Orientation="Orientation.Horizontal">
-            <FluentLabel Typo="Typography.Subject"> Show columns:  </FluentLabel>
-            @foreach (var column in filterColumns)
-            {
-                if (column.FirstRow)
-                {
-                    <FluentCheckbox @bind-Value="column.IsVisible" Label="@column.Label" />
-                }
-            }
-            </FluentStack>
-    <p></p>
-        <FluentStack Orientation="Orientation.Horizontal">
-            @foreach (var column in filterColumns)
-            {
-                if (!column.FirstRow)
-                {
-                <FluentCheckbox @bind-Value="column.IsVisible" Label="@column.Label" />
-                }
-            }
-        </FluentStack>
-    
-    <FluentDataGrid Items="@filteredItems" Pagination="@pagination" TGridItem="DeferralPaymentFormVm" GridTemplateColumns="80px repeat(7, 1fr)" ResizableColumns="true">
-       
-        @foreach (var column in filterColumns.Where(c => c.IsVisible))
+<FluentStack Orientation="Orientation.Horizontal">
+    <FluentLabel Typo="Typography.Subject"> Show columns:  </FluentLabel>
+        @foreach (var column in filterColumns)
+    {
+        if (column.FirstRow)
         {
-            <PropertyColumn TGridItem="DeferralPaymentFormVm" TProp="string" Property="@(GetPropertyExpression(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label" Filtered="!string.IsNullOrWhiteSpace(column.Filter)">
-                <ColumnOptions>
-                    <div class="search-box">
-                        <FluentSearch type="search" Autofocus="true" @bind-Value="column.Filter" @oninput="(args) => HandleFilterDebounced(column, args)" Placeholder="@($"{column.Label.ToLower()}...")" />
-                    </div>
-                </ColumnOptions>
-            </PropertyColumn>
+            <FluentCheckbox @bind-Value="column.IsVisible" Label="@column.Label" />
         }
-
-    @* Actions *@
-    <TemplateColumn Title="Actions" Align="Align.End">
-
-        @{
-            var viewId = $"viewid-{context.Id}";
-            var editId = $"editid-{context.Id}";
-            var deleteId = $"deleteid-{context.Id}";
-            // var addId = $"addid-{context.Id}";
+    }
+</FluentStack>
+<p></p>
+<FluentStack Orientation="Orientation.Horizontal">
+    @foreach (var column in filterColumns)
+    {
+        if (!column.FirstRow)
+        {
+        <FluentCheckbox @bind-Value="column.IsVisible" Label="@column.Label" />
         }
-        <FluentButton Id="@viewId" IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" Disabled="@viewDisabled" />
-        <FluentTooltip Anchor="@viewId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Left Delay=50>View Asset</FluentTooltip>
+    }
+</FluentStack>
+    
+<FluentDataGrid Items="@filteredItems" Pagination="@pagination" TGridItem="DeferralPaymentFormVm" GridTemplateColumns="80px repeat(7, 1fr)" ResizableColumns="true">
+       
+    @foreach (var column in filterColumns.Where(c => c.IsVisible))
+    {
+        <PropertyColumn TGridItem="DeferralPaymentFormVm" TProp="string" Property="@(Utils.GetPropertyExpression<DeferralPaymentFormVm>(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label" Filtered="!string.IsNullOrWhiteSpace(column.Filter)">
+            <ColumnOptions>
+                <div class="search-box">
+                    <FluentSearch type="search" Autofocus="true" @bind-Value="column.Filter" @oninput="(args) => Utils.HandleFilterDebounced(column, args, debounceDispatcher, () => InvokeAsync(StateHasChanged))" Placeholder="@($"{column.Label.ToLower()}...")" />
+                </div>
+            </ColumnOptions>
+        </PropertyColumn>
+    }
 
-        <FluentButton Id="@editId" IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => Edit(context))" Disabled="@IsEditDisabled(context)" />
-            @*WARNING it is not tested if isEditDisabled works*@
-        <FluentTooltip Anchor="@editId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Edit Asset</FluentTooltip>
+@* Actions *@
+<TemplateColumn Title="Actions" Align="Align.End">
 
-        <FluentButton Id="@deleteId" IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" Disabled="@actionsDisabled" />
-        <FluentTooltip Anchor="@deleteId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Delete Asset</FluentTooltip>
+    @{
+        var viewId = $"viewid-{context.Id}";
+        var editId = $"editid-{context.Id}";
+        var deleteId = $"deleteid-{context.Id}";
+        // var addId = $"addid-{context.Id}";
+    }
+    <FluentButton Id="@viewId" IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" Disabled="@viewDisabled" />
+    <FluentTooltip Anchor="@viewId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Left Delay=50>View Asset</FluentTooltip>
 
-        @*             <FluentButton Id="@addId" IconEnd="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddToList(context))" Disabled="@actionsDisabled" />
-        <FluentTooltip Anchor="@addId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50>Add Asset to update</FluentTooltip> *@
+    <FluentButton Id="@editId" IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => Edit(context))" Disabled="@Utils.IsEditDisabled(context, _userContext)" />
+        @*WARNING it is not tested if isEditDisabled works*@
+    <FluentTooltip Anchor="@editId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Edit Asset</FluentTooltip>
 
-    </TemplateColumn>
-    </FluentDataGrid>
-    <FluentPaginator State="@pagination" />
+    <FluentButton Id="@deleteId" IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" Disabled="@actionsDisabled" />
+    <FluentTooltip Anchor="@deleteId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Delete Asset</FluentTooltip>
+
+    @*             <FluentButton Id="@addId" IconEnd="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddToList(context))" Disabled="@actionsDisabled" />
+    <FluentTooltip Anchor="@addId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50>Add Asset to update</FluentTooltip> *@
+
+</TemplateColumn>
+</FluentDataGrid>
+<FluentPaginator State="@pagination" />
 
 @code {
     [Parameter]
@@ -111,10 +109,7 @@
         new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "Data", Property = c => c.Requested.ToString(), IsVisible = true }
     };
 
-    private ClaimsPrincipal? user { get; set; }
-    private string username { get; set; }
-    private EmployeeVm employee { get; set; }
-    private string EmplEnovaEmpId { get; set; }
+    private FormUserContext _userContext = new FormUserContext();
 
     private bool actionsDisabled = false;
     private bool viewDisabled = false;
@@ -124,31 +119,27 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await GetUserName();
+
+        await Utils.GetUserName(AuthenticationStateProvider, _userContext, _mediator);
         await Load();
     }
 
     private async Task Load()
     {
 
-        // var deferralForms = await _mediator.Send(new GetDeferralPaymentByApproverQuery(EmplEnovaEmpId));
         items = role switch
         {
-            "kierownik" or "manager" => await _mediator.Send(new GetDeferralPaymentByApproverQuery(EmplEnovaEmpId)),
-            "pracownik" or "employee" => await _mediator.Send(new GetDeferralPaymentByEmpIdQuery(EmplEnovaEmpId)),
+            "kierownik" or "manager" => await _mediator.Send(new GetDeferralPaymentByApproverQuery(_userContext.EnovaEmpId)),
+            "pracownik" or "employee" => await _mediator.Send(new GetDeferralPaymentByEmpIdQuery(_userContext.EnovaEmpId)),
             "zapisane" or "saved" or "niezapisane" or "notsaved" => await HandleSavedCase(),
 
             "rozrachunki" or "settlements" => await _mediator.Send(new GetAllDeferralPaymentFormQuery()),
             _ => throw new ArgumentException("Błędny adres strony!")
         };
-        // var deferralForms = await _mediator.Send(new GetAllDeferralPaymentFormQuery());
-        // Console.WriteLine(deferralForms.Count());
-        // Console.WriteLine(deferralForms.Count());
-        // items = deferralForms.AsQueryable();
     }
     private async Task<IQueryable<DeferralPaymentFormVm>> HandleSavedCase()
     {
-        var resultss = await _mediator.Send(new GetDeferralPaymentByEmpIdQuery(EmplEnovaEmpId));
+        var resultss = await _mediator.Send(new GetDeferralPaymentByEmpIdQuery(_userContext.EnovaEmpId));
         intent = ToastIntent.Success;
         if (role is "zapisane" or "saved")
         {
@@ -163,54 +154,6 @@
     }
 
     private void HandleClearFilter(ref string filter) => filter = string.IsNullOrWhiteSpace(filter) ? string.Empty : filter;
-
-    private void HandleFilterDebounced(FilterColumn<DeferralPaymentFormVm> column, ChangeEventArgs args)
-    {
-        debounceDispatcher.Debounce(400, _ =>
-        {
-            column.Filter = args.Value.ToString();
-            InvokeAsync(StateHasChanged);
-        });
-    }
-
-    private async Task GetUserName()
-    {
-        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        user = authenticationState.User;
-
-        var claimType = "name"; // or use ClaimTypes.Title
-        var usernameClaim = user.Claims.FirstOrDefault(c => c.Type == claimType);
-        if (usernameClaim != null)
-        {
-            username = usernameClaim.Value;
-            // Console.WriteLine($"Claim of type {claimType} found, value {username}.");
-        }
-        else
-        {
-            username = "unknown";
-            // Console.WriteLine($"No claim of type {claimType} found.");
-        }
-
-        claimType = "EnovaEmpId"; // or use ClaimTypes.Title
-        var EnovaEmpIdClaim = user.Claims.FirstOrDefault(c => c.Type == claimType);
-        if (EnovaEmpIdClaim != null)
-        {
-            EmplEnovaEmpId = EnovaEmpIdClaim.Value;
-            employee = await _mediator.Send(new GetEmployeeByEnovaIdQuery(int.Parse(EmplEnovaEmpId)));
-            // Console.WriteLine($"Claim of type {claimType} found, value {EmplEnovaEmpId}.");
-        }
-        else
-        {
-            EmplEnovaEmpId = "unknown";
-            // Console.WriteLine($"No claim of type {claimType} found.");
-        }
-
-    }
-
-    private Expression<Func<DeferralPaymentFormVm, string>> GetPropertyExpression(Func<DeferralPaymentFormVm, string> propertyFunc) 
-    {
-        return x => propertyFunc(x);
-    }
 
     private async Task Edit(DeferralPaymentFormVm item = null)
     {
@@ -237,12 +180,12 @@
     {
         if (context.Status == "AprobataL1")
         {
-            return !(context.LVL1_EnovaEmpId == EmplEnovaEmpId);
-            // return !context.Level1Approvers.Any(approver => approver.EmpId.ToString() == EmplEnovaEmpId);
+            return !(context.LVL1_EnovaEmpId == _userContext.EnovaEmpId);
+
         }
         if (context.Status == "AprobataL2")
         {
-            return !context.Level2Approvers.Any(approver => approver.EmpId.ToString() == EmplEnovaEmpId);
+            return !context.Level2Approvers.Any(approver => approver.EmpId.ToString() == _userContext.EnovaEmpId);
         }
         return true; // Default to disabled if none of the conditions match
     }

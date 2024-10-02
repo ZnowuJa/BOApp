@@ -22,7 +22,7 @@ public class OnboardingForm : FormTemplate
     public int? EmployeeId { get; set; }
     public string? EmployeeName { get; set; }
     public int ManagerId { get; set; }
-    public List<InstructionCoC> InstructionCoC { get; set; }
+    public string Instructions { get; set; }
     public DateTime? Requested { get; set; }
     public string Approvals { get; set; }
     public string Level1Approvers { get; set; }

@@ -1,5 +1,7 @@
 ﻿
+
 using Application.Common;
+using Application.Interfaces;
 using Application.Mappings;
 using Application.ViewModels;
 using Application.ViewModels.General;
@@ -12,7 +14,7 @@ using Domain.WorkFlows;
 
 namespace Application.Forms;
 
-public class DeferralPaymentFormVm : IMapFrom<DeferralPaymentForm>
+public class DeferralPaymentFormVm : IMapFrom<DeferralPaymentForm>, IFormVm
 {
     // Properties from FormTemplate
     public int Id { get; set; }
@@ -43,9 +45,6 @@ public class DeferralPaymentFormVm : IMapFrom<DeferralPaymentForm>
     public string LVL2_EnovaEmpId { get; set; }
     public string LVL1_EmployeeName { get; set; }
     public string LVL2_EmployeeName { get; set; }
-
-
-
 
     public void Mapping(Profile profile)
     {
