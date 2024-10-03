@@ -1,10 +1,12 @@
 ﻿@page "/coc/onboarding/{FormId:int}"
 
 
+@using Application.CQRS.CoCCQRS.InstructionCoCs.Queries
 @using Application.CQRS.General.Organisations.Queries
 @using Application.CQRS.CoCCQRS.Onboarding.Queries;
 @using Application.Forms
 @using Application.Interfaces
+@using Application.ViewModels.CoC
 @using Application.ViewModels.General
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
@@ -48,6 +50,19 @@
         </div>
         <p></p>
 
+        <FluentDataGrid Items="@_instructions"  TGridItem="InstructionForFormVm" GridTemplateColumns="80px repeat(6, 0.75fr)" ResizableColumns="true">
+       
+            @foreach (var column in instructions.Where(c => c.IsVisible))
+        {
+                <PropertyColumn TGridItem="InstructionForFormVm" TProp="string" Property="@(Utils.GetPropertyExpression<InstructionForFormVm>(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label" Filtered="!string.IsNullOrWhiteSpace(column.Filter)">
+                <ColumnOptions>
+                    <div class="search-box">
+                            <FluentSearch type="search" Autofocus="true" @bind-Value="column.Filter" @oninput="(args) => Utils.HandleFilterDebounced(column, args, debounceDispatcher, () => InvokeAsync(StateHasChanged))" Placeholder="@($"{column.Label.ToLower()}...")" />
+                    </div>
+                </ColumnOptions>
+            </PropertyColumn>
+        }
+        </FluentDataGrid> 
 
 
     </EditForm>
@@ -91,6 +106,21 @@
     private bool ApproveButton = true;
     private bool SendButton = true;
 
+    private DebounceDispatcher debounceDispatcher = new DebounceDispatcher();
+    private PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
+
+    private IQueryable<InstructionForFormVm> _instructions { get; set; }
+    private List<FilterColumn<InstructionForFormVm>> instructions = new List<FilterColumn<InstructionForFormVm>>
+        {
+            new FilterColumn<InstructionForFormVm> { FirstRow = true, Label = "ID", Property = c => c.InstructionId.ToString(), IsVisible = true, Width = "80px" },
+            new FilterColumn<InstructionForFormVm> { FirstRow = true, Label = "ID", Property = c => c.Title, IsVisible = true, Width = "80px" },
+            new FilterColumn<InstructionForFormVm> { FirstRow = true, Label = "ID", Property = c => c.Number, IsVisible = true, Width = "80px" },
+            new FilterColumn<InstructionForFormVm> { FirstRow = true, Label = "ID", Property = c => c.Description, IsVisible = true, Width = "80px" },
+            new FilterColumn<InstructionForFormVm> { FirstRow = true, Label = "ID", Property = c => c.Published.ToString("yyyy-MM"), IsVisible = true, Width = "80px" },
+            new FilterColumn<InstructionForFormVm> { FirstRow = true, Label = "ID", Property = c => c.Link, IsVisible = true, Width = "80px" },
+            new FilterColumn<InstructionForFormVm> { FirstRow = true, Label = "ID", Property = c => c.Colour, IsVisible = true, Width = "80px" },
+            new FilterColumn<InstructionForFormVm> { FirstRow = true, Label = "ID", Property = c => c.Priority.ToString(), IsVisible = true, Width = "80px" }
+        };
     private Approval approval { get; set; }
 
     private OrganisationVm _organisation { get; set; }
@@ -149,7 +179,29 @@
         fin = formItem.Status == "Zakończone";
 
         itemEmployeesList = await _mediator.Send(new GetAllEmployeesQuery());
-        
+        var tempInstructionsVm = await _mediator.Send(new GetAllInstructionCoCsQuery());
+
+        var instructionStatuses = formItem.Instructions;
+        var _instructions = tempInstructionsVm.AsEnumerable().Select(instruction =>
+        {
+            var status = instructionStatuses.FirstOrDefault(s => s.InstructionId == instruction.Id);
+            return new InstructionForFormVm
+            {
+                InstructionId = instruction.Id,
+                IsRead = status?.IsRead ?? false,
+                Title = instruction.Title,
+                Number = instruction.Number,
+                Description = instruction.Description,
+                Published = instruction.Published,
+                Link = instruction.Link,
+                Colour = instruction.Colour,
+                Priority = instruction.Priority
+            };
+        }).ToList().AsQueryable();
+
+    
+
+
         _organisation = await _mediator.Send(new GetOrganisationByEmpSapNumberQuery(_userContext.Employee.SapNumber));
         
         approval = new Approval()

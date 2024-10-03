@@ -7,19 +7,18 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="BackGroundJobs\**" />
     <Compile Remove="Identity\Pages\**" />
     <Compile Remove="Identity\Policies\**" />
     <Compile Remove="Repositories\**" />
+    <EmbeddedResource Remove="BackGroundJobs\**" />
     <EmbeddedResource Remove="Identity\Pages\**" />
     <EmbeddedResource Remove="Identity\Policies\**" />
     <EmbeddedResource Remove="Repositories\**" />
+    <None Remove="BackGroundJobs\**" />
     <None Remove="Identity\Pages\**" />
     <None Remove="Identity\Policies\**" />
     <None Remove="Repositories\**" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Compile Remove="BackGroundJobs\QuartzJobService.cs" />
   </ItemGroup>
 
   <ItemGroup>

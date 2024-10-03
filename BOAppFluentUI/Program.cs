@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.FluentUI.AspNetCore.Components.Components.Tooltip;
 using Infrastructure.Services;
+using Application.Interfaces;
 
 
 namespace BOAppFluentUI;
@@ -73,7 +74,7 @@ public class Program
             var context = services.GetRequiredService<AppDbContext>();
             context.Database.Migrate();
 
-            var jobScheduler = services.GetRequiredService<JobSchedulerService>();
+            var jobScheduler = services.GetRequiredService<IJobSchedulerService>();
             await jobScheduler.ScheduleJobsAsync();
         }
 

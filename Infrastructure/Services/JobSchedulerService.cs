@@ -3,50 +3,63 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
-namespace Infrastructure.Services;
 using Quartz;
 using Quartz.Spi;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Application.Interfaces;
+using Microsoft.Extensions.Logging;
+using Application.BackgroundJobs;
 
-public class JobSchedulerService
+
+namespace Infrastructure.Services;
+public class JobSchedulerService : IJobSchedulerService
 {
     private readonly IAppDbContext _dbContext;
     private readonly ISchedulerFactory _schedulerFactory;
-    private readonly IServiceProvider _serviceProvider;
+    private readonly ILogger<JobSchedulerService> _logger;
 
-    public JobSchedulerService(IAppDbContext dbContext, ISchedulerFactory schedulerFactory, IServiceProvider serviceProvider)
+    public JobSchedulerService(IAppDbContext dbContext, ISchedulerFactory schedulerFactory, ILogger<JobSchedulerService> logger)
     {
         _dbContext = dbContext;
         _schedulerFactory = schedulerFactory;
-        _serviceProvider = serviceProvider;
+        _logger = logger;
     }
 
     public async Task ScheduleJobsAsync()
     {
         var scheduler = await _schedulerFactory.GetScheduler();
-        var jobs = await _dbContext.BackgroundJobs.Where(job => job.Enabled).ToListAsync();
+
+        var jobs = await _dbContext.BackgroundJobs.Where(j => j.Enabled).ToListAsync();
+        _logger.LogInformation("Jobs Count: " + jobs.Count);
 
         foreach (var job in jobs)
         {
-            var jobType = Type.GetType(job.JobClass.ToString());
+
+            var jobClassFullName = $"{job.JobClass}, {job.AssemblyName}";
+            var jobType = Type.GetType(jobClassFullName);
+
             if (jobType == null)
+            {
+                _logger.LogWarning($"Job type {job.JobClass} not found.");
                 continue;
+            }
 
             var jobDetail = JobBuilder.Create(jobType)
-                                      .WithIdentity(job.JobClass)
+                                      .WithIdentity(job.JobClass, "DEFAULT")
                                       .Build();
 
             var trigger = TriggerBuilder.Create()
-                                        .WithIdentity($"{job.JobClass}-trigger")
-                                        .WithCronSchedule(job.CronExpression)
+                                        .WithIdentity($"{job.JobClass}-trigger", "DEFAULT")
+                                        .WithCronSchedule(job.CronExpression.ToString())
                                         .Build();
+
+            _logger.LogInformation($"Scheduling job {job.JobClass} with Cron expression {job.CronExpression}.");
 
             await scheduler.ScheduleJob(jobDetail, trigger);
         }
+
 
         await scheduler.Start();
     }

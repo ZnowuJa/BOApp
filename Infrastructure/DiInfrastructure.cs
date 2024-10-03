@@ -26,8 +26,9 @@ public static class DiInfrastructure
         services.AddQuartz();
 
         services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
+        services.AddTransient<IJobSchedulerService, JobSchedulerService>();
 
-        services.AddTransient<JobSchedulerService>();
+        //services.AddTransient<JobSchedulerService>();
         //services.AddScoped<GraphServiceClient>(provider =>
         //{
         //    var confidentialClientApplication = ConfidentialClientApplicationBuilder
