@@ -23,6 +23,7 @@ public class LoggingPipelineBehavior<TRequest, TResponse> : IPipelineBehavior<TR
     {
         _stopwatch.Start();
         var requestName = typeof(TRequest).Name;
+        
         //Request
         _logger.LogInformation(
             "Handling {Title}. {@Date}",
@@ -32,10 +33,14 @@ public class LoggingPipelineBehavior<TRequest, TResponse> : IPipelineBehavior<TR
         _stopwatch.Stop();
         var elapsed = _stopwatch.ElapsedMilliseconds;
         //Response
-        _logger.LogInformation(
-            "CleanArchitecture Request: {Title} {@request}. {@Date} | lasted {elapsed}",
+        //_logger.LogInformation(
+        //    "CleanArchitecture Request: {Title} {@request}. {@Date} | lasted {elapsed}",
+        //    requestName,
+        //    request,
+        //    DateTime.UtcNow, elapsed);
+
+        _logger.LogInformation( "CleanArchitecture Request: {Title}. {@Date} | lasted {elapsed}", 
             requestName,
-            request,
             DateTime.UtcNow, elapsed);
         return result;
     }

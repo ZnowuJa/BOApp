@@ -52,7 +52,8 @@ public class JobSchedulerService : IJobSchedulerService
 
             var trigger = TriggerBuilder.Create()
                                         .WithIdentity($"{job.JobClass}-trigger", "DEFAULT")
-                                        .WithCronSchedule(job.CronExpression.ToString())
+                                        //.WithCronSchedule(job.CronExpression.ToString())
+                                        .StartNow()
                                         .Build();
 
             _logger.LogInformation($"Scheduling job {job.JobClass} with Cron expression {job.CronExpression}.");

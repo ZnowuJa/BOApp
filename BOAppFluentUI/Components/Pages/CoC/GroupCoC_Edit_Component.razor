@@ -44,17 +44,29 @@
             </TemplateColumn>
         </FluentDataGrid>
         <FluentCombobox TOption="PositionVm"
-                        Autocomplete="ComboboxAutocomplete.Inline"
+                        Autocomplete="ComboboxAutocomplete.Both"
                         Label="Position:"
                         Items="@itemPositions"
                         Id="PositionId"
-                        Width="150px"
+                        Width="300px"
                         Height="250px"
                         OptionValue="@(p => p.Id.ToString())"
                         OptionText="@(p => p.Name)"
                         @bind-SelectedOption="@selectedPosition"
                          />
         <FluentButton IconStart="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddPosition())" />
+        <FluentAutocomplete TOption="PositionVm"
+                            AutoComplete="on"
+                            Label="Group:"
+                            OnOptionsSearch="OnPositionSearch"
+                            MaximumOptionsSearch = "168"
+                            OptionText="@(p => p.Name)"
+                            @bind-SelectedOptions="@SelectedPositions"
+                            Height="550px"
+                            Width="300px"
+                            Class="autocomplete-dropdown" 
+                            />
+        <FluentButton IconStart="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddPositions())" />
     </EditForm>
 </FluentDialogBody>
 
@@ -72,6 +84,7 @@
     private string errorMessage;
     private IQueryable<PositionVm> itemPositions { get; set; }
     private PositionVm selectedPosition { get; set; }
+    private IEnumerable<PositionVm> SelectedPositions = Array.Empty<PositionVm>();
 
     protected override async Task OnInitializedAsync()
     {
@@ -96,6 +109,15 @@
         await Dialog.CloseAsync(Content);
     }
 
+
+    private void OnPositionSearch(OptionsSearchEventArgs<PositionVm> e)
+    {
+        // e.Items = itemPositions.Where(g => g.Name.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
+        var addedPositionIds = Content.Positions.Select(p => p.Id).ToHashSet();
+        e.Items = itemPositions
+            .Where(p => !addedPositionIds.Contains(p.Id) && p.Name.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
+    }
+
     private async Task CancelAsync()
     {
         await Dialog.CancelAsync();
@@ -109,6 +131,27 @@
         }
         Content.Positions.Add(selectedPosition);
         selectedPosition = new PositionVm();
+    }
+    private async Task AddPositions()
+    {
+        if (SelectedPositions == null || !SelectedPositions.Any())
+        {
+            return;
+        }
+        // var selectedPositionFromArray = SelectedPositions.First();
+        foreach(var pos in SelectedPositions)
+        {
+            if (Content.Positions.Any(p => p.Id == pos.Id))
+            {
+                continue;
+            } else
+            {
+                Content.Positions.Add(pos);
+            }
+
+        }
+
+        SelectedPositions = Array.Empty<PositionVm>();
     }
     private async Task RemovePosition(PositionVm positionToRemove)
     {
@@ -136,3 +179,9 @@
         return true;
     }
 }
+<style>
+    .autocomplete-dropdown .fluent-autocomplete-options {
+        max-height: 300px; /* Adjust the height as needed */
+        overflow-y: scroll;
+    }
+</style>
