@@ -115,7 +115,7 @@ else if (showForm)
                       Wyślij</FluentButton>
         <FluentSpacer Width="@buttonSpacer" />
         <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
-                      Appearance="Appearance.Accent" OnClick="() => Save(approved)" BackgroundColor="#1FC91F" Style="width: 100px"> 
+                      Appearance="Appearance.Accent" OnClick="() => Save(approved)" BackgroundColor="#1FC91F" Style="width: 100px" > 
                       Zatwierdź</FluentButton>
         <FluentSpacer Width="@buttonSpacer" />
         <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
@@ -284,7 +284,8 @@ else if (showForm)
         }
         else if (buttonState == "cancelled")
         {
-            destination = "/";
+            destination = "/rozrachunki";
+            _navigationManager.NavigateTo(destination);
             return;
         }
 

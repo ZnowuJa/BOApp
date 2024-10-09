@@ -63,6 +63,7 @@ public static class Utils
         var roles = _userContext.Employee.Roles.ToList();
         if (_userContext.Employee.Roles.Contains(_userContext.AdminRole))
         {
+            _userContext.isFormAdmin = true;
             return false;
         }
 
