@@ -1,4 +1,6 @@
-﻿using Application.Entities;
+﻿using System.Security.Claims;
+
+using Application.Entities;
 using Application.Interfaces;
 using Application.Interfaces.Identity.Services;
 using Infrastructure.Identity.Services;
@@ -65,8 +67,22 @@ public static class DiPersistance
                     .RequestServices
                     .GetRequiredService<ITokenValidatedHandlerService>();
                     
+                    
+                    //// Below there are two the same lines running tokenvalidation.
+                    /// It is done that way because one pass doesn't updates current user if it is loging for the 1st time.
+                    /// Of course this is a bug and its workaround to fixe once.
                     await tokenValidatedHandler.HandleTokenValidation(context);
-                   
+                    await tokenValidatedHandler.HandleTokenValidation(context);
+                    //var userManager = context.HttpContext.RequestServices.GetRequiredService<UserManager<AppUser>>();
+                    //var user = await userManager.GetUserAsync(context.Principal);
+                    //var roles = await userManager.GetRolesAsync(user);
+
+                    //var identity = (ClaimsIdentity)context.Principal.Identity;
+                    //foreach (var role in roles)
+                    //{
+                    //    identity.AddClaim(new Claim(ClaimTypes.Role, role));
+                    //}
+
                 }
             };
         });
