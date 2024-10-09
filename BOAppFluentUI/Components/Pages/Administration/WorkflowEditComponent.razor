@@ -226,17 +226,17 @@
     {
         Assembly assembly = Assembly.Load("Application");
         var classes = assembly.GetTypes()
-        .Where(t => t.IsClass && t.Name.EndsWith("FormVm"))
+        // .Where(t => t.IsClass && t.Name.EndsWith("FormVm"))
+        .Where(t => t.IsClass && typeof(IFormVm).IsAssignableFrom(t))
         .Select(t => t.Name)
         .ToList();
-        if(Content.Id == 0)
-        {
-            classes.Insert(0, "Select form");
-        }
+        // if(Content.Id == 0)
+        // {
+        //     classes.Insert(0, "Select form");
+        // }
 
         //remove below before publishing in production
-        classes.Insert(0, "Select form"); 
-        Console.WriteLine();
+        
 
         return classes;
     }

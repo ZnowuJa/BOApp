@@ -34,6 +34,22 @@ public class OrganisationVm : IMapFrom<Organisation>
     public List<OrganisationRoleVm> Role_ComplianceAssistant { get; set; }
     public List<OrganisationRoleVm> Role_ComplianceManager { get; set; }
 
+    public void InitializeRoles()
+    {
+        Role_SalesManager = Role_SalesManager ?? new List<OrganisationRoleVm> { new OrganisationRoleVm() };
+        Role_ServiceManager = Role_ServiceManager ?? new List<OrganisationRoleVm> { new OrganisationRoleVm() };
+        Role_DealerDirector = Role_DealerDirector ?? new List<OrganisationRoleVm> { new OrganisationRoleVm() };
+        Role_RegionDirector = Role_RegionDirector ?? new List<OrganisationRoleVm> { new OrganisationRoleVm() };
+        Role_SettlementsTeam = Role_SettlementsTeam ?? new List<OrganisationRoleVm> { new OrganisationRoleVm() };
+        Role_Cashiers = Role_Cashiers ?? new List<OrganisationRoleVm> { new OrganisationRoleVm() };
+        Role_Accountants = Role_Accountants ?? new List<OrganisationRoleVm> { new OrganisationRoleVm() };
+        Role_AccountantsTeamLeader = Role_AccountantsTeamLeader ?? new List<OrganisationRoleVm> { new OrganisationRoleVm() };
+        Role_HRSpecialists = Role_HRSpecialists ?? new List<OrganisationRoleVm> { new OrganisationRoleVm() };
+        Role_InvestmentsDept = Role_InvestmentsDept ?? new List<OrganisationRoleVm> { new OrganisationRoleVm() };
+        Role_SourcingDept = Role_SourcingDept ?? new List<OrganisationRoleVm> { new OrganisationRoleVm() };
+        Role_ComplianceAssistant = Role_ComplianceAssistant ?? new List<OrganisationRoleVm> { new OrganisationRoleVm() };
+        Role_ComplianceManager = Role_ComplianceManager ?? new List<OrganisationRoleVm> { new OrganisationRoleVm() };
+    }
 
     public void Mapping(Profile profile)
     {

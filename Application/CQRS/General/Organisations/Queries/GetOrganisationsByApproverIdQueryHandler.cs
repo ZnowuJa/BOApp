@@ -87,7 +87,8 @@ public class GetOrganisationsByApproverIdQueryHandler : IRequestHandler<GetOrgan
             Role_HRSpecialists = DeserializeRoles(organisation.Role_HRSpecialists),
             Role_InvestmentsDept = DeserializeRoles(organisation.Role_InvestmentsDept),
             Role_SourcingDept = DeserializeRoles(organisation.Role_SourcingDept),
-            Role_ComplianceAssistant = DeserializeRoles(organisation.Role_ComplianceAssistant)
+            Role_ComplianceAssistant = DeserializeRoles(organisation.Role_ComplianceAssistant),
+            Role_ComplianceManager = DeserializeRoles(organisation.Role_ComplianceManager)
         };
     }
 

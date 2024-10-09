@@ -43,7 +43,7 @@ public class AddCoCOnboardingsJob : IJob
     {
         //Console.WriteLine("AddCoCOnboardingsJob has just started...");
         //var today = DateTime.Now.ToString("yyyy-MM-dd");
-        var today = "2024-10-01";
+        var today = "2024-09-01";
         var emps = await _mediator.Send(new GetAllEmployeesByFTEStartDateQuery(today));
         var allemps = await _mediator.Send(new GetAllEmployeesQuery());
         var positions = await _mediator.Send(new GetAllPositionsQuery());
@@ -74,6 +74,7 @@ public class AddCoCOnboardingsJob : IJob
                     //var instsId = 
                     
                     instStats = groupCoC.Instructions.Select(p => new InstructionStatus { InstructionId = p.Id }).ToList();
+                    //InstStats is instruction plus initial false
                     Console.WriteLine($"instStats: {instStats.Count()}");
                 }
 
@@ -81,7 +82,7 @@ public class AddCoCOnboardingsJob : IJob
                 var onboarding = new OnboardingFormVm()
                 {
                     //WorkflowTemplateId = 2,
-                    EmployeeId = emp.Id,
+                    EmployeeId = emp.EnovaEmpId,
                     EmployeeName = emp.LongName,
                     Approvals = new List<Approval>(),
                     Level1Approvers = _organisation.Role_ComplianceAssistant.Select(role => new OrganisationRoleForFormVm(role)).ToList(),
@@ -97,8 +98,6 @@ public class AddCoCOnboardingsJob : IJob
                 };
                 Console.WriteLine($"onboarding: ready to save");
                 var result = _mediator.Send(new CreateOnboardingFormCommand(onboarding));
-
-
 
 
             }

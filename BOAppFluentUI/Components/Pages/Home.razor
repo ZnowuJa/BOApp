@@ -25,7 +25,7 @@ Welcome to your new app.
 
 <h3>User Claims</h3> *@
 
-@* @if (claims != null && claims.Any())
+@if (claims != null && claims.Any())
 {
     <ul>
         @foreach (var claim in claims)
@@ -38,7 +38,7 @@ else
 {
     <p>No claims available.</p>
 }
- *@
+
 @code {
     private Claim[] claims;
     // private bool isInRole;

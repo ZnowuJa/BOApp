@@ -104,8 +104,11 @@
                 <p></p>
             <FluentDivider Style="width: 100%;" Orientation=Orientation.Horizontal Role="DividerRole.Separator"></FluentDivider>
             <FluentTabs Orientation="Orientation.Horizontal" ActiveTabId="tab-v2">
-                <FluentTab Label="Compliance Assistants" Id="tab-v7">
+                <FluentTab Label="Compliance Assistants" Id="tab-v12">
                     <OrganisationRoleListComponent Roles="@Content.Role_ComplianceAssistant" Employees="@empsList" Title="Compliance Assistants" />
+                </FluentTab>
+                <FluentTab Label="Compliance Managers" Id="tab-v13">
+                    <OrganisationRoleListComponent Roles="@Content.Role_ComplianceManager" Employees="@empsList" Title="Compliance Managers" />
                 </FluentTab>
 @*                 <FluentTab Label="Accountants TeamLeader" Id="tab-v8">
                     <OrganisationRoleListComponent Roles="@Content.Role_AccountantsTeamLeader" Employees="@empsList" Title="Accountants TeamLeader" />
@@ -167,20 +170,7 @@
     {
         _editContext = new EditContext(Content);
 
-        if (Content.Id == 0)
-        {
-            Content.Role_SalesManager = new List<OrganisationRoleVm> { new OrganisationRoleVm() };
-            Content.Role_ServiceManager = new List<OrganisationRoleVm> { new OrganisationRoleVm() };
-            Content.Role_DealerDirector = new List<OrganisationRoleVm> { new OrganisationRoleVm() };
-            Content.Role_RegionDirector = new List<OrganisationRoleVm> { new OrganisationRoleVm() };
-            Content.Role_SettlementsTeam = new List<OrganisationRoleVm> { new OrganisationRoleVm() };
-            Content.Role_Cashiers = new List<OrganisationRoleVm> { new OrganisationRoleVm() };
-            Content.Role_Accountants = new List<OrganisationRoleVm> { new OrganisationRoleVm() };
-            Content.Role_AccountantsTeamLeader = new List<OrganisationRoleVm> { new OrganisationRoleVm() };
-            Content.Role_HRSpecialists = new List<OrganisationRoleVm> { new OrganisationRoleVm() };
-            Content.Role_InvestmentsDept = new List<OrganisationRoleVm> { new OrganisationRoleVm() };
-            Content.Role_SourcingDept = new List<OrganisationRoleVm> { new OrganisationRoleVm() };
-        }
+        Content.InitializeRoles();
 
         empsList = await _mediator.Send(new GetAllEmployeesQuery());
         var dealIq = await _mediator.Send(new GetAllCompaniesByTypeIdQuery(4));

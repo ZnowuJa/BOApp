@@ -20,15 +20,20 @@
     <FluentButton Appearance="Appearance.Neutral" OnClick="@CancelAsync">Cancel</FluentButton>
 </FluentDialogFooter>
 
-<FluentDialogBody>
+<FluentDialogBody Style="overflow-y: auto; overflow-x: hidden;">
     <EditForm EditContext="_editContext">
         <FluentValidationValidator @ref="_fluentValidator" />
-        <FluentTextField @bind-Value="@Content.GroupName" Placeholder="Enter group name">Group Name:</FluentTextField>
-        <FluentValidationMessage For="@(() => Content.GroupName)" />
-        @if (!string.IsNullOrEmpty(errorMessage))
-        {
-            <div class="validation-error"><p style="color:red;">@errorMessage</p></div>
-        }
+        <div style="display: flex; align-items: center; ">
+            <FluentLabel Typo="Typography.Body">Nazwa grupy:</FluentLabel>
+            <FluentSpacer Width="15" />
+            <FluentTextField @bind-Value="@Content.GroupName" Placeholder="Enter group name"/>
+            <FluentValidationMessage For="@(() => Content.GroupName)" />
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="validation-error"><p style="color:red;">@errorMessage</p></div>
+            }
+        </div>
+        <FluentDivider Style="width: 100%; height: 20px; margin-top: 10px;" Orientation=Orientation.Horizontal Role="DividerRole.Presentation"></FluentDivider>
         <FluentDataGrid Items="@Content.Positions.AsQueryable()" TGridItem="PositionVm" GridTemplateColumns="50px repeat(3, 1fr)" ResizableColumns=true>
             <PropertyColumn Property="@(p=>p.Id)" Sortable="true" Align="Align.Start" Tooltip="true" />
             <PropertyColumn Property="@(p=>p.Name)" Sortable="true" Align="Align.Start" Tooltip="true" />
@@ -43,7 +48,7 @@
                 </ChildContent>
             </TemplateColumn>
         </FluentDataGrid>
-        <FluentCombobox TOption="PositionVm"
+@*         <FluentCombobox TOption="PositionVm"
                         Autocomplete="ComboboxAutocomplete.Both"
                         Label="Position:"
                         Items="@itemPositions"
@@ -54,19 +59,24 @@
                         OptionText="@(p => p.Name)"
                         @bind-SelectedOption="@selectedPosition"
                          />
-        <FluentButton IconStart="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddPosition())" />
-        <FluentAutocomplete TOption="PositionVm"
-                            AutoComplete="on"
-                            Label="Group:"
-                            OnOptionsSearch="OnPositionSearch"
-                            MaximumOptionsSearch = "168"
-                            OptionText="@(p => p.Name)"
-                            @bind-SelectedOptions="@SelectedPositions"
-                            Height="550px"
-                            Width="300px"
-                            Class="autocomplete-dropdown" 
+        <FluentButton IconStart="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddPosition())" /> *@
+        <FluentDivider Style="width: 100%; height: 20px; margin-top: 10px;" Orientation=Orientation.Horizontal Role="DividerRole.Presentation"></FluentDivider>
+        <div style="display: flex; align-items: center; ">
+            <FluentLabel Typo="Typography.Body">Wybierz stanowiska: </FluentLabel>
+            <FluentSpacer Width="15" />
+            <FluentAutocomplete TOption="PositionVm"
+                                Id ="PositionIdControl"
+                                AutoComplete="on"
+                                OnOptionsSearch="OnPositionSearch"
+                                MaximumOptionsSearch = "168"
+                                OptionText="@(p => p.Name)"
+                                @bind-SelectedOptions="@SelectedPositions"
+                                Height="550px"
+                                Width="300px"
                             />
-        <FluentButton IconStart="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddPositions())" />
+            <FluentSpacer Width="15" />
+            <FluentButton IconStart="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddPositions())" />
+        </div>
     </EditForm>
 </FluentDialogBody>
 

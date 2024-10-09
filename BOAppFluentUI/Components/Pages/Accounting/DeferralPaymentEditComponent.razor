@@ -156,7 +156,7 @@ else if (showForm)
     private string username { get; set; }
     private EmployeeVm emp { get; set; }
 
-    private FormUserContext _userContext = new FormUserContext();
+    private FormUserContext _userContext = new FormUserContext("Settlement");
 
     private IQueryable<EmployeeVm> itemEmployeesList { get; set; }
     private OrganisationRoleForFormVm approverL1 { get; set; }
@@ -220,7 +220,7 @@ else if (showForm)
         al2 = formItem.Status == "AprobataL2";
         fin = formItem.Status == "Zakończone";
 
-        
+
         _organisation = await _mediator.Send(new GetOrganisationByEmpSapNumberQuery(emp.SapNumber));
         approval = new Approval()
         {
@@ -237,7 +237,7 @@ else if (showForm)
 
     private async Task SetApproversDDL(DeferralPaymentFormVm form)
     {
-        
+
     }
 
     private void HandleChangeApproverL1(ChangeEventArgs e)
@@ -289,7 +289,10 @@ else if (showForm)
         }
 
         formItem.Approvals.Add(approval);
-
+        if (formItem.Status == "Zakończone")
+        {
+            formItem.isApproved = true;
+        }
         var saveResult = await _mediator.Send(new UpdateDeferralPaymentCommand(formItem));
 
         message = $"Wniosek o numerze {saveResult.Number} o opóźnioną płatność dla {saveResult.KontrahentId}, {saveResult.KontrahentName} wysłana!";

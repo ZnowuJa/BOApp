@@ -45,6 +45,7 @@ public class DeferralPaymentFormVm : IMapFrom<DeferralPaymentForm>, IFormVm
     public string LVL2_EnovaEmpId { get; set; }
     public string LVL1_EmployeeName { get; set; }
     public string LVL2_EmployeeName { get; set; }
+    public bool isApproved { get; set; }
 
     public void Mapping(Profile profile)
     {

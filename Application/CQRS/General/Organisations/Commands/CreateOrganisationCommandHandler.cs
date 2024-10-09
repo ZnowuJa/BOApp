@@ -36,7 +36,8 @@ public class CreateOrganisationCommandHandler : IRequestHandler<CreateOrganisati
             Role_HRSpecialists = SerializeRoles(request.Item.Role_HRSpecialists),
             Role_InvestmentsDept = SerializeRoles(request.Item.Role_InvestmentsDept),
             Role_SourcingDept = SerializeRoles(request.Item.Role_SourcingDept),
-            Role_ComplianceAssistant = SerializeRoles(request.Item.Role_ComplianceAssistant)
+            Role_ComplianceAssistant = SerializeRoles(request.Item.Role_ComplianceAssistant),
+            Role_ComplianceManager = SerializeRoles(request.Item.Role_ComplianceManager)
         };
 
         _appDbContext.Organisations.Add(organisation);

@@ -9,4 +9,11 @@ public class FormUserContext
     public string LongName { get; set; }
     public EmployeeVm Employee { get; set; }
     public string EnovaEmpId { get; set; }
+    public bool isFormAdmin { get; set; }
+    public string AdminRole { get; set; }
+
+    public FormUserContext(string adminRole)
+    {
+        AdminRole = adminRole;
+    }
 }

@@ -60,13 +60,24 @@ public static class Utils
 
     public static bool IsEditDisabled<T>(T context, FormUserContext _userContext) where T : IFormVm
     {
+        var roles = _userContext.Employee.Roles.ToList();
+        if (_userContext.Employee.Roles.Contains(_userContext.AdminRole))
+        {
+            return false;
+        }
+
         if (context.Status == "AprobataL1")
         {
+            var test = context.LVL1_EnovaEmpId == _userContext.EnovaEmpId;
+            Console.WriteLine(test);
             return !(context.LVL1_EnovaEmpId == _userContext.EnovaEmpId);
         }
         if (context.Status == "AprobataL2")
         {
-            return !context.Level2Approvers.Any(approver => approver.EmpId.ToString() == _userContext.EnovaEmpId);
+            var test = context.Level2Approvers.Any(approver => approver.EmpId.ToString() == _userContext.EnovaEmpId);
+            Console.WriteLine(test);
+            return !(context.Level2Approvers.Any(approver => approver.EmpId.ToString() == _userContext.EnovaEmpId));
+
         }
         return true; // Default to disabled if none of the conditions match
     }

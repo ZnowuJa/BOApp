@@ -109,10 +109,12 @@
         new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "Data", Property = c => c.Requested.ToString(), IsVisible = true }
     };
 
-    private FormUserContext _userContext = new FormUserContext();
+    private FormUserContext _userContext = new FormUserContext("Settlement");
 
     private bool actionsDisabled = false;
     private bool viewDisabled = false;
+    private bool editDisabled = false;
+    // > Utils.IsEditDisabled(context, _userContext) || @actionsDisabled;
 
     private ToastIntent intent { get; set; }
     private string toastMessage { get; set; } = string.Empty;
@@ -136,6 +138,7 @@
             "rozrachunki" or "settlements" => await _mediator.Send(new GetAllDeferralPaymentFormQuery()),
             _ => throw new ArgumentException("Błędny adres strony!")
         };
+        
     }
     private async Task<IQueryable<DeferralPaymentFormVm>> HandleSavedCase()
     {
@@ -175,19 +178,7 @@
                     });
             //     var result = await dialog.Result;
     }
-
-    private bool IsEditDisabled(DeferralPaymentFormVm context)
-    {
-        if (context.Status == "AprobataL1")
-        {
-            return !(context.LVL1_EnovaEmpId == _userContext.EnovaEmpId);
-
-        }
-        if (context.Status == "AprobataL2")
-        {
-            return !context.Level2Approvers.Any(approver => approver.EmpId.ToString() == _userContext.EnovaEmpId);
-        }
-        return true; // Default to disabled if none of the conditions match
-    }
+    
+    
 
 }
