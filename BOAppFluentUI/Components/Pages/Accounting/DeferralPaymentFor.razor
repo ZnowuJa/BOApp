@@ -167,6 +167,7 @@ else
 
         itemEmployeesList = await _mediator.Send(new GetAllEmployeesQuery());
         _organisation = await _mediator.Send(new GetOrganisationByEmpSapNumberQuery(emp.SapNumber));
+        formItem.Approvals = new List<Approval>();
         Approval approval = new Approval()
         {
             Status = formItem.Status,
@@ -175,7 +176,6 @@ else
             Date = DateTime.Now,
             IsApproved = true
         };
-        formItem.Approvals = new List<Approval>();
         formItem.Approvals.Add(approval);
         formItem.WorkflowTemplateId = wf.Id;
 

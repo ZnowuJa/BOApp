@@ -29,5 +29,6 @@ public class DeferralPaymentForm : FormTemplate
     public string LVL1_EmployeeName { get; set; }
     public string LVL2_EmployeeName { get; set; }
     public bool isApproved { get; set; }
+    public bool isApplied {  get; set; }
 
 }
