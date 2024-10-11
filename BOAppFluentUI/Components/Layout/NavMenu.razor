@@ -6,7 +6,7 @@
     <nav class="sitenav" aria-labelledby="main-menu" onclick="document.getElementById('navmenu-toggle').click();">
         <FluentNavMenu Id="main-menu" Collapsible="true" Width="250" Title="Navigation menu" @bind-Expanded="expanded">
             
-            <FluentNavLink Href="/" Match="NavLinkMatch.All" Icon="@(new Icons.Regular.Size20.Home())" IconColor="Color.Accent">Start</FluentNavLink>
+            <FluentNavLink Href="/" Match="NavLinkMatch.All" Icon="@(new Icons.Regular.Size20.Home())" IconColor="Microsoft.FluentUI.AspNetCore.Components.Color.Accent">Start</FluentNavLink>
             <AuthorizeView Policy="Technician">
                 <FluentNavGroup OnClick="OnClick" Title="IT CMDB IT" Icon="@(new Icons.Regular.Size24.DesktopPulse())">
                     <ChildContent>
@@ -24,12 +24,12 @@
             </AuthorizeView>
             <AuthorizeView Policy="User">
                 
-                <FluentNavLink Href="rozrachunki" Match="NavLinkMatch.All" Icon="@(new Icons.Regular.Size20.Home())" IconColor="Color.Accent">Rozrachunki</FluentNavLink>
-                <FluentNavLink Href="/coc" Match="NavLinkMatch.All" Icon="@(new Icons.Regular.Size20.Home())" IconColor="Color.Accent">Compliance</FluentNavLink>
+                <FluentNavLink Href="rozrachunki" Match="NavLinkMatch.All" Icon="@(new Icons.Regular.Size20.Home())" IconColor="Microsoft.FluentUI.AspNetCore.Components.Color.Accent">Rozrachunki</FluentNavLink>
+                <FluentNavLink Href="/coc" Match="NavLinkMatch.All" Icon="@(new Icons.Regular.Size20.Home())" IconColor="Microsoft.FluentUI.AspNetCore.Components.Color.Accent">Compliance</FluentNavLink>
 
                 @if (envi == "DEV")
                 {
-                    <FluentNavLink Href="/testforms" Match="NavLinkMatch.All" Icon="@(new Icons.Regular.Size20.Home())" IconColor="Color.Accent">TestForm</FluentNavLink>
+                    <FluentNavLink Href="/testforms" Match="NavLinkMatch.All" Icon="@(new Icons.Regular.Size20.Home())" IconColor="Microsoft.FluentUI.AspNetCore.Components.Color.Accent">TestForm</FluentNavLink>
                     
                 }
                 

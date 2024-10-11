@@ -29,9 +29,9 @@ public class UpdateDeferralPaymentCommandHandler : IRequestHandler<UpdateDeferra
     private readonly IMapper _mapper;
     private readonly IEmailService _mailService;
     private readonly IConfiguration _configuration;
-    private ILogger _logger;
+    private ILogger<UpdateDeferralPaymentCommandHandler> _logger;
 
-    public UpdateDeferralPaymentCommandHandler(IAppDbContext appDbContext, IMapper mapper, IEmailService mailService, IConfiguration configuration, IAsDbContext asDbContext, ILogger logger)
+    public UpdateDeferralPaymentCommandHandler(IAppDbContext appDbContext, IMapper mapper, IEmailService mailService, IConfiguration configuration, IAsDbContext asDbContext, ILogger<UpdateDeferralPaymentCommandHandler> logger)
     {
         _appDbContext = appDbContext;
         _mapper = mapper;
@@ -91,13 +91,14 @@ public class UpdateDeferralPaymentCommandHandler : IRequestHandler<UpdateDeferra
                 item.Approvals = SerializeApprovals(request.Item.Approvals);
                 item.Level1Approvers = SerializeRole(request.Item.Level1Approvers);
                 item.Level2Approvers = SerializeRole(request.Item.Level2Approvers);
+                item.isApproved = request.Item.isApproved;
             }
 
 
             _appDbContext.DeferralPayments.Update(item);
             await _appDbContext.SaveChangesAsync();
             _logger.LogInformation($"DeferralPayment {item.Id} saved successfully, is Approveed: {item.isApproved} ");
-            if (orgIsApproved)
+            if (item.isApproved)
             {
                 bool spSuccess = false;
                 var paymentMethod = item.isApproved ? 1 : 0;
@@ -140,8 +141,8 @@ public class UpdateDeferralPaymentCommandHandler : IRequestHandler<UpdateDeferra
         }
 
 
-        //Console.WriteLine();
-        //await SendEmail(senderName, rcptEmail, rcptName, custName, frmNumber, reason, id, status, userEmail);
+        Console.WriteLine();
+        await SendEmail(senderName, rcptEmail, rcptName, custName, frmNumber, reason, id, status, userEmail);
         return request.Item;
 
     }
@@ -172,7 +173,7 @@ public class UpdateDeferralPaymentCommandHandler : IRequestHandler<UpdateDeferra
 
         if (status == "AprobataL1" || status == "AprobataL2")
         {
-            subject = $"Nowy wniosek o odroczoną płatność ({frmNumber}) oczekuje na aprobatę)";
+            subject = $"Wniosek o odroczoną płatność ({frmNumber}) oczekuje na aprobatę)";
             body = $@"
                 <!DOCTYPE html>
                 <html>
