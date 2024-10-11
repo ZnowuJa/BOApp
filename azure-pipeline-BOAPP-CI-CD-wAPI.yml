@@ -138,7 +138,7 @@ stages:
                     Write-Host "EnvName: $(EnvName)"
                     $appSettings = Get-Content $(appSettingsPath) -Raw | ConvertFrom-Json
                     $appSettings.ConnectionStrings.AppDbContextConnection = "$(AppDbContextConnectionDEV)"
-                    $appSettings.ConnectionStrings.AsDbContextConnection = "$(AsDbContextConnection)"
+                    $appSettings.ConnectionStrings.AsDbContextConnection = "$(AsDbContextConnectionDEV)"
                     $appSettings.BaseUrl = "$(baseUrlDEV)"
                     $appSettings.AppVersion = "$(commitId)"
                     $appSettings.Environment = "DEV"
