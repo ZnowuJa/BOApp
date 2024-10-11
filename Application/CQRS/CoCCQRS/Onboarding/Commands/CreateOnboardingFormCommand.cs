@@ -7,6 +7,7 @@ using Application.ViewModels.General;
 
 using AutoMapper;
 
+using Domain.Entities.Common;
 using Domain.Forms;
 
 using MediatR;
@@ -43,53 +44,109 @@ public class CreateOnboardingFormCommandHandler : IRequestHandler<CreateOnboardi
     }
     public async Task<OnboardingFormVm> Handle(CreateOnboardingFormCommand request, CancellationToken cancellationToken)
     {
-        using var transaction = await _appDbContext.BeginTransactionAsync();
-        try
+        var _approvals = SerializeApprovals(request.Item.Approvals);
+        var _Level1Approvers = SerializeRole(request.Item.Level1Approvers);
+        var _Level2Approvers = SerializeRole(request.Item.Level2Approvers);
+        var _Instructions = SerializeInstructions(request.Item.Instructions);
+        var _group = request.Item.Group;
+        var _note = request.Item.Note??String.Empty;
+        var _progress = request.Item.Progress;
+        var _FirstRun = request.Item.FirstRun;
+        var _EmployeeId = request.Item.EmployeeId;
+        var _EmployeeName = request.Item.EmployeeName ?? string.Empty;
+        var _ManagerId = request.Item.ManagerId;
+        var _Requested = DateTime.Now;
+        var _LVL1_EnovaEmpId = request.Item.LVL1_EnovaEmpId ?? string.Empty;
+        var _LVL2_EnovaEmpId = request.Item.LVL2_EnovaEmpId ?? string.Empty;
+        var _LVL1_EmployeeName = request.Item.LVL1_EmployeeName ?? string.Empty;
+        var _LVL2_EmployeeName = request.Item.LVL2_EmployeeName ?? string.Empty;
+        var _FormFiles = request.Item.FormFiles ?? new List<FormFile>();
+        var item = new OnboardingForm()
         {
-            var item = _mapper.Map<OnboardingForm>(request.Item);
-            item.Approvals = SerializeApprovals(request.Item.Approvals);
-            item.Level1Approvers = SerializeRole(request.Item.Level1Approvers);
-            item.Level2Approvers = SerializeRole(request.Item.Level2Approvers);
-            item.Instructions = SerializeInstructions(request.Item.Instructions);
+            Approvals = _approvals,
+            Level1Approvers = _Level1Approvers,
+            Level2Approvers = _Level2Approvers,
+            Instructions = _Instructions,
+            Group = _group,
+            Note = _note,
+            Progress = _progress,
+            FirstRun = _FirstRun,
+            EmployeeId = _EmployeeId,
+            EmployeeName = _EmployeeName,
+            ManagerId = _ManagerId,
+            Requested = _Requested,
+            LVL1_EnovaEmpId = _LVL1_EnovaEmpId,
+            LVL2_EnovaEmpId = _LVL2_EnovaEmpId,
+            LVL1_EmployeeName = _LVL1_EmployeeName,
+            LVL2_EmployeeName = _LVL2_EmployeeName,
+            FormFiles = _FormFiles,
+        };
 
-            _appDbContext.OnboardingForms.Add(item);
-            await _appDbContext.SaveChangesAsync();
+        _appDbContext.OnboardingForms.Add(item);
+        await _appDbContext.SaveChangesAsync();
+        //if (res != 0)
+        //{
+        //    var onb = await _appDbContext.OnboardingForms.Where(o => o.Id == res).FirstOrDefaultAsync();
+        //    onb.Number = $"{item.NumberPrefix}{item.Id.ToString("D8")}";
+        //    _appDbContext.OnboardingForms.Update(onb);
+        //    await _appDbContext.SaveChangesAsync();
+        //}
 
-            item.Number = $"{item.NumberPrefix}{item.Id.ToString("D8")}";
-            item.StatusId = 1;
+        Console.WriteLine(item.Number);
 
-            _appDbContext.OnboardingForms.Update(item);
-            item.Requested = DateTime.Now;
-            await _appDbContext.SaveChangesAsync();
+        item.Number = $"{item.NumberPrefix}{item.Id.ToString("D8")}";
 
-            await transaction.CommitAsync();
-
-            request.Item.Id = item.Id;
-            request.Item.Number = item.Number;
-            request.Item.Status = item.Status;
-            request.Item.Requested = item.Requested;
-        }
-        catch (Exception ex)
-        {
-
-            await transaction.RollbackAsync();
-            //_logger.LogInformation($"CreateOnboardingFormCommandHandler {ex.Message}, {ex.InnerException}");
-            throw;
-        }
-
-        var employee = await _appDbContext.Employees.Where(p => p.EnovaEmpId == request.Item.EmployeeId).FirstOrDefaultAsync();
-        var manager = await _appDbContext.Employees.Where(p => p.EnovaEmpId == int.Parse(request.Item.LVL1_EnovaEmpId)).FirstOrDefaultAsync();
-
-        string senderName = request.Item.EmployeeName;
-        string rcptEmail = manager.Email;
-        string rcptName = manager.LongName;
-        string custName = string.Empty; //request.Item.KontrahentName;
-        string frmNumber = request.Item.Number;
-        string reason = request.Item.Note;
-        string id = request.Item.Id.ToString();
+        _appDbContext.OnboardingForms.Update(item);
+        await _appDbContext.SaveChangesAsync();
 
 
-        await SendEmail(senderName, rcptEmail, rcptName, custName, frmNumber, reason, id);
+        //using var transaction = await _appDbContext.BeginTransactionAsync();
+        //try
+        //{
+        //    var item = _mapper.Map<OnboardingForm>(request.Item);
+        //    item.Approvals = SerializeApprovals(request.Item.Approvals);
+        //    item.Level1Approvers = SerializeRole(request.Item.Level1Approvers);
+        //    item.Level2Approvers = SerializeRole(request.Item.Level2Approvers);
+        //    item.Instructions = SerializeInstructions(request.Item.Instructions);
+
+        //    _appDbContext.OnboardingForms.Add(item);
+        //    await _appDbContext.SaveChangesAsync();
+
+        //    item.Number = $"{item.NumberPrefix}{item.Id.ToString("D8")}";
+        //    item.StatusId = 1;
+
+        //    _appDbContext.OnboardingForms.Update(item);
+        //    item.Requested = DateTime.Now;
+        //    await _appDbContext.SaveChangesAsync();
+
+        //    await transaction.CommitAsync();
+
+        //    request.Item.Id = item.Id;
+        //    request.Item.Number = item.Number;
+        //    request.Item.Status = item.Status;
+        //    request.Item.Requested = item.Requested;
+        //}
+        //catch (Exception ex)
+        //{
+
+        //    await transaction.RollbackAsync();
+        //    //_logger.LogInformation($"CreateOnboardingFormCommandHandler {ex.Message}, {ex.InnerException}");
+        //    throw;
+        //}
+
+        //var employee = await _appDbContext.Employees.Where(p => p.EnovaEmpId == request.Item.EmployeeId).FirstOrDefaultAsync();
+        //var manager = await _appDbContext.Employees.Where(p => p.EnovaEmpId == int.Parse(request.Item.LVL1_EnovaEmpId)).FirstOrDefaultAsync();
+
+        //string senderName = request.Item.EmployeeName;
+        //string rcptEmail = manager.Email;
+        //string rcptName = manager.LongName;
+        //string custName = string.Empty; //request.Item.KontrahentName;
+        //string frmNumber = request.Item.Number;
+        //string reason = request.Item.Note;
+        //string id = request.Item.Id.ToString();
+
+
+        //await SendEmail(senderName, rcptEmail, rcptName, custName, frmNumber, reason, id);
 
 
         return request.Item;
@@ -97,17 +154,17 @@ public class CreateOnboardingFormCommandHandler : IRequestHandler<CreateOnboardi
 
     private string SerializeApprovals(List<ViewModels.General.Approval> approvals)
     {
-        return approvals == null || approvals.Count == 0 ? null : JsonSerializer.Serialize(approvals);
+        return approvals == null || approvals.Count == 0 ? string.Empty : JsonSerializer.Serialize(approvals);
     }
 
     private string SerializeRole(List<OrganisationRoleForFormVm> roles)
     {
-        return roles == null || roles.Count == 0 ? null : JsonSerializer.Serialize(roles);
+        return roles == null || roles.Count == 0 ? string.Empty : JsonSerializer.Serialize(roles);
     }
 
     private string SerializeInstructions(List<InstructionStatus> items)
     {
-        return items == null || items.Count == 0 ? null : JsonSerializer.Serialize(items);
+        return items == null || items.Count == 0 ? string.Empty : JsonSerializer.Serialize(items);
     }
 
     private async Task SendEmail(string senderName, string rcptEmail, string rcptName, string custName, string frmNumber, string reason, string id)

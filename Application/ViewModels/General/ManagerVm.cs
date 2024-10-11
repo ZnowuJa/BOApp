@@ -13,6 +13,7 @@ public class ManagerVm : IMapFrom<Employee>
     public string? MobileNumber { get; set; }
     public string? PhoneNumber { get; set; }
     public int EnovaEmpId { get; set; }
+    public string DeptNumber { get; set; }
 
     public ManagerVm()
     {
@@ -24,6 +25,7 @@ public class ManagerVm : IMapFrom<Employee>
         MobileNumber = string.Empty;
         PhoneNumber = string.Empty;
         EnovaEmpId = 0;
+        DeptNumber = string.Empty;
     }
     public void Mapping(Profile profile)
     {

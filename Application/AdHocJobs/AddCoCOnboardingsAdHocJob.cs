@@ -14,38 +14,33 @@ using Application.CQRS.ITWarehouseCQRS.Employees.Queries;
 using Application.Forms;
 using Application.Interfaces;
 using Application.ITWarehouseCQRS.Employees.Queries;
-using Application.ViewModels.CoC;
-using Application.ViewModels.General;
 
-using Domain.Entities.CoC;
-using Domain.Forms;
+using Application.ViewModels.CoC;
+
+using Application.ViewModels.General;
 
 using MediatR;
 
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-
 using Quartz;
-//Application.BackgroundJobs.AddCoCOnboardingsJob
-namespace Application.BackgroundJobs;
-public class AddCoCOnboardingsJob : IJob
+
+namespace Application.AdHocJobs;
+public class AddCoCOnboardingsAdHocJob
 {
-    private readonly IAppDbContext _appDbContext;
+    //private readonly IAppDbContext _appDbContext;
     private readonly IMediator _mediator;
 
-    public AddCoCOnboardingsJob(IAppDbContext appDbContext, IMediator mediator)
+    public AddCoCOnboardingsAdHocJob(IMediator mediator)
     {
-        _appDbContext = appDbContext;
+        
         _mediator = mediator;
 
     }
-    public async Task Execute(IJobExecutionContext context)
-    {
-        //Console.WriteLine("AddCoCOnboardingsJob has just started...");
-        //var today = DateTime.Now.ToString("yyyy-MM-dd");
+
+    public async Task Execute()
+    { 
         var today = "2024-05-02";
         var emps = await _mediator.Send(new GetAllEmployeesByFTEStartDateQuery(today));
-        var allemps = await _mediator.Send(new GetAllEmployeesQuery());
+        //var allemps = await _mediator.Send(new GetAllEmployeesQuery());
         var positions = await _mediator.Send(new GetAllPositionsQuery());
         var instructions = await _mediator.Send(new GetAllInstructionCoCsQuery());
         var organisations = await _mediator.Send(new GetAllOrganisationsQuery());
@@ -61,11 +56,11 @@ public class AddCoCOnboardingsJob : IJob
             {
                 Console.WriteLine($"Position: {position.Name}");
             }
-            catch 
+            catch
             {
                 continue;
             }
-            
+
             if (position != null)
             {
                 var groupCoC = groups.Where(gc => gc.Id == position.GroupCoCId).FirstOrDefault();
@@ -73,7 +68,7 @@ public class AddCoCOnboardingsJob : IJob
                 if (groupCoC != null)
                 {
                     //var instsId = 
-                    
+
                     instStats = groupCoC.Instructions.Select(p => new InstructionStatus { InstructionId = p.Id }).ToList();
                     //InstStats is instruction plus initial false
                     Console.WriteLine($"instStats: {instStats.Count()}");
@@ -86,11 +81,11 @@ public class AddCoCOnboardingsJob : IJob
                     EmployeeId = emp.EnovaEmpId,
                     EmployeeName = emp.LongName,
                     Approvals = new List<Approval>(),
-                    Level1Approvers = _organisation.Role_ComplianceAssistant.Select(role => new OrganisationRoleForFormVm(role)).ToList()??new List<OrganisationRoleForFormVm>(),
+                    Level1Approvers = _organisation.Role_ComplianceAssistant.Select(role => new OrganisationRoleForFormVm(role)).ToList() ?? new List<OrganisationRoleForFormVm>(),
                     Level2Approvers = _organisation.Role_ComplianceManager.Select(role => new OrganisationRoleForFormVm(role)).ToList() ?? new List<OrganisationRoleForFormVm>(),
                     LVL1_EnovaEmpId = _organisation.Role_ComplianceAssistant.Where(e => e.IsDefault == true).Select(m => m.EmpId).FirstOrDefault().ToString() ?? String.Empty,
                     LVL2_EnovaEmpId = _organisation.Role_ComplianceManager.Where(e => e.IsDefault == true).Select(m => m.EmpId).FirstOrDefault().ToString() ?? String.Empty,
-                    LVL1_EmployeeName = _organisation.Role_ComplianceAssistant.Where(e => e.IsDefault).Select(m => m.Employee.LongName).FirstOrDefault()??String.Empty,
+                    LVL1_EmployeeName = _organisation.Role_ComplianceAssistant.Where(e => e.IsDefault).Select(m => m.Employee.LongName).FirstOrDefault() ?? String.Empty,
                     LVL2_EmployeeName = _organisation.Role_ComplianceManager.Where(e => e.IsDefault).Select(m => m.Employee.LongName).FirstOrDefault() ?? String.Empty,
                     ManagerId = emp.ManagerId,
                     Instructions = instStats,
@@ -98,7 +93,15 @@ public class AddCoCOnboardingsJob : IJob
                     FirstRun = true
                 };
                 Console.WriteLine($"onboarding: ready to save");
-                var result = await _mediator.Send(new CreateOnboardingFormCommand(onboarding));
+                try
+                {
+                    var result = await _mediator.Send(new CreateOnboardingFormCommand(onboarding));
+                }
+                catch (Exception ex) 
+                { 
+                    Console.WriteLine(ex.Message.ToString());
+                }
+
             }
             else
             {
@@ -124,4 +127,5 @@ public class AddCoCOnboardingsJob : IJob
     {
         return items == null || items.Count == 0 ? null : JsonSerializer.Serialize(items);
     }
+
 }

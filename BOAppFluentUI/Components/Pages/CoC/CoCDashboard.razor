@@ -1,6 +1,7 @@
 ﻿@page "/coc"
 @page "/compliance"
 
+@using Application.AdHocJobs
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.FluentUI.AspNetCore.Components.Extensions
@@ -93,6 +94,24 @@
             </FluentStack>
         </FluentCard>
     </AuthorizeView>
+    <AuthorizeView Policy="Settlements">
+        <FluentCard Style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); border-radius: 10px; overflow: hidden;">
+            <FluentStack Orientation="Orientation.Vertical"
+                         HorizontalAlignment="HorizontalAlignment.Center"
+                         VerticalAlignment="VerticalAlignment.Center"
+                         Spacing="10px"
+                         Style="padding: 20px;">
+                @(new Icons.Regular.Size24.Desktop().ToMarkup("48px"))
+                <h4 style="margin: 0;">Generuj </h4>
+                <FluentButton BackgroundColor="var(--accent-fill-rest)"
+                              Disabled="false"
+                              Color="var(--neutral-fill-rest)"
+                              OnClick="@(()=>Generate())">
+                    Generuj
+                </FluentButton>
+            </FluentStack>
+        </FluentCard>
+    </AuthorizeView>
 </FluentStack>
 
 
@@ -101,6 +120,11 @@
 
     public int xssize { get; set; } = 2;
     public int smsize { get; set; } = 2;
+    // public /* AddCoCOnboardingsAdHocJob job = new AddCoCOnboardingsAdHocJob(); */
 
-
+    private async Task Generate()
+    {
+        AddCoCOnboardingsAdHocJob job = new AddCoCOnboardingsAdHocJob(_mediator);
+        job.Execute();
+    } 
 }

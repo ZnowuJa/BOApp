@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Data;
+using System.Text.Json;
 
 using Application.Forms;
 using Application.Interfaces;
@@ -11,30 +12,36 @@ using Domain.Forms;
 using MediatR;
 
 using Microsoft.EntityFrameworkCore;
+
 using Microsoft.Extensions.Configuration;
 using Microsoft.Graph.Models;
 using Microsoft.Graph.Models.ExternalConnectors;
 using Microsoft.Graph.Models.Security;
 using Microsoft.Graph.Privacy.SubjectRightsRequests.Item.Approvers;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Application.CQRS.AccountingCQRS.DeferralPayment.Commands;
 public class UpdateDeferralPaymentCommandHandler : IRequestHandler<UpdateDeferralPaymentCommand, DeferralPaymentFormVm>
 {
     private readonly IAppDbContext _appDbContext;
+    private readonly IAsDbContext _asDbContext;
     private readonly IMapper _mapper;
     private readonly IEmailService _mailService;
     private readonly IConfiguration _configuration;
 
-    public UpdateDeferralPaymentCommandHandler(IAppDbContext appDbContext, IMapper mapper, IEmailService mailService, IConfiguration configuration)
+    public UpdateDeferralPaymentCommandHandler(IAppDbContext appDbContext, IMapper mapper, IEmailService mailService, IConfiguration configuration, IAsDbContext asDbContext)
     {
         _appDbContext = appDbContext;
         _mapper = mapper;
         _mailService = mailService;
         _configuration = configuration;
+        _asDbContext = asDbContext;
     }
 
     public async Task<DeferralPaymentFormVm> Handle(UpdateDeferralPaymentCommand request, CancellationToken cancellationToken)
     {
+        bool orgIsApproved = false;
+
         var employee = await _appDbContext.Employees.Where(p => p.EnovaEmpId == request.Item.EmployeeId).FirstOrDefaultAsync(cancellationToken);
         var manager = await _appDbContext.Employees.Where(p => p.EnovaEmpId == int.Parse(request.Item.LVL1_EnovaEmpId)).FirstOrDefaultAsync(cancellationToken);
         
@@ -47,18 +54,6 @@ public class UpdateDeferralPaymentCommandHandler : IRequestHandler<UpdateDeferra
         string id = request.Item.Id.ToString();
         string status = request.Item.Status;
         string userEmail = employee.Email;
-
-        //if (request.Item.Status == "AprobataL2")
-        //{
-        //    rcptEmail = string.Empty;
-        //    rcptName = "Dział Rozrachunków";
-
-        //    var emailTasks = request.Item.Level2Approvers.Select(async l => (await _appDbContext.Employees.FirstOrDefaultAsync(p => p.EnovaEmpId == l.EmpId, cancellationToken))?.Email);
-        //    var emails = await Task.WhenAll(emailTasks);
-        //    Console.WriteLine();
-        //    rcptEmail = string.Join(";", emails.Where(email => !string.IsNullOrEmpty(email)));
-        ////    Console.WriteLine();
-        //}
 
         if (request.Item.Status == "AprobataL2")
         {
@@ -86,6 +81,7 @@ public class UpdateDeferralPaymentCommandHandler : IRequestHandler<UpdateDeferra
         try
         {
             var item = await _appDbContext.DeferralPayments.FindAsync(request.Item.Id, cancellationToken);
+            orgIsApproved = item.isApproved;
             if (item != null)
             {
                 _mapper.Map(request.Item, item);
@@ -97,6 +93,33 @@ public class UpdateDeferralPaymentCommandHandler : IRequestHandler<UpdateDeferra
 
             _appDbContext.DeferralPayments.Update(item);
             await _appDbContext.SaveChangesAsync();
+
+            if (orgIsApproved)
+            {
+                bool spSuccess = false;
+                var paymentMethod = item.isApproved ? 1 : 0;
+                var customerId = int.Parse(item.KontrahentId);
+                try
+                {
+
+                    // Use EF Core to call the stored procedure
+                    var res = await _asDbContext.ChangePaymentMethod(paymentMethod, customerId);
+                    spSuccess = res !=0;
+                }
+                catch (Exception ex)
+                {
+                    // Log or handle the error appropriately
+                    throw new Exception("Error executing remote stored procedure.", ex);
+                }
+
+                // After the stored procedure call, update `isApplied`
+                if (spSuccess && !item.isApplied)
+                {
+                    item.isApplied = true;
+                    _appDbContext.DeferralPayments.Update(item);
+                    await _appDbContext.SaveChangesAsync(cancellationToken);
+                }
+            }
 
             await transaction.CommitAsync();
 
@@ -110,7 +133,7 @@ public class UpdateDeferralPaymentCommandHandler : IRequestHandler<UpdateDeferra
 
 
         //Console.WriteLine();
-        await SendEmail(senderName, rcptEmail, rcptName, custName, frmNumber, reason, id, status, userEmail);
+        //await SendEmail(senderName, rcptEmail, rcptName, custName, frmNumber, reason, id, status, userEmail);
         return request.Item;
 
     }

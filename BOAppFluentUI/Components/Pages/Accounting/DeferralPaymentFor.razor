@@ -141,6 +141,7 @@ else
     private ClaimsPrincipal? user { get; set; }
     private string username { get; set; }
     private EmployeeVm emp { get; set; }
+    private FormUserContext _userContext = new FormUserContext("Settlement");
     private IQueryable<EmployeeVm> itemEmployeesList { get; set; }
     private OrganisationRoleForFormVm approverL1 { get; set; }
     private OrganisationRoleForFormVm approverL2 { get; set; }
@@ -163,10 +164,12 @@ else
     protected override async Task OnInitializedAsync()
     {
         await GetUserName();
+        await Utils.GetUserName(AuthenticationStateProvider, _userContext, _mediator);
         wf = await _mediator.Send(new GetWorkflowTemplateByFormNameQuery(FormName));
 
         itemEmployeesList = await _mediator.Send(new GetAllEmployeesQuery());
-        _organisation = await _mediator.Send(new GetOrganisationByEmpSapNumberQuery(emp.SapNumber));
+        _organisation = await _mediator.Send(new GetOrganisationByEmpSapNumberQuery(_userContext.Employee.SapNumber));
+        // _userContext.Employee.DeptNumber;
         formItem.Approvals = new List<Approval>();
         Approval approval = new Approval()
         {
@@ -178,9 +181,22 @@ else
         };
         formItem.Approvals.Add(approval);
         formItem.WorkflowTemplateId = wf.Id;
-
+        // if ()
         // var wf = await _mediator.Send(new GetWorkflow;
-        formItem.Level1Approvers = await SetApproversL1(_organisation.Role_SalesManager);
+
+        string deptNumber = _userContext.Employee.DeptNumber;
+
+        string role2select = deptNumber switch
+        {
+            var d when d.StartsWith("01") || d.StartsWith("11") || d.StartsWith("09") => "Role_SalesManager",
+            var d when d.StartsWith("02") || d.StartsWith("03") => "Role_ServiceManager",
+            _ => "default" // Optional: handle other cases if needed
+        };
+
+        var propertyInfo = typeof(OrganisationVm).GetProperty(role2select);
+        var propertyValue = propertyInfo.GetValue(_organisation) as List<OrganisationRoleVm>;
+
+        formItem.Level1Approvers = await SetApproversL1(propertyValue);
         formItem.Level2Approvers = SetApprovers(_organisation.Role_SettlementsTeam);
         // await _mediator.Send(new GetEmployeeByAIDQuery())
         await Load();

@@ -1,6 +1,8 @@
 ﻿using Application.Interfaces;
 using BackOfficeApp_Domain.Common;
 using Domain.Entities.Accounting;
+
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
@@ -20,6 +22,7 @@ public class AsDbContext : DbContext, IAsDbContext
     //}
 
     public DbSet<Customer> v_KONTRAHENCI_LISTA { get; set; }
+    
     
 
     Task<int> IAsDbContext.SaveChangesAsync(CancellationToken cancellationToken)
@@ -97,6 +100,27 @@ public class AsDbContext : DbContext, IAsDbContext
     public Task<int> ExecuteSqlRawAsync(string sql, params object[] parameters)
     {
         return Database.ExecuteSqlRawAsync(sql, parameters);
+    }
+    public Task<int> ChangePaymentMethod(int paymentMethod, int customerId)
+    {
+        // Call the stored procedure on the remote server
+        try
+        {
+            // Call the stored procedure on the remote server
+            var sql = "EXEC dbo.ChangePaymentMethod @PaymentMethod, @CustomerID";
+            Database.ExecuteSqlRaw(sql, new SqlParameter("@PaymentMethod", paymentMethod), new SqlParameter("@CustomerID", customerId));
+            Console.WriteLine(sql);
+
+            // Return success
+            return Task.FromResult(1);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"An error occurred: {ex.Message}");
+
+            // Return failure
+            return Task.FromResult(0);
+        }
     }
 
 }
