@@ -39,6 +39,7 @@ public class UpdateDeferralPaymentCommandHandler : IRequestHandler<UpdateDeferra
         _configuration = configuration;
         _asDbContext = asDbContext;
         _logger = logger;
+
     }
 
     public async Task<DeferralPaymentFormVm> Handle(UpdateDeferralPaymentCommand request, CancellationToken cancellationToken)
