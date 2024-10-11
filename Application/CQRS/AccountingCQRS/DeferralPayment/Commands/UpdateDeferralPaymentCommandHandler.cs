@@ -14,6 +14,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.Graph.Models;
 using Microsoft.Graph.Models.ExternalConnectors;
 using Microsoft.Graph.Models.Security;
@@ -28,14 +29,16 @@ public class UpdateDeferralPaymentCommandHandler : IRequestHandler<UpdateDeferra
     private readonly IMapper _mapper;
     private readonly IEmailService _mailService;
     private readonly IConfiguration _configuration;
+    private ILogger _logger;
 
-    public UpdateDeferralPaymentCommandHandler(IAppDbContext appDbContext, IMapper mapper, IEmailService mailService, IConfiguration configuration, IAsDbContext asDbContext)
+    public UpdateDeferralPaymentCommandHandler(IAppDbContext appDbContext, IMapper mapper, IEmailService mailService, IConfiguration configuration, IAsDbContext asDbContext, ILogger logger)
     {
         _appDbContext = appDbContext;
         _mapper = mapper;
         _mailService = mailService;
         _configuration = configuration;
         _asDbContext = asDbContext;
+        _logger = logger;
     }
 
     public async Task<DeferralPaymentFormVm> Handle(UpdateDeferralPaymentCommand request, CancellationToken cancellationToken)
@@ -93,31 +96,36 @@ public class UpdateDeferralPaymentCommandHandler : IRequestHandler<UpdateDeferra
 
             _appDbContext.DeferralPayments.Update(item);
             await _appDbContext.SaveChangesAsync();
-
+            _logger.LogInformation($"DeferralPayment {item.Id} saved successfully, is Approveed: {item.isApproved} ");
             if (orgIsApproved)
             {
                 bool spSuccess = false;
                 var paymentMethod = item.isApproved ? 1 : 0;
                 var customerId = int.Parse(item.KontrahentId);
+                _logger.LogInformation($"paymentMethod {paymentMethod} customerID: {customerId} ");
                 try
                 {
 
                     // Use EF Core to call the stored procedure
                     var res = await _asDbContext.ChangePaymentMethod(paymentMethod, customerId);
+                    _logger.LogInformation($"DeferralPayment res {res} ");
                     spSuccess = res !=0;
                 }
                 catch (Exception ex)
                 {
                     // Log or handle the error appropriately
-                    throw new Exception("Error executing remote stored procedure.", ex);
+                    _logger.LogInformation($"DeferralPayment Exception call procedure {ex.Message.ToString()}");
+                   
                 }
 
                 // After the stored procedure call, update `isApplied`
                 if (spSuccess && !item.isApplied)
                 {
                     item.isApplied = true;
+                    _logger.LogInformation($"DeferralPayment before update with isApplied {item.isApplied}");
                     _appDbContext.DeferralPayments.Update(item);
                     await _appDbContext.SaveChangesAsync(cancellationToken);
+                    _logger.LogInformation($"DeferralPayment done");
                 }
             }
 
