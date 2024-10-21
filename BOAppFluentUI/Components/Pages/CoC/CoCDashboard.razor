@@ -26,65 +26,108 @@
              Spacing="20px"
              Style="padding: 20px;">
     <AuthorizeView Policy="User">
-    <FluentCard Style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); border-radius: 10px; overflow: hidden;">
-        <FluentStack Orientation="Orientation.Vertical"
-                     HorizontalAlignment="HorizontalAlignment.Center"
-                     VerticalAlignment="VerticalAlignment.Center"
-                     Spacing="10px"
-                     Style="padding: 20px;">
-            @(new Icons.Regular.Size24.Desktop().ToMarkup("48px"))
-            <h4 style="margin: 0;">Moje zgłoszenia</h4>
-            <FluentButton BackgroundColor="var(--accent-fill-rest)"
-                          Disabled = "false"
-                          Color="var(--neutral-fill-rest)"
-                              OnClick="@(()=>_navigationManager.NavigateTo("/onboarding/pracownik"))">
-                Moje zgłoszenia
-            </FluentButton>
-        </FluentStack>
-    </FluentCard>
-    </AuthorizeView>
-    <AuthorizeView Policy="User">
-    <FluentCard Style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); border-radius: 10px; overflow: hidden;">
-        <FluentStack Orientation="Orientation.Vertical"
-                     HorizontalAlignment="HorizontalAlignment.Center"
-                     VerticalAlignment="VerticalAlignment.Center"
-                     Spacing="10px"
-                     Style="padding: 20px;">
-            @(new Icons.Regular.Size24.Desktop().ToMarkup("48px"))
-            <h4 style="margin: 0;">Instrukcje</h4>
-            <FluentButton BackgroundColor="var(--accent-fill-rest)"
-                          Color="var(--neutral-fill-rest)"
-                              OnClick="@(()=>_navigationManager.NavigateTo("/coc/instructions"))">
-                Instrukcje
-            </FluentButton>
-        </FluentStack>
-    </FluentCard>
-    </AuthorizeView>
-    <AuthorizeView Policy="User">
-    <FluentCard Style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); border-radius: 10px; overflow: hidden;">
-        <FluentStack Orientation="Orientation.Vertical"
-                     HorizontalAlignment="HorizontalAlignment.Center"
-                     VerticalAlignment="VerticalAlignment.Center"
-                     Spacing="10px"
-                     Style="padding: 20px;">
-            @(new Icons.Regular.Size24.Desktop().ToMarkup("48px"))
-            <h4 style="margin: 0;">Stanowiska</h4>
-            <FluentButton BackgroundColor="var(--accent-fill-rest)"
-                          Color="var(--neutral-fill-rest)"
-                              OnClick="@(()=>_navigationManager.NavigateTo("/coc/positions"))">
-                Stanowiska
-            </FluentButton>
-        </FluentStack>
-    </FluentCard>
-    </AuthorizeView>
-    <AuthorizeView Policy="User">
         <FluentCard Style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); border-radius: 10px; overflow: hidden;">
             <FluentStack Orientation="Orientation.Vertical"
                          HorizontalAlignment="HorizontalAlignment.Center"
                          VerticalAlignment="VerticalAlignment.Center"
                          Spacing="10px"
                          Style="padding: 20px;">
-                @(new Icons.Regular.Size24.Desktop().ToMarkup("48px"))
+                @(new Icons.Regular.Size24.FormMultiple().ToMarkup("48px"))
+                <h4 style="margin: 0;">Moje zgłoszenia</h4>
+                <FluentButton BackgroundColor="var(--accent-fill-rest)"
+                              Disabled="false"
+                              Color="var(--neutral-fill-rest)"
+                              OnClick="@(()=>_navigationManager.NavigateTo("/coc/onboardings/pracownik"))">
+                    Moje zgłoszenia
+                </FluentButton>
+            </FluentStack>
+        </FluentCard>
+    </AuthorizeView>
+    <AuthorizeView Policy="Compliance Assistant">
+        <FluentCard Style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); border-radius: 10px; overflow: hidden;">
+            <FluentStack Orientation="Orientation.Vertical"
+                         HorizontalAlignment="HorizontalAlignment.Center"
+                         VerticalAlignment="VerticalAlignment.Center"
+                         Spacing="10px"
+                         Style="padding: 20px;">
+                @(new Icons.Regular.Size24.FormMultiple().ToMarkup("48px"))
+                <h4 style="margin: 0;">Asystentki</h4>
+                <FluentButton BackgroundColor="var(--accent-fill-rest)"
+                              Disabled="false"
+                              Color="var(--neutral-fill-rest)"
+                              OnClick="@(()=>_navigationManager.NavigateTo("/coc/onboardings/complianceassistant"))">
+                    Asystentki
+                </FluentButton>
+            </FluentStack>
+        </FluentCard>
+    </AuthorizeView>
+    <AuthorizeView Policy="Compliance">
+        <FluentCard Style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); border-radius: 10px; overflow: hidden;">
+            <FluentStack Orientation="Orientation.Vertical"
+                         HorizontalAlignment="HorizontalAlignment.Center"
+                         VerticalAlignment="VerticalAlignment.Center"
+                         Spacing="10px"
+                         Style="padding: 20px;">
+                @(new Icons.Regular.Size24.FormMultiple().ToMarkup("48px"))
+                <h4 style="margin: 0;">Dział Compliance</h4>
+                <FluentButton BackgroundColor="var(--accent-fill-rest)"
+                              Disabled="false"
+                              Color="var(--neutral-fill-rest)"
+                              OnClick="@(()=>_navigationManager.NavigateTo("/coc/onboardings/compliance"))">
+                    Dział Compliance
+                </FluentButton>
+            </FluentStack>
+        </FluentCard>
+    </AuthorizeView>
+</FluentStack>
+<p></p>
+<FluentStack Orientation="Orientation.Horizontal"
+             HorizontalAlignment="HorizontalAlignment.Left"
+             VerticalAlignment="VerticalAlignment.Center"
+             Spacing="20px"
+             Style="padding: 20px;">
+    <AuthorizeView Policy="Compliance">
+        <FluentCard Style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); border-radius: 10px; overflow: hidden;">
+            <FluentStack Orientation="Orientation.Vertical"
+                         HorizontalAlignment="HorizontalAlignment.Center"
+                         VerticalAlignment="VerticalAlignment.Center"
+                         Spacing="10px"
+                         Style="padding: 20px;">
+                @(new Icons.Regular.Size24.BookCompass().ToMarkup("48px"))
+                <h4 style="margin: 0;">Instrukcje</h4>
+                <FluentButton BackgroundColor="var(--accent-fill-rest)"
+                              Color="var(--neutral-fill-rest)"
+                              OnClick="@(()=>_navigationManager.NavigateTo("/coc/instructions"))">
+                    Instrukcje
+                </FluentButton>
+            </FluentStack>
+        </FluentCard>
+    </AuthorizeView>
+    <AuthorizeView Policy="Compliance">
+        <FluentCard Style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); border-radius: 10px; overflow: hidden;">
+            <FluentStack Orientation="Orientation.Vertical"
+                         HorizontalAlignment="HorizontalAlignment.Center"
+                         VerticalAlignment="VerticalAlignment.Center"
+                         Spacing="10px"
+                         Style="padding: 20px;">
+                @(new Icons.Regular.Size24.PeopleQueue().ToMarkup("48px"))
+                <h4 style="margin: 0;">Stanowiska</h4>
+                <FluentButton BackgroundColor="var(--accent-fill-rest)"
+                              Color="var(--neutral-fill-rest)"
+                              OnClick="@(()=>_navigationManager.NavigateTo("/coc/positions"))">
+                    Stanowiska
+                </FluentButton>
+            </FluentStack>
+        </FluentCard>
+    </AuthorizeView>
+    <AuthorizeView Policy="Compliance">
+        <FluentCard Style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); border-radius: 10px; overflow: hidden;">
+            <FluentStack Orientation="Orientation.Vertical"
+                         HorizontalAlignment="HorizontalAlignment.Center"
+                         VerticalAlignment="VerticalAlignment.Center"
+                         Spacing="10px"
+                         Style="padding: 20px;">
+                @(new Icons.Regular.Size24.Group().ToMarkup("48px"))
                 <h4 style="margin: 0;">Grupy</h4>
                 <FluentButton BackgroundColor="var(--accent-fill-rest)"
                               Color="var(--neutral-fill-rest)"
@@ -94,14 +137,14 @@
             </FluentStack>
         </FluentCard>
     </AuthorizeView>
-    <AuthorizeView Policy="Settlements">
+    <AuthorizeView Roles="AppAdmin">
         <FluentCard Style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); border-radius: 10px; overflow: hidden;">
             <FluentStack Orientation="Orientation.Vertical"
                          HorizontalAlignment="HorizontalAlignment.Center"
                          VerticalAlignment="VerticalAlignment.Center"
                          Spacing="10px"
                          Style="padding: 20px;">
-                @(new Icons.Regular.Size24.Desktop().ToMarkup("48px"))
+                @(new Icons.Regular.Size24.BotSparkle().ToMarkup("48px"))
                 <h4 style="margin: 0;">Generuj </h4>
                 <FluentButton BackgroundColor="var(--accent-fill-rest)"
                               Disabled="false"
@@ -126,5 +169,5 @@
     {
         AddCoCOnboardingsAdHocJob job = new AddCoCOnboardingsAdHocJob(_mediator);
         job.Execute();
-    } 
+    }
 }

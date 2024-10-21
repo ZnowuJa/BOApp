@@ -25,7 +25,7 @@ public class GetOnboardingByEmpIdQuery : IRequest<OnboardingFormVm>
         Id = id;
     }
 
-    
+
 }
 
 
@@ -41,14 +41,14 @@ public class GetOnboardingByEmpIdQueryHandler : IRequestHandler<GetOnboardingByE
     }
     public async Task<OnboardingFormVm> Handle(GetOnboardingByEmpIdQuery request, CancellationToken cancellationToken)
     {
-        var item = await _context.OnboardingForms.Where( i => i.EmployeeId == int.Parse(request.Id )).Include( i => i.Group).FirstOrDefaultAsync(cancellationToken);
+        var item = await _context.OnboardingForms.Where(i => i.EmployeeId == int.Parse(request.Id)).Include(i => i.Group).FirstOrDefaultAsync(cancellationToken);
 
         var result = _mapper.Map<OnboardingFormVm>(item);
         result.Approvals = DeserializeApprovals(item.Approvals);
         result.Level1Approvers = DeserializeRoles(item.Level1Approvers);
         result.Level2Approvers = DeserializeRoles(item.Level2Approvers);
         result.Instructions = DeserializeInstructions(item.Instructions);
-        
+
         return result;
     }
 

@@ -17,33 +17,35 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Graph.Models;
 
 namespace Application.CQRS.CoCCQRS.Onboarding.Commands;
-public class CreateOnboardingFormCommand : IRequest<OnboardingFormVm>
+public class UpdateOnboardingFormCommand : IRequest<OnboardingFormVm>
 {
     public OnboardingFormVm Item { get; set; }
 
-    public CreateOnboardingFormCommand(OnboardingFormVm item)
+    public UpdateOnboardingFormCommand(OnboardingFormVm item)
     {
         Item = item;
     }
 }
 
 
-public class CreateOnboardingFormCommandHandler : IRequestHandler<CreateOnboardingFormCommand, OnboardingFormVm>
+public class UpdateOnboardingFormCommandHandler : IRequestHandler<UpdateOnboardingFormCommand, OnboardingFormVm>
 {
     private readonly IAppDbContext _appDbContext;
     private readonly IMapper _mapper;
     private readonly IEmailService _mailService;
     private readonly IConfiguration _configuration;
 
-    public CreateOnboardingFormCommandHandler(IAppDbContext appDbContext, IMapper mapper, IEmailService mailService, IConfiguration configuration)
+    public UpdateOnboardingFormCommandHandler(IAppDbContext appDbContext, IMapper mapper, IEmailService mailService, IConfiguration configuration)
     {
         _appDbContext = appDbContext;
         _mapper = mapper;
         _mailService = mailService;
         _configuration = configuration;
     }
-    public async Task<OnboardingFormVm> Handle(CreateOnboardingFormCommand request, CancellationToken cancellationToken)
+    public async Task<OnboardingFormVm> Handle(UpdateOnboardingFormCommand request, CancellationToken cancellationToken)
     {
+
+
         var _approvals = SerializeApprovals(request.Item.Approvals);
         var _Level1Approvers = SerializeRole(request.Item.Level1Approvers);
         var _Level2Approvers = SerializeRole(request.Item.Level2Approvers);
@@ -52,48 +54,19 @@ public class CreateOnboardingFormCommandHandler : IRequestHandler<CreateOnboardi
         var _note = request.Item.Note ?? String.Empty;
         var _progress = request.Item.Progress;
         var _FirstRun = request.Item.FirstRun;
-        var _EmployeeId = request.Item.EmployeeId;
-        var _EmployeeName = request.Item.EmployeeName ?? string.Empty;
-        var _ManagerId = request.Item.ManagerId;
-        var _Requested = DateTime.Now;
-        var _LVL1_EnovaEmpId = request.Item.LVL1_EnovaEmpId ?? string.Empty;
-        var _LVL2_EnovaEmpId = request.Item.LVL2_EnovaEmpId ?? string.Empty;
-        var _LVL1_EmployeeName = request.Item.LVL1_EmployeeName ?? string.Empty;
-        var _LVL2_EmployeeName = request.Item.LVL2_EmployeeName ?? string.Empty;
-        var _FormFiles = request.Item.FormFiles ?? new List<FormFile>();
-        var item = new OnboardingForm()
-        {
-            Approvals = _approvals,
-            Level1Approvers = _Level1Approvers,
-            Level2Approvers = _Level2Approvers,
-            Instructions = _Instructions,
-            Group = _group,
-            Note = _note,
-            Progress = _progress,
-            FirstRun = _FirstRun,
-            EmployeeId = _EmployeeId,
-            EmployeeName = _EmployeeName,
-            ManagerId = _ManagerId,
-            Requested = _Requested,
-            LVL1_EnovaEmpId = _LVL1_EnovaEmpId,
-            LVL2_EnovaEmpId = _LVL2_EnovaEmpId,
-            LVL1_EmployeeName = _LVL1_EmployeeName,
-            LVL2_EmployeeName = _LVL2_EmployeeName,
-            FormFiles = _FormFiles,
-        };
 
-        _appDbContext.OnboardingForms.Add(item);
+        var formItem = await _appDbContext.OnboardingForms.Where(o => o.Id == request.Item.Id).FirstOrDefaultAsync(cancellationToken);
+
+        formItem.Approvals = _approvals;
+        formItem.Instructions = _Instructions;
+        formItem.Group = _group;
+        formItem.Note = _note;
+        formItem.Progress = _progress;
+        formItem.FirstRun = _FirstRun;
+
+        _appDbContext.OnboardingForms.Update(formItem);
         await _appDbContext.SaveChangesAsync();
 
-        Console.WriteLine(item.Number);
-
-        item.Number = $"{item.NumberPrefix}{item.Id.ToString("D8")}";
-
-        _appDbContext.OnboardingForms.Update(item);
-        await _appDbContext.SaveChangesAsync();
-
-
-        
         return request.Item;
     }
 

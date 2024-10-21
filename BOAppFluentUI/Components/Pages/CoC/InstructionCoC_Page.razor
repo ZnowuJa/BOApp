@@ -9,7 +9,7 @@
 @using System.Linq.Expressions
 @using Microsoft.AspNetCore.Authorization
 
-@attribute [Authorize(Policy = "Technician")]
+@attribute [Authorize(Policy = "Compliance")]
 
 @inject IMediator _mediator
 @inject ILogger<GroupCoCVm> _logger
@@ -38,7 +38,7 @@ else
         </FluentStack>
     </p>
 
-    <FluentDataGrid Items="@filteredGroups" Pagination="@pagination" TGridItem="InstructionCoCVm" GridTemplateColumns="80px repeat(4, 1fr)" ResizableColumns="true">
+    <FluentDataGrid Items="@filteredGroups" Pagination="@pagination" TGridItem="InstructionCoCVm" GridTemplateColumns="80px repeat(4, 1fr)" ResizableColumns="true" AutoFit="true" GenerateHeader="GenerateHeaderOption.Sticky">
 
         @foreach (var column in filterColumns.Where(c => c.IsVisible))
         {
@@ -82,8 +82,8 @@ else
         new FilterColumn<InstructionCoCVm> { FirstRow = true, Label = "ID", Property = c => c.Id.ToString(), IsVisible = true, Width = "80px" },
         new FilterColumn<InstructionCoCVm> { FirstRow = true, Label = "Title", Property = c => c.Title, IsVisible = true, Width = "1FR" },
         new FilterColumn<InstructionCoCVm> { FirstRow = true, Label = "Number", Property = c => c.Number, IsVisible = true, Width = "0.5FR" },
-        new FilterColumn<InstructionCoCVm> { FirstRow = true, Label = "Link", Property = c => c.Link, IsVisible = true, Width = "1FR" },
-        new FilterColumn<InstructionCoCVm> { FirstRow = true, Label = "Grupy", Property = c => c.Groups.Count().ToString(), IsVisible = true, Width = "0.5FR" },
+        new FilterColumn<InstructionCoCVm> { FirstRow = true, Label = "Link", Property = c => c.Link, IsVisible = false, Width = "1FR" },
+        new FilterColumn<InstructionCoCVm> { FirstRow = true, Label = "Grupy", Property = c => c.Groups.Count().ToString(), IsVisible = false, Width = "0.5FR" },
         new FilterColumn<InstructionCoCVm> { FirstRow = true, Label = "Priorytet", Property = c => c.Priority.ToString(), IsVisible = true, Width = "0.5FR" },
         new FilterColumn<InstructionCoCVm> { FirstRow = true, Label = "Kolor", Property = c => c.Colour, IsVisible = true, Width = "0.5FR" }
 
@@ -171,7 +171,7 @@ else
         {
             Console.WriteLine();
             var i = await _mediator.Send(new DeleteInstructionCoCCommand(item.Id));
-            // var i = await _mediator.Send(new (item.Id));
+            // var i = await _mediator.Send(new (item.ManagerId));
             intent = ToastIntent.Success;
             message = "Instruction has been deleted";
 

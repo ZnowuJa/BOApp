@@ -1,5 +1,6 @@
 ﻿using System.Linq.Expressions;
 using System.Security.Claims;
+using System.Text;
 
 using Application.Forms;
 using Application.Interfaces;
@@ -50,7 +51,16 @@ public static class Utils
         if (enovaEmpIdClaim != null)
         {
             userContext.EnovaEmpId = enovaEmpIdClaim.Value;
-            userContext.Employee = await mediator.Send(new GetEmployeeByEnovaIdQuery(int.Parse(userContext.EnovaEmpId)));
+            try
+            {
+                userContext.Employee = await mediator.Send(new GetEmployeeByEnovaIdQuery(int.Parse(userContext.EnovaEmpId)));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine();
+            }
+
+            Console.WriteLine();
         }
         else
         {
@@ -98,4 +108,23 @@ public static class Utils
         }
         //Console.WriteLine(tempEmp.LongName);
     }
+
+    public static string GenerateCsv<T>(IQueryable<T> records)
+    {
+        var csv = new StringBuilder();
+        var properties = typeof(T).GetProperties();
+
+        // Add CSV headers
+        csv.AppendLine(string.Join(",", properties.Select(p => p.Name)));
+
+        // Add CSV rows
+        foreach (var record in records)
+        {
+            var values = properties.Select(p => p.GetValue(record, null)?.ToString() ?? string.Empty);
+            csv.AppendLine(string.Join(",", values));
+        }
+
+        return csv.ToString();
+    }
+
 }

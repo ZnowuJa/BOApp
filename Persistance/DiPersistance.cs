@@ -3,7 +3,9 @@
 using Application.Entities;
 using Application.Interfaces;
 using Application.Interfaces.Identity.Services;
+
 using Infrastructure.Identity.Services;
+
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -43,7 +45,7 @@ public static class DiPersistance
         });
 
         services.AddScoped<ITokenValidatedHandlerService, TokenValidatedHandlerService>();
-        
+
         services.AddDefaultIdentity<AppUser>(options => options.SignIn.RequireConfirmedAccount = false)
             .AddRoles<IdentityRole>()
             .AddEntityFrameworkStores<AppDbContext>();
@@ -66,8 +68,8 @@ public static class DiPersistance
                     var tokenValidatedHandler = context.HttpContext
                     .RequestServices
                     .GetRequiredService<ITokenValidatedHandlerService>();
-                    
-                    
+
+
                     //// Below there are two the same lines running tokenvalidation.
                     /// It is done that way because one pass doesn't updates current user if it is loging for the 1st time.
                     /// Of course this is a bug and its workaround to fixe once.
@@ -89,6 +91,9 @@ public static class DiPersistance
 
         services.AddAuthorization(options =>
         {
+            options.AddPolicy("Compliance Assistant", policy => policy
+            .RequireRole("ComplianceAssistant", "Technician", "Administrator", "AppAdmin"));
+
             options.AddPolicy("Compliance", policy => policy
             .RequireRole("Compliance", "Technician", "Administrator", "AppAdmin"));
 
@@ -119,7 +124,7 @@ public static class DiPersistance
             options.FallbackPolicy = options.DefaultPolicy;
         });
 
-        
+
         return services;
     }
 }

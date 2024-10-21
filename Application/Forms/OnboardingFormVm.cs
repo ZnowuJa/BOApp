@@ -52,11 +52,16 @@ namespace Application.Forms
         public bool FirstRun { get; set; } = false;
 
 
+
         public void Mapping(Profile profile)
         {
-            profile.CreateMap<OnboardingForm, OnboardingFormVm>().ReverseMap();
+            profile.CreateMap<OnboardingForm, OnboardingFormVm>()
+                .ForMember(dest => dest.Approvals, opt => opt.Ignore())
+                .ForMember(dest => dest.Level1Approvers, opt => opt.Ignore())
+                .ForMember(dest => dest.Level2Approvers, opt => opt.Ignore())
+                .ForMember(dest => dest.Instructions, opt => opt.Ignore())
+                .ReverseMap();
         }
-
         public OnboardingFormVm()
         {
             Status = "Rejestracja";

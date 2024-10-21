@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
+﻿using System.Text.Json;
 
-using Application.Common;
 using Application.Forms;
 using Application.Interfaces;
 using Application.ViewModels.CoC;
@@ -20,20 +14,20 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 namespace Application.CQRS.CoCCQRS.Onboarding.Queries;
-public class GetOnboardingsByApproverQuery : IRequest<IQueryable<OnboardingFormVm>>
+public class GetOnboardingsByManagerIdQuery : IRequest<IQueryable<OnboardingFormVm>>
 {
-    public string Id { get; set; }
-    public GetOnboardingsByApproverQuery(string i)
+    public string ManagerId { get; set; }
+    public GetOnboardingsByManagerIdQuery(string i)
     {
-        Id = i;
+        ManagerId = i;
     }
 }
 
-public class GetOnboardingsByApproverQueryHandler : IRequestHandler<GetOnboardingsByApproverQuery, IQueryable<OnboardingFormVm>>
+public class GetOnboardingsByManagerIdQueryHandler : IRequestHandler<GetOnboardingsByManagerIdQuery, IQueryable<OnboardingFormVm>>
 {
     private readonly IAppDbContext _appDbContext;
     private readonly IMapper _mapper;
-    public GetOnboardingsByApproverQueryHandler(IAppDbContext appDbContext, IMapper mapper)
+    public GetOnboardingsByManagerIdQueryHandler(IAppDbContext appDbContext, IMapper mapper)
     {
         _appDbContext = appDbContext;
         _mapper = mapper;
@@ -41,37 +35,10 @@ public class GetOnboardingsByApproverQueryHandler : IRequestHandler<GetOnboardin
 
     public IMapper Mapper { get; }
 
-    public async Task<IQueryable<OnboardingFormVm>> Handle(GetOnboardingsByApproverQuery request, CancellationToken cancellationToken)
+    public async Task<IQueryable<OnboardingFormVm>> Handle(GetOnboardingsByManagerIdQuery request, CancellationToken cancellationToken)
     {
-        var result = new List<OnboardingForm>();
-        var query = $@"
-        SELECT * 
-        FROM OnboardingForms
-        WHERE 
-            EXISTS (
-                SELECT 1
-                FROM OPENJSON(Level1Approvers)
-                WITH (EmpId int '$.EmpId') AS json
-                WHERE json.EmpId = {request.Id}
-            )
-            OR 
-            EXISTS (
-                SELECT 1
-                FROM OPENJSON(Level2Approvers)
-                WITH (EmpId int '$.EmpId') AS json
-                WHERE json.EmpId = {request.Id}
-            )";
-        try
-        {
-            result = await _appDbContext.OnboardingForms.FromSqlRaw(query).Where(i => i.StatusId == 1).ToListAsync(cancellationToken);
-        }
-        catch (Exception ex)
-        {
-
-            Console.WriteLine();
-            throw new Exception("An error occured while fetching data from database.", ex);
-        }
-
+        var empId = int.Parse(request.ManagerId);
+        var result = await _appDbContext.OnboardingForms.Where(p => p.ManagerId == empId && p.StatusId == 1).ToListAsync(cancellationToken);
         var items = new List<OnboardingFormVm>();
 
         foreach (var item in result)

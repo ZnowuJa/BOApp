@@ -131,7 +131,7 @@ namespace Persistance.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("BackgroundJobs");
+                    b.ToTable("BackgroundJobs", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.CoC.GroupCoC", b =>
@@ -148,7 +148,7 @@ namespace Persistance.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Groups");
+                    b.ToTable("Groups", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.CoC.InstructionCoC", b =>
@@ -196,7 +196,7 @@ namespace Persistance.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Instructions");
+                    b.ToTable("Instructions", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.CoC.Position", b =>
@@ -231,7 +231,7 @@ namespace Persistance.Migrations
 
                     b.HasIndex("GroupCoCId");
 
-                    b.ToTable("Positions");
+                    b.ToTable("Positions", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.Common.FormFile", b =>
@@ -287,7 +287,7 @@ namespace Persistance.Migrations
 
                     b.HasIndex("TestFormId");
 
-                    b.ToTable("FormFiles");
+                    b.ToTable("FormFiles", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.Common.Organisation", b =>
@@ -473,7 +473,7 @@ namespace Persistance.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Assets");
+                    b.ToTable("Assets", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.ITWarehouse.AssetHistory", b =>
@@ -542,7 +542,7 @@ namespace Persistance.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("AssetsHistory");
+                    b.ToTable("AssetsHistory", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.ITWarehouse.Asset_Note", b =>
@@ -586,7 +586,7 @@ namespace Persistance.Migrations
 
                     b.HasIndex("noteId");
 
-                    b.ToTable("Assets_Notes");
+                    b.ToTable("Assets_Notes", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.ITWarehouse.Category", b =>
@@ -624,7 +624,7 @@ namespace Persistance.Migrations
 
                     b.HasIndex("CategoryTypeId");
 
-                    b.ToTable("Categories");
+                    b.ToTable("Categories", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.ITWarehouse.CategoryType", b =>
@@ -650,7 +650,7 @@ namespace Persistance.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("CategoryTypes");
+                    b.ToTable("CategoryTypes", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.ITWarehouse.Company", b =>
@@ -738,7 +738,7 @@ namespace Persistance.Migrations
 
                     b.HasIndex("CompanyTypeId");
 
-                    b.ToTable("Companies");
+                    b.ToTable("Companies", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.ITWarehouse.CompanyType", b =>
@@ -764,7 +764,7 @@ namespace Persistance.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("CompanyTypes");
+                    b.ToTable("CompanyTypes", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.ITWarehouse.Currency", b =>
@@ -790,7 +790,7 @@ namespace Persistance.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Currencies");
+                    b.ToTable("Currencies", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.ITWarehouse.Department", b =>
@@ -837,7 +837,7 @@ namespace Persistance.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Departments");
+                    b.ToTable("Departments", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.ITWarehouse.EmpInfo", b =>
@@ -913,7 +913,7 @@ namespace Persistance.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("EmpInfos");
+                    b.ToTable("EmpInfos", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.ITWarehouse.Employee", b =>
@@ -1031,7 +1031,7 @@ namespace Persistance.Migrations
 
                     b.HasIndex("TypeId");
 
-                    b.ToTable("Employees");
+                    b.ToTable("Employees", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.ITWarehouse.EmployeeType", b =>
@@ -1057,7 +1057,7 @@ namespace Persistance.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("EmployeeTypes");
+                    b.ToTable("EmployeeTypes", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.ITWarehouse.Invoice", b =>
@@ -1107,7 +1107,7 @@ namespace Persistance.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Invoices");
+                    b.ToTable("Invoices", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.ITWarehouse.InvoiceItem", b =>
@@ -1172,7 +1172,7 @@ namespace Persistance.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("InvoiceItems");
+                    b.ToTable("InvoiceItems", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.ITWarehouse.Note", b =>
@@ -1210,7 +1210,7 @@ namespace Persistance.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Notes");
+                    b.ToTable("Notes", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.ITWarehouse.Part", b =>
@@ -1273,7 +1273,7 @@ namespace Persistance.Migrations
 
                     b.HasIndex("VendorId");
 
-                    b.ToTable("Parts");
+                    b.ToTable("Parts", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.ITWarehouse.State", b =>
@@ -1303,7 +1303,7 @@ namespace Persistance.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("States");
+                    b.ToTable("States", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.ITWarehouse.Unit", b =>
@@ -1333,7 +1333,7 @@ namespace Persistance.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Units");
+                    b.ToTable("Units", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.ITWarehouse.Vendor", b =>
@@ -1359,7 +1359,7 @@ namespace Persistance.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Vendors");
+                    b.ToTable("Vendors", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.ITWarehouse.Warehouse", b =>
@@ -1388,7 +1388,7 @@ namespace Persistance.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Warehouses");
+                    b.ToTable("Warehouses", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Forms.DeferralPaymentForm", b =>
@@ -1512,7 +1512,7 @@ namespace Persistance.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("DeferralPayments");
+                    b.ToTable("DeferralPayments", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Forms.OnboardingForm", b =>
@@ -1635,7 +1635,7 @@ namespace Persistance.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("OnboardingForms");
+                    b.ToTable("OnboardingForms", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Forms.TestForm", b =>
@@ -1753,7 +1753,7 @@ namespace Persistance.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("TestForms");
+                    b.ToTable("TestForms", (string)null);
                 });
 
             modelBuilder.Entity("Domain.WorkFlows.WorkflowStep", b =>
@@ -1782,7 +1782,7 @@ namespace Persistance.Migrations
 
                     b.HasIndex("WorkflowTemplateId");
 
-                    b.ToTable("WorkflowSteps");
+                    b.ToTable("WorkflowSteps", (string)null);
                 });
 
             modelBuilder.Entity("Domain.WorkFlows.WorkflowTemplate", b =>
@@ -1803,7 +1803,7 @@ namespace Persistance.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("WorkflowTemplates");
+                    b.ToTable("WorkflowTemplates", (string)null);
                 });
 
             modelBuilder.Entity("GroupCoCInstructionCoC", b =>

@@ -1,6 +1,7 @@
 ﻿@page "/coc/onboardings/{role}"
 
 @using Application.CQRS.CoCCQRS.Onboarding.Queries
+@using Application.Common
 @using Application.Forms;
 @using Application.ViewModels.General
 @using MediatR;
@@ -10,12 +11,13 @@
 @using System.Linq.Expressions
 @using System.Security.Claims
 
-@attribute [Authorize(Policy = "Compliance")]
+@attribute [Authorize(Policy = "User")]
 
 @inject IMediator _mediator
 @inject ILogger<Onboarding_Page> _logger
 @inject IDialogService _dialogService
 @inject IToastService _toastService
+@inject IJSRuntime JS
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager _navigationManager
 
@@ -61,7 +63,7 @@
             var viewId = $"viewid-{context.Id}";
             var editId = $"editid-{context.Id}";
             var deleteId = $"deleteid-{context.Id}";
-            // var addId = $"addid-{context.Id}";
+            // var addId = $"addid-{context.ManagerId}";
         }
         <FluentButton Id="@viewId" IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" Disabled="@viewDisabled" />
         <FluentTooltip Anchor="@viewId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Left Delay=50>View Asset</FluentTooltip>
@@ -70,7 +72,7 @@
         @*WARNING it is not tested if isEditDisabled works*@
         <FluentTooltip Anchor="@editId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Edit Asset</FluentTooltip>
 
-        <FluentButton Id="@deleteId" IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" Disabled="@actionsDisabled" />
+        <FluentButton Id="@deleteId" IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" Disabled="@deleteDisabled" />
         <FluentTooltip Anchor="@deleteId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Delete Asset</FluentTooltip>
 
         @*             <FluentButton Id="@addId" IconEnd="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddToList(context))" Disabled="@actionsDisabled" />
@@ -78,8 +80,13 @@
 
     </TemplateColumn>
 </FluentDataGrid>
-<FluentPaginator State="@pagination" />
+@if (string.IsNullOrEmpty(errorMessage))
+{
+    <div class="validation-error"><p style="color:red;">@errorMessage</p></div>
+}
 
+<FluentPaginator State="@pagination" />
+<FluentButton OnClick="DownloadCsv"> Pobierz CSV </FluentButton>
 
 @code {
     #region props
@@ -103,22 +110,17 @@
         new FilterColumn<OnboardingFormVm> { FirstRow = true, Label = "Status", Property = c => c.Status.ToString()??string.Empty, IsVisible = true },
         new FilterColumn<OnboardingFormVm> { FirstRow = true, Label = "Pracownik", Property = c => c.EmployeeName.ToString(), IsVisible = true },
         new FilterColumn<OnboardingFormVm> { FirstRow = true, Label = "Grupa", Property = c => c.Group.ToString(), IsVisible = true },
-
-
+        new FilterColumn<OnboardingFormVm> { FirstRow = true, Label = "Postęp", Property = c => c.Progress.ToString(), IsVisible = true },
     };
-
-    // private ClaimsPrincipal? user { get; set; }
-    // private string username { get; set; }
-    // private EmployeeVm employee { get; set; }
-    // private string EnovaEmpId { get; set; }
 
     private FormUserContext _userContext = new FormUserContext("Onboarding");
 
-    private bool actionsDisabled = false;
+    private bool deleteDisabled = true;
     private bool viewDisabled = false;
 
     private ToastIntent intent { get; set; }
     private string toastMessage { get; set; } = string.Empty;
+    private string? errorMessage { get; set; }
 
     #endregion props
 
@@ -131,19 +133,36 @@
 
     private async Task Load()
     {
-        items = role switch
+        try
         {
-            "kierownik" or "manager" => await _mediator.Send(new GetOnboardingsByApproverQuery(_userContext.EnovaEmpId)),
-            "pracownik" or "employee" => await _mediator.Send(new GetOnboardingsByEmpIdQuery(_userContext.EnovaEmpId)),
-            "zapisane" or "saved" or "niezapisane" or "notsaved" => await HandleSavedCase(),
+            items = role switch
+            {
+                "kierownik" or "manager" => await _mediator.Send(new GetOnboardingsByManagerIdQuery(_userContext.EnovaEmpId)),
+                "pracownik" or "employee" => await _mediator.Send(new GetOnboardingsByEmpIdQuery(_userContext.EnovaEmpId)),
+                "zapisane" or "saved" or "niezapisane" or "notsaved" => await HandleSavedCase(),
+                "complianceassistant" or "asystentkaregionalna" => await _mediator.Send(new GetOnboardingsByOpenerQuery(_userContext.EnovaEmpId)),
+                "compliance" or "coc" => await _mediator.Send(new GetAllOnboardingsQuery()),
+                _ => throw new ArgumentException("Błędny adres strony!")
+            };
+        }
+        catch (Exception ex)
+        {
+            items = new List<OnboardingFormVm>().AsQueryable();
+            errorMessage = ex.InnerException.Message;
 
-            "compliance" or "coc" => await _mediator.Send(new GetAllOnboardingsQuery()),
-            _ => throw new ArgumentException("Błędny adres strony!")
-        };
+        }
+        if (role == "compliance" || role == "coc")
+        {
+            deleteDisabled = false;
+        }
+        else if (role == "pracownik" || role == "employee")
+        {
+
+        }
     }
     private async Task<IQueryable<OnboardingFormVm>> HandleSavedCase()
     {
-        
+
         intent = ToastIntent.Success;
         if (role is "zapisane" or "saved")
         {
@@ -161,57 +180,9 @@
 
     private void HandleClearFilter(ref string filter) => filter = string.IsNullOrWhiteSpace(filter) ? string.Empty : filter;
 
-    // private void HandleFilterDebounced(FilterColumn<DeferralPaymentFormVm> column, ChangeEventArgs args)
-    // {
-    //     debounceDispatcher.Debounce(400, _ =>
-    //     {
-    //         column.Filter = args.Value.ToString();
-    //         InvokeAsync(StateHasChanged);
-    //     });
-    // }
-
-    // private async Task GetUserName()
-    // {
-    //     var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-    //     user = authenticationState.User;
-
-    //     var claimType = "name"; // or use ClaimTypes.Title
-    //     var usernameClaim = user.Claims.FirstOrDefault(c => c.Type == claimType);
-    //     if (usernameClaim != null)
-    //     {
-    //         username = usernameClaim.Value;
-    //         // Console.WriteLine($"Claim of type {claimType} found, value {username}.");
-    //     }
-    //     else
-    //     {
-    //         username = "unknown";
-    //         // Console.WriteLine($"No claim of type {claimType} found.");
-    //     }
-
-    //     claimType = "EnovaEmpId"; // or use ClaimTypes.Title
-    //     var EnovaEmpIdClaim = user.Claims.FirstOrDefault(c => c.Type == claimType);
-    //     if (EnovaEmpIdClaim != null)
-    //     {
-    //         EnovaEmpId = EnovaEmpIdClaim.Value;
-    //         employee = await _mediator.Send(new GetEmployeeByEnovaIdQuery(int.Parse(EnovaEmpId)));
-    //         // Console.WriteLine($"Claim of type {claimType} found, value {EnovaEmpId}.");
-    //     }
-    //     else
-    //     {
-    //         EnovaEmpId = "unknown";
-    //         // Console.WriteLine($"No claim of type {claimType} found.");
-    //     }
-
-    // }
-
-    // private Expression<Func<T, string>> GetPropertyExpression<T>(Func<T, string> propertyFunc)
-    // {
-    //     return x => propertyFunc(x);
-    // }
-
     private async Task Edit(OnboardingFormVm item = null)
     {
-        _navigationManager.NavigateTo($"/deferralpaymentedit/{item.Id}");
+        _navigationManager.NavigateTo($"/coc/onboarding/{item.Id}");
     }
     private async Task Delete(OnboardingFormVm item = null)
     {
@@ -223,23 +194,40 @@
         //     {
         //         Height = "240px",
         //         Width = "720px",
-        //         Title = item.Id > 0 ? "Wniosoek o Odroczoną płatność" : "Create new PartVm",
+        //         Title = item.ManagerId > 0 ? "Wniosoek o Odroczoną płatność" : "Create new PartVm",
         //         PreventDismissOnOverlayClick = false,
         //         PreventScroll = true,
         //     });
-        
+
     }
 
     private bool IsEditDisabled(OnboardingFormVm context)
     {
-        if (context.Status == "AprobataL1")
-        {
-            return !(context.LVL1_EnovaEmpId == _userContext.EnovaEmpId);
-                    }
-        if (context.Status == "AprobataL2")
-        {
-            return !context.Level2Approvers.Any(approver => approver.EmpId.ToString() == _userContext.EnovaEmpId);
-        }
-        return true; // Default to disabled if none of the conditions match
+        // return !(context.EmployeeId.ToString() == _userContext.EnovaEmpId );
+
+        return false;
+
+        // if (context.Status == "AprobataL1")
+        // {
+        //     return !(context.LVL1_EnovaEmpId == _userContext.EnovaEmpId);
+        // }
+        // if (context.Status == "AprobataL2")
+        // {
+        //     return !context.Level2Approvers.Any(approver => approver.EmpId.ToString() == _userContext.EnovaEmpId);
+        // }
+        // if(context.Status == "Rejestracja")
+        // {
+        //     return (context.EmployeeId.ToString() == _userContext.EnovaEmpId);
+        // }
+        // return true; // Default to disabled if none of the conditions match
+    }
+
+    private async Task DownloadCsv()
+    {
+        // Assuming you have an IQueryable variable named 'records'
+        var csvContent = Utils.GenerateCsv(filteredItems);
+
+        // Invoke the JavaScript method to download the CSV
+        await JS.InvokeVoidAsync("downloadFile", "records.csv", csvContent);
     }
 }

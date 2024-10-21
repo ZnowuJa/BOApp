@@ -10,4 +10,6 @@ public class FilterColumn<T>
     public string Filter { get; set; } = string.Empty;
     public bool IsVisible { get; set; }
     public string Width { get; set; }
+    public string CssClass { get; set; } = string.Empty;
+
 }
