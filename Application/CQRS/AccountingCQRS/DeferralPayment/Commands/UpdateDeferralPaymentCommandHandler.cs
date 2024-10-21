@@ -95,7 +95,6 @@ public class UpdateDeferralPaymentCommandHandler : IRequestHandler<UpdateDeferra
                 item.isApproved = request.Item.isApproved;
             }
 
-
             _appDbContext.DeferralPayments.Update(item);
             await _appDbContext.SaveChangesAsync();
             _logger.LogInformation($"DeferralPayment {item.Id} saved successfully, is Approveed: {item.isApproved} ");
@@ -132,15 +131,12 @@ public class UpdateDeferralPaymentCommandHandler : IRequestHandler<UpdateDeferra
             }
 
             await transaction.CommitAsync();
-
-
         }
         catch
         {
             await transaction.RollbackAsync();
             throw;
         }
-
 
         Console.WriteLine();
         await SendEmail(senderName, rcptEmail, rcptName, custName, frmNumber, reason, id, status, userEmail);

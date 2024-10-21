@@ -52,6 +52,13 @@ public class GetDeferralPaymentQueryHandler : IRequestHandler<GetDeferralPayment
             Level1Approvers = DeserializeRoles(model.Level1Approvers),
             Level2Approvers = DeserializeRoles(model.Level2Approvers),
             WorkflowTemplateId = model.WorkflowTemplateId,
+            isApproved = model.isApproved,
+            isApplied = model.isApplied,
+            Numer_Fk = model.Numer_Fk,
+            is_Firma = model.is_Firma,
+            Faktdoc_Id = model.Faktdoc_Id,
+            CC = model.CC,
+            VATID = model.VATID
         };
 
         return itemVm;

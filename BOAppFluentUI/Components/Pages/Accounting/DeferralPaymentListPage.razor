@@ -45,7 +45,7 @@
     }
 </FluentStack>
     
-<FluentDataGrid Items="@filteredItems" Pagination="@pagination" TGridItem="DeferralPaymentFormVm" GridTemplateColumns="80px repeat(7, 1fr)" ResizableColumns="true">
+<FluentDataGrid Items="@filteredItems" Pagination="@pagination" TGridItem="DeferralPaymentFormVm" GridTemplateColumns="80px repeat(7, 1fr)" AutoFit="true" ResizableColumns="true">
        
     @foreach (var column in filterColumns.Where(c => c.IsVisible))
     {
@@ -99,14 +99,21 @@
 
     private List<FilterColumn<DeferralPaymentFormVm>> filterColumns = new List<FilterColumn<DeferralPaymentFormVm>>
     {
-        new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "ID", Property = c => c.Id.ToString(), IsVisible = true },
+        new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "ID", Property = c => c.Id.ToString(), IsVisible = false },
         new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "Numer", Property = c => c.Number.ToString()??string.Empty, IsVisible = true },
         new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "Status", Property = c => c.Status.ToString()??string.Empty, IsVisible = true },
-        new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "Nr kontr.", Property = c => c.KontrahentId.ToString(), IsVisible = true },
+        new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "Nr kontr.", Property = c => c.KontrahentId.ToString(), IsVisible = false },
         new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "Nazwa kontr.", Property = c => c.KontrahentName.ToString(), IsVisible = true },
-        new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "Uzasadnienie", Property = c => c.Note.ToString(), IsVisible = true },
-        new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "Zgłaszający", Property = c =>(c.EmployeeName.ToString()??string.Empty), IsVisible = true },
-        new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "Data", Property = c => c.Requested.ToString(), IsVisible = true }
+        new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "Numer FK", Property = c => c.Numer_Fk.ToString(), IsVisible = true },
+        new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "NIP", Property = c => c.VATID == null ? "brak" : c.VATID, IsVisible = false },
+        new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "Uzasadnienie", Property = c => c.Note.ToString(), IsVisible = false },
+        new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "Zgłaszający", Property = c =>(c.EmployeeName.ToString()??string.Empty), IsVisible = false },
+        new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "Data", Property = c => c.Requested.ToString(), IsVisible = true },
+        new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "DOC CC", Property = c => c.CC.ToString(), IsVisible = true },
+        new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "Firma", Property = c => c.is_Firma ? "TAK" : "NIE", IsVisible = true },
+        new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "Przełożony", Property = c => c.LVL1_EmployeeName.ToString(), IsVisible = true },
+        new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "Rozrachunki", Property = c => c.LVL2_EmployeeName.ToString(), IsVisible = true },
+        new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "DOC CC", Property = c => c.CC.ToString(), IsVisible = true },
     };
 
     private FormUserContext _userContext = new FormUserContext("Settlement");

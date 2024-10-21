@@ -237,6 +237,11 @@ else
                         formItem.EmployeeId = emp.EnovaEmpId;
                         formItem.EmployeeName = emp.LongName;
                         formItem.Status = "AprobataL1";
+                        formItem.CC = customer.CC;
+                        formItem.Faktdoc_Id = customer.Faktdoc_Id;
+                        formItem.Numer_Fk = customer.Numer_Fk;
+                        formItem.is_Firma = customer.is_Firma;
+                        formItem.VATID = customer.Nip;
 
                         Console.WriteLine();
                     }

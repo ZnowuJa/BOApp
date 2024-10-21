@@ -46,6 +46,12 @@ public class DeferralPaymentFormVm : IMapFrom<DeferralPaymentForm>, IFormVm
     public string LVL1_EmployeeName { get; set; }
     public string LVL2_EmployeeName { get; set; }
     public bool isApproved { get; set; }
+    public bool isApplied { get; set; }
+    public string Numer_Fk { get; set; }
+    public bool is_Firma { get; set; }
+    public long Faktdoc_Id { get; set; }
+    public int CC { get; set; }
+    public string VATID { get; set; }
 
     public void Mapping(Profile profile)
     {

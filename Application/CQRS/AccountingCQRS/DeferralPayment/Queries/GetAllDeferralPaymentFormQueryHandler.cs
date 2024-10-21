@@ -60,7 +60,14 @@ public class GetAllDeferralPaymentFormQueryHandler : IRequestHandler<GetAllDefer
                 LVL2_EmployeeName = model.LVL2_EmployeeName,
                 Approvals = DeserializeApprovals(model.Approvals),
                 Level1Approvers = DeserializeRoles(model.Level1Approvers),
-                Level2Approvers = DeserializeRoles(model.Level2Approvers)
+                Level2Approvers = DeserializeRoles(model.Level2Approvers),
+                isApproved = model.isApproved,
+                isApplied = model.isApplied,
+                Numer_Fk = model.Numer_Fk,
+                is_Firma = model.is_Firma,
+                Faktdoc_Id = model.Faktdoc_Id,
+                CC = model.CC,
+                VATID = model.VATID
             };
 
             dpmntsList.Add(itemVm);
