@@ -52,6 +52,13 @@ public class DeferralPaymentFormVm : IMapFrom<DeferralPaymentForm>, IFormVm
     public long Faktdoc_Id { get; set; }
     public int CC { get; set; }
     public string VATID { get; set; }
+    //public static readonly List<string> StatusValues = new List<string>
+    //{
+    //    "Rejestracja",
+    //    "AprobalaL1",
+    //    "AprobataL2",
+    //    "Zakończone"
+    //};
 
     public void Mapping(Profile profile)
     {

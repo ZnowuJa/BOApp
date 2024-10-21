@@ -11,5 +11,8 @@ public class FilterColumn<T>
     public bool IsVisible { get; set; }
     public string Width { get; set; }
     public string CssClass { get; set; } = string.Empty;
+    public bool IsDropdown { get; set; } = false; // New property
+    public List<string> DropdownValues { get; set; } = new List<string>();
+    public List<string> SelectedValues { get; set; } = new List<string>();
 
 }

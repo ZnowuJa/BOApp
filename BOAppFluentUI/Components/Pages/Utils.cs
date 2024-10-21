@@ -33,6 +33,46 @@ public static class Utils
             stateHasChangedInvoker();
         });
     }
+    //public static void HandleDropdownFilter<T>(FilterColumn<T> column, ChangeEventArgs args, Func<Task> stateHasChangedInvoker)
+    //{
+    //    column.Filter = args.Value.ToString();
+    //    stateHasChangedInvoker();
+    //}
+
+    //public static void HandleDropdownFilter<T>(FilterColumn<T> column, ChangeEventArgs args, Func<Task> stateHasChangedInvoker)
+    //{
+    //    var selectedValues = args.Value as List<string>;
+    //    if (selectedValues != null)
+    //    {
+    //        column.SelectedValues = selectedValues;
+    //        stateHasChangedInvoker();
+    //    }
+    //}
+    public static void OnSelectedOptionsChanged(IEnumerable<string> selectedOptions, FilterColumn<DeferralPaymentFormVm> column)
+    {
+        column.SelectedValues = selectedOptions.ToList();
+        // Assuming you have a way to trigger StateHasChanged from Utils, otherwise, pass a callback
+        // StateHasChanged();
+    }
+    public static IQueryable<T> ApplyFilters<T>(IQueryable<T> items, List<FilterColumn<T>> filterColumns)
+    {
+        var query = items;
+
+        foreach (var column in filterColumns)
+        {
+            if (!string.IsNullOrWhiteSpace(column.Filter))
+            {
+                query = query.Where(x => column.Property(x).Contains(column.Filter, StringComparison.CurrentCultureIgnoreCase));
+            }
+
+            if (column.IsDropdown && column.SelectedValues.Any())
+            {
+                query = query.Where(x => column.SelectedValues.Contains(column.Property(x)));
+            }
+        }
+
+        return query.OrderByDescending(r => r.GetType().GetProperty("Number").GetValue(r));
+    }
 
     public static async Task GetUserName(
         AuthenticationStateProvider authenticationStateProvider,

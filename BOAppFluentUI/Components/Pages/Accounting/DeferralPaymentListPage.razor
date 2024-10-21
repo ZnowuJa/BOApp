@@ -45,9 +45,40 @@
     }
 </FluentStack>
     
-<FluentDataGrid Items="@filteredItems" Pagination="@pagination" TGridItem="DeferralPaymentFormVm" GridTemplateColumns="80px repeat(7, 1fr)" AutoFit="true" ResizableColumns="true">
-       
+<FluentDataGrid Items="@Utils.ApplyFilters(items, filterColumns)" Pagination="@pagination" TGridItem="DeferralPaymentFormVm" GridTemplateColumns="80px repeat(7, 1fr)" AutoFit="true" ResizableColumns="true">
     @foreach (var column in filterColumns.Where(c => c.IsVisible))
+    {
+        if (column.IsDropdown)
+        {
+            <PropertyColumn TGridItem="DeferralPaymentFormVm" TProp="string" Property="@(Utils.GetPropertyExpression<DeferralPaymentFormVm>(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label" Filtered="column.SelectedValues.Any()">
+                <ColumnOptions>
+                    <FluentSelect TOption="string"
+                                  Items="@(column.DropdownValues)"
+                                  Multiple="true"
+
+                                  SelectedOptionsChanged="@(e => Utils.OnSelectedOptionsChanged(e, column))"
+                                  >
+                        @foreach (var value in column.DropdownValues)
+                        {
+                            <FluentOption Value="@value">@value</FluentOption>
+                        }
+                    </FluentSelect>
+                </ColumnOptions>
+            </PropertyColumn>
+        }
+        else
+        {
+            <PropertyColumn TGridItem="DeferralPaymentFormVm" TProp="string" Property="@(Utils.GetPropertyExpression<DeferralPaymentFormVm>(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label" Filtered="!string.IsNullOrWhiteSpace(column.Filter)">
+                <ColumnOptions>
+                    <div class="search-box">
+                        <FluentSearch type="search" Autofocus="true" @bind-Value="column.Filter" @oninput="(args) => Utils.HandleFilterDebounced(column, args, debounceDispatcher, () => InvokeAsync(StateHasChanged))" Placeholder="@($"{column.Label.ToLower()}...")" />
+                    </div>
+                </ColumnOptions>
+            </PropertyColumn>
+        }
+    }
+       
+   @*  @foreach (var column in filterColumns.Where(c => c.IsVisible))
     {
         <PropertyColumn TGridItem="DeferralPaymentFormVm" TProp="string" Property="@(Utils.GetPropertyExpression<DeferralPaymentFormVm>(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label" Filtered="!string.IsNullOrWhiteSpace(column.Filter)">
             <ColumnOptions>
@@ -56,7 +87,7 @@
                 </div>
             </ColumnOptions>
         </PropertyColumn>
-    }
+    } *@
 
 @* Actions *@
 <TemplateColumn Title="Actions" Align="Align.End">
@@ -90,9 +121,27 @@
 
     private IQueryable<DeferralPaymentFormVm> items { get; set; } = Enumerable.Empty<DeferralPaymentFormVm>().AsQueryable();
 
-    private IQueryable<DeferralPaymentFormVm> filteredItems => items.Where(x =>
-    filterColumns.All(column => string.IsNullOrWhiteSpace(column.Filter) ||
-    column.Property(x).Contains(column.Filter, StringComparison.CurrentCultureIgnoreCase))).OrderByDescending(r => r.Number);
+    // private IQueryable<DeferralPaymentFormVm> filteredItems => items.Where(x =>
+    // filterColumns.All(column => string.IsNullOrWhiteSpace(column.Filter) ||
+    // column.Property(x).Contains(column.Filter, StringComparison.CurrentCultureIgnoreCase) ||
+    //     (column.IsDropdown && column.SelectedValues.Any() && column.SelectedValues.Contains(column.Property(x))) )).OrderByDescending(r => r.Number);
+
+    // private IQueryable<DeferralPaymentFormVm> filteredItems => items.Where(x =>
+    // filterColumns.All(column =>
+    //     string.IsNullOrWhiteSpace(column.Filter) ||
+    //     column.Property(x).Contains(column.Filter, StringComparison.CurrentCultureIgnoreCase) ||
+    //     (column.IsDropdown && column.SelectedValues.Any() && column.SelectedValues.Contains(column.Property(x).ToString()))
+    // )).OrderByDescending(r => r.Number);
+
+    // private IQueryable<DeferralPaymentFormVm> filteredItems => items.Where(x =>
+    // filterColumns.All(column =>
+    //     string.IsNullOrWhiteSpace(column.Filter) ||
+    //     (column.IsDropdown
+    //         ? column.SelectedValues.Any() && column.SelectedValues.Contains(column.Property(x).ToString())
+    //         : column.Property(x).Contains(column.Filter, StringComparison.CurrentCultureIgnoreCase))
+    // )
+    // ).OrderByDescending(r => r.Number);
+
 
     private DebounceDispatcher debounceDispatcher = new DebounceDispatcher();
     private PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
@@ -101,7 +150,14 @@
     {
         new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "ID", Property = c => c.Id.ToString(), IsVisible = false },
         new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "Numer", Property = c => c.Number.ToString()??string.Empty, IsVisible = true },
-        new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "Status", Property = c => c.Status.ToString()??string.Empty, IsVisible = true },
+        new FilterColumn<DeferralPaymentFormVm> { 
+            FirstRow = true, 
+            Label = "Status", 
+            Property = c => c.Status.ToString()??string.Empty, 
+            IsVisible = true, 
+            IsDropdown = true, 
+            DropdownValues = StatusesValues, 
+            SelectedValues = new List<string> ()},
         new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "Nr kontr.", Property = c => c.KontrahentId.ToString(), IsVisible = false },
         new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "Nazwa kontr.", Property = c => c.KontrahentName.ToString(), IsVisible = true },
         new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "Numer FK", Property = c => c.Numer_Fk.ToString(), IsVisible = true },
@@ -116,6 +172,10 @@
         new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "DOC CC", Property = c => c.CC.ToString(), IsVisible = true },
     };
 
+    private static List<string> StatusesValues { get; set; } = new List<string>
+            {
+                "Rejestracja", "AprobataL1", "AprobataL2", "Zakończone", "Odrzucone"
+            };
     private FormUserContext _userContext = new FormUserContext("Settlement");
 
     private bool actionsDisabled = false;
@@ -145,7 +205,7 @@
             "rozrachunki" or "settlements" => await _mediator.Send(new GetAllDeferralPaymentFormQuery()),
             _ => throw new ArgumentException("Błędny adres strony!")
         };
-        
+
     }
     private async Task<IQueryable<DeferralPaymentFormVm>> HandleSavedCase()
     {
@@ -164,6 +224,22 @@
     }
 
     private void HandleClearFilter(ref string filter) => filter = string.IsNullOrWhiteSpace(filter) ? string.Empty : filter;
+    // private void OnSelectedOptionsChanged(ChangeEventArgs e, FilterColumn<DeferralPaymentFormVm> column)
+    // {
+    //     var selectedOptions = e.Value as IEnumerable<string>;
+    //     if (selectedOptions != null)
+    //     {
+    //         column.SelectedValues = selectedOptions.ToList();
+    //         StateHasChanged();
+    //     }
+    // }
+
+    // private void OnSelectedOptionsChanged(IEnumerable<string> selectedOptions, FilterColumn<DeferralPaymentFormVm> column)
+    // {
+    //     column.SelectedValues = selectedOptions.ToList();
+        
+    //     StateHasChanged();
+    // }
 
     private async Task Edit(DeferralPaymentFormVm item = null)
     {
