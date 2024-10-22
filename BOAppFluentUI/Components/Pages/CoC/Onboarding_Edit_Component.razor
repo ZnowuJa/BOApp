@@ -90,7 +90,15 @@
 
 @if (formItem == null)
 {
-    <FluentProgressRing>Loading...</FluentProgressRing>
+    @if (showForm)
+    {
+        <FluentProgressRing>Loading...</FluentProgressRing>
+    }
+    else
+    {
+        <h1>Nie masz uprawnień do tego formularza!</h1>
+    }
+
 }
 else if (formItem != null)
 {
@@ -331,6 +339,11 @@ else
 
 
         showForm = allowedEmp.Contains(_userContext.EnovaEmpId);
+        if (!showForm)
+        {
+            formItem = null;
+            message = "Nie masz uprawnień do tego formularza";
+        }
         canEditApprover = allowedEditor.Contains(_userContext.Employee.EnovaEmpId.ToString());
 
         if (showForm)
