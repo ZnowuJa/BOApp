@@ -18,6 +18,7 @@
 @inject ILogger<DeferralPaymentListPage> _logger
 @inject IDialogService _dialogService
 @inject IToastService _toastService
+@inject IJSRuntime JS
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager _navigationManager
 
@@ -115,6 +116,8 @@
 </FluentDataGrid>
 <FluentPaginator State="@pagination" />
 
+<FluentButton OnClick="DownloadCsv">Pobierz CSV</FluentButton>
+
 @code {
     [Parameter]
     public string role { get; set; }
@@ -170,6 +173,7 @@
         new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "Przełożony", Property = c => c.LVL1_EmployeeName.ToString(), IsVisible = true },
         new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "Rozrachunki", Property = c => c.LVL2_EmployeeName.ToString(), IsVisible = true },
         new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "DOC CC", Property = c => c.CC.ToString(), IsVisible = true },
+        new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "Odrzucone", Property = c => c.RejectReason.ToString(), IsVisible = false },
     };
 
     private static List<string> StatusesValues { get; set; } = new List<string>
@@ -237,7 +241,7 @@
     // private void OnSelectedOptionsChanged(IEnumerable<string> selectedOptions, FilterColumn<DeferralPaymentFormVm> column)
     // {
     //     column.SelectedValues = selectedOptions.ToList();
-        
+
     //     StateHasChanged();
     // }
 
@@ -259,9 +263,18 @@
                         PreventDismissOnOverlayClick = false,
                         PreventScroll = true,
                     });
-            //     var result = await dialog.Result;
+        //     var result = await dialog.Result;
     }
-    
+    private async Task DownloadCsv()
+    {
+        var selectedItems = @Utils.ApplyFilters(items, filterColumns);
+
+        // Assuming you have an IQueryable variable named 'records'
+        var csvContent = Utils.GenerateCsv(@Utils.ApplyFilters(items, filterColumns));
+
+        // Invoke the JavaScript method to download the CSV
+        await JS.InvokeVoidAsync("downloadFile", "records.csv", csvContent);
+    }
     
 
 }

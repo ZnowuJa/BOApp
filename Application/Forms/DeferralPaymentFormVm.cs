@@ -1,6 +1,7 @@
 ﻿
 
 using Application.Common;
+using Application.ExportModels;
 using Application.Interfaces;
 using Application.Mappings;
 using Application.ViewModels;
@@ -70,6 +71,7 @@ public class DeferralPaymentFormVm : IMapFrom<DeferralPaymentForm>, IFormVm
             // Assuming Number is based on Id
 
             .ReverseMap();
+        profile.CreateMap<DeferralPaymentFormVm, DeferralPaymentExportModel>().ReverseMap();
     }
 
     public DeferralPaymentFormVm()

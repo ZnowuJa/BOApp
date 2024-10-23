@@ -8,6 +8,8 @@ using Application.ITWarehouseCQRS.Employees.Queries;
 
 using Application.ViewModels.General;
 
+using AutoMapper;
+
 using MediatR;
 
 using Microsoft.AspNetCore.Components;
@@ -167,4 +169,11 @@ public static class Utils
         return csv.ToString();
     }
 
+}
+public static class QueryableExtensions
+{
+    public static IQueryable<TDestination> ProjectTo<TSource, TDestination>(this IQueryable<TSource> source, IMapper mapper)
+    {
+        return source.Select(item => mapper.Map<TDestination>(item));
+    }
 }

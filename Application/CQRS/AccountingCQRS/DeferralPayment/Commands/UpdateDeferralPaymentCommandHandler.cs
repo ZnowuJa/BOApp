@@ -188,8 +188,8 @@ public class UpdateDeferralPaymentCommandHandler : IRequestHandler<UpdateDeferra
                         <p>Zgłaszający: <b>{senderName}</b></p>
                     </div>
                     <div>
-                        <p>Kliknij w link, aby przejść do wniosku: <a href=""{_baseUrl}/deferralpaymentedit/{id}"">Przejdź do wniosku</a></p>
-                        <p>Przejdź do listy wniosków: <a href=""{_baseUrl}/deferralpayments"">Lista wniosków</a></p>
+                        <p>Kliknij w link, aby przejść do wniosku: <a href=""{_baseUrl}/platnoscodroczona/{id}"">Przejdź do wniosku</a></p>
+                        <p>Przejdź do listy wniosków: <a href=""{_baseUrl}/platnosciodroczone/kierownik"">Lista wniosków</a></p>
                     </div>
                     <div>
                         <p>Pozdrawiamy!</p>
@@ -229,7 +229,7 @@ public class UpdateDeferralPaymentCommandHandler : IRequestHandler<UpdateDeferra
                         <p>Zgłaszający: <b>{senderName}</b></p>
                     </div>
                     <div>
-                        <p>Kliknij w link, aby przejść do wniosku: <a href=""{_baseUrl}/deferralpaymentedit/{id}"">Przejdź do wniosku</a></p>
+                        <p>Kliknij w link, aby przejść do wniosku: <a href=""{_baseUrl}/platnoscodroczona/{id}"">Przejdź do wniosku</a></p>
                         <p>Przejdź do listy wniosków: <a href=""{_baseUrl}/platnosciodroczone/pracownik"">Lista wniosków</a></p>
                     </div>
                     <div>
