@@ -20,6 +20,7 @@
 @inject IMediator _mediator
 @inject IJSRuntime JS
 @inject ILogger<DeferralPaymentListPage> _logger
+@inject IDialogService _dialogService
 @inject IToastService _toastService
 @inject AuthenticationStateProvider formAuthenticationStateProvider
 @inject NavigationManager _navigationManager
@@ -52,6 +53,12 @@ else if (showForm)
                     <td>@formItem.Numer_Fk</td>
                     <td><b>Lokalizacja:</b></td>
                     <td>@formItem.CC</td>
+                </tr>
+                <tr>
+                    <td><b>NIP:</b></td>
+                    <td>@formItem.VATID</td>
+                    <td><b></b></td>
+                    <td></td>
                 </tr>
             </table>
         </div>
@@ -282,11 +289,32 @@ else if (showForm)
                 "AprobataL2" => "Zakończone",
                 _ => formItem.Status
             };
-        } 
+        }
         else if (buttonState == "rejected")
         {
-            approval.IsApproved = false;
-            formItem.Status = "Odrzucone";
+            string reason = string.Empty;
+
+            var dialog = await _dialogService.ShowDialogAsync<DeferralPaymentRejectComponent>(reason, new DialogParameters()
+                {
+                    Height = "240px",
+                    Title = $"Podaj powód odrzucenia wniosku...",
+                    PreventDismissOnOverlayClick = true,
+                    PreventScroll = true,
+                });
+
+            var result = await dialog.Result;
+
+            if (!result.Cancelled && (result.Data != null || result.Data != string.Empty))
+            {
+                formItem.RejectReason = (string)result.Data;
+                approval.IsApproved = false;
+                formItem.Status = "Odrzucone";
+
+            } else
+            {
+                return;
+            }
+
         }
         else if (buttonState == "cancelled")
         {

@@ -35,5 +35,6 @@ public class DeferralPaymentForm : FormTemplate
     public long Faktdoc_Id { get; set; }
     public int CC { get; set; }
     public string VATID { get; set; }
+    public string RejectReason { get; set; } = string.Empty;
 
 }

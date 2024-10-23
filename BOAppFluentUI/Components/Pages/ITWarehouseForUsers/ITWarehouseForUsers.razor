@@ -59,7 +59,7 @@
         new FilterColumn<AssetDTO> { FirstRow = true, Label = "Asset Number", Property = c => c.AssetTagNumber, IsVisible = true, Width = "1FR" },
         new FilterColumn<AssetDTO> { FirstRow = true, Label = "Serial Number", Property = c => c.SerialNumber, IsVisible = true , Width = "1FR" },
         new FilterColumn<AssetDTO> { FirstRow = true, Label = "Part", Property = c => c.PartVmName, IsVisible = true , Width = "1FR" },
-        new FilterColumn<AssetDTO> { FirstRow = false, Label = "Purchase Date", Property = c => c.PurchaseDate.ToDateOnly().ToString(), IsVisible = false , Width = "1FR" },
+        new FilterColumn<AssetDTO> { FirstRow = false, Label = "Purchase Date", Property = c => c.PurchaseDate.ToDateOnly().ToString(), IsVisible = true , Width = "1FR" },
         new FilterColumn<AssetDTO> { FirstRow = false, Label = "Warranty", Property = c => c.WarrantyUntil.ToDateOnly().ToString(), IsVisible = false , Width = "1FR" },
         new FilterColumn<AssetDTO> { FirstRow = false, Label = "EndOfSupport", Property = c => c.EndOfSupport.ToDateOnly().ToString(), IsVisible = false , Width = "1FR" },
         // new FilterColumn<AssetDTO> { FirstRow = true, Label = "Assignee", Property = c => c.AssigneeVmName, IsVisible = true , Width = "1FR" },
