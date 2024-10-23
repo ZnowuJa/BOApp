@@ -15,18 +15,21 @@
     <EditForm EditContext="@_editContext">
         
         <FluentTextArea style="width: 100%;" @bind-Value="@Content" Placeholder="podaj powód odrzucenia..."></FluentTextArea>
-
+            @if (!string.IsNullOrEmpty(message))
+            { <p></p>
+                <div class="validation-error"><p style="color:red;">@message</p></div>
+            }
     </EditForm>
 </FluentDialogBody>
 
 <FluentDialogFooter>
     <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
-                  Appearance="Appearance.Accent" OnClick="() => SaveAsync()" BackgroundColor="#509EDB" Style="width: 100px">
+                  Appearance="Appearance.Accent" OnClick="() => SaveAsync()" BackgroundColor="#C21E56" Color="#FFFFFF" Style="width: 100px">
         Odrzuć
     </FluentButton>
 
     <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
-                  Appearance="Appearance.Accent" OnClick="() => CancelAsync()" BackgroundColor="#509EDB" Style="width: 100px">
+                  Appearance="Appearance.Accent" OnClick="() => CancelAsync()" BackgroundColor="#808080" Color="#FFFFFF" Style="width: 100px">
         Anuluj
     </FluentButton>
 </FluentDialogFooter>
@@ -43,7 +46,7 @@
     public FluentDialog Dialog { get; set; } = default!;
 
     private EditContext _editContext = default!;
-
+    private string message = string.Empty;
 
     protected override void OnInitialized()
     {
@@ -52,7 +55,15 @@
 
     private async Task SaveAsync()
     {
-        await Dialog.CloseAsync(Content);
+        if (Content == "")
+        {
+            message = "* wymagane podanie powodu odrzucenia";
+            return;
+        } else
+        {
+            await Dialog.CloseAsync(Content);
+        }
+        
     }
 
     private async Task CancelAsync()

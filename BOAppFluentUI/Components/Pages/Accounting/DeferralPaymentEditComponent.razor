@@ -304,7 +304,7 @@ else if (showForm)
 
             var result = await dialog.Result;
 
-            if (!result.Cancelled && (result.Data != null || result.Data != string.Empty))
+            if (!result.Cancelled && (result.Data != null || (string)result.Data != string.Empty))
             {
                 formItem.RejectReason = (string)result.Data;
                 approval.IsApproved = false;
