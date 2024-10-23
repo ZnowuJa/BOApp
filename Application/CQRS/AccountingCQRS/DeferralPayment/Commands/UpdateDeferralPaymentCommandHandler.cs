@@ -55,6 +55,7 @@ public class UpdateDeferralPaymentCommandHandler : IRequestHandler<UpdateDeferra
         string custName = request.Item.KontrahentName;
         string frmNumber = request.Item.Number;
         string reason = request.Item.Note;
+        string rejectReason = request.Item.RejectReason;
         string id = request.Item.Id.ToString();
         string status = request.Item.Status;
         string userEmail = employee.Email;
@@ -139,7 +140,7 @@ public class UpdateDeferralPaymentCommandHandler : IRequestHandler<UpdateDeferra
         }
 
         Console.WriteLine();
-        await SendEmail(senderName, rcptEmail, rcptName, custName, frmNumber, reason, id, status, userEmail);
+        await SendEmail(senderName, rcptEmail, rcptName, custName, frmNumber, reason, id, status, userEmail, rejectReason);
         return request.Item;
 
     }
@@ -154,7 +155,7 @@ public class UpdateDeferralPaymentCommandHandler : IRequestHandler<UpdateDeferra
         return roles == null || roles.Count == 0 ? null : JsonSerializer.Serialize(roles);
     }
 
-    private async Task SendEmail(string senderName, string rcptEmail, string rcptName, string custName, string frmNumber, string reason, string id, string status, string userEmail)
+    private async Task SendEmail(string senderName, string rcptEmail, string rcptName, string custName, string frmNumber, string reason, string id, string status, string userEmail, string rejectreason)
     {
         var _baseUrl = _configuration["BaseUrl"];
         string body = string.Empty;
@@ -267,6 +268,7 @@ public class UpdateDeferralPaymentCommandHandler : IRequestHandler<UpdateDeferra
                         <p>Wniosek dotyczy klienta: <b>{custName}</b></p>
                         <p>Uzasadnienie: <b>{reason}</b></p>
                         <p>Zgłaszający: <b>{senderName}</b></p>
+                        <p>Powód odrzucenia: <b>{rejectreason}</b></p>
                     </div>
                     <div>
                         <p>Przejdź do listy wniosków: <a href=""{_baseUrl}/platnosciodroczone/pracownik"">Lista wniosków</a></p>
