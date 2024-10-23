@@ -8,6 +8,7 @@ using Domain.Entities.Administration;
 using Domain.Entities.CoC;
 using Domain.Entities.Common;
 using Domain.Entities.ITWarehouse;
+using Domain.Entities.Settlement;
 using Domain.Forms;
 using Domain.WorkFlows;
 
@@ -53,6 +54,10 @@ public class AppDbContext : IdentityDbContext<AppUser>, IAppDbContext
     public DbSet<InstructionCoC> Instructions { get; set; }
     public DbSet<BackgroundJob> BackgroundJobs { get; set; }
     public DbSet<OnboardingForm> OnboardingForms { get; set; }
+    public DbSet<CostCenter> CostCenters { get; set; }
+    public DbSet<Country> Countries { get; set; }
+    public DbSet<GLAccount> GLAccounts { get; set; }
+    public DbSet<VATRate> VATRates { get; set; }
 
 
     protected override void OnModelCreating(ModelBuilder builder)

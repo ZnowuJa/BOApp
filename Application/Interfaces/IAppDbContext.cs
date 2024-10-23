@@ -2,6 +2,7 @@
 using Domain.Entities.CoC;
 using Domain.Entities.Common;
 using Domain.Entities.ITWarehouse;
+using Domain.Entities.Settlement;
 using Domain.Forms;
 using Domain.WorkFlows;
 
@@ -42,6 +43,10 @@ public interface IAppDbContext
     public DbSet<InstructionCoC> Instructions { get; set; }
     public DbSet<BackgroundJob> BackgroundJobs { get; set; }
     public DbSet<OnboardingForm> OnboardingForms { get; set; }
+    DbSet<CostCenter> CostCenters { get; set; }
+    DbSet<Country> Countries { get; set; }
+    DbSet<GLAccount> GLAccounts { get; set; }
+    DbSet<VATRate> VATRates { get; set; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default);
