@@ -124,16 +124,16 @@ else if (showForm)
         <h3></h3>
         <p></p>
         <p></p>
-        <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
+        <FluentButton IconEnd="@(new Icons.Regular.Size16.Mail())"
                       Appearance="Appearance.Accent" OnClick="() => Save(sent)" BackgroundColor="#509EDB" Style="width: 100px" Disabled="@SendButton"> 
                       Wyślij</FluentButton>
         <FluentSpacer Width="@buttonSpacer" />
-        <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
-                      Appearance="Appearance.Accent" OnClick="() => Save(approved)" BackgroundColor="#1FC91F" Style="width: 100px" > 
+        <FluentButton IconEnd="@(new Icons.Regular.Size16.PresenceAvailable())"
+                      Appearance="Appearance.Accent" OnClick="() => Save(approved)" BackgroundColor="#1FC91F" Style="width: 100px" Disabled = "@ApproveButton"> 
                       Zatwierdź</FluentButton>
         <FluentSpacer Width="@buttonSpacer" />
-        <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
-                      Appearance="Appearance.Accent" OnClick="() => Save(rejected)" BackgroundColor="#C21E56" Color="#FFFFFF" Style="width: 100px"> Odrzuć</FluentButton>
+        <FluentButton IconEnd="@(new Icons.Regular.Size20.DismissCircle())"
+                      Appearance="Appearance.Accent" OnClick="() => Save(rejected)" BackgroundColor="#C21E56" Color="#FFFFFF" Style="width: 100px" Disabled="@ApproveButton"> Odrzuć</FluentButton>
         <FluentSpacer Width="@buttonSpacer" />
         <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
                       Appearance="Appearance.Accent" OnClick="() => Save(cancelled)" BackgroundColor="#808080" Color="#FFFFFF" Style="width: 100px"> Anuluj</FluentButton>
@@ -179,6 +179,7 @@ else if (showForm)
     private bool al1 = false;
     private bool al2 = false;
     private bool fin = false;
+    private bool rej = false;
     private bool canEditApprover = false;
     private bool ApproveButton = true;
     private bool SendButton = true;
@@ -233,7 +234,12 @@ else if (showForm)
         al1 = formItem.Status == "AprobataL1";
         al2 = formItem.Status == "AprobataL2";
         fin = formItem.Status == "Zakończone";
+        rej = formItem.Status == "Odrzucone";
 
+        if (fin || rej)
+        {
+            ApproveButton = true;
+        }
 
         _organisation = await _mediator.Send(new GetOrganisationByEmpSapNumberQuery(emp.SapNumber));
         approval = new Approval()
