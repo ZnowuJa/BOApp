@@ -1,0 +1,63 @@
+﻿@page "/costcenters"
+@using Application.CQRS.SettlementCQRS.CostCenters.Queries
+@using Application.CQRS.SettlementCQRS.CostCenters.Commands
+@using Application.ViewModels.Settlement
+@using MediatR
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+
+@attribute [Authorize(Policy = "Technician")]
+
+@inject IMediator _mediator
+@inject IDialogService _dialogService
+@inject IToastService _toastService
+
+<h3>CostCenters</h3>
+
+@if (costCenter == null)
+{
+    <FluentProgressRing>Loading...</FluentProgressRing>
+
+}
+else
+{
+
+    <FluentDataGrid Items="@costCenter" TGridItem="CostCenterVm" GridTemplateColumns="50px 1fr 2fr 1fr">
+
+
+        <PropertyColumn Property="@(c => c.Id)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.MPK)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.Description)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.Text)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <TemplateColumn Title="Actions" Align="Align.End">
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => Console.WriteLine("Info click"))" />
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => Console.WriteLine("Edit click"))" />
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Console.WriteLine("Delete click"))" />
+        </TemplateColumn>
+    </FluentDataGrid>
+    <FluentButton IconStart="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddPanel())" />
+}
+
+
+@code {
+    private IQueryable<CostCenterVm> costCenter;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Load();
+    }
+
+    private async Task Load()
+    {
+        costCenter = await _mediator.Send(new GetAllCostCenterQuery());
+    }
+
+
+    private async Task AddPanel()
+    {
+        CostCenterVm item = new CostCenterVm { Id = 0, MPK = string.Empty, Description = string.Empty, Text = string.Empty};
+        // await EditCatTypePanel(ctVm);
+        // await EditType(item);
+
+    }
+}
