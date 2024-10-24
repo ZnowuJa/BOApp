@@ -2,6 +2,8 @@
 using Application.Interfaces;
 using Application.Interfaces.Identity.Services;
 using Application.ITWarehouseCQRS.CategoryTypes.Queries;
+using Application.ViewModels.General;
+
 using Domain.Entities.ITWarehouse;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Identity;
@@ -131,7 +133,7 @@ public class TokenValidatedHandlerService : ITokenValidatedHandlerService
             employee.AzureObjectId = aadoidc;
             employee.IdentityUserName = preferredUsername;
             employee.AspNetUserId = appUser.Id;
-           
+
             //employee.EnovaEmpId = int.Parse(empInfosObj.EmpId);
             //employee.Position = empInfosObj.Position;
             //employee.ManagerId = empInfosObj.ManagerEmpId;
@@ -144,6 +146,23 @@ public class TokenValidatedHandlerService : ITokenValidatedHandlerService
             //employee.VcddeptNumber = empInfosObj.VcddeptNumber;
             //employee.SapNumber = empInfosObj.SapnumberHr;
 
+            if (employee.IsManager)
+            {
+                var user = await _userManager.FindByIdAsync(employee.AspNetUserId);
+                if (user != null && !await _userManager.IsInRoleAsync(user, "Manager"))
+                {
+                    await _userManager.AddToRoleAsync(user, "Manager");
+                }
+            }
+            else
+            {
+                var user = await _userManager.FindByIdAsync(employee.AspNetUserId);
+                if (user != null && await _userManager.IsInRoleAsync(user, "Manager"))
+                {
+                    await _userManager.RemoveFromRoleAsync(user, "Manager");
+                }
+            }
+
             _appDbContext.Employees.Update(employee);
             await _appDbContext.SaveChangesAsync();
             emp = employee;
@@ -152,8 +171,6 @@ public class TokenValidatedHandlerService : ITokenValidatedHandlerService
         catch (Exception ex) { _logger.LogInformation($"Update employee failed: {ex.Message.ToString()}"); }
 
         await UpdateUserClaimsOnSignIn(emp, appUser, true, ctx);
-
-
     }
 
     public async Task UpdateUserClaimsOnSignIn(Employee emp, AppUser user, bool update, TokenValidatedContext context)
@@ -266,6 +283,22 @@ public class TokenValidatedHandlerService : ITokenValidatedHandlerService
             employeeObj.IdentityUserName = preferredUsername;
             employeeObj.Type = await _appDbContext.EmployeeTypes.Where(t => t.Name == "User").FirstOrDefaultAsync();
             employeeObj.AspNetUserId = uid;
+            if (employeeObj.IsManager)
+            {
+                var user = await _userManager.FindByIdAsync(employeeObj.AspNetUserId);
+                if (user != null && !await _userManager.IsInRoleAsync(user, "Manager"))
+                {
+                    await _userManager.AddToRoleAsync(user, "Manager");
+                }
+            }
+            else
+            {
+                var user = await _userManager.FindByIdAsync(employeeObj.AspNetUserId);
+                if (user != null && await _userManager.IsInRoleAsync(user, "Manager"))
+                {
+                    await _userManager.RemoveFromRoleAsync(user, "Manager");
+                }
+            }
 
             _appDbContext.Employees.Update(employeeObj);
             await _appDbContext.SaveChangesAsync();
