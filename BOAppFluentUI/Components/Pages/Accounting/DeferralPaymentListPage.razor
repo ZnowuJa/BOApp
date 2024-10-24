@@ -14,7 +14,7 @@
 @using System.Linq.Expressions
 @using System.Security.Claims
 
-@attribute [Authorize(Policy = "Settlements")]
+@attribute [Authorize(Policy = "User")]
 
 @inject IMediator _mediator
 @inject ILogger<DeferralPaymentListPage> _logger
