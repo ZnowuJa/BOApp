@@ -169,6 +169,25 @@ public static class Utils
         return csv.ToString();
     }
 
+    public static byte[] GenerateCsvPL<T>(IQueryable<T> records)
+    {
+        var csv = new StringBuilder();
+        var properties = typeof(T).GetProperties();
+
+        // Add CSV headers
+        csv.AppendLine(string.Join(",", properties.Select(p => p.Name)));
+
+        // Add CSV rows
+        foreach (var record in records)
+        {
+            var values = properties.Select(p => p.GetValue(record, null)?.ToString() ?? string.Empty);
+            csv.AppendLine(string.Join(",", values));
+        }
+        Console.WriteLine(csv.ToString());
+        // Convert the CSV content to a byte array using UTF-8 encoding
+        return Encoding.UTF8.GetBytes(csv.ToString());
+    }
+
 }
 public static class QueryableExtensions
 {
