@@ -113,7 +113,7 @@
         new FilterColumn<OnboardingFormVm> { FirstRow = true, Label = "Postęp", Property = c => c.Progress.ToString(), IsVisible = true },
     };
 
-    private FormUserContext _userContext = new FormUserContext("Onboarding");
+    private FormUserContext _userContext = new FormUserContext("Onboarding", "Technician");
 
     private bool deleteDisabled = true;
     private bool viewDisabled = false;

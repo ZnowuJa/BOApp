@@ -73,7 +73,7 @@ public static class Utils
             }
         }
 
-        return query.OrderByDescending(r => r.GetType().GetProperty("Number").GetValue(r));
+        return query.OrderByDescending(r => r.GetType().GetProperty("Id").GetValue(r));
     }
 
     public static async Task GetUserName(
@@ -108,6 +108,16 @@ public static class Utils
         {
             userContext.EnovaEmpId = "unknown";
         }
+
+        if (userContext.Employee.Roles.Contains(userContext.AdminRole) || userContext.Employee.Roles.Contains(userContext.ITRole))
+        {
+            userContext.isFormAdmin = true;
+        }
+        else
+        {
+            userContext.isFormAdmin = false;
+        }
+
     }
 
     public static bool IsEditDisabled<T>(T context, FormUserContext _userContext) where T : IFormVm

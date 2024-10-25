@@ -1,4 +1,5 @@
-﻿using Application.Interfaces;
+﻿using Application.ExportModels;
+using Application.Interfaces;
 using Application.Mappings;
 using Application.ViewModels;
 using AutoMapper;
@@ -50,7 +51,10 @@ public class AssetDTO : IMapFrom<Asset>
     public void Mapping(Profile profile)
     {
         profile.CreateMap<Asset, AssetDTO>().ReverseMap();
+        profile.CreateMap<AssetDTO, AssetExportModel>()
+                .ForMember(dest => dest.InvoiceDocNumber, opt => opt.MapFrom(src => src.invoiceVm.Number));
     }
+
 
     public bool Compare(AssetDTO a, AssetDTO b)
     {

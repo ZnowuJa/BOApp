@@ -141,7 +141,7 @@ else
     private ClaimsPrincipal? user { get; set; }
     private string username { get; set; }
     private EmployeeVm emp { get; set; }
-    private FormUserContext _userContext = new FormUserContext("Settlement");
+    private FormUserContext _userContext = new FormUserContext("Settlement", "Technician");
     private IQueryable<EmployeeVm> itemEmployeesList { get; set; }
     private OrganisationRoleForFormVm approverL1 { get; set; }
     private OrganisationRoleForFormVm approverL2 { get; set; }

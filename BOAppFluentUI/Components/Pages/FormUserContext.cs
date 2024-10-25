@@ -11,9 +11,11 @@ public class FormUserContext
     public string EnovaEmpId { get; set; }
     public bool isFormAdmin { get; set; }
     public string AdminRole { get; set; }
+    public string ITRole { get; set; }
 
-    public FormUserContext(string adminRole)
+    public FormUserContext(string adminRole, string itRole)
     {
         AdminRole = adminRole;
+        ITRole = itRole;
     }
 }

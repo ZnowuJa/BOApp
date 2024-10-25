@@ -1,5 +1,6 @@
 ﻿@page "/assets"
 @using Application.DTOs
+@using Application.ExportModels
 @using Application.ViewModels.General
 @using Application.Interfaces
 @using Application.ITWarehouseCQRS.AssetHistories.Commands
@@ -9,6 +10,7 @@
 @using BOAppFluentUI.Components.Pages.ITWarehouseAdmin.Asset
 @using BOAppFluentUI.Components.Pages
 @using MediatR
+@using AutoMapper
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
@@ -22,6 +24,8 @@
 @inject ILogger<Assets_Page> _logger
 @inject IDialogService _dialogService
 @inject IToastService _toastService
+@inject IJSRuntime JS
+@inject IMapper _mapper
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
 <style>
@@ -157,7 +161,7 @@ else
 
     }
 }
-
+<FluentButton OnClick="DownloadCsv">Pobierz CSV</FluentButton>
 @code {
     #region Properties
     private IQueryable<AssetDTO> products;
@@ -193,6 +197,7 @@ else
         new FilterColumn<AssetDTO> { FirstRow = true, Label = "Serial Number", Property = c => c.SerialNumber, IsVisible = true , Width = "1FR" },
         new FilterColumn<AssetDTO> { FirstRow = true, Label = "Part", Property = c => c.PartVmName, IsVisible = true , Width = "1FR" },
         new FilterColumn<AssetDTO> { FirstRow = true, Label = "Assignee", Property = c => c.AssigneeVmName, IsVisible = true , Width = "1FR" },
+         new FilterColumn<AssetDTO> { FirstRow = true, Label = "InvNr", Property = c => c.invoiceVm.Number, IsVisible = false , Width = "1FR" },
         // Add other columns as needed
         new FilterColumn<AssetDTO> { FirstRow = false, Label = "State", Property = c => c.StateVmName, IsVisible = false , Width = "1FR" },
         new FilterColumn<AssetDTO> { FirstRow = false, Label = "Warehouse", Property = c => c.WarehouseVmNumber, IsVisible = false , Width = "1FR" },
@@ -241,7 +246,7 @@ else
 
     private void HandleFilterDebounced(FilterColumn<AssetDTO> column, ChangeEventArgs args)
     {
-        debounceDispatcher.Debounce(300, _ =>
+        debounceDispatcher.Debounce(500, _ =>
         {
             column.Filter = args.Value.ToString();
             InvokeAsync(StateHasChanged);
@@ -558,5 +563,22 @@ else
     private Expression<Func<AssetDTO, string>> GetPropertyExpression(Func<AssetDTO, string> propertyFunc)
     {
         return x => propertyFunc(x);
+    }
+
+    private async Task DownloadCsv()
+    {
+        var selectedItems = @Utils.ApplyFilters(products, filterColumns);
+
+        IQueryable<AssetExportModel> exportModels = selectedItems.ProjectTo<AssetDTO, AssetExportModel>(_mapper);
+        // Assuming you have an IQueryable variable named 'records'
+        var csvContent = Utils.GenerateCsvPL(exportModels);
+
+        var base64csv = Convert.ToBase64String(csvContent);
+
+        string date = DateTime.Now.ToString("yyyyMMdd");
+        string filename = $"{date}_lista.csv";
+
+        // Invoke the JavaScript method to download the CSV
+        await JS.InvokeVoidAsync("downloadFilePL", filename, base64csv);
     }
 }

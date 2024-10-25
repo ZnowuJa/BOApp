@@ -174,7 +174,7 @@
     private string username { get; set; }
     private EmployeeVm emp { get; set; }
 
-    private FormUserContext _userContext = new FormUserContext("Settlement");
+    private FormUserContext _userContext = new FormUserContext("Settlement", "Technician");
 
     private IQueryable<EmployeeVm> itemEmployeesList { get; set; }
     private OrganisationRoleForFormVm approverL1 { get; set; }
@@ -246,7 +246,7 @@
 
         showForm = allowedEmp.Contains(_userContext.EnovaEmpId);
         canEditApprover = allowedEditor.Contains(_userContext.EnovaEmpId);
-
+        
         if (showForm)
             await Load();
 
