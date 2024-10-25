@@ -102,6 +102,7 @@ public static class DiPersistance
 
             options.AddPolicy("Settlements", policy => policy
             .RequireRole("Settlement", "Technician", "Administrator", "AppAdmin"));
+            options.AddPolicy("ManagerSettlement", policy => policy.RequireRole("Manager", "Technician", "Administrator", "AppAdmin"));
 
             options.AddPolicy("User", policy => policy
             .RequireRole("User", "Accountant", "AccountantTL", "Settlement", "Manager", "Technician", "Administrator", "AppAdmin"));

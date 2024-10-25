@@ -169,7 +169,7 @@ public class UpdateDeferralPaymentCommandHandler : IRequestHandler<UpdateDeferra
             }
         }).ToList();
 
-        if (status == "AprobataL1" || status == "AprobataL2")
+        if (status == "AprobataL1")
         {
             subject = $"Wniosek o odroczoną płatność ({frmNumber}) oczekuje na aprobatę)";
             body = $@"
@@ -188,8 +188,48 @@ public class UpdateDeferralPaymentCommandHandler : IRequestHandler<UpdateDeferra
                         <p>Zgłaszający: <b>{senderName}</b></p>
                     </div>
                     <div>
-                        <p>Kliknij w link, aby przejść do wniosku: <a href=""{_baseUrl}/platnoscodroczona/{id}"">Przejdź do wniosku</a></p>
+                        <p>Kliknij w link, aby przejść do wniosku: <a href=""{_baseUrl}/platnoscodroczona/{id}?srcPage=kierownik"">Przejdź do wniosku</a></p>
                         <p>Przejdź do listy wniosków: <a href=""{_baseUrl}/platnosciodroczone/kierownik"">Lista wniosków</a></p>
+                    </div>
+                    <div>
+                        <p>Pozdrawiamy!</p>
+                        <p>Twój zespół Automatyzacji!</p>
+                    </div>
+                    <div class=""footer"">
+                        <p>© 2024 Porsche Inter Auto Polska Sp. z o.o.</p>
+                    </div>
+                </body>
+                </html>";
+        }
+        else if (status == "AprobataL2")
+        {
+            recipients = new List<Recipient>
+            {
+                new Recipient
+                {
+                    EmailAddress = new EmailAddress{ Address = "rozrachunki@porscheinterauto.pl" }
+                }
+
+            };
+            subject = $"Wniosek o odroczoną płatność ({frmNumber}) oczekuje na aprobatę)";
+            body = $@"
+                <!DOCTYPE html>
+                <html>
+                <head>
+                </head>
+                <body>
+                    <div class=""header"">
+                        <h1>Wniosek o odroczoną płatność</h1>
+                    </div>
+                    <div>
+                        <p><h3>Nowy wniosek o odroczoną płatność numer {frmNumber} oczekuje na Twoją aprobatę.</h3></p>
+                        <p>Wniosek dotyczy klienta: <b>{custName}</b></p>
+                        <p>Uzasadnienie: <b>{reason}</b></p>
+                        <p>Zgłaszający: <b>{senderName}</b></p>
+                    </div>
+                    <div>
+                        <p>Kliknij w link, aby przejść do wniosku: <a href=""{_baseUrl}/platnoscodroczona/{id}?srcPage=rozrachunki"">Przejdź do wniosku</a></p>
+                        <p>Przejdź do listy wniosków: <a href=""{_baseUrl}/platnosciodroczone/rozrachunki"">Lista wniosków</a></p>
                     </div>
                     <div>
                         <p>Pozdrawiamy!</p>
@@ -229,7 +269,7 @@ public class UpdateDeferralPaymentCommandHandler : IRequestHandler<UpdateDeferra
                         <p>Zgłaszający: <b>{senderName}</b></p>
                     </div>
                     <div>
-                        <p>Kliknij w link, aby przejść do wniosku: <a href=""{_baseUrl}/platnoscodroczona/{id}"">Przejdź do wniosku</a></p>
+                        <p>Kliknij w link, aby przejść do wniosku: <a href=""{_baseUrl}/platnoscodroczona/{id}?srcPage=pracownik"">Przejdź do wniosku</a></p>
                         <p>Przejdź do listy wniosków: <a href=""{_baseUrl}/platnosciodroczone/pracownik"">Lista wniosków</a></p>
                     </div>
                     <div>
@@ -293,17 +333,7 @@ public class UpdateDeferralPaymentCommandHandler : IRequestHandler<UpdateDeferra
                 Content = body
             },
             ToRecipients = recipients
-        };
-        //{
-        //    new Recipient
-        //    {
-        //        EmailAddress = new EmailAddress
-        //        {
-        //            Address = destEmail
-        //        }
-        //    }
-        //}
-        
+        };       
 
         await _mailService.SendEmailAsync(message);
     }

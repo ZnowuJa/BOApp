@@ -243,7 +243,7 @@
 
     private async Task Edit(DeferralPaymentFormVm item = null)
     {
-        _navigationManager.NavigateTo($"/deferralpaymentedit/{item.Id}");
+        _navigationManager.NavigateTo($"/deferralpaymentedit/{item.Id}?srcPage={role}");
     }
     private async Task Delete(DeferralPaymentFormVm item = null)
     {

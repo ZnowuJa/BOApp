@@ -26,127 +26,131 @@
 @inject AuthenticationStateProvider formAuthenticationStateProvider
 @inject NavigationManager _navigationManager
 
+
 @if (formItem == null)
-{
-    <FluentProgressRing>Loading...</FluentProgressRing>
-}
-else if (showForm)
-{
-    <h3>Wniosek o udzielenie odroczonej płatności  | Status: @formItem.Status</h3>
-
-    <EditForm EditContext="_editContext">
-        <div>
-            <table>
-                <tr>
-                    <td><b>Numer:</b></td>
-                    <td>@formItem.Number</td>
-                    <td><b>Zgłoszone: </b></td>
-                    <td>@formItem.Requested.ToIsoDateString()</td>
-                </tr>
-                <tr>
-                    <td><b>Organizacja:</b></td>
-                    <td>@_organisation.Name</td>
-                    <td><b>Zgłaszający:</b></td>
-                    <td>@formItem.EmployeeName</td>
-                </tr>
-                <tr>
-                    <td><b>Numer FK:</b></td>
-                    <td>@formItem.Numer_Fk</td>
-                    <td><b>Lokalizacja:</b></td>
-                    <td>@formItem.CC</td>
-                </tr>
-                <tr>
-                    <td><b>NIP:</b></td>
-                    <td>@formItem.VATID</td>
-                    <td><b></b></td>
-                    <td></td>
-                </tr>
-            </table>
-        </div>
-        <p></p>
-        <FluentStack VerticalAlignment="VerticalAlignment.Center" HorizontalAlignment="HorizontalAlignment.Start">
-
-            <div>
-                <FluentTextField Id="kontrahentId" @bind-Value="formItem.KontrahentId" ReadOnly="true" style="width: 100px;"> Numer (AS): </FluentTextField>
-            </div>
-            <div>
-                <FluentTextField Id="name" @bind-Value="formItem.KontrahentName" ReadOnly="true" style="width: 400px;"> Nazwa: </FluentTextField>
-            </div>
-@*             <div>
-                <FluentTextField Id="EmpName" @bind-Value="formItem.EmployeeName" ReadOnly="true" style="width: 400px;"> Nazwa użytkownika: </FluentTextField>
-            </div> *@
-        </FluentStack>
-        <h3> </h3>
-        <FluentTextArea @bind-Value="formItem.Note" Label="Proszę o włączenie odroczonej płatności ze względu na:" Cols="72" Required="true" Disabled = "true">
-        </FluentTextArea>
-
-        <p></p>
-        <h5>Aprobujący:</h5>
-        @if (al1 || al2)
         {
-            <p></p>
+            <FluentProgressRing>Loading...</FluentProgressRing>
+        }
+        else if (showForm)
+        {
+            <h3>Wniosek o udzielenie odroczonej płatności  | Status: @formItem.Status</h3>
+
+            <EditForm EditContext="_editContext" Context="editFormContext">
+                <div>
+                    <table>
+                        <tr>
+                            <td><b>Numer:</b></td>
+                            <td>@formItem.Number</td>
+                            <td><b>Zgłoszone: </b></td>
+                            <td>@formItem.Requested.ToIsoDateString()</td>
+                        </tr>
+                        <tr>
+                            <td><b>Organizacja:</b></td>
+                            <td>@_organisation.Name</td>
+                            <td><b>Zgłaszający:</b></td>
+                            <td>@formItem.EmployeeName</td>
+                        </tr>
+                        <tr>
+                            <td><b>Numer FK:</b></td>
+                            <td>@formItem.Numer_Fk</td>
+                            <td><b>Lokalizacja:</b></td>
+                            <td>@formItem.CC</td>
+                        </tr>
+                        <tr>
+                            <td><b>NIP:</b></td>
+                            <td>@formItem.VATID</td>
+                            <td><b></b></td>
+                            <td></td>
+                        </tr>
+                    </table>
+                </div>
+                <p></p>
+                <FluentStack VerticalAlignment="VerticalAlignment.Center" HorizontalAlignment="HorizontalAlignment.Start">
+
+                    <div>
+                        <FluentTextField Id="kontrahentId" @bind-Value="formItem.KontrahentId" ReadOnly="true" style="width: 100px;"> Numer (AS): </FluentTextField>
+                    </div>
+                    <div>
+                        <FluentTextField Id="name" @bind-Value="formItem.KontrahentName" ReadOnly="true" style="width: 400px;"> Nazwa: </FluentTextField>
+                    </div>
+        @*             <div>
+                        <FluentTextField Id="EmpName" @bind-Value="formItem.EmployeeName" ReadOnly="true" style="width: 400px;"> Nazwa użytkownika: </FluentTextField>
+                    </div> *@
+                </FluentStack>
+                <h3> </h3>
+                <FluentTextArea @bind-Value="formItem.Note" Label="Proszę o włączenie odroczonej płatności ze względu na:" Cols="72" Required="true" Disabled = "true">
+                </FluentTextArea>
+
+                <p></p>
+                <h5>Aprobujący:</h5>
+                @if (al1 || al2)
+                {
+                    <p></p>
             
-            <FluentStack Orientation="Orientation.Horizontal">
-            <FluentSelect TOption="OrganisationRoleForFormVm"
-                          Style="align-items: center;"
-                          Id="AL1Id"
-                          Disabled="@(canEditApprover)"
-                          Label="Aprobata L1"
-                          Autofocus="true"
-                          Items="formItem.Level1Approvers"
-                          Multiple="false"
-                          OptionValue="@(p => p.EmpId.ToString())"
-                          OptionText="@(p => p.LongName)"
-                          OptionSelected="@(p => p.EmpId == int.Parse(formItem.LVL1_EnovaEmpId.ToString()))"
-                          @bind-SelectedOption="approverL1"
-                          Height="200px"
-                          @onchange="@(e => Utils.HandleChangeApprover(e, itemEmployeesList, formItem, "L1"))" />
-            Aprobata L2:   &nbsp;&nbsp; Dział Rozrachunki
+                    <FluentStack Orientation="Orientation.Horizontal">
+                    <FluentSelect TOption="OrganisationRoleForFormVm"
+                                  Style="align-items: center;"
+                                  Id="AL1Id"
+                                  Disabled="@(canEditApprover)"
+                                  Label="Aprobata L1"
+                                  Autofocus="true"
+                                  Items="formItem.Level1Approvers"
+                                  Multiple="false"
+                                  OptionValue="@(p => p.EmpId.ToString())"
+                                  OptionText="@(p => p.LongName)"
+                                  OptionSelected="@(p => p.EmpId == int.Parse(formItem.LVL1_EnovaEmpId.ToString()))"
+                                  @bind-SelectedOption="approverL1"
+                                  Height="200px"
+                                  @onchange="@(e => Utils.HandleChangeApprover(e, itemEmployeesList, formItem, "L1"))" />
+                    Aprobata L2:   &nbsp;&nbsp; Dział Rozrachunki
 
 
-@*             
-            <FluentSelect TOption="OrganisationRoleForFormVm"
-                          Id="AL2Id"
-                          Autofocus="true"
-                          Label="Aprobata L2"
-                          Items="formItem.Level2Approvers"
-                          Multiple="false"
-                          OptionValue="@(p => p.EmpId.ToString())"
-                          OptionText="@(p => p.LongName)"
-                          OptionSelected="@(p => p.EmpId == int.Parse(formItem.LVL2_EnovaEmpId.ToString()))"
-                          @bind-SelectedOption="approverL2"
-                          Height="200px"
-                          @onchange="HandleChangeApproverL2" />
-             *@
-            </FluentStack>
+        @*             
+                    <FluentSelect TOption="OrganisationRoleForFormVm"
+                                  Id="AL2Id"
+                                  Autofocus="true"
+                                  Label="Aprobata L2"
+                                  Items="formItem.Level2Approvers"
+                                  Multiple="false"
+                                  OptionValue="@(p => p.EmpId.ToString())"
+                                  OptionText="@(p => p.LongName)"
+                                  OptionSelected="@(p => p.EmpId == int.Parse(formItem.LVL2_EnovaEmpId.ToString()))"
+                                  @bind-SelectedOption="approverL2"
+                                  Height="200px"
+                                  @onchange="HandleChangeApproverL2" />
+                     *@
+                    </FluentStack>
+                }
+
+                <h3></h3>
+                <p></p>
+                <p></p>
+                <FluentButton IconEnd="@(new Icons.Regular.Size16.Mail())"
+                              Appearance="Appearance.Accent" OnClick="() => Save(sent)" BackgroundColor="#509EDB" Style="width: 100px" Disabled="@SendButton"> 
+                              Wyślij</FluentButton>
+                <FluentSpacer Width="@buttonSpacer" />
+                <FluentButton IconEnd="@(new Icons.Regular.Size16.PresenceAvailable())"
+                              Appearance="Appearance.Accent" OnClick="() => Save(approved)" BackgroundColor="#1FC91F" Style="width: 100px" Disabled = "@ApproveButton"> 
+                              Zatwierdź</FluentButton>
+                <FluentSpacer Width="@buttonSpacer" />
+                <FluentButton IconEnd="@(new Icons.Regular.Size20.DismissCircle())"
+                              Appearance="Appearance.Accent" OnClick="() => Save(rejected)" BackgroundColor="#C21E56" Color="#FFFFFF" Style="width: 100px" Disabled="@ApproveButton"> Odrzuć</FluentButton>
+                <FluentSpacer Width="@buttonSpacer" />
+                <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
+                              Appearance="Appearance.Accent" OnClick="() => Save(cancelled)" BackgroundColor="#808080" Color="#FFFFFF" Style="width: 100px"> Anuluj</FluentButton>
+            </EditForm>
+        } else
+        {
+    <h2>Nie masz odpowiednich uprawnień do otwierania tej strony.</h2>
         }
 
-        <h3></h3>
-        <p></p>
-        <p></p>
-        <FluentButton IconEnd="@(new Icons.Regular.Size16.Mail())"
-                      Appearance="Appearance.Accent" OnClick="() => Save(sent)" BackgroundColor="#509EDB" Style="width: 100px" Disabled="@SendButton"> 
-                      Wyślij</FluentButton>
-        <FluentSpacer Width="@buttonSpacer" />
-        <FluentButton IconEnd="@(new Icons.Regular.Size16.PresenceAvailable())"
-                      Appearance="Appearance.Accent" OnClick="() => Save(approved)" BackgroundColor="#1FC91F" Style="width: 100px" Disabled = "@ApproveButton"> 
-                      Zatwierdź</FluentButton>
-        <FluentSpacer Width="@buttonSpacer" />
-        <FluentButton IconEnd="@(new Icons.Regular.Size20.DismissCircle())"
-                      Appearance="Appearance.Accent" OnClick="() => Save(rejected)" BackgroundColor="#C21E56" Color="#FFFFFF" Style="width: 100px" Disabled="@ApproveButton"> Odrzuć</FluentButton>
-        <FluentSpacer Width="@buttonSpacer" />
-        <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
-                      Appearance="Appearance.Accent" OnClick="() => Save(cancelled)" BackgroundColor="#808080" Color="#FFFFFF" Style="width: 100px"> Anuluj</FluentButton>
-    </EditForm>
-} else
-{
-    <h2>Niestety nic to nie ma dla Ciebie!</h2>
-}
 
 @code {
     #region Declarations
     [Parameter]
     public int Id { get; set; }
+    private string _srcPage;
+    private bool blankPage = true;
 
     private DeferralPaymentFormVm formItem { get; set; }
     private EditContext _editContext;
@@ -203,6 +207,26 @@ else if (showForm)
 
     protected override async Task OnInitializedAsync()
     {
+        var uri = new Uri(_navigationManager.Uri);
+        var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+
+        if (query.TryGetValue("srcPage", out var sourcePageValue))
+        {
+
+            if (sourcePageValue == "kierownik" || sourcePageValue == "pracownik" || sourcePageValue == "rozrachunki")
+            {
+                _srcPage = sourcePageValue; // Valid sourcePage is set
+            }
+            else
+            {
+                blankPage = false; // Invalid value
+                return;
+            }
+        } else
+        {
+            blankPage = false;
+            return;
+        }
         messageMissing = "Loading";
         try
         {
@@ -225,7 +249,6 @@ else if (showForm)
 
         if (showForm)
             await Load();
-
 
     }
 
@@ -278,15 +301,15 @@ else if (showForm)
     private async Task Save(string buttonState)
     {
         var destination = string.Empty;
-
-        if (formItem.Status == "AprobataL2")
-        {
-            destination = "/platnosciodroczone/rozrachunki";
-        }
-        else 
-        {
-            destination = "/platnosciodroczone/kierownik";
-        }
+        destination = $"/platnosciodroczone/{_srcPage}";
+        // if (formItem.Status == "AprobataL2")
+        // {
+        //     destination = "/platnosciodroczone/rozrachunki";
+        // }
+        // else 
+        // {
+        //     destination = "/platnosciodroczone/kierownik";
+        // }
 
         if (buttonState == "approved")
         {
@@ -325,7 +348,7 @@ else if (showForm)
         }
         else if (buttonState == "cancelled")
         {
-            destination = "/rozrachunki";
+            // destination = "/rozrachunki";
             _navigationManager.NavigateTo(destination);
             return;
         }

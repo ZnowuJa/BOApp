@@ -21,6 +21,10 @@ window.downloadFile = function (filename, content) {
 function goBack() {
     window.history.back();
 };
+
+window.getHistoryLength = function () {
+    return window.history.length;
+}
 function openInNewTab(url) {
     window.open(url, '_blank');
 };

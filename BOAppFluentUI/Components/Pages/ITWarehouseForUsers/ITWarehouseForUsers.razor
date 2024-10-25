@@ -29,9 +29,9 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
 <h3>Moje wyposażenie</h3>
-<p></p>
+<p>To jest testowa strona która będzie rozbudowywana, ale dane są prawdziwe. Jeśli coś Ci tu nie pasuje - proszę zgłoś na Helpdesk! </p>
 
-<FluentDataGrid Items="@products" Pagination="@pagination" TGridItem="AssetDTO" GridTemplateColumns="80px repeat(6, 1fr)" ResizableColumns="true">
+<FluentDataGrid Items="@products" Pagination="@pagination" TGridItem="AssetDTO" GridTemplateColumns="80px repeat(6, 1fr)" ResizableColumns="true" AutoFit="true">
        
         @foreach (var column in filterColumns.Where(c => c.IsVisible))
         {
@@ -56,10 +56,10 @@
     private List<FilterColumn<AssetDTO>> filterColumns = new List<FilterColumn<AssetDTO>>
     {
         // new FilterColumn<AssetDTO> { FirstRow = true, Label = "ID", Property = c => c.Id.ToString(), IsVisible = true },
-        new FilterColumn<AssetDTO> { FirstRow = true, Label = "Asset Number", Property = c => c.AssetTagNumber, IsVisible = true, Width = "1FR" },
-        new FilterColumn<AssetDTO> { FirstRow = true, Label = "Serial Number", Property = c => c.SerialNumber, IsVisible = true , Width = "1FR" },
-        new FilterColumn<AssetDTO> { FirstRow = true, Label = "Part", Property = c => c.PartVmName, IsVisible = true , Width = "1FR" },
-        new FilterColumn<AssetDTO> { FirstRow = false, Label = "Purchase Date", Property = c => c.PurchaseDate.ToDateOnly().ToString(), IsVisible = true , Width = "1FR" },
+        new FilterColumn<AssetDTO> { FirstRow = true, Label = "Numer Środka Trwałego", Property = c => c.AssetTagNumber, IsVisible = true, Width = "1FR" },
+        new FilterColumn<AssetDTO> { FirstRow = true, Label = "Numer seryjny", Property = c => c.SerialNumber, IsVisible = true , Width = "1FR" },
+        new FilterColumn<AssetDTO> { FirstRow = true, Label = "Nazwa części", Property = c => c.PartVmName, IsVisible = true , Width = "1FR" },
+        new FilterColumn<AssetDTO> { FirstRow = false, Label = "Data zakupu", Property = c => c.PurchaseDate.ToDateOnly().ToString(), IsVisible = true , Width = "1FR" },
         new FilterColumn<AssetDTO> { FirstRow = false, Label = "Warranty", Property = c => c.WarrantyUntil.ToDateOnly().ToString(), IsVisible = false , Width = "1FR" },
         new FilterColumn<AssetDTO> { FirstRow = false, Label = "EndOfSupport", Property = c => c.EndOfSupport.ToDateOnly().ToString(), IsVisible = false , Width = "1FR" },
         // new FilterColumn<AssetDTO> { FirstRow = true, Label = "Assignee", Property = c => c.AssigneeVmName, IsVisible = true , Width = "1FR" },
