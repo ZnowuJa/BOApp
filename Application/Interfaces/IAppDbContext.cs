@@ -1,8 +1,8 @@
-﻿using Domain.Entities.Administration;
+﻿using Domain.Entities.Accounting;
+using Domain.Entities.Administration;
 using Domain.Entities.CoC;
 using Domain.Entities.Common;
 using Domain.Entities.ITWarehouse;
-using Domain.Entities.Settlement;
 using Domain.Forms;
 using Domain.WorkFlows;
 
