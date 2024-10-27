@@ -44,6 +44,10 @@ public class GetAllEmployeesQueryHandler : IRequestHandler<GetAllEmployeesQuery,
                 var manager = managerLookup[e.ManagerId.Value];
                 employeeVm.Manager = _mapper.Map<ManagerVm>(manager);
             }
+            if(e.Position == null)
+            {
+                employeeVm.Position = string.Empty;
+            }
 
             return employeeVm;
         }).ToList();

@@ -118,15 +118,18 @@
             </FluentGridItem>
             @* Roles *@
             <FluentGridItem xs="6" sm="4">
+                @* ZASTĄPIĆ TO SWOIM KOMPONENTEM *@
+                
                 <div class="card">
-                    <FluentSelect Items=@roleOptions
+                    <EmployeeRoleEditComponent SelectedRoles="@Content.Roles" AllRoles="@allRolesList" />
+                   @*  <FluentSelect Items=@roleOptions
                                   TOption="Option<string>"
                                   Disabled = "@hasEverLogged"
                                   Multiple=true
                                   OptionText="@(i => i.Text)"
                                   OptionValue="@(i => i.Value)"
                                   OptionSelected="@(i => i.Selected)"
-                                  @bind-SelectedOptions="@selectedRoles" />
+                                  @bind-SelectedOptions="@selectedRoles" /> *@
                 </div>
                 
             </FluentGridItem>
@@ -162,6 +165,8 @@
     private IQueryable<EmployeeTypeVm> itemTypeList { get; set; }
     IEnumerable<Option<string>>? selectedRoles { get; set; }
     List<Option<string>> roleOptions { get; set; }
+    List<IdentityRole> AllRoles { get; set; }
+    List<string> allRolesList { get; set; }
 
     private bool hasEverLogged { get; set; } = false;
 
@@ -169,8 +174,8 @@
     {
         _editContext = new EditContext(Content);
 
-        var roles = _roleManager.Roles.OrderBy(r => r.Name).ToList();
-        var allRolesList = roles.Select(s => s.Name).ToList();
+        AllRoles = _roleManager.Roles.OrderBy(r => r.Name).ToList();
+        allRolesList = AllRoles.Select(s => s.Name).ToList();
         roleOptions = new List<Option<string>>();
 
         var assignedRoles = Content.Roles;
@@ -220,20 +225,20 @@
 
         if (Content.Id != 0)
         {
-            if (selectedRoles.Count() > 0)
-            {
-                List<string> rolesArray = new List<string>();
-                foreach (var selectedRole in selectedRoles)
-                {
-                    Console.WriteLine("SelectedRole :: " + selectedRole.Text);
-                    rolesArray.Add(selectedRole.Text);
-                }
-                foreach (var temp in rolesArray)
-                {
-                     Console.WriteLine(rolesArray + temp);
-                }
-                Content.Roles = rolesArray;
-            }
+            // if (Content.Roles.Count() > 0)
+            // {
+            //     List<string> rolesArray = new List<string>();
+            //     foreach (var selectedRole in selectedRoles)
+            //     {
+            //         Console.WriteLine("SelectedRole :: " + selectedRole.Text);
+            //         rolesArray.Add(selectedRole.Text);
+            //     }
+            //     foreach (var temp in rolesArray)
+            //     {
+            //          Console.WriteLine(rolesArray + temp);
+            //     }
+            //     Content.Roles = rolesArray;
+            // }
             
             Content.ManagerId = Content.Manager.EnovaEmpId;
             await Dialog.CloseAsync(Content);

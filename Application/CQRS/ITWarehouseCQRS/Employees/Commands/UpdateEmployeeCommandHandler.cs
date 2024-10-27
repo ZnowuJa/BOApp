@@ -15,6 +15,15 @@ public class UpdateEmployeeCommandHandler : IRequestHandler<UpdateEmployeeComman
     }
     public async Task<int> Handle(UpdateEmployeeCommand request, CancellationToken cancellationToken)
     {
+        if(request.EmployeeVm != null)
+        {
+            var empCoC = await _appDbContext.Employees.Where(p => p.Id == request.EmployeeVm.Id).FirstOrDefaultAsync();
+            empCoC.CoCGroupId = request.EmployeeVm.CoCGroupId;
+            _appDbContext.Employees.Update(empCoC);
+
+            await _appDbContext.SaveChangesAsync();
+            return empCoC.Id;
+        }
         var type = await _appDbContext.EmployeeTypes.Where(p => p.Id == request.Type.Id).FirstOrDefaultAsync();
         var item = await _appDbContext.Employees.Where(p => p.Id == request.Id).FirstOrDefaultAsync();
 

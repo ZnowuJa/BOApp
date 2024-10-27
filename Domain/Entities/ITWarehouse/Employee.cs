@@ -32,7 +32,10 @@ public class Employee : AuditableEntity, IAssignee
     public string? DeptNumber {  get; set; }
     public string? AspNetUserId { get; set; }
     public string? Oeshort {  get; set; }
-    
+    public string? JobCode { get; set; }
+    public int CoCGroupId { get; set; }
+
+
 
     public Employee()
     {
@@ -62,6 +65,8 @@ public class Employee : AuditableEntity, IAssignee
         DeptNumber = string.Empty;
         AspNetUserId = string.Empty;
         Oeshort = string.Empty;
+        JobCode = string.Empty;
+        CoCGroupId = 0;
     }
 
 }

@@ -1,4 +1,4 @@
-﻿@page "/employees"
+﻿@page "/employeesOld"
 @using Application.Entities
 @using Application.ITWarehouseCQRS.Employees
 @using Application.ITWarehouseCQRS.Employees.Queries
@@ -393,8 +393,6 @@ else
                     {
                         var appUser = await _userService.GetUserByAspNetUserId(final.AspNetUserId);
                         var rolesArray = final.Roles.ToArray();
-                        // await _userManager.RemoveFromRolesAsync(appUser, allAppRolesNamesArray);
-                        // await _userManager.AddToRolesAsync(appUser, rolesArray);
 
                         var res = await _userManager.RemoveFromRolesAsync(appUser, prevRoles);
                         if (!res.Succeeded)
@@ -408,11 +406,9 @@ else
                             _logger.LogWarning("Roles are not added!");
                         }
 
-
                         await _userManager.UpdateAsync(appUser);
                         
-                        Console.WriteLine("dupa");
-                        // _postAuthSvc.UpdateRolesForUserAsync(appUser, rolesArray);
+                        // Console.WriteLine("dupa");
 
                     } catch (Exception ex)
                     {

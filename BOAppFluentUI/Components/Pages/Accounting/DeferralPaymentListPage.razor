@@ -60,7 +60,7 @@
                                   Items="@(column.DropdownValues)"
                                   Multiple="true"
 
-                                  SelectedOptionsChanged="@(e => Utils.OnSelectedOptionsChanged(e, column))"
+                                  SelectedOptionsChanged="@(e => Utils.OnSelectedOptionsChanged<DeferralPaymentFormVm>(e, column))"
                                   >
                         @foreach (var value in column.DropdownValues)
                         {
@@ -82,16 +82,7 @@
         }
     }
        
-   @*  @foreach (var column in filterColumns.Where(c => c.IsVisible))
-    {
-        <PropertyColumn TGridItem="DeferralPaymentFormVm" TProp="string" Property="@(Utils.GetPropertyExpression<DeferralPaymentFormVm>(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label" Filtered="!string.IsNullOrWhiteSpace(column.Filter)">
-            <ColumnOptions>
-                <div class="search-box">
-                    <FluentSearch type="search" Autofocus="true" @bind-Value="column.Filter" @oninput="(args) => Utils.HandleFilterDebounced(column, args, debounceDispatcher, () => InvokeAsync(StateHasChanged))" Placeholder="@($"{column.Label.ToLower()}...")" />
-                </div>
-            </ColumnOptions>
-        </PropertyColumn>
-    } *@
+   
 
 @* Actions *@
 <TemplateColumn Title="Actions" Align="Align.End">

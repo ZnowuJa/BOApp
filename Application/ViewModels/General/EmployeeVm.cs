@@ -1,4 +1,5 @@
-﻿using Application.Interfaces;
+﻿using Application.ExportModels;
+using Application.Interfaces;
 using Application.Mappings;
 using AutoMapper;
 using Domain.Entities.ITWarehouse;
@@ -33,7 +34,7 @@ public class EmployeeVm : IMapFrom<Employee>, IAssigneeVm
     public string? VcdempId { get; set; }
     public string? VcdempNumber { get; set; }
     public string? VcddeptNumber { get; set; }
-    public string? SapNumber { get; set; }
+    public string SapNumber { get; set; }
     public string? FTEStartDate { get; set; }
     public string? FTEEndDate { get; set; }
     public string? ManagerEmail { get; set; }
@@ -41,7 +42,8 @@ public class EmployeeVm : IMapFrom<Employee>, IAssigneeVm
     public string? AspNetUserId { get; set; }
     public string typeName { get; set; } = "EmployeeVm";
     public List<string> Roles { get; set; }
-
+    public string JobCode {  get; set; }
+    public int CoCGroupId { get; set; }
     public EmployeeVm()
     {
         Id = 0;
@@ -69,15 +71,21 @@ public class EmployeeVm : IMapFrom<Employee>, IAssigneeVm
         DeptNumber = string.Empty;
         AspNetUserId = string.Empty;
         Roles = new List<string>();
-    }
+        JobCode = string.Empty;
+        CoCGroupId = 0;
+}
     public void Mapping(Profile profile)
     {
         profile.CreateMap<Employee, EmployeeVm>()
             .ForMember(e => e.EmployeeTypeVm, z => z.MapFrom(src2 => src2.Type))
             .ForMember(e => e.LongName, z => z.MapFrom(src2 => src2.FirstName + " " + src2.LastName));
-        ;
+       
         profile.CreateMap<EmployeeVm, Employee>()
             .ForMember(e => e.Type, z => z.MapFrom(src2 => src2.EmployeeTypeVm));
+
+        profile.CreateMap<EmployeeVm, EmployeeExportModel>()
+            .ForMember(e => e.ManagerName, z => z.MapFrom(src2 => src2.Manager.LongName))
+            .ForMember(e => e.Roles, z => z.MapFrom(src => string.Join(";", src.Roles)));
 
     }
 }

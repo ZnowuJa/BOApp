@@ -50,7 +50,7 @@ public static class Utils
     //        stateHasChangedInvoker();
     //    }
     //}
-    public static void OnSelectedOptionsChanged(IEnumerable<string> selectedOptions, FilterColumn<DeferralPaymentFormVm> column)
+    public static void OnSelectedOptionsChanged<T>(IEnumerable<string> selectedOptions, FilterColumn<T> column)
     {
         column.SelectedValues = selectedOptions.ToList();
         // Assuming you have a way to trigger StateHasChanged from Utils, otherwise, pass a callback

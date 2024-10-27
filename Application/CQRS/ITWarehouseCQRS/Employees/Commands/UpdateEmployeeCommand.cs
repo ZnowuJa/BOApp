@@ -1,10 +1,6 @@
 ﻿using Application.ViewModels.General;
+
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application.ITWarehouseCQRS.Employees.Commands;
 public class UpdateEmployeeCommand : IRequest<int>
@@ -19,6 +15,14 @@ public class UpdateEmployeeCommand : IRequest<int>
     public EmployeeTypeVm? Type { get; set; }
     public string? DG { get; set; } = string.Empty;
     public string? CC { get; set; } = string.Empty;
+    public int ? CocGroupId = 0;
+    public EmployeeVm? EmployeeVm { get; set; }
+
+    public UpdateEmployeeCommand(EmployeeVm? _employeeVm)
+    {
+        EmployeeVm = _employeeVm;
+        Id = _employeeVm.Id;
+    }
 
     public UpdateEmployeeCommand(
         int id, 
