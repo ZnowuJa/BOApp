@@ -105,8 +105,8 @@ else
 
 
 @code {
-    private IQueryable<EmployeeVm> items { get; set; }
- 
+    private static IQueryable<EmployeeVm> items { get; set; }
+
     PaginationState pagination = new PaginationState { ItemsPerPage = 15 };
 
     private List<FilterColumn<EmployeeVm>> filterColumns = new List<FilterColumn<EmployeeVm>>
@@ -129,7 +129,7 @@ else
 
     private DebounceDispatcher debounceDispatcher = new DebounceDispatcher();
 
-    private static List<string> SapNumberValues { get; set; } = new List<string>();
+    private static List<string> SapNumberValues { get; set; } = new List<string> { "1556", "1557", "1558", "1559", "1561", "1562", "1563", "1565", "1571", "1573", "1574", "1575", "1576", "1578", "157891", "157892", "157893", "157894", "157895", "157896", "157899", "1581", "1582", "1583" };
 
     protected override async Task OnInitializedAsync()
     {
