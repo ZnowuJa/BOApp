@@ -9,6 +9,7 @@ using Domain.Entities.CoC;
 using Domain.Entities.Common;
 using Domain.Entities.ITWarehouse;
 using Domain.Forms;
+using Domain.Forms.ITForms;
 using Domain.WorkFlows;
 
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -53,6 +54,9 @@ public class AppDbContext : IdentityDbContext<AppUser>, IAppDbContext
     public DbSet<InstructionCoC> Instructions { get; set; }
     public DbSet<BackgroundJob> BackgroundJobs { get; set; }
     public DbSet<OnboardingForm> OnboardingForms { get; set; }
+    public DbSet<ITScrappingForm> ITScrapingForms { get; set; }
+    public DbSet<ITSaleForm> ITSaleForms { get; set; }
+
 
 
     protected override void OnModelCreating(ModelBuilder builder)
@@ -86,6 +90,17 @@ public class AppDbContext : IdentityDbContext<AppUser>, IAppDbContext
             .WithMany(y => y.Instructions)
             .UsingEntity(e => e.ToTable("InstructionGroup"));
 
+        builder.Entity<ITScrappingForm>()
+            .HasMany(s => s.Assets)
+            .WithOne(a => a.ScrappingForm)
+            .HasForeignKey(a => a.ScrappingFormId)
+            .IsRequired(false);
+
+        builder.Entity<ITSaleForm>()
+            .HasMany(s => s.Assets)
+            .WithOne(a => a.SaleForm)
+            .HasForeignKey(a => a.SaleFormId)
+            .IsRequired(false);
 
         base.OnModelCreating(builder);
 

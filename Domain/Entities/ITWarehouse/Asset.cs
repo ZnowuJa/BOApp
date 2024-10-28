@@ -1,4 +1,7 @@
 ﻿using BackOfficeApp_Domain.Common;
+
+using Domain.Forms.ITForms;
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,6 +31,11 @@ public class Asset : AuditableEntity
     public string? Imei {  get; set; }
     public string? Mac {  get; set; }
     public DateTime? EndOfSupport { get; set; }
+    public int? ScrappingFormId { get; set; }
+    public int? SaleFormId { get; set; }
+    public ITScrappingForm? ScrappingForm { get; set; }
+    public ITSaleForm? SaleForm { get; set; }
+    public string? ScrappingReason { get; set; }
 
     public Asset()
     {

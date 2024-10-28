@@ -1,4 +1,5 @@
 ﻿using Application.ExportModels;
+using Application.Forms;
 using Application.Interfaces;
 using Application.Mappings;
 using Application.ViewModels;
@@ -46,7 +47,11 @@ public class AssetDTO : IMapFrom<Asset>
     public string? Imei { get; set; }
     public string? Mac { get; set; }
     public DateTime? EndOfSupport { get; set; }
-
+    public int? ScrappingFormId { get; set; }
+    public int? SaleFormId { get; set; }
+    public ITScrappingFormVm? ScrappingForm { get; set; }
+    public ITSaleFormVm? SaleForm { get; set; }
+    public string? ScrappingReason { get; set; }
 
     public void Mapping(Profile profile)
     {
