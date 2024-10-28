@@ -10,7 +10,8 @@ public class OnboardingForm : FormTemplate
     {
         Statuses = new List<string> 
         {
-            "Rejestracja", "W trakcie", "Zakończony" };
+            "Rejestracja", "W trakcie", "Zakończony" 
+        };
     }
 
     // Properties specific to Onboarding Form
