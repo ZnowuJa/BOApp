@@ -12,40 +12,22 @@ using System.Threading.Tasks;
 
 namespace Application.CQRS.AccountingCQRS.Countries.Commands
 {
-    public class CreateCountryCommand : IRequest<int>
+    public class CreateCountryCommand(CountryVm country) : IRequest<int>
     {
-        public CountryVm Country { get; set; }
-
-        public CreateCountryCommand(CountryVm country)
-        {
-            Country = country;
-        }
+        public CountryVm Country { get; set; } = country;
     }
 
-    public class CreateCountryCommandHandler : IRequestHandler<CreateCountryCommand, int>
+    public class CreateCountryCommandHandler(IAppDbContext context, IMapper mapper) : IRequestHandler<CreateCountryCommand, int>
     {
-        private readonly IAppDbContext _context;
-        public IMapper _mapper { get; }
-
-        public CreateCountryCommandHandler(IAppDbContext context, IMapper mapper)
-        {
-            _context = context;
-            _mapper = mapper;
-        }
+        private readonly IAppDbContext _context = context;
+        public IMapper _mapper { get; } = mapper;
 
         public async Task<int> Handle(CreateCountryCommand request, CancellationToken cancellationToken)
         {
-            var country = new Country
-            {
-                Code = request.Country.Code,
-                Name = request.Country.Name,
-                IsEU = request.Country.IsEU,
-                StatusId = 1
-            };
-
+            var country = _mapper.Map<Country>(request.Country);
+            country.StatusId = 1;
             _context.Countries.Add(country);
             await _context.SaveChangesAsync(cancellationToken);
-
             return country.Id;
         }
     }

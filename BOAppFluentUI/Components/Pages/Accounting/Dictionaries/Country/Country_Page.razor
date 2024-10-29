@@ -1,6 +1,6 @@
-﻿@page "/costcenters"
-@using Application.CQRS.AccountingCQRS.CostCenters.Queries
-@using Application.CQRS.AccountingCQRS.CostCenters.Commands
+﻿@page "/countries"
+@using Application.CQRS.AccountingCQRS.Countries.Queries
+@using Application.CQRS.AccountingCQRS.Countries.Commands
 @using Application.ViewModels.Accounting
 @using MediatR
 @using Microsoft.AspNetCore.Authorization
@@ -12,23 +12,19 @@
 @inject IDialogService _dialogService
 @inject IToastService _toastService
 
-<h3>CostCenters</h3>
+<h3>Countries</h3>
 
-@if (costCenter == null)
+@if (country == null)
 {
     <FluentProgressRing>Loading...</FluentProgressRing>
-
 }
 else
 {
-
-    <FluentDataGrid Items="@costCenter" TGridItem="CostCenterVm" GridTemplateColumns="50px 1fr 2fr 1fr">
-
-
+    <FluentDataGrid Items="@country" TGridItem="CountryVm" GridTemplateColumns="50px 1fr 2fr 1fr">
         <PropertyColumn Property="@(c => c.Id)" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.MPK)" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.Description)" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.Text)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.Code)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.Name)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.IsEU)" Sortable="true" Align="Align.Start" Tooltip="true" />
         <TemplateColumn Title="Actions" Align="Align.End">
             <FluentButton IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" />
             <FluentButton IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => EditItem(context))" />
@@ -36,11 +32,11 @@ else
         </TemplateColumn>
     </FluentDataGrid>
     <FluentButton IconStart="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddPanel())" />
+
 }
 
-
 @code {
-    private IQueryable<CostCenterVm> costCenter;
+    private IQueryable<CountryVm> country;
     private bool deleteConfirm = false;
 
     protected override async Task OnInitializedAsync()
@@ -50,18 +46,18 @@ else
 
     private async Task Load()
     {
-        costCenter = await _mediator.Send(new GetAllCostCenterQuery());
+        country = await _mediator.Send(new GetAllCountryQuery());
     }
 
-    private async Task View(CostCenterVm item)
+    private async Task View(CountryVm item)
     {
-        await _dialogService.ShowInfoAsync(message: $"CostCenterVm id: {item.Id}, MPK: {item.MPK}, description: {item.Description}, text: {item.Text}");
+        await _dialogService.ShowInfoAsync(message: $"Country ID: {item.Id}, Code: {item.Code}, Name: {item.Name}, IsEU: {item.IsEU}");
     }
 
-    private async Task Delete(CostCenterVm item)
+    private async Task Delete(CountryVm item)
     {
         var dialog = await _dialogService.ShowConfirmationAsync(
-            $"You are about to delete CostCenter: {item.Text} \n Are you sure?",
+            $"You are about to delete Country: {item.Name} \n Are you sure?",
             "Yes",
             "No",
             "Confirm delete operation");
@@ -73,29 +69,29 @@ else
         if (deleteConfirm)
         {
             intent = ToastIntent.Error;
-            message = "CostCenter has not been deleted!";
+            message = "Country has not been deleted!";
         }
         else
         {
-            var i = await _mediator.Send(new DeleteCostCenterCommand(item.Id));
+            var i = await _mediator.Send(new DeleteCountryCommand(item.Id));
             intent = ToastIntent.Success;
-            message = "CostCenter has been deleted!";
+            message = "Country has been deleted!";
         }
 
         _toastService.ShowToast(intent, message, 3000);
         await Load();
     }
 
-    private async Task EditItem(CostCenterVm item)
+    private async Task EditItem(CountryVm item)
     {
         ToastIntent intent;
         string message = string.Empty;
         int resultId = 0;
 
-        var dialog = await _dialogService.ShowDialogAsync<CostCenter_Edit_Component>(item, new DialogParameters()
+        var dialog = await _dialogService.ShowDialogAsync<Country_Edit_Component>(item, new DialogParameters()
             {
                 Height = "240px",
-                Title = item.Id > 0 ? "Update Cost Center..." : "Create New Cost Center",
+                Title = item.Id > 0 ? "Update Country..." : "Create New Country",
                 PreventDismissOnOverlayClick = false,
                 PreventScroll = true,
             });
@@ -104,19 +100,19 @@ else
 
         if (!result.Cancelled && result.Data != null)
         {
-            var final = (CostCenterVm)result.Data;
+            var final = (CountryVm)result.Data;
 
             if (final.Id > 0)
             {
-                resultId = await _mediator.Send(new UpdateCostCenterCommand(final));
+                resultId = await _mediator.Send(new UpdateCountryCommand(final));
                 intent = ToastIntent.Success;
-                message = "Cost Center has been updated!";
+                message = "Country has been updated!";
             }
             else if (final.Id == 0)
             {
-                resultId = await _mediator.Send(new CreateCostCenterCommand(final));
+                resultId = await _mediator.Send(new CreateCountryCommand(final));
                 intent = ToastIntent.Success;
-                message = "Cost Center has been created!";
+                message = "Country has been created!";
             }
             else
             {
@@ -139,10 +135,9 @@ else
         _toastService.ShowToast(intent, message, 3000);
     }
 
-
     private async Task AddPanel()
     {
-        var item = new CostCenterVm();
+        var item = new CountryVm();
         await EditItem(item);
     }
 }

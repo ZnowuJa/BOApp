@@ -1,8 +1,8 @@
-﻿@* Cost Center Edit Component *@
+﻿@* Country Edit Component *@
 @using Application.ViewModels.Accounting
 
 @inject IMediator _mediator
-@implements IDialogContentComponent<CostCenterVm>
+@implements IDialogContentComponent<CountryVm>
 
 <FluentDialogHeader ShowDismiss="true">
     <FluentStack VerticalAlignment="VerticalAlignment.Center">
@@ -23,14 +23,16 @@
     <EditForm EditContext="_editContext">
         <FluentValidationValidator @ref="_fluentValidator" />
 
-        <FluentTextField Id="MPK" @bind-Value="@Content.MPK" Placeholder="Enter MPK">MPK:</FluentTextField>
-        <FluentValidationMessage For="@(() => Content.MPK)" />
+        <FluentTextField Id="Code" @bind-Value="@Content.Code" Placeholder="Enter country code">Code:</FluentTextField>
+        <FluentValidationMessage For="@(() => Content.Code)" />
 
-        <FluentTextField Id="Description" @bind-Value="@Content.Description" Placeholder="Enter description">Description:</FluentTextField>
-        <FluentValidationMessage For="@(() => Content.Description)" />
+        <FluentTextField Id="Name" @bind-Value="@Content.Name" Placeholder="Enter country name">Name:</FluentTextField>
+        <FluentValidationMessage For="@(() => Content.Name)" />
 
-        <FluentTextField Id="Text" @bind-Value="@Content.Text" Placeholder="Enter text">Text:</FluentTextField>
-        <FluentValidationMessage For="@(() => Content.Text)" />
+        <FluentCheckbox Id="IsEU" @bind-Value="@Content.IsEU">IsEU: </FluentCheckbox>
+        <FluentValidationMessage For="@(() => Content.IsEU)" />
+        @* <FluentButton OnClick="() => ShowCurrentValue()">Show Current IsEU Value</FluentButton> *@
+
 
         @if (!string.IsNullOrEmpty(errorMessage))
         {
@@ -42,7 +44,7 @@
 @code {
 
     [Parameter]
-    public CostCenterVm Content { get; set; } = default!;
+    public CountryVm Content { get; set; } = default!;
 
     [CascadingParameter]
     public FluentDialog Dialog { get; set; } = default!;
@@ -58,6 +60,11 @@
         _editContext = new EditContext(Content);
         base.OnInitialized();
     }
+
+    // private void ShowCurrentValue()
+    // {
+    //     Console.WriteLine($"IsEU: {Content.IsEU}");
+    // }
 
     private async Task SaveAsync()
     {

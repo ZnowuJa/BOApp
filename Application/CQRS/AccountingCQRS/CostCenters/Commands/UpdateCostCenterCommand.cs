@@ -1,4 +1,8 @@
-﻿using MediatR;
+﻿using Application.Interfaces;
+using Application.ViewModels.Accounting;
+using AutoMapper;
+using MediatR;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,19 +11,21 @@ using System.Threading.Tasks;
 
 namespace Application.CQRS.AccountingCQRS.CostCenters.Commands
 {
-    public class UpdateCostCenterCommand : IRequest<int>
+    public class UpdateCostCenterCommand(CostCenterVm costCenter) : IRequest<int>
     {
-        public int Id { get; set; }
-        public string MPK { get; set; }
-        public string Description { get; set; }
-        public string Text { get; set; }
+        public CostCenterVm CostCenter { get; set; } = costCenter;
+    }
+    public class UpdateCostCenterCommandHandler(IAppDbContext context, IMapper mapper) : IRequestHandler<UpdateCostCenterCommand, int>
+    {
+        private readonly IAppDbContext _context = context;
+        private readonly IMapper _mapper = mapper;
 
-        public UpdateCostCenterCommand(int id, string mpk, string description, string text)
+        public async Task<int> Handle(UpdateCostCenterCommand request, CancellationToken cancellationToken)
         {
-            Id = id;
-            MPK = mpk;
-            Description = description;
-            Text = text;
+            var item = await _context.CostCenters.FirstOrDefaultAsync(p => p.Id == request.CostCenter.Id, cancellationToken);
+            _mapper.Map(request.CostCenter, item);
+            await _context.SaveChangesAsync(cancellationToken);
+            return item.Id;
         }
     }
 }

@@ -1,4 +1,8 @@
-﻿using MediatR;
+﻿using Application.Interfaces;
+using Application.ViewModels.Accounting;
+using AutoMapper;
+using MediatR;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,19 +11,22 @@ using System.Threading.Tasks;
 
 namespace Application.CQRS.AccountingCQRS.Countries.Commands
 {
-    public class UpdateCountryCommand : IRequest<int>
-    {
-        public int Id { get; set; }
-        public string Code { get; set; }
-        public string Name { get; set; }
-        public bool IsEU { get; set; }
-
-        public UpdateCountryCommand(int id, string code, string name, bool iseu)
+        public class UpdateCountryCommand(CountryVm country) : IRequest<int>
         {
-            Id = id;
-            Code = code;
-            Name = name;
-            IsEU = iseu;
+            public CountryVm Country { get; set; } = country;
         }
-    }
+
+        public class UpdateCountryCommandHandler(IAppDbContext context, IMapper mapper) : IRequestHandler<UpdateCountryCommand, int>
+        {
+            private readonly IAppDbContext _context = context;
+            private readonly IMapper _mapper = mapper;
+
+            public async Task<int> Handle(UpdateCountryCommand request, CancellationToken cancellationToken)
+            {
+                var country = await _context.Countries.FirstOrDefaultAsync(c => c.Id == request.Country.Id, cancellationToken);
+                _mapper.Map(request.Country, country);
+                await _context.SaveChangesAsync(cancellationToken);
+                return country.Id;
+            }
+        }
 }

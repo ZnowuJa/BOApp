@@ -12,26 +12,15 @@ using System.Threading.Tasks;
 
 namespace Application.CQRS.AccountingCQRS.CostCenters.Commands
 {
-    public class CreateCostCenterCommand : IRequest<int>
+    public class CreateCostCenterCommand(CostCenterVm costCenter) : IRequest<int>
     {
-        public CostCenterVm CostCenter { get; set; }
-
-        public CreateCostCenterCommand(CostCenterVm costCenter)
-        {
-            CostCenter = costCenter;
-        }
+        public CostCenterVm CostCenter { get; set; } = costCenter;
     }
 
-    public class CreateCostCenterCommandHandler : IRequestHandler<CreateCostCenterCommand, int>
+    public class CreateCostCenterCommandHandler(IAppDbContext context, IMapper mapper) : IRequestHandler<CreateCostCenterCommand, int>
     {
-        private readonly IAppDbContext _context;
-        private IMapper _mapper { get; }
-
-        public CreateCostCenterCommandHandler(IAppDbContext context, IMapper mapper)
-        {
-            _context = context;
-            _mapper = mapper;
-        }
+        private readonly IAppDbContext _context = context;
+        private IMapper _mapper { get; } = mapper;
 
         public async Task<int> Handle(CreateCostCenterCommand request, CancellationToken cancellationToken)
         {
