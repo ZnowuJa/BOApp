@@ -4,6 +4,7 @@
 @using Application.ITWarehouseCQRS.Employees
 @using Application.ITWarehouseCQRS.Employees.Queries
 @using Application.ITWarehouseCQRS.Employees.Commands
+@using Application.Interfaces
 @using Application.Interfaces.Identity.Services
 @using Application.ViewModelsForForms
 @using Application.ViewModels.General
@@ -23,6 +24,7 @@
 @inject IUserService _userService
 @inject IJSRuntime JS
 @inject IMapper _mapper
+@inject IAppDbContext _appDbContext
 @inject RoleManager<IdentityRole> _roleManager
 @inject UserManager<AppUser> _userManager
 @inject NavigationManager _navigationManager
@@ -143,7 +145,7 @@ else
         .Select(e => e.SapNumber)
         .Distinct().Order()
         .ToList();
-        
+
         StateHasChanged();
     }
 
@@ -204,6 +206,21 @@ else
                     try
                     {
                         var appUser = await _userService.GetUserByAspNetUserId(final.AspNetUserId);
+                        if (appUser == null)
+                        {
+                            appUser = new AppUser()
+                            {
+                                    FirstName = final.FirstName,
+                                    LastName = final.LastName,
+                                    DisplayName = final.LongName,
+                                    AzureObjectId = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    UserName = final.Email,
+                                    Email = final.Email,
+                                    NormalizedEmail = final.Email.ToUpper(),
+                            };
+                            await _userManager.CreateAsync(appUser);
+                            appUser = await _userService.GetUserByPreferredUsername(final.Email);
+                        }
                         var rolesArray = final.Roles.ToArray();
 
                         var res = await _userManager.RemoveFromRolesAsync(appUser, prevRoles);

@@ -23,7 +23,7 @@
 
 <PageTitle>Home</PageTitle>
 
-<h1>Witaj @_userContext.LongName!</h1>
+<h1>Witaj @userDisplayName!</h1>
 
 
     <AuthorizeView Policy="User">
@@ -53,12 +53,13 @@
     private FormUserContext _userContext = new FormUserContext("Settlement", "Technician");
     private ClaimsPrincipal? user { get; set; }
     private string username { get; set; }
+    private string userDisplayName { get; set; }
     private EmployeeVm emp { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        await Utils.GetUserName(AuthenticationStateProvider, _userContext, _mediator);
-        
+        // await Utils.GetUserName(AuthenticationStateProvider, _userContext, _mediator);
+        await RefreshClaims();
     }
 
     private async Task RefreshClaims()
@@ -69,6 +70,13 @@
             var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
             var user = authenticationState.User;
             claims = user.Claims.ToArray();
+            var nameClaim = claims.FirstOrDefault(c => c.Type == "name");
+            userDisplayName = nameClaim?.Value;
+            // foreach(var cl in claims)
+            // {
+            //     Console.WriteLine(cl.ToString());
+            // }
+
         }
         catch (Exception ex)
         {

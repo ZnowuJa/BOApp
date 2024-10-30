@@ -181,7 +181,10 @@ public class TokenValidatedHandlerService : ITokenValidatedHandlerService
             var claims = await _userManager.GetClaimsAsync(user);
             await _userManager.RemoveClaimsAsync(user, claims);
         }
-
+        var aadoidc = Guid.Parse(context.Principal.Claims.FirstOrDefault(c => c.Type == "http://schemas.microsoft.com/identity/claims/objectidentifier")?.Value);
+        user.AzureObjectId = aadoidc;
+        await _userManager.UpdateAsync(user);
+        //await _appDbContext.SaveChangesAsync();
         try
         {
             claimList = [
@@ -231,9 +234,6 @@ public class TokenValidatedHandlerService : ITokenValidatedHandlerService
         {
             _logger.LogInformation(ex.Message, ex);
         }
-            
-        
-
 
         
     }

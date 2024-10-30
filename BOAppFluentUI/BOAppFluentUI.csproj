@@ -122,6 +122,8 @@
 
   <ItemGroup>
     <Folder Include="Components\Pages\Excluded\" />
+    <Folder Include="Components\Pages\ITWarehouseAdmin\Sale\" />
+    <Folder Include="Components\Pages\ITWarehouseAdmin\Scrapping\" />
     <Folder Include="Data\" />
     <Folder Include="Logs\" />
   </ItemGroup>

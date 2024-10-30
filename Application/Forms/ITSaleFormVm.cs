@@ -1,14 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Text.Json;
 
 using Application.DTOs;
 using Application.ViewModels;
 using Application.ViewModels.General;
 
-using Domain.Entities.Common;
+using AutoMapper;
+
+using Domain.Forms.ITForms;
 using Domain.WorkFlows;
 
 namespace Application.Forms;
@@ -47,5 +45,35 @@ public class ITSaleFormVm
     public int EmployeeId {  get; set; }
     public EmployeeVm? Employee { get; set; }
     public ICollection<AssetDTO>? assets { get; set; }
+
+
+    public void Mapping(Profile profile)
+    {
+        profile.CreateMap<ITSaleForm, ITSaleFormVm>()
+            .ForMember(dest => dest.Level1Approvers, opt => opt.MapFrom(src => DeserializeRoles(src.Level1Approvers)))
+            .ForMember(dest => dest.Level2Approvers, opt => opt.MapFrom(src => DeserializeRoles(src.Level2Approvers)))
+            .ForMember(dest => dest.Approvals, opt => opt.MapFrom(src => DeserializeApprovals(src.Approvals)))
+            .ReverseMap()
+            .ForMember(dest => dest.Level1Approvers, opt => opt.MapFrom(src => SerializeRoles(src.Level1Approvers)))
+            .ForMember(dest => dest.Level2Approvers, opt => opt.MapFrom(src => SerializeRoles(src.Level2Approvers)))
+            .ForMember(dest => dest.Approvals, opt => opt.MapFrom(src => SerializeApprovals(src.Approvals)));
+    }
+
+    private string SerializeApprovals(List<ViewModels.General.Approval> approvals)
+    {
+        return approvals == null || approvals.Count == 0 ? string.Empty : JsonSerializer.Serialize(approvals);
+    }
+    private string SerializeRoles(List<OrganisationRoleForFormVm> roles)
+    {
+        return roles == null || roles.Count == 0 ? string.Empty : JsonSerializer.Serialize(roles);
+    }
+    private List<Approval> DeserializeApprovals(string json)
+    {
+        return string.IsNullOrEmpty(json) ? new List<Approval>() : JsonSerializer.Deserialize<List<Approval>>(json);
+    }
+    private List<OrganisationRoleForFormVm> DeserializeRoles(string json)
+    {
+        return string.IsNullOrEmpty(json) ? new List<OrganisationRoleForFormVm>() : JsonSerializer.Deserialize<List<OrganisationRoleForFormVm>>(json);
+    }
 
 }

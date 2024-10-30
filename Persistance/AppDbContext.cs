@@ -54,7 +54,7 @@ public class AppDbContext : IdentityDbContext<AppUser>, IAppDbContext
     public DbSet<InstructionCoC> Instructions { get; set; }
     public DbSet<BackgroundJob> BackgroundJobs { get; set; }
     public DbSet<OnboardingForm> OnboardingForms { get; set; }
-    public DbSet<ITScrappingForm> ITScrapingForms { get; set; }
+    public DbSet<ITScrappingForm> ITScrappingForms { get; set; }
     public DbSet<ITSaleForm> ITSaleForms { get; set; }
 
 

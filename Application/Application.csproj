@@ -77,8 +77,8 @@
 
   <ItemGroup>
     <Folder Include="AAA_IDEAS\" />
-    <Folder Include="CQRS\ITWarehouseCQRS\Sales\" />
-    <Folder Include="CQRS\ITWarehouseCQRS\Scrappings\" />
+    <Folder Include="CQRS\ITWarehouseCQRS\Sales\Commands\" />
+    <Folder Include="CQRS\ITWarehouseCQRS\Sales\Queries\" />
     <Folder Include="ViewModels\ITWarehouse\" />
   </ItemGroup>
 
