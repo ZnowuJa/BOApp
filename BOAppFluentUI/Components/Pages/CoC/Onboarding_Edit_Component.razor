@@ -436,6 +436,11 @@ else
         {
             return "background-color: #ffcc66"; // Light orange
         }
+        else if (x.Colour.Contains("BLUE"))
+        {
+            return "background-color: #4C86E4";
+
+        }
         else
         {
             return "background-color: #ffcc66"; // Default color
@@ -475,6 +480,7 @@ else
                 Date = DateTime.Now,
                 IsApproved = true
             };
+
         formItem.Approvals.Add(approval);
 
         if (formItem.Progress == 100)
@@ -501,99 +507,6 @@ else
     {
         _navigationManager.NavigateTo("/");
     }
-
-
-    // private string GetRowClass(InstructionForFormVm instruction)
-    // {
-
-    //     var priorityClass = instruction.Priority switch
-    //     {
-    //         PriorityLevel.High => "high-priority",
-    //         PriorityLevel.Medium => "medium-priority",
-    //         PriorityLevel.Low => "low-priority",
-    //         _ => string.Empty
-    //     };
-    //     var modeClass = th == "dark" ? "dark" : "light";
-    //     // return $"{priorityClass}";
-    //     return $"{priorityClass}-{modeClass}";
-    // }
-
-    // Func<InstructionForFormVm, string?> rowClass2 = x =>
-    // {
-    //     var priorityClass = x.Priority switch
-    //     {
-    //         PriorityLevel.High => "high-priority",
-    //         PriorityLevel.Medium => "medium-priority",
-    //         PriorityLevel.Low => "low-priority",
-    //         _ => string.Empty
-    //     };
-    //     // var modeClass = th == "dark" ? "dark" : "light";
-    //     // return $"{priorityClass}";
-    //     return $"{priorityClass}-light";
-
-
-    //     // if (x.Colour.Contains("RED"))
-    //     // {
-    //     //     return "background-color: #ff6666"; // Light red
-    //     // }
-    //     // else if (x.Colour.Contains("GREEN"))
-    //     // {
-    //     //     return "background-color: #66cc66"; // Light green
-    //     // }
-    //     // else if (x.Colour.Contains("ORANGE"))
-    //     // {
-    //     //     return "background-color: #ffcc66"; // Light orange
-    //     // }
-    //     // else
-    //     // {
-    //     //     return "background-color: #ffcc66"; // Default color
-    //     // }
-    // };
-
-
-
-    // Func<InstructionForFormVm, string?> rowStyle2 = instruction =>
-    // {
-    // var color = instruction.Priority switch
-    // {
-    //     PriorityLevel.High => "#ff6666",
-    //     PriorityLevel.Medium => "#ffcc66",
-    //     PriorityLevel.Low => "#66cc66",
-    //     _ => "inherit"
-    // };
-
-    // return $"color: {color};";
-    // };
-
-
-    // Func<InstructionForFormVm, string?> rowStyle2 = instruction =>
-    // {
-    //     // var color = instruction.Priority switch
-    //     // {
-    //     //     PriorityLevel.High => "#ff6666",
-    //     //     PriorityLevel.Medium => "#ffcc66",
-    //     //     PriorityLevel.Low => "#66cc66",
-    //     //     _ => "inherit"
-    //     // };
-
-    //     return $"color: {instruction.Colour};";
-    // };
-
-    // private string GetRowStyle(InstructionForFormVm instruction)
-    // {
-
-    //     var color = instruction.Priority switch
-    //     {
-    //         PriorityLevel.High => th == "dark" ? "#ff6666" : "#ff0000",
-    //         PriorityLevel.Medium => th == "dark" ? "#ffcc66" : "#ff9900",
-    //         PriorityLevel.Low => th == "dark" ? "#66cc66" : "#009900",
-    //         _ => "inherit"
-    //     };
-
-    //     return $"color: {color};";
-    // }
-
-
 }
 
 

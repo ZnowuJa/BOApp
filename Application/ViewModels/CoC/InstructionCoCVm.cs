@@ -53,5 +53,5 @@ public class InstructionCoCVm : IMapFrom<InstructionCoC>
 
 public enum PriorityLevel
 {
-    Low = 1, Medium = 2, High = 3
+    Highest = 0, High = 1, Medium = 2, Low = 3
 }

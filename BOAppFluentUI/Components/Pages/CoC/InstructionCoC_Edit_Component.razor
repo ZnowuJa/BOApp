@@ -142,7 +142,7 @@
     private IEnumerable<GroupCoCVm> SelectedGroups = Array.Empty<GroupCoCVm>();
 
     private PriorityLevel selectedPriority { get; set; }
-    private List<string> colours { get; set; } = new List<string>() { "RED", "ORANGE", "GREEN" }; //these colours I want to use later in Onboarding Form to color list with instructions
+    private List<string> colours { get; set; } = new List<string>() { "RED", "ORANGE", "GREEN", "BLUE" }; //these colours I want to use later in Onboarding Form to color list with instructions
     private int controlsSpacer { get; set; } = 10;
 
     protected override async Task OnInitializedAsync()
@@ -216,6 +216,7 @@
     {
         Content.Colour = newValue switch
         {
+            "Highest" => "BLUE",
             "High" => "RED",
             "Medium" => "ORANGE",
             "Low" => "GREEN",

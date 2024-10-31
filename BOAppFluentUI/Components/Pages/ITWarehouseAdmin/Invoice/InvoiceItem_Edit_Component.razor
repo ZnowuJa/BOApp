@@ -124,12 +124,6 @@
         {
             <FluentTextArea @ref=assetsAreaExt @onchange="(e) => HandleSerialEditExt(e, true)" Label="AssetsAreaExt" Disabled = "disabledTA" />
                 <p></p>
-@*             <FluentStack>
-                <FluentCheckbox @bind-Value="@serial" Label="Serial Number" @onchange="(e)=>setDisabledTA(e)" />
-                <FluentCheckbox @bind-Value="@imei" Label="IMEI"  @onchange="(e)=>setDisabledTA(e)" />
-
-                <FluentCheckbox @bind-Value="@mac" Label="MAC" @onchange="(e)=>setDisabledTA(e)" />
-            </FluentStack> *@
             
             <FluentStack>
                 <FluentSwitch Disabled = "serial" ValueChanged="(e) => { serial = !serial; setDisabledTA(); }" Label="Serial Number" />
@@ -291,35 +285,43 @@
             // string latestAssetTagNumber = string.Empty;
             var prefix = Content.PartVm.CategoryVm.Prefix;
             var leadingZeros = Content.PartVm.CategoryVm.LeadingZeros;
-            //think about variuos amount of digits across categories
-            var latestAssetTagNumber = await _mediator.Send(new GetLatestAssetNumberByPrefixQuery(prefix));
 
-            var tempList = new List<AssetVm>();
-
-            int latestNumericPart = 0;
-            if (!string.IsNullOrEmpty(latestAssetTagNumber))
-            { 
-                latestNumericPart = int.Parse(latestAssetTagNumber); 
-            }
-
-            for (int i = 0; i < Content.Qty; i++)
+            if (Content.PartVm.CategoryVm.LeadingZeros == 0)
             {
-                var tempAsst = new AssetVm();
-                latestNumericPart++; 
-                var nextAssetTagNumber = prefix + latestNumericPart.ToString().PadLeft(leadingZeros, '0'); 
-                tempAsst.AssetTagNumber = nextAssetTagNumber;
-                tempAsst.WarehouseVmId = 26;
-                tempAsst.WarrantyUntil = invoiceDate?.AddMonths(Content.PartVm.WarrantyPeriod);
-                tempAsst.PurchaseDate = invoiceDate;
-                tempAsst.Leasing = false;
-                // tempAsst.EndOfContract = datA jakaś;
-                tempAsst.Imei = string.Empty;
-                tempAsst.Mac = string.Empty;
+                //tu dorobić itemAssetVms puste z oczxekiwaniem na serial
+            } else
+            {
+                var latestAssetTagNumber = await _mediator.Send(new GetLatestAssetNumberByPrefixQuery(prefix));
 
-                tempList.Add(tempAsst);
+                var tempList = new List<AssetVm>();
 
+                int latestNumericPart = 0;
+                if (!string.IsNullOrEmpty(latestAssetTagNumber))
+                {
+                    latestNumericPart = int.Parse(latestAssetTagNumber);
+                }
+
+                for (int i = 0; i < Content.Qty; i++)
+                {
+                    var tempAsst = new AssetVm();
+                    latestNumericPart++;
+                    var nextAssetTagNumber = prefix + latestNumericPart.ToString().PadLeft(leadingZeros, '0');
+                    tempAsst.AssetTagNumber = nextAssetTagNumber;
+                    tempAsst.WarehouseVmId = 26;
+                    tempAsst.WarrantyUntil = invoiceDate?.AddMonths(Content.PartVm.WarrantyPeriod);
+                    tempAsst.PurchaseDate = invoiceDate;
+                    tempAsst.Leasing = false;
+                    // tempAsst.EndOfContract = datA jakaś;
+                    tempAsst.Imei = string.Empty;
+                    tempAsst.Mac = string.Empty;
+
+                    tempList.Add(tempAsst);
+
+                }
+                itemAssetVms = tempList.AsQueryable();
             }
-            itemAssetVms = tempList.AsQueryable();
+            //think about variuos amount of digits across categories
+            
 
         } 
         else
@@ -568,38 +570,6 @@
             noAllSerialsAssigned = true;
         }
     }
-
-    // private void UpdateAssetSerials(string newSerialNumber, AssetVm assetVm)
-    // {
-    //     if (assetVm == null)
-    //     {
-    //         foreach (var a in itemAssetVms)
-    //         {
-    //             if (string.IsNullOrWhiteSpace(a.SerialNumber))
-    //             {
-    //                 a.SerialNumber = newSerialNumber;
-    //                 break; 
-    //             }
-    //         }
-    //     }
-    //     else
-    //     {
-            
-    //         assetVm.SerialNumber = newSerialNumber;
-    //     }
-
-    //     int filled = itemAssetVms.Count(a => !string.IsNullOrWhiteSpace(a.SerialNumber));
-    //     if (filled == itemAssetVms.Count())
-    //     {
-    //         noAllSerialsAssigned = false;
-    //         generateAssets = true;
-    //     } else
-    //     {
-    //         int remaining = itemAssetVms.Count() - filled;
-    //         errorMessage = $"{remaining} assets have no serial numbers assigned!";
-    //         noAllSerialsAssigned = true;
-    //     }
-    // }
 
     private async Task GetUserName()
     {
