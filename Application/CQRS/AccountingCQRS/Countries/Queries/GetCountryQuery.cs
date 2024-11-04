@@ -1,19 +1,27 @@
-﻿using Application.ViewModels.Accounting;
+﻿using Application.Interfaces;
+using Application.ViewModels.Accounting;
+using AutoMapper;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace Application.CQRS.AccountingCQRS.Countries.Queries
 {
-    public class GetCountryQuery : IRequest<CountryVm>
+    public class GetCountryQuery(int i) : IRequest<CountryVm>
     {
-        public GetCountryQuery(int i)
+        public int CountryId { get; set; } = i;
+    }
+    public class GetCountryQueryHandler(IAppDbContext appDbContext, IMapper mapper) : IRequestHandler<GetCountryQuery, CountryVm>
+    {
+        private readonly IAppDbContext _appDbContext = appDbContext;
+        private readonly IMapper _mapper = mapper;
+
+        public async Task<CountryVm> Handle(GetCountryQuery request, CancellationToken cancellationToken)
         {
-            CountryId = i;
+            var country = await _appDbContext.Countries
+                                             .Where(c => c.Id == request.CountryId)
+                                             .AsNoTracking()
+                                             .FirstOrDefaultAsync(cancellationToken);
+            return _mapper.Map<CountryVm>(country);
         }
-        public int CountryId { get; set; }
     }
 }

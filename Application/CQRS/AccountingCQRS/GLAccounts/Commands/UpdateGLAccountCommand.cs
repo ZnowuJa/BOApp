@@ -1,23 +1,28 @@
-﻿using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Application.Interfaces;
+using Application.ViewModels.Accounting;
+using AutoMapper;
+using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace Application.CQRS.AccountingCQRS.GLAccounts.Commands
 {
-    public class UpdateGLAccountCommand : IRequest<int>
+    public class UpdateGLAccountCommand(GLAccountVm glAccount) : IRequest<int>
     {
-        public int Id { get; set; }
-        public string AccountNumber { get; set; }
-        public string Description { get; set; }
+        public GLAccountVm GLAccount { get; set; } = glAccount;
+    }
 
-        public UpdateGLAccountCommand(int id, string accountNumber, string description)
+    public class UpdateGLAccountCommandHandler(IAppDbContext context, IMapper mapper) : IRequestHandler<UpdateGLAccountCommand, int>
+    {
+        private readonly IAppDbContext _context = context;
+        private readonly IMapper _mapper = mapper;
+
+        public async Task<int> Handle(UpdateGLAccountCommand request, CancellationToken cancellationToken)
         {
-            Id = id;
-            AccountNumber = accountNumber;
-            Description = description;
+            var glAccount = await _context.GLAccounts.FirstOrDefaultAsync(g => g.Id == request.GLAccount.Id, cancellationToken);
+
+            _mapper.Map(request.GLAccount, glAccount);
+            await _context.SaveChangesAsync(cancellationToken);
+            return glAccount.Id;
         }
     }
 }

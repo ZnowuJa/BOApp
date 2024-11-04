@@ -1,19 +1,28 @@
-﻿using Application.ViewModels.Accounting;
+﻿using Application.Interfaces;
+using Application.ViewModels.Accounting;
+using AutoMapper;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace Application.CQRS.AccountingCQRS.VATRates.Queries
 {
-    public class GetVATRateQuery : IRequest<VATRateVm>
+    public class GetVATRateQuery(int i) : IRequest<VATRateVm>
     {
-        public GetVATRateQuery(int i)
+        public int VATRateId { get; set; } = i;
+    }
+
+    public class GetVATRateQueryHandler(IAppDbContext appDbContext, IMapper mapper) : IRequestHandler<GetVATRateQuery, VATRateVm>
+    {
+        private readonly IAppDbContext _appDbContext = appDbContext;
+        private readonly IMapper _mapper = mapper;
+
+        public async Task<VATRateVm> Handle(GetVATRateQuery request, CancellationToken cancellationToken)
         {
-            VATRateId = i;
+            var vatRate = await _appDbContext.VATRates
+                                             .Where(v => v.Id == request.VATRateId)
+                                             .AsNoTracking()
+                                             .FirstOrDefaultAsync(cancellationToken);
+            return _mapper.Map<VATRateVm>(vatRate);
         }
-        public int VATRateId { get; set; }
     }
 }

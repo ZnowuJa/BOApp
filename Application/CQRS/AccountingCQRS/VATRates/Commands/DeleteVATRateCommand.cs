@@ -1,29 +1,17 @@
 ﻿using Application.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application.CQRS.AccountingCQRS.VATRates.Commands
 {
-    public class DeleteVATRateCommand : IRequest<int>
+    public class DeleteVATRateCommand(int id) : IRequest<int>
     {
-        public int Id { get; set; }
-        public DeleteVATRateCommand(int id)
-        {
-            Id = id;
-        }
+        public int Id { get; set; } = id;
     }
-    public class DeleteVATRateCommandHandler : IRequestHandler<DeleteVATRateCommand, int>
+    public class DeleteVATRateCommandHandler(IAppDbContext appDbContext) : IRequestHandler<DeleteVATRateCommand, int>
     {
-        private readonly IAppDbContext _appDbContext;
-        public DeleteVATRateCommandHandler(IAppDbContext appDbContext)
-        {
-            _appDbContext = appDbContext;
-        }
+        private readonly IAppDbContext _appDbContext = appDbContext;
+
         public async Task<int> Handle(DeleteVATRateCommand request, CancellationToken cancellationToken)
         {
             var result = await _appDbContext.VATRates

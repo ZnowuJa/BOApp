@@ -1,27 +1,28 @@
-﻿using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Application.Interfaces;
+using Application.ViewModels.Accounting;
+using AutoMapper;
+using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace Application.CQRS.AccountingCQRS.VATRates.Commands
 {
-    public class UpdateVATRateCommand : IRequest<int>
+    public class UpdateVATRateCommand(VATRateVm vatRate) : IRequest<int>
     {
-        public int Id { get; set; }
-        public string Name { get; set; }
-        public double Percentage { get; set; }
-        public string Information { get; set; }
-        public int Order { get; set; }
+        public VATRateVm VATRate { get; set; } = vatRate;
+    }
 
-        public UpdateVATRateCommand(int id, string name, double percentage, string information, int order)
+    public class UpdateVATRateCommandHandler(IAppDbContext context, IMapper mapper) : IRequestHandler<UpdateVATRateCommand, int>
+    {
+        private readonly IAppDbContext _context = context;
+        private readonly IMapper _mapper = mapper;
+
+        public async Task<int> Handle(UpdateVATRateCommand request, CancellationToken cancellationToken)
         {
-            Id = id;
-            Name = name;
-            Percentage = percentage;
-            Information = information;
-            Order = order;
+            var vatRate = await _context.VATRates.FirstOrDefaultAsync(v => v.Id == request.VATRate.Id, cancellationToken);
+            _mapper.Map(request.VATRate, vatRate);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            return vatRate.Id;
         }
     }
 }

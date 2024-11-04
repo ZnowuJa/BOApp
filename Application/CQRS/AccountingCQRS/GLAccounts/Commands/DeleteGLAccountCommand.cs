@@ -1,29 +1,17 @@
 ﻿using Application.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application.CQRS.AccountingCQRS.GLAccounts.Commands
 {
-    public class DeleteGLAccountCommand : IRequest<int>
+    public class DeleteGLAccountCommand(int id) : IRequest<int>
     {
-        public int Id { get; set; }
-        public DeleteGLAccountCommand(int id)
-        {
-            Id = id;
-        }
+        public int Id { get; set; } = id;
     }
-    public class DeleteGLAccountCommandHandler : IRequestHandler<DeleteGLAccountCommand, int>
+    public class DeleteGLAccountCommandHandler(IAppDbContext appDbContext) : IRequestHandler<DeleteGLAccountCommand, int>
     {
-        private readonly IAppDbContext _appDbContext;
-        public DeleteGLAccountCommandHandler(IAppDbContext appDbContext)
-        {
-            _appDbContext = appDbContext;
-        }
+        private readonly IAppDbContext _appDbContext = appDbContext;
+
         public async Task<int> Handle(DeleteGLAccountCommand request, CancellationToken cancellationToken)
         {
             var result = await _appDbContext.GLAccounts
