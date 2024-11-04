@@ -17,11 +17,11 @@ public class ITSaleFormVm
     public string Description { get; set; } = "Formularz do sprzedaży sprzętu IT";
     public string FolderName { get; set; } = "ITSaleForm";
     public string NumberPrefix { get; set; } = "ITSALE";
-    public string Status { get; set; }
+    public string Status { get; set; } = "Rejestracja";
     public List<string> Statuses { get; set; }
-    public int WorkflowTemplateId { get; set; }
+    public int WorkflowTemplateId { get; set; } = 3;
     public WorkflowTemplate WorkflowTemplate { get; set; }
-    public string? Number { get; set; }
+    public string? Number { get; set; } = "New sale - not saved";
     // Properties specific to Form
 
 
@@ -30,21 +30,21 @@ public class ITSaleFormVm
     public string? OperatorName { get; set; }
 
 
-    public List<Approval>? Approvals { get; set; }
-    public List<OrganisationRoleForFormVm> Level1Approvers { get; set; }
-    public List<OrganisationRoleForFormVm> Level2Approvers { get; set; }
-    public string LVL1_EnovaEmpId { get; set; }
-    public string LVL2_EnovaEmpId { get; set; }
-    public string LVL1_EmployeeName { get; set; }
-    public string LVL2_EmployeeName { get; set; }
+    public List<Approval>? Approvals { get; set; } = new List<Approval>();
+    public List<OrganisationRoleForFormVm> Level1Approvers { get; set; } = new List<OrganisationRoleForFormVm>();
+    public List<OrganisationRoleForFormVm> Level2Approvers { get; set; } = new List<OrganisationRoleForFormVm>();
+    public string LVL1_EnovaEmpId { get; set; } = string.Empty;
+    public string LVL2_EnovaEmpId { get; set; } = string.Empty;
+    public string LVL1_EmployeeName { get; set; } = string.Empty;
+    public string LVL2_EmployeeName { get; set; } = string.Empty;
 
 
     public List<FormFileVm> FormFiles { get; set; }
-    public int CompanyId { get; set; }
+    public int? CompanyId { get; set; }
     public CompanyVm? Company { get; set; }
-    public int EmployeeId {  get; set; }
+    public int? EmployeeId {  get; set; }
     public EmployeeVm? Employee { get; set; }
-    public ICollection<AssetDTO>? assets { get; set; }
+    public ICollection<AssetDTO>? Assets { get; set; }
 
 
     public void Mapping(Profile profile)

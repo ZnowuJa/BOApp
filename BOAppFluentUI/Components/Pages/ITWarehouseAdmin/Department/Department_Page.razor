@@ -28,18 +28,18 @@
 else
 {
 
-    <FluentDataGrid Items="@depts" TGridItem="DepartmentVm" GridTemplateColumns="50px repeat(8, 1fr)" ResizableColumns=true>
-        <PropertyColumn Property="@(c => c.Id)" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.LongName)" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.DeptNumber)" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.CompanyVm.Name)" Sortable="true" Align="Align.Start" Tooltip="true" />
-         <PropertyColumn Property="@(c => c.CostCenter)" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.SapNumber)" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.WarehouseVm.Name)" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.ManagerVm.LongName)" Sortable="true" Align="Align.Start" Tooltip="true" />
-        
-  
+    <FluentDataGrid Items="@filteredDepts" Pagination="@pagination" TGridItem="DepartmentVm" GridTemplateColumns="80px repeat(6, 0.75fr)" ResizableColumns="true">
 
+        @foreach (var column in filterColumns.Where(c => c.IsVisible))
+        {
+            <PropertyColumn TGridItem="DepartmentVm" TProp="string" Property="@(Utils.GetPropertyExpression(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label" Filtered="!string.IsNullOrWhiteSpace(column.Filter)">
+                <ColumnOptions>
+                    <div class="search-box">
+                        <FluentSearch type="search" Autofocus="true" @bind-Value="column.Filter" @oninput="(args) => Utils.HandleFilterDebounced(column, args, debounceDispatcher, () => InvokeAsync(StateHasChanged))" Placeholder="@($"{column.Label.ToLower()}...")" />
+                    </div>
+                </ColumnOptions>
+            </PropertyColumn>
+        }
 
         <TemplateColumn Title="Actions" Align="Align.End">
             <FluentButton IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" />
@@ -48,6 +48,7 @@ else
 
         </TemplateColumn>
     </FluentDataGrid>
+    <FluentPaginator State="@pagination" />
     <FluentButton IconStart="@(new Icons.Regular.Size24.Add())" OnClick="@(() => Add())" />
 }
 
@@ -55,6 +56,23 @@ else
 
 @code {
     private IQueryable<DepartmentVm> depts;
+    private IQueryable<DepartmentVm> filteredDepts => depts.Where(x =>
+    filterColumns.All(column => string.IsNullOrWhiteSpace(column.Filter) ||
+    column.Property(x).Contains(column.Filter, StringComparison.CurrentCultureIgnoreCase)));
+
+    PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
+    private DebounceDispatcher debounceDispatcher = new DebounceDispatcher();
+
+    private List<FilterColumn<DepartmentVm>> filterColumns = new List<FilterColumn<DepartmentVm>>
+    {
+        new FilterColumn<DepartmentVm> { FirstRow = true, Label = "ID", Property = c => c.Id.ToString(), IsVisible = true, Width = "80px" },
+        new FilterColumn<DepartmentVm> { FirstRow = true, Label = "Numer", Property = c => c.DeptNumber, IsVisible = true, Width = "1FR" },
+        new FilterColumn<DepartmentVm> { FirstRow = true, Label = "Nazwa", Property = c => c.LongName, IsVisible = true , Width = "1FR" },
+        new FilterColumn<DepartmentVm> { FirstRow = true, Label = "SAPNumber", Property = c => c.SapNumber, IsVisible = true , Width = "1FR" },
+        new FilterColumn<DepartmentVm> { FirstRow = true, Label = "CostCenter", Property = c => c.CostCenter, IsVisible = true , Width = "1FR" },
+        new FilterColumn<DepartmentVm> { FirstRow = true, Label = "WarehoseName", Property = c => c.WarehouseVm.Name, IsVisible = true , Width = "1FR" },
+        new FilterColumn<DepartmentVm> { FirstRow = true, Label = "Manager", Property = c => c.ManagerVm.LongName, IsVisible = true , Width = "1FR" },
+    };
 
     protected override async Task OnInitializedAsync()
     {
@@ -65,7 +83,7 @@ else
         depts = await _mediator.Send(new GetAllDepartmentsQuery());
         foreach( var d in depts)
         {
-            Console.WriteLine( d.LongName, d.DeptNumber);
+            Console.WriteLine( d.LongName, d.DeptNumber, d.ManagerEmpId, " | " , d.ManagerVm.LongName);
         }
         Console.WriteLine(depts.Count());
     }

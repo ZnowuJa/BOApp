@@ -1,6 +1,8 @@
 ﻿@page "/assets"
+@using Application.CQRS.ITWarehouseCQRS.Scrappings.Queries
 @using Application.DTOs
 @using Application.ExportModels
+@using Application.Forms
 @using Application.ViewModels.General
 @using Application.Interfaces
 @using Application.ITWarehouseCQRS.AssetHistories.Commands
@@ -9,6 +11,7 @@
 @using Application.ITWarehouseCQRS.Departments.Queries
 @using BOAppFluentUI.Components.Pages.ITWarehouseAdmin.Asset
 @using BOAppFluentUI.Components.Pages
+@using BOAppFluentUI.Data.DialogParameters
 @using MediatR
 @using AutoMapper
 @using System.Security.Claims
@@ -27,6 +30,7 @@
 @inject IJSRuntime JS
 @inject IMapper _mapper
 @inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IConfiguration _configuration
 
 <style>
     .filter-applied {
@@ -123,7 +127,9 @@ else
             @* Actions *@
             <TemplateColumn Title="Actions" Align="Align.End">
                 <FluentButton IconEnd="@(new Icons.Regular.Size20.Remote())" OnClick="@(() => RemoveFromList(context))" />
+
             </TemplateColumn>
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.Remote())" OnClick="@(() => OpenSaleComponent(assetsToChange.ToList()))" Disabled="@(env == "PROD")"> Sprzedaz </FluentButton>
         </FluentDataGrid>
 
         <div>
@@ -212,11 +218,15 @@ else
         new FilterColumn<AssetDTO> { FirstRow = true, Label = "MAC Address", Property = c => c.Mac?.ToString() ?? string.Empty, IsVisible = false , Width = "1FR" }
     };
 
+    private FormUserContext _userContext = new FormUserContext("Settlement", "Technician");
+    private string env { get; set; } 
     #endregion Properties
 
     protected override async Task OnInitializedAsync()
     {
+        await Utils.GetUserName(AuthenticationStateProvider, _userContext, _mediator);
         await GetUserName();
+        env = _configuration["Environment"];
         await Load();
     }
 
@@ -346,16 +356,16 @@ else
         {
             intent = ToastIntent.Error;
             message = "Asset has not been deleted" ;
-            
+
         } 
         else 
         {
             var i = await _mediator.Send(new DeleteAssetCommand(item.Id));
             intent = ToastIntent.Success;
             message = "Asset has been deleted" ;
-            
+
         }
-       
+
         _toastService.ShowToast(intent, message, 3000);
         await Load();
     }
@@ -450,6 +460,38 @@ else
             return;
         }
 
+    }
+
+    private async Task OpenSaleComponent(List<AssetDTO> assetsToSale)
+    {
+
+        var sales = new List<ITSaleFormVm>();
+        // await _mediator.Send(new GetActiveITSaleFormsQuery());
+        var dataParameter = new ITSalesAssetsDialogParameter
+            {
+                AssetsLists = assetsToSale,
+                Sales = sales,
+                SelectedSaleId = 0,
+                FormUserContext = _userContext
+            };
+
+        var dialog = await _dialogService.ShowDialogAsync<Asset_Sale_Component>(dataParameter, new DialogParameters
+        {
+                Height = "400px",
+                Width = "600px",
+                Title = "Assing Assets for Sale",
+                PreventDismissOnOverlayClick = false,
+                PreventScroll = true,
+        });
+        var result = await dialog.Result;
+        if (!result.Cancelled)
+        {
+            var updatedData = (dynamic)result.Data;
+            var updatedAssets = updatedData.AssetsLists as List<AssetDTO>;
+            var updatedScrapping = updatedData.Sales as List<ITSaleFormVm>;
+            ////how to get my modified assetsToSale
+            ////how to get my modified scrappings
+        }
     }
 
     private async Task SaveAsync()

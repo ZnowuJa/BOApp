@@ -110,12 +110,14 @@
                 <FluentTab Label="Compliance Managers" Id="tab-v13">
                     <OrganisationRoleListComponent Roles="@Content.Role_ComplianceManager" Employees="@empsList" Title="Compliance Managers" />
                 </FluentTab>
-@*                 <FluentTab Label="Accountants TeamLeader" Id="tab-v8">
-                    <OrganisationRoleListComponent Roles="@Content.Role_AccountantsTeamLeader" Employees="@empsList" Title="Accountants TeamLeader" />
+                <FluentTab Label="Disposition" Id="tab-v9">
+                    <OrganisationRoleListComponent Roles="@Content.Role_Disposition" Employees="@empsList"  />
                 </FluentTab>
-                <FluentTab Label="HR Specialists" Id="tab-v9">
-                    <OrganisationRoleListComponent Roles="@Content.Role_HRSpecialists" Employees="@empsList" Title="HR Specialists" />
+                 <FluentTab Label="Disposition Manager" Id="tab-v8">
+                    <OrganisationRoleListComponent Roles="@Content.Role_DispositionManager" Employees="@empsList"/>
                 </FluentTab>
+
+                @*
                 <FluentTab Label="Investments Department" Id="tab-v10">
                     <OrganisationRoleListComponent Roles="@Content.Role_InvestmentsDept" Employees="@empsList" Title="Investments Department" />
                 </FluentTab>
@@ -149,6 +151,7 @@
 @code {
     [Parameter]
     public OrganisationVm Content { get; set; }
+
     [CascadingParameter]
     public FluentDialog Dialog { get; set; } = default!;
 

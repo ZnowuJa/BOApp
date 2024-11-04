@@ -5,7 +5,7 @@ using Domain.Entities.ITWarehouse;
 namespace Domain.Forms.ITForms;
 public class ITSaleForm : FormTemplate
 {
-    public ITSaleForm() : base("Sprzedaż sprzętu IT", "Formularz do rejestrowania sprzedaży sprzętu IT", "ITSaleForm", "ITSALE", "IT", "Rejestracja", 2)
+    public ITSaleForm() : base("Sprzedaż sprzętu IT", "Formularz do rejestrowania sprzedaży sprzętu IT", "ITSaleForm", "ITSALE", "IT", "Rejestracja", 3)
     {
         Statuses = new List<string>
         {
@@ -29,9 +29,9 @@ public class ITSaleForm : FormTemplate
 
 
     public List<FormFile> FormFiles { get; set; }
-    public int CompanyId { get; set; }
+    public int? CompanyId { get; set; }
     public Company? Company { get; set; }
-    public int EmployeeId { get; set; }
+    public int? EmployeeId { get; set; }
     public Employee? Employee { get; set; }
     public ICollection<Asset>? Assets { get; set; }
 }

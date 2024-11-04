@@ -11,3 +11,5 @@ public class GetCategoryQuery : IRequest<CategoryVm>
 
     public int CategoryId { get; set; }
 }
+
+

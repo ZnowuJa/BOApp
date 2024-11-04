@@ -31,6 +31,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="CQRS\General\Organisations\Commands\CreateOrganisationCommandHandler.cs" />
+    <Compile Remove="CQRS\General\Organisations\Commands\DeleteOrganisationCommandHandler.cs" />
+    <Compile Remove="CQRS\General\Organisations\Commands\UpdateOrganisationCommandHandler.cs" />
+    <Compile Remove="CQRS\General\Organisations\Queries\GetAllOrganisationsQueryHandler.cs" />
+    <Compile Remove="CQRS\General\Organisations\Queries\GetOrganisationByEmpSapNumberQueryHandler.cs" />
+    <Compile Remove="CQRS\General\Organisations\Queries\GetOrganisationQueryHandler.cs" />
+    <Compile Remove="CQRS\General\Organisations\Queries\GetOrganisationsByApproverIdQueryHandler.cs" />
     <Compile Remove="Interfaces\AssigneeToAssigneeVmConverter.cs" />
     <Compile Remove="Interfaces\AssigneeVmToAssigneeConverter.cs" />
     <Compile Remove="CQRS\ITWarehouseCQRS\Categories\CategoriesVm.cs" />
@@ -77,8 +84,6 @@
 
   <ItemGroup>
     <Folder Include="AAA_IDEAS\" />
-    <Folder Include="CQRS\ITWarehouseCQRS\Sales\Commands\" />
-    <Folder Include="CQRS\ITWarehouseCQRS\Sales\Queries\" />
     <Folder Include="ViewModels\ITWarehouse\" />
   </ItemGroup>
 

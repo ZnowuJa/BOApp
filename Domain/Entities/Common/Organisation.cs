@@ -26,6 +26,8 @@ public class Organisation : SmallAuditableEntity
     public string Role_SourcingDept { get; set; }
     public string Role_ComplianceAssistant { get; set; }
     public string Role_ComplianceManager { get; set; }
+    public string Role_Disposition { get; set; }
+    public string Role_DispositionManager { get; set; }
 
 
 }
