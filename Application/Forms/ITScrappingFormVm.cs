@@ -13,9 +13,10 @@ using AutoMapper;
 using Domain.Forms.ITForms;
 using Application.ViewModels.CoC;
 using System.Text.Json;
+using Application.Mappings;
 
 namespace Application.Forms;
-public class ITScrappingFormVm
+public class ITScrappingFormVm : IMapFrom<ITScrappingForm>
 {
     
     public int Id { get; set; }

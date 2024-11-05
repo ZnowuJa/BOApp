@@ -34,7 +34,17 @@ public class CreateITSaleFormCommandHandler : IRequestHandler<CreateITSaleFormCo
 
     public async Task<ITSaleFormVm> Handle(CreateITSaleFormCommand command, CancellationToken cancellationToken)
     {
-        var form = _mapper.Map<ITSaleForm>(command.Form);
+        var form = new ITSaleForm();
+        try
+        {
+            form = _mapper.Map<ITSaleForm>(command.Form);
+            Console.WriteLine();
+
+        } catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+        form = _mapper.Map<ITSaleForm>(command.Form);
         _context.ITSaleForms.Add(form);
         await _context.SaveChangesAsync(cancellationToken);
         command.Form.Id = form.Id;

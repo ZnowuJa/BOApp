@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
 
 using Application.DTOs;
+using Application.Mappings;
 using Application.ViewModels;
 using Application.ViewModels.General;
 
@@ -10,7 +11,7 @@ using Domain.Forms.ITForms;
 using Domain.WorkFlows;
 
 namespace Application.Forms;
-public class ITSaleFormVm
+public class ITSaleFormVm : IMapFrom<ITSaleForm>
 {
     public int Id { get; set; }
     public string Name { get; set; } = "Sprzedaż sprzętu IT";
@@ -52,8 +53,9 @@ public class ITSaleFormVm
         profile.CreateMap<ITSaleForm, ITSaleFormVm>()
             .ForMember(dest => dest.Level1Approvers, opt => opt.MapFrom(src => DeserializeRoles(src.Level1Approvers)))
             .ForMember(dest => dest.Level2Approvers, opt => opt.MapFrom(src => DeserializeRoles(src.Level2Approvers)))
-            .ForMember(dest => dest.Approvals, opt => opt.MapFrom(src => DeserializeApprovals(src.Approvals)))
-            .ReverseMap()
+            .ForMember(dest => dest.Approvals, opt => opt.MapFrom(src => DeserializeApprovals(src.Approvals)));
+        
+        profile.CreateMap<ITSaleFormVm, ITSaleForm>()
             .ForMember(dest => dest.Level1Approvers, opt => opt.MapFrom(src => SerializeRoles(src.Level1Approvers)))
             .ForMember(dest => dest.Level2Approvers, opt => opt.MapFrom(src => SerializeRoles(src.Level2Approvers)))
             .ForMember(dest => dest.Approvals, opt => opt.MapFrom(src => SerializeApprovals(src.Approvals)));

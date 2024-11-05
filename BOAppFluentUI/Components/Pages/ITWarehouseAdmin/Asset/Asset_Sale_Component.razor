@@ -116,12 +116,19 @@
 
 
         Content.SelectedSale = selectedSale;
+
+        await Dialog.CloseAsync(Content);
     }
 
     private async Task AssignSale()
     {
         // var selected = await _mediator.Send(new CreateNewITSaleFormCommand());
         // var newSale = new ITSaleFormVm();
+        if(selectedSale != null)
+        {
+            Content.SelectedSale = selectedSale;
+            await Dialog.CloseAsync();
+        }
 
 
     }

@@ -17,7 +17,7 @@ public class Company : AuditableEntity
     public string? ContactPersonMobile { get; set; }
     public string? ContactPersonEmail { get; set; }
     public CompanyType CompanyType { get; set; }
-    public string DealerSAPNumber { get; set; }
+    public string? DealerSAPNumber { get; set; }
     
 
 }

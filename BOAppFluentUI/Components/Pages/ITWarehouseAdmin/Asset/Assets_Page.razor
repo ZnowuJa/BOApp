@@ -1,4 +1,6 @@
 ﻿@page "/assets"
+@using Application.CQRS.General.Organisations.Queries
+@using Application.CQRS.ITWarehouseCQRS.Sales.Commands
 @using Application.CQRS.ITWarehouseCQRS.Scrappings.Queries
 @using Application.DTOs
 @using Application.ExportModels
@@ -464,7 +466,8 @@ else
 
     private async Task OpenSaleComponent(List<AssetDTO> assetsToSale)
     {
-
+        // var ogn = _userContext.Employee.SapNumber;
+        var org = await _mediator.Send(new GetOrganisationByEmpSapNumberQuery(_userContext.Employee.SapNumber));
         var sales = new List<ITSaleFormVm>();
         // await _mediator.Send(new GetActiveITSaleFormsQuery());
         var dataParameter = new ITSalesAssetsDialogParameter
@@ -472,7 +475,8 @@ else
                 AssetsLists = assetsToSale,
                 Sales = sales,
                 SelectedSaleId = 0,
-                FormUserContext = _userContext
+                FormUserContext = _userContext,
+                OrganisationVm = org
             };
 
         var dialog = await _dialogService.ShowDialogAsync<Asset_Sale_Component>(dataParameter, new DialogParameters
@@ -488,9 +492,15 @@ else
         {
             var updatedData = (dynamic)result.Data;
             var updatedAssets = updatedData.AssetsLists as List<AssetDTO>;
-            var updatedScrapping = updatedData.Sales as List<ITSaleFormVm>;
-            ////how to get my modified assetsToSale
-            ////how to get my modified scrappings
+            var selectedSale = updatedData.SelectedSale as ITSaleFormVm;
+            if(selectedSale.Id == 0)
+            {
+                await _mediator.Send(new CreateITSaleFormCommand(selectedSale));
+                Console.WriteLine(selectedSale.Id);
+            } else if (selectedSale.Id > 0)
+            {
+                await _mediator.Send(new UpdateITSaleFormCommand(selectedSale));
+            } 
         }
     }
 
