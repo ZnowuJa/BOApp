@@ -224,7 +224,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        // await Utils.GetUserName(AuthenticationStateProvider, _userContext, _mediator);
+        await Utils.GetUserName(AuthenticationStateProvider, _userContext, _mediator);
         await GetUserName();
         env = _configuration["Environment"];
         await Load();

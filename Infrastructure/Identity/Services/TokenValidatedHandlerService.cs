@@ -39,7 +39,8 @@ public class TokenValidatedHandlerService : ITokenValidatedHandlerService
 
         var claims = context.Principal.Claims;
         var preferredUserName = claims.FirstOrDefault(c => c.Type == "preferred_username")?.Value;
-        _logger.LogInformation("preferred_username : " + preferredUserName);
+        //_logger.LogInformation("preferred_username : " + preferredUserName);
+
         // rejects any user out of @porscheinterauto.pl domain
         if (preferredUserName == null || !preferredUserName.EndsWith("@porscheinterauto.pl"))
         {
@@ -64,7 +65,7 @@ public class TokenValidatedHandlerService : ITokenValidatedHandlerService
         if (user != null)
         {
             var aadoid = claims.FirstOrDefault(c => c.Type == "http://schemas.microsoft.com/identity/claims/objectidentifier")?.Value;
-            _logger.LogInformation("USWERS ID" + aadoid);
+            _logger.LogInformation("USER ID" + aadoid);
 
             await UpdateUserOnSignIn(context);
             var roles = await _userService.GetUserRoles(user);
@@ -117,6 +118,8 @@ public class TokenValidatedHandlerService : ITokenValidatedHandlerService
         appUser.UserName = preferredUsername;
         appUser.Email = emailAddress;
         appUser.NormalizedEmail = emailAddress.ToUpper();
+
+        // everyone gots role of USER
         await _userService.AssignRole(appUser.Id, "User");
         //await _userService.AssignRole(appUser.Id, "AppAdmin");
         await _userService.UpdateAppUser(appUser); //updates user in AspNetUsers table
@@ -124,7 +127,7 @@ public class TokenValidatedHandlerService : ITokenValidatedHandlerService
 
         try
         {
-            var employee = await _appDbContext.Employees.Where(e => e.Email.ToUpper() == appUser.Email.ToUpper()).FirstOrDefaultAsync();
+            var employee = await _appDbContext.Employees.Where(e => e.Email.ToUpper() == appUser.Email.ToUpper() && e.IsActive == 1).FirstOrDefaultAsync();
             //var empInfosObj = await _appDbContext.EmpInfos.Where(e => e.Email.ToUpper() == appUser.NormalizedEmail).FirstOrDefaultAsync();
             employee.FirstName = firstName;
             employee.LastName = lastName;
