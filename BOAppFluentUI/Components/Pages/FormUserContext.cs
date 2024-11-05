@@ -15,7 +15,7 @@ public class FormUserContext
 
     public FormUserContext(string adminRole, string itRole)
     {
-        AdminRole = adminRole;
-        ITRole = itRole;
+        AdminRole = adminRole; //Admin role in form or application
+        ITRole = itRole; // Role of IT department
     }
 }

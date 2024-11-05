@@ -218,13 +218,13 @@ else
         new FilterColumn<AssetDTO> { FirstRow = true, Label = "MAC Address", Property = c => c.Mac?.ToString() ?? string.Empty, IsVisible = false , Width = "1FR" }
     };
 
-    private FormUserContext _userContext = new FormUserContext("Settlement", "Technician");
+    private FormUserContext _userContext = new FormUserContext("Technician", "Administrator");
     private string env { get; set; } 
     #endregion Properties
 
     protected override async Task OnInitializedAsync()
     {
-        await Utils.GetUserName(AuthenticationStateProvider, _userContext, _mediator);
+        // await Utils.GetUserName(AuthenticationStateProvider, _userContext, _mediator);
         await GetUserName();
         env = _configuration["Environment"];
         await Load();
