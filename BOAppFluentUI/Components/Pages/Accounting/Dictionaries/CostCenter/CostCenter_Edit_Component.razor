@@ -4,6 +4,7 @@
 @inject IMediator _mediator
 @implements IDialogContentComponent<CostCenterVm>
 
+<!-- Header -->
 <FluentDialogHeader ShowDismiss="true">
     <FluentStack VerticalAlignment="VerticalAlignment.Center">
         <FluentIcon Value="@(new Icons.Regular.Size24.WindowApps())" />
@@ -13,34 +14,31 @@
     </FluentStack>
 </FluentDialogHeader>
 
-<FluentDialogFooter>
-    <FluentButton Appearance="Appearance.Accent" OnClick="@SaveAsync"
-                  Disabled="@(!_editContext.Validate())">Save</FluentButton>
-    <FluentButton Appearance="Appearance.Neutral" OnClick="@CancelAsync">Cancel</FluentButton>
-</FluentDialogFooter>
-
+<!-- Body -->
 <FluentDialogBody>
     <EditForm EditContext="_editContext">
         <FluentValidationValidator @ref="_fluentValidator" />
 
-        <FluentTextField Id="MPK" @bind-Value="@Content.MPK" Placeholder="Enter MPK">MPK:</FluentTextField>
+        <FluentTextField Id="MPK" @bind-Value="@Content.MPK" Placeholder="Enter MPK"Required>MPK:</FluentTextField>
         <FluentValidationMessage For="@(() => Content.MPK)" />
-
-        <FluentTextField Id="Description" @bind-Value="@Content.Description" Placeholder="Enter description">Description:</FluentTextField>
+        <FluentTextField Id="Description" @bind-Value="@Content.Description" Placeholder="Enter description" Required>Description:</FluentTextField>
         <FluentValidationMessage For="@(() => Content.Description)" />
-
-        <FluentTextField Id="Text" @bind-Value="@Content.Text" Placeholder="Enter text">Text:</FluentTextField>
-        <FluentValidationMessage For="@(() => Content.Text)" />
-
-        @if (!string.IsNullOrEmpty(errorMessage))
-        {
-            <div class="validation-error"><p style="color:red;">@errorMessage</p></div>
-        }
+        <FluentTextField Id="Text" @bind-Value="@Content.Text" Placeholder="Enter text" Required>Text:</FluentTextField>
+        <FluentValidationMessage For="@(() => Content.Text)"/>
     </EditForm>
 </FluentDialogBody>
 
-@code {
+<!-- Footer -->
+<FluentDialogFooter>
+    <FluentButton Appearance="Appearance.Accent"
+                  OnClick="@SaveAsync"
+                  >
+    Save
+    </FluentButton>
+    <FluentButton Appearance="Appearance.Neutral" OnClick="@CancelAsync">Cancel</FluentButton>
+</FluentDialogFooter>
 
+@code {
     [Parameter]
     public CostCenterVm Content { get; set; } = default!;
 
@@ -51,7 +49,6 @@
 
     private FluentValidationValidator? _fluentValidator;
 
-    private string errorMessage;
 
     protected override async Task OnInitializedAsync()
     {
@@ -61,11 +58,33 @@
 
     private async Task SaveAsync()
     {
-        await Dialog.CloseAsync(Content);
+        if (_editContext.Validate())
+        {
+            await Dialog.CloseAsync(Content);
+        }
+
     }
 
     private async Task CancelAsync()
     {
         await Dialog.CancelAsync();
     }
+
+    // void ChangeButton()
+    // {
+    //     if (_editContext.Validate())
+    //         IsValidButton = false;
+    //     else
+    //         IsValidButton = true;
+    // }
+
+    // private bool IsButtonDisabled => isFirstRender || !_editContext.Validate();
+
+    // private void HandleInputChange(ChangeEventArgs e)
+    // {
+    //     if (isFirstRender)
+    //     {
+    //         isFirstRender = false;
+    //     }
+    // }
 }

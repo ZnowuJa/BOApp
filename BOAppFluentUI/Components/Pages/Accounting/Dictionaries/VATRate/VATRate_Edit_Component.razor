@@ -1,5 +1,74 @@
-﻿<h3>VATRate_Edit_Component</h3>
+﻿@* VATRate Edit Component *@
+@using Application.ViewModels.Accounting
+
+@inject IMediator _mediator
+@implements IDialogContentComponent<VATRateVm>
+
+<FluentDialogHeader ShowDismiss="true">
+    <FluentStack VerticalAlignment="VerticalAlignment.Center">
+        <FluentIcon Value="@(new Icons.Regular.Size24.WindowApps())" />
+        <FluentLabel Typo="Typography.PaneHeader">
+            @Dialog.Instance.Parameters.Title
+        </FluentLabel>
+    </FluentStack>
+</FluentDialogHeader>
+
+<FluentDialogFooter>
+    <FluentButton Appearance="Appearance.Accent" OnClick="@SaveAsync"
+                  Disabled="@(!_editContext.Validate())">Save</FluentButton>
+    <FluentButton Appearance="Appearance.Neutral" OnClick="@CancelAsync">Cancel</FluentButton>
+</FluentDialogFooter>
+
+<FluentDialogBody>
+    <EditForm EditContext="_editContext">
+        <FluentValidationValidator @ref="_fluentValidator" />
+
+        <FluentTextField Id="Name" @bind-Value="@Content.Name" Placeholder="Enter Name">Name:</FluentTextField>
+        <FluentValidationMessage For="@(() => Content.Name)" />
+
+        <FluentNumberField Id="Percentage" @bind-Value="@Content.Percentage" HideStep=true Placeholder="Enter Percentage">Percentage:</FluentNumberField>
+        <FluentValidationMessage For="@(() => Content.Percentage)" />
+
+        <FluentTextField Id="Information" @bind-Value="@Content.Information" Placeholder="Enter Information">Information:</FluentTextField>
+        <FluentValidationMessage For="@(() => Content.Information)" />
+
+        <FluentNumberField Id="Order" @bind-Value="@Content.Order" HideStep=true Placeholder="Enter Order">Order:</FluentNumberField>
+        <FluentValidationMessage For="@(() => Content.Order)" />
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="validation-error"><p style="color:red;">@errorMessage</p></div>
+        }
+    </EditForm>
+</FluentDialogBody>
 
 @code {
 
+    [Parameter]
+    public VATRateVm Content { get; set; } = default!;
+
+    [CascadingParameter]
+    public FluentDialog Dialog { get; set; } = default!;
+
+    private EditContext _editContext;
+
+    private FluentValidationValidator? _fluentValidator;
+
+    private string errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _editContext = new EditContext(Content);
+        base.OnInitialized();
+    }
+
+    private async Task SaveAsync()
+    {
+        await Dialog.CloseAsync(Content);
+    }
+
+    private async Task CancelAsync()
+    {
+        await Dialog.CancelAsync();
+    }
 }
