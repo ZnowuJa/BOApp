@@ -84,7 +84,7 @@ public class TokenValidatedHandlerService : ITokenValidatedHandlerService
         }
         if (emplExists && userExists)
         {
-            empl = await _appDbContext.Employees.Where(e => e.Email.ToUpper() == preferredUserName.ToUpper()).FirstOrDefaultAsync();
+            empl = await _appDbContext.Employees.Where(e => e.Email.ToUpper() == preferredUserName.ToUpper() && e.IsActive == 1).FirstOrDefaultAsync();
             await UpdateEmployee(appUser, empl);
             await UpdateClaims(empl, appUser, context);
             ///update claims
