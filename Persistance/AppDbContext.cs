@@ -14,6 +14,7 @@ using Domain.WorkFlows;
 
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Persistance;
@@ -90,17 +91,17 @@ public class AppDbContext : IdentityDbContext<AppUser>, IAppDbContext
             .WithMany(y => y.Instructions)
             .UsingEntity(e => e.ToTable("InstructionGroup"));
 
-        builder.Entity<ITScrappingForm>()
-            .HasMany(s => s.Assets)
-            .WithOne(a => a.ScrappingForm)
-            .HasForeignKey(a => a.ScrappingFormId)
-            .IsRequired(false);
+        //builder.Entity<ITScrappingForm>()
+        //    .HasMany(s => s.Assets)
+        //    .WithOne(a => a.ScrappingForm)
+        //    .HasForeignKey(a => a.ScrappingFormId)
+        //    .IsRequired(false);
 
-        builder.Entity<ITSaleForm>()
-            .HasMany(s => s.Assets)
-            .WithOne(a => a.SaleForm)
-            .HasForeignKey(a => a.SaleFormId)
-            .IsRequired(false);
+        //builder.Entity<ITSaleForm>()
+        //    .HasMany(s => s.Assets)
+        //    .WithOne(a => a.SaleForm)
+        //    .HasForeignKey(a => a.SaleFormId)
+        //    .IsRequired(false);
 
         base.OnModelCreating(builder);
 
@@ -154,5 +155,10 @@ public class AppDbContext : IdentityDbContext<AppUser>, IAppDbContext
     public async Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default)
     {
         return await this.Database.BeginTransactionAsync(cancellationToken);
+    }
+
+    public override EntityEntry Entry(object entity)
+    {
+        return base.Entry(entity);
     }
 }

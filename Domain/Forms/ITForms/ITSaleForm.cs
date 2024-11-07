@@ -13,11 +13,9 @@ public class ITSaleForm : FormTemplate
         };
     }
 
-
     public string? Note { get; set; }
     public int? OperatorId { get; set; }
     public string? OperatorName { get; set; }
-
 
     public string Approvals { get; set; }
     public string Level1Approvers { get; set; }
@@ -30,8 +28,8 @@ public class ITSaleForm : FormTemplate
 
     public List<FormFile> FormFiles { get; set; }
     public int? CompanyId { get; set; }
-    public Company? Company { get; set; }
+    public string? CompanyName { get; set; }
     public int? EmployeeId { get; set; }
-    public Employee? Employee { get; set; }
-    public ICollection<Asset>? Assets { get; set; }
+    public string? EmployeeName { get; set; }
+    public string AssetIds { get; set; }
 }

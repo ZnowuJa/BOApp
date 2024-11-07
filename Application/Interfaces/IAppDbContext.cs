@@ -7,6 +7,7 @@ using Domain.Forms.ITForms;
 using Domain.WorkFlows;
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Application.Interfaces;
@@ -48,4 +49,5 @@ public interface IAppDbContext
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default);
+    EntityEntry Entry(object entity);
 }

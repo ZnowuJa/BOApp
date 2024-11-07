@@ -99,6 +99,11 @@
 
     private async Task SaveAsync()
     {
+        Console.WriteLine();
+        if (!_editContext.Validate())
+        {
+            return;
+        }
         if (Content.Id != 0)
         {
             await Dialog.CloseAsync(Content);

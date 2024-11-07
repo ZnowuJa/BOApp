@@ -4,9 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+using Application.DTOs;
 using Application.Forms;
 using Application.Interfaces;
 using AutoMapper;
+
+using Domain.Forms.ITForms;
+
 using MediatR;
 
 using Microsoft.EntityFrameworkCore;
@@ -35,12 +39,29 @@ public class GetITSaleByIdQueryHandler : IRequestHandler<GetITSaleByIdQuery, ITS
 
     public async Task<ITSaleFormVm> Handle(GetITSaleByIdQuery query, CancellationToken cancellationToken)
     {
+        var assets = _context.Assets.Where(a => a.StatusId == 1);
         var form = await _context.ITSaleForms
             .Include(f => f.FormFiles)
-            .Include(f => f.Company)
-            .Include(f => f.Assets)
+            //.Include(f => f.Company)
+            //.Include(f => f.Assets)
             .FirstOrDefaultAsync(f => f.Id == query.Id, cancellationToken);
 
-        return _mapper.Map<ITSaleFormVm>(form);
+        if (form == null)
+        {
+            // Handle not found case
+            return null;
+        }
+
+        var saleFormVm = _mapper.Map<ITSaleFormVm>(form);
+
+        // Map AssetIds to AssetDTOs
+        //var assetDtos = await _context.Assets
+        //    .Where(a => form.AssetIds.Contains(a.Id))
+        //    .Select(a => _mapper.Map<AssetDTO>(a))
+        //    .ToListAsync(cancellationToken);
+
+        //saleFormVm.Assets = assetDtos;
+
+        return saleFormVm;
     }
 }

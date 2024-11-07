@@ -13,6 +13,13 @@ using Domain.WorkFlows;
 namespace Application.Forms;
 public class ITSaleFormVm : IMapFrom<ITSaleForm>
 {
+    public ITSaleFormVm()
+    {
+        Statuses = new List<string>
+        {
+            "Rejestracja", "W trakcie", "Zakończony"
+        };
+    }
     public int Id { get; set; }
     public string Name { get; set; } = "Sprzedaż sprzętu IT";
     public string Description { get; set; } = "Formularz do sprzedaży sprzętu IT";
@@ -42,10 +49,12 @@ public class ITSaleFormVm : IMapFrom<ITSaleForm>
 
     public List<FormFileVm> FormFiles { get; set; }
     public int? CompanyId { get; set; }
+    public int? CompanyName { get; set; }
     public CompanyVm? Company { get; set; }
     public int? EmployeeId {  get; set; }
+    public int? EmployeeName { get; set; }
     public EmployeeVm? Employee { get; set; }
-    public ICollection<AssetDTO>? Assets { get; set; }
+    public ICollection<AssetMinimal>? Assets { get; set; }
 
 
     public void Mapping(Profile profile)
@@ -53,12 +62,14 @@ public class ITSaleFormVm : IMapFrom<ITSaleForm>
         profile.CreateMap<ITSaleForm, ITSaleFormVm>()
             .ForMember(dest => dest.Level1Approvers, opt => opt.MapFrom(src => DeserializeRoles(src.Level1Approvers)))
             .ForMember(dest => dest.Level2Approvers, opt => opt.MapFrom(src => DeserializeRoles(src.Level2Approvers)))
-            .ForMember(dest => dest.Approvals, opt => opt.MapFrom(src => DeserializeApprovals(src.Approvals)));
-        
+            .ForMember(dest => dest.Approvals, opt => opt.MapFrom(src => DeserializeApprovals(src.Approvals)))
+            .ForMember(dest => dest.Assets, opt => opt.MapFrom(src => src.AssetIds.Select(id => new AssetDTO { Id = id }).ToList()));
+
         profile.CreateMap<ITSaleFormVm, ITSaleForm>()
             .ForMember(dest => dest.Level1Approvers, opt => opt.MapFrom(src => SerializeRoles(src.Level1Approvers)))
             .ForMember(dest => dest.Level2Approvers, opt => opt.MapFrom(src => SerializeRoles(src.Level2Approvers)))
-            .ForMember(dest => dest.Approvals, opt => opt.MapFrom(src => SerializeApprovals(src.Approvals)));
+            .ForMember(dest => dest.Approvals, opt => opt.MapFrom(src => SerializeApprovals(src.Approvals)))
+            .ForMember(dest => dest.AssetIds, opt => opt.MapFrom(src => SerializeAssetIds(src.Assets)));
     }
 
     private string SerializeApprovals(List<ViewModels.General.Approval> approvals)
@@ -77,5 +88,19 @@ public class ITSaleFormVm : IMapFrom<ITSaleForm>
     {
         return string.IsNullOrEmpty(json) ? new List<OrganisationRoleForFormVm>() : JsonSerializer.Deserialize<List<OrganisationRoleForFormVm>>(json);
     }
+    private string SerializeAssetIds(ICollection<AssetMinimal>? assets)
+    {
+        return assets == null || !assets.Any()
+            ? string.Empty
+            : JsonSerializer.Serialize(assets.Select(a => a.Id));
+    }
 
+    private List<AssetDTO> DeserializeAssetIds(string assetIdsJson)
+    {
+        return string.IsNullOrEmpty(assetIdsJson)
+            ? new List<AssetDTO>()
+            : JsonSerializer.Deserialize<List<int>>(assetIdsJson)
+                .Select(id => new AssetDTO { Id = id })
+                .ToList();
+    }
 }

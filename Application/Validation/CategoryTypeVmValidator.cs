@@ -22,12 +22,12 @@ public class CategoryTypeVmValidator : AbstractValidator<CategoryTypeVm>
         });
         RuleFor(x => x.Name).NotEqual("Select...");
 
-        //RuleFor(x => x.Description).Custom((value, _context) =>
+        //RuleFor(x => x.Description).Custom((value, _appDbContext) =>
         //{
         //    // Your custom validation logic for the 'Description' field
         //    if (value.Length > 20)
         //    {
-        //        _context.AddFailure("Description", "Description should be less than 20 characters");
+        //        _appDbContext.AddFailure("Description", "Description should be less than 20 characters");
         //    }
         //});
 

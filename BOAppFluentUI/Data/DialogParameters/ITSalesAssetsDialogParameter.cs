@@ -12,7 +12,7 @@ namespace BOAppFluentUI.Data.DialogParameters;
 
 public record ITSalesAssetsDialogParameter
 {
-    public List<AssetDTO> AssetsLists { get; set; }
+    public List<AssetMinimal> AssetsLists { get; set; }
     public List<ITSaleFormVm> Sales { get; set; }
     public int? SelectedSaleId { get; set; }
     public ITSaleFormVm? SelectedSale { get; set; }

@@ -32,7 +32,7 @@ public class GetAllGroupCoCsQueryHandler : IRequestHandler<GetAllGroupCoCsQuery,
 
     public async Task<IQueryable<GroupCoCVm>> Handle(GetAllGroupCoCsQuery request, CancellationToken cancellationToken)
     {
-        //var groups = await _context.Groups
+        //var groups = await _appDbContext.Groups
         //    .Include(g => g.Positions)
         //    .Select(g => new GroupCoCVm
         //    {

@@ -31,8 +31,8 @@ public class GetAllITSaleFormsQueryHandler : IRequestHandler<GetAllITSaleFormsQu
     {
         var forms = await _context.ITSaleForms
             .Include(f => f.FormFiles)
-            .Include(f => f.Company)
-            .Include(f => f.Assets)
+            //.Include(f => f.Company)
+            //.Include(f => f.Assets)
             .ToListAsync(cancellationToken);
 
         return _mapper.Map<List<ITSaleFormVm>>(forms);
