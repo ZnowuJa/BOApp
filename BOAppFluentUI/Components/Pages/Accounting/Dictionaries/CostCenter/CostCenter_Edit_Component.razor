@@ -15,25 +15,27 @@
 </FluentDialogHeader>
 
 <!-- Body -->
-<FluentDialogBody>
+<FluentDialogBody Style="overflow-y: auto; overflow-x: auto;">
     <EditForm EditContext="_editContext">
-        <FluentValidationValidator @ref="_fluentValidator" />
+        @* <FluentValidationValidator @ref="_fluentValidator" /> *@
+        <DataAnnotationsValidator />
 
-        <FluentTextField Id="MPK" @bind-Value="@Content.MPK" Placeholder="Enter MPK"Required>MPK:</FluentTextField>
+        <FluentTextField Id="MPK" @bind-Value="@Content.MPK" Placeholder="Enter MPK">MPK:</FluentTextField>
         <FluentValidationMessage For="@(() => Content.MPK)" />
-        <FluentTextField Id="Description" @bind-Value="@Content.Description" Placeholder="Enter description" Required>Description:</FluentTextField>
+
+
+        <FluentTextField Id="Description" @bind-Value="@Content.Description" Placeholder="Enter description">Description:</FluentTextField>
         <FluentValidationMessage For="@(() => Content.Description)" />
-        <FluentTextField Id="Text" @bind-Value="@Content.Text" Placeholder="Enter text" Required>Text:</FluentTextField>
-        <FluentValidationMessage For="@(() => Content.Text)"/>
+
+        <FluentTextField Id="Text" @bind-Value="@Content.Text" Placeholder="Enter text">Text:</FluentTextField>
+        <FluentValidationMessage For="@(() => Content.Text)" />
     </EditForm>
 </FluentDialogBody>
 
 <!-- Footer -->
 <FluentDialogFooter>
-    <FluentButton Appearance="Appearance.Accent"
-                  OnClick="@SaveAsync"
-                  >
-    Save
+    <FluentButton Appearance="Appearance.Accent" OnClick="@SaveAsync">
+        Save
     </FluentButton>
     <FluentButton Appearance="Appearance.Neutral" OnClick="@CancelAsync">Cancel</FluentButton>
 </FluentDialogFooter>
@@ -50,6 +52,7 @@
     private FluentValidationValidator? _fluentValidator;
 
 
+
     protected override async Task OnInitializedAsync()
     {
         _editContext = new EditContext(Content);
@@ -58,11 +61,21 @@
 
     private async Task SaveAsync()
     {
+        Console.WriteLine("SaveAsync starts...");
         if (_editContext.Validate())
+        {
+            Console.WriteLine("EditContext Validation OK!...");
+            await Dialog.CloseAsync(Content);
+        }
+        else
+        {
+            Console.WriteLine("EditContext Validation NOT OK!...");
+            return;
+        }
+        if (Content.Id != 0)
         {
             await Dialog.CloseAsync(Content);
         }
-
     }
 
     private async Task CancelAsync()

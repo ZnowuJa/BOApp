@@ -13,8 +13,8 @@ namespace Application.Validation
     {
         public CostCenterVmValidator()
         {
-            RuleFor(x => x.MPK).NotEmpty();
-            RuleFor(x => x.Description).MinimumLength(3).WithMessage("Description needs to be at least 3 chars!");
+            RuleFor(x => x.MPK).MinimumLength(3);
+            RuleFor(x => x.Description).MinimumLength(3);
             RuleFor(x => x.Text).NotEmpty();
         }
     }

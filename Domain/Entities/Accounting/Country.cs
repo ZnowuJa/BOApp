@@ -1,4 +1,5 @@
 ﻿using BackOfficeApp_Domain.Common;
+using System.ComponentModel.DataAnnotations;
 
 namespace Domain.Entities.Accounting
 {
