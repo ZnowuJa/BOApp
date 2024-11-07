@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Application.Validation
 {
-    public class VATRateVmValidator : AbstractValidator<VATRateVm>
+/*    public class VATRateVmValidator : AbstractValidator<VATRateVm>
     {
         public VATRateVmValidator()
         {
@@ -17,5 +17,5 @@ namespace Application.Validation
             RuleFor(x => x.Information).MinimumLength(3);
             RuleFor(x => x.Order).NotEmpty();
         }
-    }
+    }*/
 }

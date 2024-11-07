@@ -4,6 +4,7 @@
 @inject IMediator _mediator
 @implements IDialogContentComponent<CountryVm>
 
+<!-- Header -->
 <FluentDialogHeader ShowDismiss="true">
     <FluentStack VerticalAlignment="VerticalAlignment.Center">
         <FluentIcon Value="@(new Icons.Regular.Size24.WindowApps())" />
@@ -13,33 +14,38 @@
     </FluentStack>
 </FluentDialogHeader>
 
-<FluentDialogFooter>
-    <FluentButton Appearance="Appearance.Accent" OnClick="@SaveAsync"
-                  Disabled="@(!_editContext.Validate())">Save</FluentButton>
-    <FluentButton Appearance="Appearance.Neutral" OnClick="@CancelAsync">Cancel</FluentButton>
-</FluentDialogFooter>
-
-<FluentDialogBody>
+<!-- Body -->
+<FluentDialogBody Style="overflow-y: auto; overflow-x: auto;">
     <EditForm EditContext="_editContext">
-        <FluentValidationValidator @ref="_fluentValidator" />
+        @* <FluentValidationValidator @ref="_fluentValidator" /> *@
+        <DataAnnotationsValidator />
 
-        <FluentTextField Id="Code" @bind-Value="@Content.Code" Placeholder="Enter country code">Code:</FluentTextField>
-        <FluentValidationMessage For="@(() => Content.Code)" />
+        <div class="card">
+            <FluentTextField Id="Code" @bind-Value="@Content.Code" Placeholder="Enter country code">Code:</FluentTextField>
+            <FluentValidationMessage For="@(() => Content.Code)" />
+        </div>
 
-        <FluentTextField Id="Name" @bind-Value="@Content.Name" Placeholder="Enter country name">Name:</FluentTextField>
-        <FluentValidationMessage For="@(() => Content.Name)" />
+        <div class="card">
+            <FluentTextField Id="Name" @bind-Value="@Content.Name" Placeholder="Enter country name">Name:</FluentTextField>
+            <FluentValidationMessage For="@(() => Content.Name)" />
+        </div>
 
-        <FluentCheckbox Id="IsEU" @bind-Value="@Content.IsEU">IsEU: </FluentCheckbox>
-        <FluentValidationMessage For="@(() => Content.IsEU)" />
+        <div class="card">
+            Country belongs to the EU
+            <FluentCheckbox Id="IsEU" @bind-Value="@Content.IsEU"></FluentCheckbox>
+            <FluentValidationMessage For="@(() => Content.IsEU)" />
+        </div>
+
         @* <FluentButton OnClick="() => ShowCurrentValue()">Show Current IsEU Value</FluentButton> *@
 
-
-        @if (!string.IsNullOrEmpty(errorMessage))
-        {
-            <div class="validation-error"><p style="color:red;">@errorMessage</p></div>
-        }
     </EditForm>
 </FluentDialogBody>
+
+<!-- Footer -->
+<FluentDialogFooter>
+    <FluentButton Appearance="Appearance.Accent" OnClick="@SaveAsync">Save</FluentButton>
+    <FluentButton Appearance="Appearance.Neutral" OnClick="@CancelAsync">Cancel</FluentButton>
+</FluentDialogFooter>
 
 @code {
 
@@ -61,14 +67,23 @@
         base.OnInitialized();
     }
 
-    // private void ShowCurrentValue()
-    // {
-    //     Console.WriteLine($"IsEU: {Content.IsEU}");
-    // }
-
     private async Task SaveAsync()
     {
-        await Dialog.CloseAsync(Content);
+        Console.WriteLine("SaveAsync starts...");
+        if (_editContext.Validate())
+        {
+            Console.WriteLine("EditContext Validation OK!...");
+            await Dialog.CloseAsync(Content);
+        }
+        else
+        {
+            Console.WriteLine("EditContext Validation NOT OK!...");
+            return;
+        }
+        if (Content.Id != 0)
+        {
+            await Dialog.CloseAsync(Content);
+        }
     }
 
     private async Task CancelAsync()

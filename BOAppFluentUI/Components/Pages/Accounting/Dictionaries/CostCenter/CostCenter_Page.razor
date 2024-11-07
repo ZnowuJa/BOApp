@@ -94,7 +94,8 @@ else
 
         var dialog = await _dialogService.ShowDialogAsync<CostCenter_Edit_Component>(item, new DialogParameters()
             {
-                Height = "330px",
+                Height = "500px",
+                Width = "400px",
                 Title = item.Id > 0 ? "Update Cost Center..." : "Create New Cost Center",
                 PreventDismissOnOverlayClick = false,
                 PreventScroll = true,

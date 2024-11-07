@@ -92,7 +92,8 @@ else
 
         var dialog = await _dialogService.ShowDialogAsync<VATRate_Edit_Component>(item, new DialogParameters()
             {
-                Height = "240px",
+                Height = "500px",
+                Width = "400px",
                 Title = item.Id > 0 ? "Update VATRate..." : "Create New VATRate",
                 PreventDismissOnOverlayClick = false,
                 PreventScroll = true,

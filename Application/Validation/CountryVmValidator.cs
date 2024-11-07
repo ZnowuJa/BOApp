@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Application.Validation
 {
-    public class CountryVmValidator : AbstractValidator<CountryVm>
+/*    public class CountryVmValidator : AbstractValidator<CountryVm>
     {
         public CountryVmValidator()
         {
@@ -17,5 +17,5 @@ namespace Application.Validation
             RuleFor(country => country.Name).NotEmpty().MinimumLength(3).MaximumLength(100);
             RuleFor(country => country.IsEU).NotNull();
         }
-    }
+    }*/
 }

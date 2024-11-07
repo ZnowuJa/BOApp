@@ -4,6 +4,7 @@
 @inject IMediator _mediator
 @implements IDialogContentComponent<VATRateVm>
 
+<!-- Header -->
 <FluentDialogHeader ShowDismiss="true">
     <FluentStack VerticalAlignment="VerticalAlignment.Center">
         <FluentIcon Value="@(new Icons.Regular.Size24.WindowApps())" />
@@ -13,34 +14,39 @@
     </FluentStack>
 </FluentDialogHeader>
 
-<FluentDialogFooter>
-    <FluentButton Appearance="Appearance.Accent" OnClick="@SaveAsync"
-                  Disabled="@(!_editContext.Validate())">Save</FluentButton>
-    <FluentButton Appearance="Appearance.Neutral" OnClick="@CancelAsync">Cancel</FluentButton>
-</FluentDialogFooter>
-
-<FluentDialogBody>
+<!-- Body -->
+<FluentDialogBody Style="overflow-y: auto; overflow-x: auto;">
     <EditForm EditContext="_editContext">
-        <FluentValidationValidator @ref="_fluentValidator" />
+        @* <FluentValidationValidator @ref="_fluentValidator" /> *@
+        <DataAnnotationsValidator />
 
-        <FluentTextField Id="Name" @bind-Value="@Content.Name" Placeholder="Enter Name">Name:</FluentTextField>
-        <FluentValidationMessage For="@(() => Content.Name)" />
+        <div class="card">
+            <FluentTextField Id="Name" @bind-Value="@Content.Name" Placeholder="Enter Name">Name:</FluentTextField>
+            <FluentValidationMessage For="@(() => Content.Name)" />
+        </div>
 
-        <FluentNumberField Id="Percentage" @bind-Value="@Content.Percentage" HideStep=true Placeholder="Enter Percentage">Percentage:</FluentNumberField>
-        <FluentValidationMessage For="@(() => Content.Percentage)" />
+        <div class="card">
+            <FluentNumberField Id="Percentage" @bind-Value="@Content.Percentage" HideStep=true Placeholder="Enter Percentage">Percentage:</FluentNumberField>
+            <FluentValidationMessage For="@(() => Content.Percentage)" />
+        </div>
 
-        <FluentTextField Id="Information" @bind-Value="@Content.Information" Placeholder="Enter Information">Information:</FluentTextField>
-        <FluentValidationMessage For="@(() => Content.Information)" />
+        <div class="card">
+            <FluentTextField Id="Information" @bind-Value="@Content.Information" Placeholder="Enter Information">Information:</FluentTextField>
+            <FluentValidationMessage For="@(() => Content.Information)" />
+        </div>
 
-        <FluentNumberField Id="Order" @bind-Value="@Content.Order" HideStep=true Placeholder="Enter Order">Order:</FluentNumberField>
-        <FluentValidationMessage For="@(() => Content.Order)" />
-
-        @if (!string.IsNullOrEmpty(errorMessage))
-        {
-            <div class="validation-error"><p style="color:red;">@errorMessage</p></div>
-        }
+        <div class="card">
+            <FluentNumberField Id="Order" @bind-Value="@Content.Order" HideStep=true Placeholder="Enter Order">Order:</FluentNumberField>
+            <FluentValidationMessage For="@(() => Content.Order)" />
+        </div>
     </EditForm>
 </FluentDialogBody>
+
+<!-- Footer -->
+<FluentDialogFooter>
+    <FluentButton Appearance="Appearance.Accent" OnClick="@SaveAsync">Save</FluentButton>
+    <FluentButton Appearance="Appearance.Neutral" OnClick="@CancelAsync">Cancel</FluentButton>
+</FluentDialogFooter>
 
 @code {
 
@@ -64,7 +70,21 @@
 
     private async Task SaveAsync()
     {
-        await Dialog.CloseAsync(Content);
+        Console.WriteLine("SaveAsync starts...");
+        if (_editContext.Validate())
+        {
+            Console.WriteLine("EditContext Validation OK!...");
+            await Dialog.CloseAsync(Content);
+        }
+        else
+        {
+            Console.WriteLine("EditContext Validation NOT OK!...");
+            return;
+        }
+        if (Content.Id != 0)
+        {
+            await Dialog.CloseAsync(Content);
+        }
     }
 
     private async Task CancelAsync()

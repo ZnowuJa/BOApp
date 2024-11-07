@@ -4,6 +4,7 @@
 @inject IMediator _mediator
 @implements IDialogContentComponent<GLAccountVm>
 
+<!-- Header -->
 <FluentDialogHeader ShowDismiss="true">
     <FluentStack VerticalAlignment="VerticalAlignment.Center">
         <FluentIcon Value="@(new Icons.Regular.Size24.WindowApps())" />
@@ -13,28 +14,30 @@
     </FluentStack>
 </FluentDialogHeader>
 
-<FluentDialogFooter>
-    <FluentButton Appearance="Appearance.Accent" OnClick="@SaveAsync"
-                  Disabled="@(!_editContext.Validate())">Save</FluentButton>
-    <FluentButton Appearance="Appearance.Neutral" OnClick="@CancelAsync">Cancel</FluentButton>
-</FluentDialogFooter>
-
-<FluentDialogBody>
+<!-- Body -->
+<FluentDialogBody Style="overflow-y: auto; overflow-x: auto;">
     <EditForm EditContext="_editContext">
-        <FluentValidationValidator @ref="_fluentValidator" />
+        @* <FluentValidationValidator @ref="_fluentValidator" /> *@
+        <DataAnnotationsValidator />
 
-        <FluentTextField Id="AccountNumber" @bind-Value="@Content.AccountNumber" Placeholder="Enter AccountNumber">AccountNumber:</FluentTextField>
-        <FluentValidationMessage For="@(() => Content.AccountNumber)" />
+        <div class="card">
+            <FluentTextField Id="AccountNumber" @bind-Value="@Content.AccountNumber" Placeholder="Enter AccountNumber">AccountNumber:</FluentTextField>
+            <FluentValidationMessage For="@(() => Content.AccountNumber)" />
+        </div>
 
-        <FluentTextField Id="Description" @bind-Value="@Content.Description" Placeholder="Enter Description">Description:</FluentTextField>
-        <FluentValidationMessage For="@(() => Content.Description)" />
+        <div class="card">
+            <FluentTextField Id="Description" @bind-Value="@Content.Description" Placeholder="Enter Description">Description:</FluentTextField>
+            <FluentValidationMessage For="@(() => Content.Description)" />
+        </div>
 
-        @if (!string.IsNullOrEmpty(errorMessage))
-        {
-            <div class="validation-error"><p style="color:red;">@errorMessage</p></div>
-        }
     </EditForm>
 </FluentDialogBody>
+
+<!-- Footer -->
+<FluentDialogFooter>
+    <FluentButton Appearance="Appearance.Accent" OnClick="@SaveAsync">Save</FluentButton>
+    <FluentButton Appearance="Appearance.Neutral" OnClick="@CancelAsync">Cancel</FluentButton>
+</FluentDialogFooter>
 
 @code {
 
@@ -48,7 +51,7 @@
 
     private FluentValidationValidator? _fluentValidator;
 
-    private string errorMessage;
+    private bool isFormValid;
 
     protected override async Task OnInitializedAsync()
     {
@@ -58,7 +61,21 @@
 
     private async Task SaveAsync()
     {
-        await Dialog.CloseAsync(Content);
+        Console.WriteLine("SaveAsync starts...");
+        if (_editContext.Validate())
+        {
+            Console.WriteLine("EditContext Validation OK!...");
+            await Dialog.CloseAsync(Content);
+        }
+        else
+        {
+            Console.WriteLine("EditContext Validation NOT OK!...");
+            return;
+        }
+        if (Content.Id != 0)
+        {
+            await Dialog.CloseAsync(Content);
+        }
     }
 
     private async Task CancelAsync()

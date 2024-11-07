@@ -90,7 +90,8 @@ else
 
         var dialog = await _dialogService.ShowDialogAsync<GLAccount_Edit_Component>(item, new DialogParameters()
             {
-                Height = "240px",
+                Height = "500px",
+                Width = "400px",
                 Title = item.Id > 0 ? "Update GLAccount..." : "Create New GLAccount",
                 PreventDismissOnOverlayClick = false,
                 PreventScroll = true,

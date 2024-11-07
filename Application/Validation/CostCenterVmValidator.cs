@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Application.Validation
 {
-    public class CostCenterVmValidator : AbstractValidator<CostCenterVm>
+/*    public class CostCenterVmValidator : AbstractValidator<CostCenterVm>
     {
         public CostCenterVmValidator()
         {
@@ -17,5 +17,5 @@ namespace Application.Validation
             RuleFor(x => x.Description).MinimumLength(3);
             RuleFor(x => x.Text).NotEmpty();
         }
-    }
+    }*/
 }

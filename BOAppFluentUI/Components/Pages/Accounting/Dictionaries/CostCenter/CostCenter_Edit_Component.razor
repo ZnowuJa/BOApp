@@ -20,23 +20,27 @@
         @* <FluentValidationValidator @ref="_fluentValidator" /> *@
         <DataAnnotationsValidator />
 
-        <FluentTextField Id="MPK" @bind-Value="@Content.MPK" Placeholder="Enter MPK">MPK:</FluentTextField>
-        <FluentValidationMessage For="@(() => Content.MPK)" />
+            <div class="card">
+                <FluentTextField Id="MPK" @bind-Value="@Content.MPK" Placeholder="Enter MPK">MPK:</FluentTextField>
+                <FluentValidationMessage For="@(() => Content.MPK)" />
+            </div>
 
+            <div class="card">
+                <FluentTextField Id="Description" @bind-Value="@Content.Description" Placeholder="Enter description">Description:</FluentTextField>
+                <FluentValidationMessage For="@(() => Content.Description)" />
+            </div>
 
-        <FluentTextField Id="Description" @bind-Value="@Content.Description" Placeholder="Enter description">Description:</FluentTextField>
-        <FluentValidationMessage For="@(() => Content.Description)" />
+            <div class="card">
+                <FluentTextField Id="Text" @bind-Value="@Content.Text" Placeholder="Enter text">Text:</FluentTextField>
+                <FluentValidationMessage For="@(() => Content.Text)" />
+            </div>
 
-        <FluentTextField Id="Text" @bind-Value="@Content.Text" Placeholder="Enter text">Text:</FluentTextField>
-        <FluentValidationMessage For="@(() => Content.Text)" />
     </EditForm>
 </FluentDialogBody>
 
 <!-- Footer -->
 <FluentDialogFooter>
-    <FluentButton Appearance="Appearance.Accent" OnClick="@SaveAsync">
-        Save
-    </FluentButton>
+    <FluentButton Appearance="Appearance.Accent" OnClick="@SaveAsync">Save</FluentButton>
     <FluentButton Appearance="Appearance.Neutral" OnClick="@CancelAsync">Cancel</FluentButton>
 </FluentDialogFooter>
 
@@ -51,13 +55,12 @@
 
     private FluentValidationValidator? _fluentValidator;
 
-
-
     protected override async Task OnInitializedAsync()
     {
         _editContext = new EditContext(Content);
         base.OnInitialized();
     }
+
 
     private async Task SaveAsync()
     {
