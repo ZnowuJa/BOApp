@@ -1,0 +1,144 @@
+﻿@page "/glaccounts"
+@using Application.CQRS.AccountingCQRS.GLAccounts.Queries
+@using Application.CQRS.AccountingCQRS.GLAccounts.Commands
+@using Application.ViewModels.Accounting
+@using MediatR
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+
+@attribute [Authorize(Policy = "Technician")]
+
+@inject IMediator _mediator
+@inject IDialogService _dialogService
+@inject IToastService _toastService
+
+<h3>GLAccounts</h3>
+
+@if (glaccount == null)
+{
+    <FluentProgressRing>Loading...</FluentProgressRing>
+}
+else
+{
+    <FluentDataGrid Items="@glaccount" TGridItem="GLAccountVm" GridTemplateColumns="50px 1fr 2fr 1fr">
+        <PropertyColumn Property="@(c => c.Id)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.AccountNumber)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.Description)" Sortable="true" Align="Align.Start" Tooltip="true" />
+
+        <TemplateColumn Title="Actions" Align="Align.End">
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" />
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => EditItem(context))" />
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" />
+        </TemplateColumn>
+    </FluentDataGrid>
+    <FluentButton IconStart="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddPanel())" />
+
+}
+
+@code {
+    private IQueryable<GLAccountVm> glaccount;
+    private bool deleteConfirm = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Load();
+    }
+
+    private async Task Load()
+    {
+        glaccount = await _mediator.Send(new GetAllGLAccountQuery());
+    }
+
+    private async Task View(GLAccountVm item)
+    {
+        await _dialogService.ShowInfoAsync(message: $"GLAccount ID: {item.Id}, AccountNumber: {item.AccountNumber}, Description: {item.Description}");
+    }
+
+    private async Task Delete(GLAccountVm item)
+    {
+        var dialog = await _dialogService.ShowConfirmationAsync(
+            $"You are about to delete GLAccount: {item.Description} \n Are you sure?",
+            "Yes",
+            "No",
+            "Confirm delete operation");
+        var result = await dialog.Result;
+        deleteConfirm = result.Cancelled;
+        ToastIntent intent;
+        string message = string.Empty;
+
+        if (deleteConfirm)
+        {
+            intent = ToastIntent.Error;
+            message = "GLAccount has not been deleted!";
+        }
+        else
+        {
+            var i = await _mediator.Send(new DeleteGLAccountCommand(item.Id));
+            intent = ToastIntent.Success;
+            message = "GLAccount has been deleted!";
+        }
+
+        _toastService.ShowToast(intent, message, 3000);
+        await Load();
+    }
+
+    private async Task EditItem(GLAccountVm item)
+    {
+        ToastIntent intent;
+        string message = string.Empty;
+        int resultId = 0;
+
+        var dialog = await _dialogService.ShowDialogAsync<GLAccount_Edit_Component>(item, new DialogParameters()
+            {
+                Height = "500px",
+                Width = "400px",
+                Title = item.Id > 0 ? "Update GLAccount..." : "Create New GLAccount",
+                PreventDismissOnOverlayClick = false,
+                PreventScroll = true,
+            });
+
+        var result = await dialog.Result;
+
+        if (!result.Cancelled && result.Data != null)
+        {
+            var final = (GLAccountVm)result.Data;
+
+            if (final.Id > 0)
+            {
+                resultId = await _mediator.Send(new UpdateGLAccountCommand(final));
+                intent = ToastIntent.Success;
+                message = "GLAccount has been updated!";
+            }
+            else if (final.Id == 0)
+            {
+                resultId = await _mediator.Send(new CreateGLAccountCommand(final));
+                intent = ToastIntent.Success;
+                message = "GLAccount has been created!";
+            }
+            else
+            {
+                intent = ToastIntent.Warning;
+                message = "Something went really wrong!";
+            }
+        }
+        else if (result.Cancelled)
+        {
+            intent = ToastIntent.Info;
+            message = "Operation Cancelled...";
+        }
+        else
+        {
+            intent = ToastIntent.Error;
+            message = "Something went wrong!!!";
+        }
+
+        await Load();
+        _toastService.ShowToast(intent, message, 3000);
+    }
+
+    private async Task AddPanel()
+    {
+        var item = new GLAccountVm();
+        await EditItem(item);
+    }
+}

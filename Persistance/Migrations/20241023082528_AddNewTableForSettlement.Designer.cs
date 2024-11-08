@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Persistance;
 
@@ -11,9 +12,11 @@ using Persistance;
 namespace Persistance.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241023082528_AddNewTableForSettlement")]
+    partial class AddNewTableForSettlement
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -256,12 +259,6 @@ namespace Persistance.Migrations
                     b.Property<int>("FormId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("ITSaleFormId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("ITScrappingFormId")
-                        .HasColumnType("int");
-
                     b.Property<int?>("OnboardingFormId")
                         .HasColumnType("int");
 
@@ -288,10 +285,6 @@ namespace Persistance.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ITSaleFormId");
-
-                    b.HasIndex("ITScrappingFormId");
 
                     b.HasIndex("OnboardingFormId");
 
@@ -347,14 +340,6 @@ namespace Persistance.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Role_DealerDirector")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Role_Disposition")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Role_DispositionManager")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -473,15 +458,6 @@ namespace Persistance.Migrations
                     b.Property<DateTime?>("PurchaseDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<int?>("SaleFormId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("ScrappingFormId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ScrappingReason")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("SerialNumber")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -499,10 +475,6 @@ namespace Persistance.Migrations
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("SaleFormId");
-
-                    b.HasIndex("ScrappingFormId");
 
                     b.ToTable("Assets");
                 });
@@ -727,6 +699,7 @@ namespace Persistance.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("DealerSAPNumber")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("FullName")
@@ -960,9 +933,6 @@ namespace Persistance.Migrations
                     b.Property<Guid>("AzureObjectId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int>("CoCGroupId")
-                        .HasColumnType("int");
-
                     b.Property<DateTime?>("Created")
                         .HasColumnType("datetime2");
 
@@ -1003,9 +973,6 @@ namespace Persistance.Migrations
 
                     b.Property<bool>("IsManager")
                         .HasColumnType("bit");
-
-                    b.Property<string>("JobCode")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("LastName")
                         .IsRequired()
@@ -1663,10 +1630,6 @@ namespace Persistance.Migrations
                     b.Property<bool>("Przelew")
                         .HasColumnType("bit");
 
-                    b.Property<string>("RejectReason")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<DateTime?>("Requested")
                         .HasColumnType("datetime2");
 
@@ -1703,233 +1666,6 @@ namespace Persistance.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("DeferralPayments");
-                });
-
-            modelBuilder.Entity("Domain.Forms.ITForms.ITSaleForm", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Approvals")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("AssetIds")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("CompanyId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("CompanyName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("Created")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("EmployeeId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("EmployeeName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("FolderName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("Inactivated")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("InactivatedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("LVL1_EmployeeName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("LVL1_EnovaEmpId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("LVL2_EmployeeName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("LVL2_EnovaEmpId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Level1Approvers")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Level2Approvers")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("Modified")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("ModifiedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Note")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Number")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("NumberPrefix")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("OperationArea")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("OperatorId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("OperatorName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Status")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("StatusId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Statuses")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("WorkflowTemplateId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("ITSaleForms");
-                });
-
-            modelBuilder.Entity("Domain.Forms.ITForms.ITScrappingForm", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Approvals")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("CompanyId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("Created")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("FolderName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("Inactivated")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("InactivatedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("LVL1_EmployeeName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("LVL1_EnovaEmpId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("LVL2_EmployeeName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("LVL2_EnovaEmpId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Level1Approvers")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Level2Approvers")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("Modified")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("ModifiedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Note")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Number")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("NumberPrefix")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("OperationArea")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("OperatorId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("OperatorName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Status")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("StatusId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Statuses")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("WorkflowTemplateId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CompanyId");
-
-                    b.ToTable("ITScrappingForms");
                 });
 
             modelBuilder.Entity("Domain.Forms.OnboardingForm", b =>
@@ -2382,14 +2118,6 @@ namespace Persistance.Migrations
 
             modelBuilder.Entity("Domain.Entities.Common.FormFile", b =>
                 {
-                    b.HasOne("Domain.Forms.ITForms.ITSaleForm", null)
-                        .WithMany("FormFiles")
-                        .HasForeignKey("ITSaleFormId");
-
-                    b.HasOne("Domain.Forms.ITForms.ITScrappingForm", null)
-                        .WithMany("FormFiles")
-                        .HasForeignKey("ITScrappingFormId");
-
                     b.HasOne("Domain.Forms.OnboardingForm", null)
                         .WithMany("FormFiles")
                         .HasForeignKey("OnboardingFormId");
@@ -2397,21 +2125,6 @@ namespace Persistance.Migrations
                     b.HasOne("Domain.Forms.TestForm", null)
                         .WithMany("FormFiles")
                         .HasForeignKey("TestFormId");
-                });
-
-            modelBuilder.Entity("Domain.Entities.ITWarehouse.Asset", b =>
-                {
-                    b.HasOne("Domain.Forms.ITForms.ITSaleForm", "SaleForm")
-                        .WithMany()
-                        .HasForeignKey("SaleFormId");
-
-                    b.HasOne("Domain.Forms.ITForms.ITScrappingForm", "ScrappingForm")
-                        .WithMany("Assets")
-                        .HasForeignKey("ScrappingFormId");
-
-                    b.Navigation("SaleForm");
-
-                    b.Navigation("ScrappingForm");
                 });
 
             modelBuilder.Entity("Domain.Entities.ITWarehouse.Asset_Note", b =>
@@ -2481,17 +2194,6 @@ namespace Persistance.Migrations
                     b.Navigation("Category");
 
                     b.Navigation("Vendor");
-                });
-
-            modelBuilder.Entity("Domain.Forms.ITForms.ITScrappingForm", b =>
-                {
-                    b.HasOne("Domain.Entities.ITWarehouse.Company", "Company")
-                        .WithMany()
-                        .HasForeignKey("CompanyId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Company");
                 });
 
             modelBuilder.Entity("Domain.WorkFlows.WorkflowStep", b =>
@@ -2574,18 +2276,6 @@ namespace Persistance.Migrations
             modelBuilder.Entity("Domain.Entities.CoC.GroupCoC", b =>
                 {
                     b.Navigation("Positions");
-                });
-
-            modelBuilder.Entity("Domain.Forms.ITForms.ITSaleForm", b =>
-                {
-                    b.Navigation("FormFiles");
-                });
-
-            modelBuilder.Entity("Domain.Forms.ITForms.ITScrappingForm", b =>
-                {
-                    b.Navigation("Assets");
-
-                    b.Navigation("FormFiles");
                 });
 
             modelBuilder.Entity("Domain.Forms.OnboardingForm", b =>
