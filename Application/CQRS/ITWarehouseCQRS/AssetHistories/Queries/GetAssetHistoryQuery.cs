@@ -3,17 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
 using Application.ViewModels;
 
 using MediatR;
 
-namespace Application.ITWarehouseCQRS.AssetHistories.Queries;
-public class GetAssetHistoryQuery : IRequest<AssetHistoryVm>
+namespace Application.CQRS.ITWarehouseCQRS.AssetHistories.Queries;
+public class GetAssetHistoryQuery(int i) : IRequest<AssetHistoryVm>
 {
-    public GetAssetHistoryQuery(int i)
-    {
-        AssetId = i;
-    }
-    public int AssetId { get; set; }
+    public int AssetId { get; set; } = i;
+}
+public class GetAssetHistoryQueryHandler
+{
 }
