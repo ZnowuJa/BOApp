@@ -3,7 +3,7 @@
 using Application.Entities;
 using Application.Interfaces;
 using BackOfficeApp_Domain.Common;
-
+using Domain.Entities.Accounting;
 using Domain.Entities.Administration;
 using Domain.Entities.CoC;
 using Domain.Entities.Common;
@@ -55,6 +55,10 @@ public class AppDbContext : IdentityDbContext<AppUser>, IAppDbContext
     public DbSet<InstructionCoC> Instructions { get; set; }
     public DbSet<BackgroundJob> BackgroundJobs { get; set; }
     public DbSet<OnboardingForm> OnboardingForms { get; set; }
+    public DbSet<CostCenter> CostCenters { get; set; }
+    public DbSet<Country> Countries { get; set; }
+    public DbSet<GLAccount> GLAccounts { get; set; }
+    public DbSet<VATRate> VATRates { get; set; }
     public DbSet<ITScrappingForm> ITScrappingForms { get; set; }
     public DbSet<ITSaleForm> ITSaleForms { get; set; }
 

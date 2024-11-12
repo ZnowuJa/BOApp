@@ -1,0 +1,149 @@
+﻿@page "/costcenters"
+@using Application.CQRS.AccountingCQRS.CostCenters.Queries
+@using Application.CQRS.AccountingCQRS.CostCenters.Commands
+@using Application.ViewModels.Accounting
+@using MediatR
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+
+@attribute [Authorize(Policy = "Technician")]
+
+@inject IMediator _mediator
+@inject IDialogService _dialogService
+@inject IToastService _toastService
+
+<h3>CostCenters</h3>
+
+@if (costCenter == null)
+{
+    <FluentProgressRing>Loading...</FluentProgressRing>
+
+}
+else
+{
+
+    <FluentDataGrid Items="@costCenter" TGridItem="CostCenterVm" GridTemplateColumns="50px 1fr 2fr 1fr">
+
+
+        <PropertyColumn Property="@(c => c.Id)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.MPK)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.Description)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.Text)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <TemplateColumn Title="Actions" Align="Align.End">
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" />
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => EditItem(context))" />
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" />
+        </TemplateColumn>
+    </FluentDataGrid>
+    <FluentButton IconStart="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddPanel())" />
+}
+
+
+@code {
+    private IQueryable<CostCenterVm> costCenter;
+    private bool deleteConfirm = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Load();
+    }
+
+    private async Task Load()
+    {
+        costCenter = await _mediator.Send(new GetAllCostCenterQuery());
+    }
+
+    private async Task View(CostCenterVm item)
+    {
+        await _dialogService.ShowInfoAsync(message: $"CostCenterVm id: {item.Id}, MPK: {item.MPK}, description: {item.Description}, text: {item.Text}");
+    }
+
+    private async Task Delete(CostCenterVm item)
+    {
+        var dialog = await _dialogService.ShowConfirmationAsync(
+            $"You are about to delete CostCenter: {item.Text} \n Are you sure?",
+            "Yes",
+            "No",
+            "Confirm delete operation");
+        var result = await dialog.Result;
+        deleteConfirm = result.Cancelled;
+        ToastIntent intent;
+        string message = string.Empty;
+
+        if (deleteConfirm)
+        {
+            intent = ToastIntent.Error;
+            message = "CostCenter has not been deleted!";
+        }
+        else
+        {
+            var i = await _mediator.Send(new DeleteCostCenterCommand(item.Id));
+            intent = ToastIntent.Success;
+            message = "CostCenter has been deleted!";
+        }
+
+        _toastService.ShowToast(intent, message, 3000);
+        await Load();
+    }
+
+    private async Task EditItem(CostCenterVm item)
+    {
+        ToastIntent intent;
+        string message = string.Empty;
+        int resultId = 0;
+
+        var dialog = await _dialogService.ShowDialogAsync<CostCenter_Edit_Component>(item, new DialogParameters()
+            {
+                Height = "500px",
+                Width = "400px",
+                Title = item.Id > 0 ? "Update Cost Center..." : "Create New Cost Center",
+                PreventDismissOnOverlayClick = false,
+                PreventScroll = true,
+            });
+
+        var result = await dialog.Result;
+
+        if (!result.Cancelled && result.Data != null)
+        {
+            var final = (CostCenterVm)result.Data;
+
+            if (final.Id > 0)
+            {
+                resultId = await _mediator.Send(new UpdateCostCenterCommand(final));
+                intent = ToastIntent.Success;
+                message = "Cost Center has been updated!";
+            }
+            else if (final.Id == 0)
+            {
+                resultId = await _mediator.Send(new CreateCostCenterCommand(final));
+                intent = ToastIntent.Success;
+                message = "Cost Center has been created!";
+            }
+            else
+            {
+                intent = ToastIntent.Warning;
+                message = "Something went really wrong!";
+            }
+        }
+        else if (result.Cancelled)
+        {
+            intent = ToastIntent.Info;
+            message = "Operation Cancelled...";
+        }
+        else
+        {
+            intent = ToastIntent.Error;
+            message = "Something went wrong!!!";
+        }
+
+        await Load();
+        _toastService.ShowToast(intent, message, 3000);
+    }
+
+
+    private async Task AddPanel()
+    {
+        var item = new CostCenterVm();
+        await EditItem(item);
+    }
+}

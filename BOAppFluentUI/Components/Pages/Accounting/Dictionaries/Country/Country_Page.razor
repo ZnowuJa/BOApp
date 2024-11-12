@@ -1,0 +1,144 @@
+﻿@page "/countries"
+@using Application.CQRS.AccountingCQRS.Countries.Queries
+@using Application.CQRS.AccountingCQRS.Countries.Commands
+@using Application.ViewModels.Accounting
+@using MediatR
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+
+@attribute [Authorize(Policy = "Technician")]
+
+@inject IMediator _mediator
+@inject IDialogService _dialogService
+@inject IToastService _toastService
+
+<h3>Countries</h3>
+
+@if (country == null)
+{
+    <FluentProgressRing>Loading...</FluentProgressRing>
+}
+else
+{
+    <FluentDataGrid Items="@country" TGridItem="CountryVm" GridTemplateColumns="50px 1fr 2fr 1fr">
+        <PropertyColumn Property="@(c => c.Id)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.Code)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.Name)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.IsEU)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <TemplateColumn Title="Actions" Align="Align.End">
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" />
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => EditItem(context))" />
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" />
+        </TemplateColumn>
+    </FluentDataGrid>
+    <FluentButton IconStart="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddPanel())" />
+
+}
+
+@code {
+    private IQueryable<CountryVm> country;
+    private bool deleteConfirm = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Load();
+    }
+
+    private async Task Load()
+    {
+        country = await _mediator.Send(new GetAllCountryQuery());
+    }
+
+    private async Task View(CountryVm item)
+    {
+        await _dialogService.ShowInfoAsync(message: $"Country ID: {item.Id}, Code: {item.Code}, Name: {item.Name}, IsEU: {item.IsEU}");
+    }
+
+    private async Task Delete(CountryVm item)
+    {
+        var dialog = await _dialogService.ShowConfirmationAsync(
+            $"You are about to delete Country: {item.Name} \n Are you sure?",
+            "Yes",
+            "No",
+            "Confirm delete operation");
+        var result = await dialog.Result;
+        deleteConfirm = result.Cancelled;
+        ToastIntent intent;
+        string message = string.Empty;
+
+        if (deleteConfirm)
+        {
+            intent = ToastIntent.Error;
+            message = "Country has not been deleted!";
+        }
+        else
+        {
+            var i = await _mediator.Send(new DeleteCountryCommand(item.Id));
+            intent = ToastIntent.Success;
+            message = "Country has been deleted!";
+        }
+
+        _toastService.ShowToast(intent, message, 3000);
+        await Load();
+    }
+
+    private async Task EditItem(CountryVm item)
+    {
+        ToastIntent intent;
+        string message = string.Empty;
+        int resultId = 0;
+
+        var dialog = await _dialogService.ShowDialogAsync<Country_Edit_Component>(item, new DialogParameters()
+            {
+                Height = "500px",
+                Width = "400px",
+                Title = item.Id > 0 ? "Update Country..." : "Create New Country",
+                PreventDismissOnOverlayClick = false,
+                PreventScroll = true,
+            });
+
+        var result = await dialog.Result;
+
+        if (!result.Cancelled && result.Data != null)
+        {
+            var final = (CountryVm)result.Data;
+
+            if (final.Id > 0)
+            {
+                resultId = await _mediator.Send(new UpdateCountryCommand(final));
+                intent = ToastIntent.Success;
+                message = "Country has been updated!";
+            }
+            else if (final.Id == 0)
+            {
+                resultId = await _mediator.Send(new CreateCountryCommand(final));
+                intent = ToastIntent.Success;
+                message = "Country has been created!";
+            }
+            else
+            {
+                intent = ToastIntent.Warning;
+                message = "Something went really wrong!";
+            }
+        }
+        else if (result.Cancelled)
+        {
+            intent = ToastIntent.Info;
+            message = "Operation Cancelled...";
+        }
+        else
+        {
+            intent = ToastIntent.Error;
+            message = "Something went wrong!!!";
+        }
+
+        await Load();
+        _toastService.ShowToast(intent, message, 3000);
+    }
+
+    private async Task AddPanel()
+    {
+        var item = new CountryVm();
+        await EditItem(item);
+    }
+}

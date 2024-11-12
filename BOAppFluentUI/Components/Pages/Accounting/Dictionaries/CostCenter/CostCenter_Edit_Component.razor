@@ -1,0 +1,106 @@
+﻿@* Cost Center Edit Component *@
+@using Application.ViewModels.Accounting
+
+@inject IMediator _mediator
+@implements IDialogContentComponent<CostCenterVm>
+
+<!-- Header -->
+<FluentDialogHeader ShowDismiss="true">
+    <FluentStack VerticalAlignment="VerticalAlignment.Center">
+        <FluentIcon Value="@(new Icons.Regular.Size24.WindowApps())" />
+        <FluentLabel Typo="Typography.PaneHeader">
+            @Dialog.Instance.Parameters.Title
+        </FluentLabel>
+    </FluentStack>
+</FluentDialogHeader>
+
+<!-- Body -->
+<FluentDialogBody Style="overflow-y: auto; overflow-x: auto;">
+    <EditForm EditContext="_editContext">
+        @* <FluentValidationValidator @ref="_fluentValidator" /> *@
+        <DataAnnotationsValidator />
+
+            <div class="card">
+                <FluentTextField Id="MPK" @bind-Value="@Content.MPK" Placeholder="Enter MPK">MPK:</FluentTextField>
+                <FluentValidationMessage For="@(() => Content.MPK)" />
+            </div>
+
+            <div class="card">
+                <FluentTextField Id="Description" @bind-Value="@Content.Description" Placeholder="Enter description">Description:</FluentTextField>
+                <FluentValidationMessage For="@(() => Content.Description)" />
+            </div>
+
+            <div class="card">
+                <FluentTextField Id="Text" @bind-Value="@Content.Text" Placeholder="Enter text">Text:</FluentTextField>
+                <FluentValidationMessage For="@(() => Content.Text)" />
+            </div>
+
+    </EditForm>
+</FluentDialogBody>
+
+<!-- Footer -->
+<FluentDialogFooter>
+    <FluentButton Appearance="Appearance.Accent" OnClick="@SaveAsync">Save</FluentButton>
+    <FluentButton Appearance="Appearance.Neutral" OnClick="@CancelAsync">Cancel</FluentButton>
+</FluentDialogFooter>
+
+@code {
+    [Parameter]
+    public CostCenterVm Content { get; set; } = default!;
+
+    [CascadingParameter]
+    public FluentDialog Dialog { get; set; } = default!;
+
+    private EditContext _editContext;
+
+    private FluentValidationValidator? _fluentValidator;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _editContext = new EditContext(Content);
+        base.OnInitialized();
+    }
+
+
+    private async Task SaveAsync()
+    {
+        Console.WriteLine("SaveAsync starts...");
+        if (_editContext.Validate())
+        {
+            Console.WriteLine("EditContext Validation OK!...");
+            await Dialog.CloseAsync(Content);
+        }
+        else
+        {
+            Console.WriteLine("EditContext Validation NOT OK!...");
+            return;
+        }
+        if (Content.Id != 0)
+        {
+            await Dialog.CloseAsync(Content);
+        }
+    }
+
+    private async Task CancelAsync()
+    {
+        await Dialog.CancelAsync();
+    }
+
+    // void ChangeButton()
+    // {
+    //     if (_editContext.Validate())
+    //         IsValidButton = false;
+    //     else
+    //         IsValidButton = true;
+    // }
+
+    // private bool IsButtonDisabled => isFirstRender || !_editContext.Validate();
+
+    // private void HandleInputChange(ChangeEventArgs e)
+    // {
+    //     if (isFirstRender)
+    //     {
+    //         isFirstRender = false;
+    //     }
+    // }
+}

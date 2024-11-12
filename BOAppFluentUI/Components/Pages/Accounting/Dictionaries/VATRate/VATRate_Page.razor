@@ -1,0 +1,146 @@
+﻿@page "/vatrates"
+@using Application.CQRS.AccountingCQRS.VATRates.Queries
+@using Application.CQRS.AccountingCQRS.VATRates.Commands
+@using Application.ViewModels.Accounting
+@using MediatR
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+
+@attribute [Authorize(Policy = "Technician")]
+
+@inject IMediator _mediator
+@inject IDialogService _dialogService
+@inject IToastService _toastService
+
+<h3>VATRates</h3>
+
+@if (vatrate == null)
+{
+    <FluentProgressRing>Loading...</FluentProgressRing>
+}
+else
+{
+    <FluentDataGrid Items="@vatrate" TGridItem="VATRateVm" GridTemplateColumns="50px 1fr 2fr 1fr">
+        <PropertyColumn Property="@(c => c.Id)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.Name)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.Percentage)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.Information)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.Order)" Sortable="true" Align="Align.Start" Tooltip="true" />
+
+        <TemplateColumn Title="Actions" Align="Align.End">
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" />
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => EditItem(context))" />
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" />
+        </TemplateColumn>
+    </FluentDataGrid>
+    <FluentButton IconStart="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddPanel())" />
+
+}
+
+@code {
+    private IQueryable<VATRateVm> vatrate;
+    private bool deleteConfirm = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Load();
+    }
+
+    private async Task Load()
+    {
+        vatrate = await _mediator.Send(new GetAllVATRateQuery());
+    }
+
+    private async Task View(VATRateVm item)
+    {
+        await _dialogService.ShowInfoAsync(message: $"VATRate ID: {item.Id}, Name: {item.Name}, Percentage: {item.Percentage}, Information: {item.Information}, Order: {item.Order}");
+    }
+
+    private async Task Delete(VATRateVm item)
+    {
+        var dialog = await _dialogService.ShowConfirmationAsync(
+            $"You are about to delete VATRate: {item.Name} \n Are you sure?",
+            "Yes",
+            "No",
+            "Confirm delete operation");
+        var result = await dialog.Result;
+        deleteConfirm = result.Cancelled;
+        ToastIntent intent;
+        string message = string.Empty;
+
+        if (deleteConfirm)
+        {
+            intent = ToastIntent.Error;
+            message = "VATRate has not been deleted!";
+        }
+        else
+        {
+            var i = await _mediator.Send(new DeleteVATRateCommand(item.Id));
+            intent = ToastIntent.Success;
+            message = "VATRate has been deleted!";
+        }
+
+        _toastService.ShowToast(intent, message, 3000);
+        await Load();
+    }
+
+    private async Task EditItem(VATRateVm item)
+    {
+        ToastIntent intent;
+        string message = string.Empty;
+        int resultId = 0;
+
+        var dialog = await _dialogService.ShowDialogAsync<VATRate_Edit_Component>(item, new DialogParameters()
+            {
+                Height = "500px",
+                Width = "400px",
+                Title = item.Id > 0 ? "Update VATRate..." : "Create New VATRate",
+                PreventDismissOnOverlayClick = false,
+                PreventScroll = true,
+            });
+
+        var result = await dialog.Result;
+
+        if (!result.Cancelled && result.Data != null)
+        {
+            var final = (VATRateVm)result.Data;
+
+            if (final.Id > 0)
+            {
+                resultId = await _mediator.Send(new UpdateVATRateCommand(final));
+                intent = ToastIntent.Success;
+                message = "VATRate has been updated!";
+            }
+            else if (final.Id == 0)
+            {
+                resultId = await _mediator.Send(new CreateVATRateCommand(final));
+                intent = ToastIntent.Success;
+                message = "VATRate has been created!";
+            }
+            else
+            {
+                intent = ToastIntent.Warning;
+                message = "Something went really wrong!";
+            }
+        }
+        else if (result.Cancelled)
+        {
+            intent = ToastIntent.Info;
+            message = "Operation Cancelled...";
+        }
+        else
+        {
+            intent = ToastIntent.Error;
+            message = "Something went wrong!!!";
+        }
+
+        await Load();
+        _toastService.ShowToast(intent, message, 3000);
+    }
+
+    private async Task AddPanel()
+    {
+        var item = new VATRateVm();
+        await EditItem(item);
+    }
+}

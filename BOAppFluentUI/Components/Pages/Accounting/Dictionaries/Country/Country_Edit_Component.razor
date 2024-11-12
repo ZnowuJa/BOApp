@@ -1,0 +1,93 @@
+﻿@* Country Edit Component *@
+@using Application.ViewModels.Accounting
+
+@inject IMediator _mediator
+@implements IDialogContentComponent<CountryVm>
+
+<!-- Header -->
+<FluentDialogHeader ShowDismiss="true">
+    <FluentStack VerticalAlignment="VerticalAlignment.Center">
+        <FluentIcon Value="@(new Icons.Regular.Size24.WindowApps())" />
+        <FluentLabel Typo="Typography.PaneHeader">
+            @Dialog.Instance.Parameters.Title
+        </FluentLabel>
+    </FluentStack>
+</FluentDialogHeader>
+
+<!-- Body -->
+<FluentDialogBody Style="overflow-y: auto; overflow-x: auto;">
+    <EditForm EditContext="_editContext">
+        @* <FluentValidationValidator @ref="_fluentValidator" /> *@
+        <DataAnnotationsValidator />
+
+        <div class="card">
+            <FluentTextField Id="Code" @bind-Value="@Content.Code" Placeholder="Enter country code">Code:</FluentTextField>
+            <FluentValidationMessage For="@(() => Content.Code)" />
+        </div>
+
+        <div class="card">
+            <FluentTextField Id="Name" @bind-Value="@Content.Name" Placeholder="Enter country name">Name:</FluentTextField>
+            <FluentValidationMessage For="@(() => Content.Name)" />
+        </div>
+
+        <div class="card">
+            Country belongs to the EU
+            <FluentCheckbox Id="IsEU" @bind-Value="@Content.IsEU"></FluentCheckbox>
+            <FluentValidationMessage For="@(() => Content.IsEU)" />
+        </div>
+
+        @* <FluentButton OnClick="() => ShowCurrentValue()">Show Current IsEU Value</FluentButton> *@
+
+    </EditForm>
+</FluentDialogBody>
+
+<!-- Footer -->
+<FluentDialogFooter>
+    <FluentButton Appearance="Appearance.Accent" OnClick="@SaveAsync">Save</FluentButton>
+    <FluentButton Appearance="Appearance.Neutral" OnClick="@CancelAsync">Cancel</FluentButton>
+</FluentDialogFooter>
+
+@code {
+
+    [Parameter]
+    public CountryVm Content { get; set; } = default!;
+
+    [CascadingParameter]
+    public FluentDialog Dialog { get; set; } = default!;
+
+    private EditContext _editContext;
+
+    private FluentValidationValidator? _fluentValidator;
+
+    private string errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _editContext = new EditContext(Content);
+        base.OnInitialized();
+    }
+
+    private async Task SaveAsync()
+    {
+        Console.WriteLine("SaveAsync starts...");
+        if (_editContext.Validate())
+        {
+            Console.WriteLine("EditContext Validation OK!...");
+            await Dialog.CloseAsync(Content);
+        }
+        else
+        {
+            Console.WriteLine("EditContext Validation NOT OK!...");
+            return;
+        }
+        if (Content.Id != 0)
+        {
+            await Dialog.CloseAsync(Content);
+        }
+    }
+
+    private async Task CancelAsync()
+    {
+        await Dialog.CancelAsync();
+    }
+}
