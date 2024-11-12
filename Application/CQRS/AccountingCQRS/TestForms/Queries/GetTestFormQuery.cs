@@ -2,27 +2,20 @@
 using Application.Interfaces;
 using Application.ViewModels;
 using Application.ViewModels.General;
-
 using AutoMapper;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace Application.CQRS.AccountingCQRS.TestForms.Queries;
-public class GetTestFormQueryHandler : IRequestHandler<GetTestFormQuery, TestFormVm>
+public class GetTestFormQuery(int i) : IRequest<TestFormVm>
 {
-    private readonly IAppDbContext _appDbContext;
-    private readonly IMapper _mapper;
-    public GetTestFormQueryHandler(IAppDbContext appDbContext, IMapper mapper)
-    {
-        _appDbContext = appDbContext;
-        _mapper = mapper;
-    }
+    public int Id { get; set; } = i;
+}
+public class GetTestFormQueryHandler(IAppDbContext appDbContext, IMapper mapper) : IRequestHandler<GetTestFormQuery, TestFormVm>
+{
+    private readonly IAppDbContext _appDbContext = appDbContext;
+    private readonly IMapper _mapper = mapper;
 
     public IMapper Mapper { get; }
 

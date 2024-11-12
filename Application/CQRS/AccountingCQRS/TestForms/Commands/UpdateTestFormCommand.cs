@@ -1,31 +1,24 @@
 ﻿using System.Text.Json;
-
-using Application.CQRS.AccountingCQRS.TestForms.Commands;
 using Application.Forms;
 using Application.Interfaces;
 using Application.ViewModels.General;
-
 using AutoMapper;
-
-using Domain.Forms;
-
 using MediatR;
 
-namespace Application.CQRS.AccountingCQRS.DeferralPayment.Commands;
-public class UpdateTestFormCommandHandler : IRequestHandler<UpdateTestFormCommand, TestFormVm>
+namespace Application.CQRS.AccountingCQRS.TestForms.Commands;
+public class UpdateTestFormCommand(TestFormVm item) : IRequest<TestFormVm>
 {
-    private readonly IAppDbContext _appDbContext;
-    private readonly IMapper _mapper;
+    public TestFormVm Item { get; set; } = item;
+}
 
-    public UpdateTestFormCommandHandler(IAppDbContext appDbContext, IMapper mapper)
-    {
-        _appDbContext = appDbContext;
-        _mapper = mapper;
-    }
+public class UpdateTestFormCommandHandler(IAppDbContext appDbContext, IMapper mapper) : IRequestHandler<UpdateTestFormCommand, TestFormVm>
+{
+    private readonly IAppDbContext _appDbContext = appDbContext;
+    private readonly IMapper _mapper = mapper;
 
     public async Task<TestFormVm> Handle(UpdateTestFormCommand request, CancellationToken cancellationToken)
     {
-        
+
         using var transaction = await _appDbContext.BeginTransactionAsync();
         try
         {

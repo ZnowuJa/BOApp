@@ -1,18 +1,23 @@
-﻿using Application.ViewModels;
+﻿using Application.Interfaces;
+using Application.ViewModels;
+using AutoMapper;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace Application.ITWarehouseCQRS.Warehouses.Queries;
-public class GetWarehouseQuery : IRequest<WarehouseVm>
+public class GetWarehouseQuery(int i) : IRequest<WarehouseVm>
 {
-    public GetWarehouseQuery(int i)
-    {
-        WarehouseId = i;
-    }
+    public int WarehouseId { get; set; } = i;
+}
+public class GetWarehouseQueryHandler(IAppDbContext appDbContext, IMapper mapper) : IRequestHandler<GetWarehouseQuery, WarehouseVm>
+{
+    private readonly IAppDbContext _appDbContext = appDbContext;
+    private readonly IMapper _mapper = mapper;
 
-    public int WarehouseId { get; set; }
+    public async Task<WarehouseVm> Handle(GetWarehouseQuery request, CancellationToken cancellationToken)
+    {
+        var item = await _appDbContext.Warehouses.Where(p => p.Id == request.WarehouseId).AsNoTracking().FirstOrDefaultAsync(cancellationToken);
+        var itemVm = _mapper.Map<WarehouseVm>(item);
+        return itemVm;
+    }
 }

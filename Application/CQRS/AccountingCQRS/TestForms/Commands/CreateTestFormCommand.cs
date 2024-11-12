@@ -1,27 +1,20 @@
-﻿using System.Text.Json;
-using Application.Forms;
+﻿using Application.Forms;
 using Application.Interfaces;
 using Application.ViewModels.General;
-
 using AutoMapper;
-
 using Domain.Forms;
-
 using MediatR;
-
-using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 
 namespace Application.CQRS.AccountingCQRS.TestForms.Commands;
-public class CreateTestFormCommandHandler : IRequestHandler<CreateTestFormCommand, TestFormVm>
+public class CreateTestFormCommand(TestFormVm item) : IRequest<TestFormVm>
 {
-    private readonly IAppDbContext _appDbContext;
-    private readonly IMapper _mapper;
-
-    public CreateTestFormCommandHandler(IAppDbContext appDbContext, IMapper mapper)
-    {
-        _appDbContext = appDbContext;
-        _mapper = mapper;
-    }
+    public TestFormVm Item { get; set; } = item;
+}
+public class CreateTestFormCommandHandler(IAppDbContext appDbContext, IMapper mapper) : IRequestHandler<CreateTestFormCommand, TestFormVm>
+{
+    private readonly IAppDbContext _appDbContext = appDbContext;
+    private readonly IMapper _mapper = mapper;
 
     public async Task<TestFormVm> Handle(CreateTestFormCommand request, CancellationToken cancellationToken)
     {
@@ -59,7 +52,7 @@ public class CreateTestFormCommandHandler : IRequestHandler<CreateTestFormComman
             await transaction.RollbackAsync();
             throw;
         }
-        
+
         return result;
     }
     private string SerializeApprovals(List<Approval> approvals)

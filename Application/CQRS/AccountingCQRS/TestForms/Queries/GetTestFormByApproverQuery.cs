@@ -1,53 +1,60 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using Application.Forms;
-using AutoMapper;
+﻿using Application.Forms;
 using Application.Interfaces;
-
-using MediatR;
-using Microsoft.EntityFrameworkCore;
-using Domain.Forms;
 using Application.ViewModels.General;
+using AutoMapper;
+using Domain.Forms;
+using MediatR;
 using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
 
-namespace Application.CQRS.AccountingCQRS.DeferralPayment.Queries;
-public class GetDeferralPaymentByEmpIdQueryQueryHandler : IRequestHandler<GetDeferralPaymentByEmpIdQuery, IQueryable<DeferralPaymentFormVm>>
+namespace Application.CQRS.AccountingCQRS.TestForms.Queries;
+public class GetTestFormByApproverQuery(string i) : IRequest<IQueryable<TestFormVm>>
 {
-    private readonly IAppDbContext _appDbContext;
-    private readonly IMapper _mapper;
-    public GetDeferralPaymentByEmpIdQueryQueryHandler(IAppDbContext appDbContext, IMapper mapper)
-    {
-        _appDbContext = appDbContext;
-        _mapper = mapper;
-    }
+    public string Id { get; set; } = i;
+}
+public class GetTestFormByApproverQueryHandler(IAppDbContext appDbContext, IMapper mapper) : IRequestHandler<GetTestFormByApproverQuery, IQueryable<TestFormVm>>
+{
+    private readonly IAppDbContext _appDbContext = appDbContext;
+    private readonly IMapper _mapper = mapper;
 
     public IMapper Mapper { get; }
 
-    public async Task<IQueryable<DeferralPaymentFormVm>> Handle(GetDeferralPaymentByEmpIdQuery request, CancellationToken cancellationToken)
+    public async Task<IQueryable<TestFormVm>> Handle(GetTestFormByApproverQuery request, CancellationToken cancellationToken)
     {
-        var empId = int.Parse(request.Id);
-        var result = await _appDbContext.DeferralPayments.Where(p => p.EmployeeId == empId).ToListAsync(cancellationToken);
+        var query = $@"
+        SELECT * 
+        FROM TestForms
+        WHERE 
+            EXISTS (
+                SELECT 1
+                FROM OPENJSON(Level1Approvers)
+                WITH (EmpId int '$.EmpId') AS json
+                WHERE json.EmpId = {request.Id}
+            )
+            OR 
+            EXISTS (
+                SELECT 1
+                FROM OPENJSON(Level2Approvers)
+                WITH (EmpId int '$.EmpId') AS json
+                WHERE json.EmpId = {request.Id}
+            )";
 
-        var items = new List<DeferralPaymentFormVm>();
+
+        var result = await _appDbContext.TestForms.FromSqlRaw(query).ToListAsync(cancellationToken);
+
+        var items = new List<TestFormVm>();
 
         foreach (var item in result)
         {
             items.Add(MapToViewModel(item));
         }
-        
-        //itemVM;
-        //return temp;
 
         return items.AsQueryable();
     }
 
-    private DeferralPaymentFormVm MapToViewModel(DeferralPaymentForm model)
+    private TestFormVm MapToViewModel(TestForm model)
     {
-        var item = new DeferralPaymentFormVm
+        var item = new TestFormVm
         {
             Id = model.Id,
             Name = model.Title,
@@ -70,16 +77,9 @@ public class GetDeferralPaymentByEmpIdQueryQueryHandler : IRequestHandler<GetDef
             LVL2_EmployeeName = model.LVL2_EmployeeName,
             Approvals = DeserializeApprovals(model.Approvals),
             Level1Approvers = DeserializeRoles(model.Level1Approvers),
-            Level2Approvers = DeserializeRoles(model.Level2Approvers),
-            isApproved = model.isApproved,
-            isApplied = model.isApplied,
-            Numer_Fk = model.Numer_Fk,
-            is_Firma = model.is_Firma,
-            Faktdoc_Id = model.Faktdoc_Id,
-            CC = model.CC,
-            VATID = model.VATID
+            Level2Approvers = DeserializeRoles(model.Level2Approvers)
         };
-        
+
         return item;
     }
 

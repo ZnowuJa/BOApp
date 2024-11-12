@@ -1,16 +1,21 @@
-﻿using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Application.Interfaces;
+using MediatR;
+using Microsoft.EntityFrameworkCore;
 
-namespace Application.ITWarehouseCQRS.Units.Commands;
-public class DeleteUnitCommand : IRequest<int>
+namespace Application.CQRS.ITWarehouseCQRS.Units.Commands;
+public class DeleteUnitCommand(int id) : IRequest<int>
 {
-    public int Id { get; set; }
-    public DeleteUnitCommand(int id)
+    public int Id { get; set; } = id;
+}
+public class DeleteUnitCommandHandler(IAppDbContext appDbContext) : IRequestHandler<DeleteUnitCommand, int>
+{
+    private readonly IAppDbContext _appDbContext = appDbContext;
+
+    public async Task<int> Handle(DeleteUnitCommand request, CancellationToken cancellationToken)
     {
-        Id = id;
+        var item = await _appDbContext.Units.Where(p => p.Id == request.Id).FirstOrDefaultAsync(cancellationToken);
+        _appDbContext.Units.Remove(item);
+        await _appDbContext.SaveChangesAsync();
+        return item.Id;
     }
 }

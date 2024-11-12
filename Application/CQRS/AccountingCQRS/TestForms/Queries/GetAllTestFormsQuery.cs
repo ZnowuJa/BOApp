@@ -1,43 +1,32 @@
-﻿using System.Text.Json;
-
-
-using Application.Forms;
+﻿using Application.Forms;
 using Application.Interfaces;
-using Application.ViewModels;
 using Application.ViewModels.General;
-
 using AutoMapper;
-
-using Domain.Forms;
-
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Text.Json;
 
-namespace Application.CQRS.AccountingCQRS.DeferralPayment.Queries;
-public class GetAllDeferralPaymentFormQueryHandler : IRequestHandler<GetAllDeferralPaymentFormQuery, IQueryable<DeferralPaymentFormVm>>
+namespace Application.CQRS.AccountingCQRS.TestForms.Queries;
+public class GetAllTestFormsQuery : IRequest<IQueryable<TestFormVm>>
 {
-    private readonly IAppDbContext _appDbContext;
-    private readonly IMapper _mapper;
-    private readonly ILogger _logger;
+}
+public class GetAllTestFormsQueryHandler(IAppDbContext appDbContext, IMapper mapper, ILogger<GetAllTestFormsQueryHandler> logger) : IRequestHandler<GetAllTestFormsQuery, IQueryable<TestFormVm>>
+{
+    private readonly IAppDbContext _appDbContext = appDbContext;
+    private readonly IMapper _mapper = mapper;
+    private readonly ILogger _logger = logger;
 
-    public GetAllDeferralPaymentFormQueryHandler(IAppDbContext appDbContext, IMapper mapper, ILogger<GetAllDeferralPaymentFormQueryHandler> logger)
+    public async Task<IQueryable<TestFormVm>> Handle(GetAllTestFormsQuery request, CancellationToken cancellationToken)
     {
-        _appDbContext = appDbContext;
-        _mapper = mapper;
-        _logger = logger;
-    }
+        var dpmntsList = new List<TestFormVm>();
 
-    public async Task<IQueryable<DeferralPaymentFormVm>> Handle(GetAllDeferralPaymentFormQuery request, CancellationToken cancellationToken)
-    {
-        var dpmntsList = new List<DeferralPaymentFormVm>();
-
-        var dpmnts = await _appDbContext.DeferralPayments.Where(ct => ct.StatusId == 1).AsNoTracking().ToListAsync(cancellationToken);
+        var dpmnts = await _appDbContext.TestForms.Where(ct => ct.StatusId == 1).AsNoTracking().ToListAsync(cancellationToken);
         foreach (var model in dpmnts)
         {
-            //var itemVM = _mapper.Map<DeferralPaymentFormVm>(dpmnt);
 
-            var itemVm = new DeferralPaymentFormVm
+
+            var itemVm = new TestFormVm
             {
                 Id = model.Id,
                 Name = model.Title,
@@ -60,19 +49,12 @@ public class GetAllDeferralPaymentFormQueryHandler : IRequestHandler<GetAllDefer
                 LVL2_EmployeeName = model.LVL2_EmployeeName,
                 Approvals = DeserializeApprovals(model.Approvals),
                 Level1Approvers = DeserializeRoles(model.Level1Approvers),
-                Level2Approvers = DeserializeRoles(model.Level2Approvers),
-                isApproved = model.isApproved,
-                isApplied = model.isApplied,
-                Numer_Fk = model.Numer_Fk,
-                is_Firma = model.is_Firma,
-                Faktdoc_Id = model.Faktdoc_Id,
-                CC = model.CC,
-                VATID = model.VATID
+                Level2Approvers = DeserializeRoles(model.Level2Approvers)
             };
 
             dpmntsList.Add(itemVm);
         }
-        
+
         //var dpmntslist = _mapper.Map<List<DeferralPaymentFormVm>>(dpmnts);
 
 

@@ -11,14 +11,9 @@ using MediatR;
 namespace Application.CQRS.CoCCQRS.Positions.Commands;
 public record UpdatePositionCommand(PositionVm Position) : IRequest<int>;
 
-public class UpdatePositionCommandHandler : IRequestHandler<UpdatePositionCommand, int>
+public class UpdatePositionCommandHandler(IAppDbContext context) : IRequestHandler<UpdatePositionCommand, int>
 {
-    private readonly IAppDbContext _context;
-
-    public UpdatePositionCommandHandler(IAppDbContext context)
-    {
-        _context = context;
-    }
+    private readonly IAppDbContext _context = context;
 
     public async Task<int> Handle(UpdatePositionCommand request, CancellationToken cancellationToken)
     {

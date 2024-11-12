@@ -1,52 +1,27 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
-
+﻿using System.Text.Json;
 using Application.Forms;
 using AutoMapper;
 using Domain.Forms;
 using Application.Interfaces;
-
 using Application.ViewModels.General;
-
 using MediatR;
-
 using Microsoft.Extensions.Configuration;
-
 using Microsoft.Graph.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace Application.CQRS.AccountingCQRS.DeferralPayment.Commands
 {
-    public class CreateDeferralPaymentSQLCommand : IRequest<DeferralPaymentFormVm>
+    public class CreateDeferralPaymentSQLCommand(DeferralPaymentFormVm item) : IRequest<DeferralPaymentFormVm>
     {
-        public DeferralPaymentFormVm Item { get; set; }
-
-        public CreateDeferralPaymentSQLCommand(DeferralPaymentFormVm item)
-        {
-            Item = item;
-        }
+        public DeferralPaymentFormVm Item { get; set; } = item;
     }
 
-    public class CreateDeferralPaymentSQLCommandHandler : IRequestHandler<CreateDeferralPaymentSQLCommand, DeferralPaymentFormVm>
+    public class CreateDeferralPaymentSQLCommandHandler(IAppDbContext appDbContext, IMapper mapper, IEmailService mailService, IConfiguration configuration) : IRequestHandler<CreateDeferralPaymentSQLCommand, DeferralPaymentFormVm>
     {
-        private readonly IAppDbContext _appDbContext;
-        private readonly IMapper _mapper;
-        private readonly IEmailService _mailService;
-        private readonly IConfiguration _configuration;
-
-
-        public CreateDeferralPaymentSQLCommandHandler(IAppDbContext appDbContext, IMapper mapper, IEmailService mailService, IConfiguration configuration)
-        {
-            _appDbContext = appDbContext;
-            _mapper = mapper;
-            _mailService = mailService;
-            _configuration = configuration;
-
-        }
+        private readonly IAppDbContext _appDbContext = appDbContext;
+        private readonly IMapper _mapper = mapper;
+        private readonly IEmailService _mailService = mailService;
+        private readonly IConfiguration _configuration = configuration;
 
         public async Task<DeferralPaymentFormVm> Handle(CreateDeferralPaymentSQLCommand request, CancellationToken cancellationToken)
         {
@@ -166,6 +141,4 @@ namespace Application.CQRS.AccountingCQRS.DeferralPayment.Commands
         }
 
     }
-
-
 }
