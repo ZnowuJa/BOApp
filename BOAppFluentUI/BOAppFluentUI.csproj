@@ -121,6 +121,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Components\Pages\Accounting\Temp\NewFolder\" />
     <Folder Include="Components\Pages\Excluded\" />
     <Folder Include="Components\Pages\ITWarehouseAdmin\Sale\" />
     <Folder Include="Components\Pages\ITWarehouseAdmin\Scrapping\" />
@@ -136,7 +137,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="Components\Pages\Accounting\KontrahenciTest.razor" />
+    <None Include="Components\Pages\Accounting\Temp\KontrahenciTest.razor" />
     <None Include="Components\Pages\ITWarehouseForUsers\ITWarehouseForUsers.razor" />
   </ItemGroup>
 </Project>

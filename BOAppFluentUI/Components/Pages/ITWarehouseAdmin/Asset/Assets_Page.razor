@@ -242,6 +242,9 @@ else
         itemStatesList = await _mediator.Send(new GetAllStatesQuery());
         itemWarehousesList = await _mediator.Send(new GetAllWarehousesQuery());
 
+
+        
+
         var assignees = new List<IAssigneeVm>();
         assignees.AddRange(itemEmployeesList.Select(employee => (IAssigneeVm)new EmployeeVm { Id = employee.EnovaEmpId, LongName = employee.LongName, typeName = "EmployeeVm" }));
         assignees.AddRange(itemDepartmentsList.Select(department => (IAssigneeVm)new DepartmentVm { Id = department.Id, LongName = department.LongName, typeName = "DepartmentVm" }));
