@@ -3,8 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
-using Application.Forms;
+using Application.Forms.IT;
 using Application.Interfaces;
 using AutoMapper;
 using Domain.Forms.ITForms;
@@ -67,8 +66,8 @@ public class CreateITSaleFormCommandHandler : IRequestHandler<CreateITSaleFormCo
 
 
         command.Form.Id = form.Id;
-        command.Form.Number = $"{command.Form.NumberPrefix}{command.Form.Id.ToString("D6")}";
-        form = _mapper.Map<ITSaleForm>(command.Form);
+        form.Number = command.Form.Number = $"{command.Form.NumberPrefix}{command.Form.Id.ToString("D6")}";
+        //form = _mapper.Map<ITSaleForm>(command.Form);
         _appDbContext.ITSaleForms.Update(form);
         await _appDbContext.SaveChangesAsync();
 

@@ -1,5 +1,4 @@
-﻿using Application.Forms;
-
+﻿using Application.Forms.Accounting;
 using MediatR;
 
 namespace Application.CQRS.AccountingCQRS.DeferralPayment.Queries;

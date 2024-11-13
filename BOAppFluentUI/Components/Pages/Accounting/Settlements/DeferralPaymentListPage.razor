@@ -5,6 +5,7 @@
 @using Application.CQRS.AccountingCQRS.DeferralPayment.Queries
 @using Application.ExportModels
 @using Application.Forms;
+@using Application.Forms.Accounting;
 @using Application.ViewModels.General
 @using AutoMapper
 @using MediatR;
@@ -113,6 +114,8 @@
 <FluentButton OnClick="DownloadCsv">Pobierz CSV</FluentButton>
 
 @code {
+
+    #region Declarations
     [Parameter]
     public string role { get; set; }
 
@@ -176,6 +179,8 @@
 
     private ToastIntent intent { get; set; }
     private string toastMessage { get; set; } = string.Empty;
+
+    #endregion
 
     protected override async Task OnInitializedAsync()
     {

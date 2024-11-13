@@ -1,6 +1,5 @@
 ﻿using System.Text.Json;
-
-using Application.Forms;
+using Application.Forms.CoC;
 using Application.Interfaces;
 using Application.ViewModels.CoC;
 using Application.ViewModels.General;

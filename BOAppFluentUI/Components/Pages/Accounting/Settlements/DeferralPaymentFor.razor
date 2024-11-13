@@ -6,9 +6,10 @@
 @using Application.CQRS.AccountingCQRS.Customer.Queries
 @using Application.CQRS.AccountingCQRS.DeferralPayment.Commands;
 @using Application.CQRS.AccountingCQRS.DeferralPayment.Queries
-@using Application.CQRS.General.Organisations.Queries
 @using Application.CQRS.General.Workflows.Queries
 @using Application.Forms
+@using Application.CQRS.General.Organisations.Queries
+@using Application.Forms.Accounting
 @using Application.Interfaces
 @using Application.ViewModels.Accounting
 @using Application.ViewModels.General
@@ -258,11 +259,11 @@ else
             }
         }
 
-        al1 = formItem.Status == "AprobataL1";
-        al2 = formItem.Status == "AprobataL2";
-
-        if(al1) //sets Approvers data in Form object.
+        if (_userContext.Employee.Roles.Contains("Disposition") || _userContext.Employee.Roles.Contains("DispositionManager"))
         {
+            formItem.Status = "AprobataL2";
+        }
+
             var defaultApproverL1 = formItem.Level1Approvers.First(p => p.IsDefault == true);
 
             formItem.LVL1_EnovaEmpId = defaultApproverL1.EmpId.ToString();
@@ -274,13 +275,17 @@ else
             formItem.LVL2_EnovaEmpId = defaultApproverL2.EmpId.ToString();
             formItem.LVL2_EmployeeName = defaultApproverL2.LongName;
 
-        } 
-        else if (al2)
-        {
-            var defaultApproverL2 = formItem.Level2Approvers.First(p => p.IsDefault == true);
-            formItem.LVL2_EnovaEmpId = defaultApproverL2.EmpId.ToString();
-            formItem.LVL2_EmployeeName = defaultApproverL2.LongName;
-        }
+   
+
+            // var defaultApproverL1 = formItem.Level1Approvers.First(p => p.IsDefault == true);
+
+            // formItem.LVL1_EnovaEmpId = defaultApproverL1.EmpId.ToString();
+            // formItem.LVL1_EmployeeName = defaultApproverL1.LongName;
+
+            // var defaultApproverL2 = formItem.Level2Approvers.First(p => p.IsDefault == true);
+            // formItem.LVL2_EnovaEmpId = defaultApproverL2.EmpId.ToString();
+            // formItem.LVL2_EmployeeName = defaultApproverL2.LongName;
+        
     }
 
     private List<OrganisationRoleForFormVm> SetApprovers(List<OrganisationRoleVm> rolesIn)

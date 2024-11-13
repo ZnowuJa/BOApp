@@ -4,8 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-
-using Application.Forms;
+using Application.Forms.CoC;
 using Application.Interfaces;
 using Application.ViewModels.CoC;
 using Application.ViewModels.General;

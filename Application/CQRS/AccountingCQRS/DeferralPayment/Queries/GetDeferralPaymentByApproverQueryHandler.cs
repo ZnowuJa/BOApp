@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
-using Application.Forms;
 using AutoMapper;
 using Application.Interfaces;
 
@@ -13,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using Domain.Forms;
 using Application.ViewModels.General;
 using System.Text.Json;
+using Application.Forms.Accounting;
 
 namespace Application.CQRS.AccountingCQRS.DeferralPayment.Queries;
 public class GetDeferralPaymentByApproverQueryHandler : IRequestHandler<GetDeferralPaymentByApproverQuery, IQueryable<DeferralPaymentFormVm>>
