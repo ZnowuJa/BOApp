@@ -19,8 +19,10 @@
 @using MediatR
 @using System.Security.Claims
 
+
 @attribute [Authorize(Policy = "User")]
 
+@inject IConfiguration _configuration
 @inject IMediator _mediator
 @inject IJSRuntime JS
 @inject ILogger<DeferralPaymentFor> _logger
@@ -35,6 +37,11 @@
 {
     <h5>Organizacja: @_organisation.Name</h5>
     <h5>Pracownik: @emp.LongName</h5>
+    @if (_configuration["Environment"] == "DEV")
+    {
+        <h5>Status: @formItem.Status</h5>
+    }
+    
 }
 
 
@@ -90,18 +97,20 @@ else
         }
         else if (formItem.Status == "AprobataL2")
         {
-            <FluentSelect TOption="OrganisationRoleForFormVm"
+            <b>Aprobata L2:   &nbsp; &nbsp; Dział Rozrachunki
+            </b>
+            @*<FluentSelect TOption="OrganisationRoleForFormVm"
                           Id="AL1Id"
-                          Label="Approver"
+                          
                           Autofocus="true"
-                          Items="@formItem.Level1Approvers"
+                          Items="@formItem.Level2Approvers"
                           Multiple="false"
                           OptionValue="@(p => p.EmpId.ToString())"
                           OptionText="@(p => p.LongName)"
                           OptionSelected="@(p => p.IsDefault)"
-                          @bind-SelectedOption="@approverL1"
+                          @bind-SelectedOption="@approverL2"
                           Height="200px"
-                          @onchange="HandleChangeApproverL2" />
+                          @onchange="HandleChangeApproverL2" />*@
         }
 
         <H3></H3>
@@ -264,16 +273,19 @@ else
             formItem.Status = "AprobataL2";
         }
 
-            var defaultApproverL1 = formItem.Level1Approvers.First(p => p.IsDefault == true);
+        al1 = formItem.Status == "AprobataL1";
+        al2 = formItem.Status == "AprobataL2";
 
-            formItem.LVL1_EnovaEmpId = defaultApproverL1.EmpId.ToString();
-            formItem.LVL1_EmployeeName = defaultApproverL1.LongName;
+        var defaultApproverL1 = formItem.Level1Approvers.First(p => p.IsDefault == true);
 
-            //this code is here temporary:
+        formItem.LVL1_EnovaEmpId = defaultApproverL1.EmpId.ToString();
+        formItem.LVL1_EmployeeName = defaultApproverL1.LongName;
 
-            var defaultApproverL2 = formItem.Level2Approvers.First(p => p.IsDefault == true);
-            formItem.LVL2_EnovaEmpId = defaultApproverL2.EmpId.ToString();
-            formItem.LVL2_EmployeeName = defaultApproverL2.LongName;
+        //this code is here temporary:
+
+        var defaultApproverL2 = formItem.Level2Approvers.First(p => p.IsDefault == true);
+        formItem.LVL2_EnovaEmpId = defaultApproverL2.EmpId.ToString();
+        formItem.LVL2_EmployeeName = defaultApproverL2.LongName;
 
    
 
