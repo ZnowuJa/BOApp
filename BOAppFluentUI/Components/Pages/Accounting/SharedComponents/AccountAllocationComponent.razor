@@ -1,5 +1,12 @@
-﻿<h3>AccountAllocationComponent</h3>
+﻿@using Application.ViewModels.Accounting
+<h3>AccountAllocationComponent</h3>
+
+
 
 @code {
+    [Parameter] public string Locations { get; set; }
+    [Parameter] public GLAccountVm GLAccounts { get; set; }
+    [Parameter] public VATRateVm VatRates { get; set; }
+
 
 }

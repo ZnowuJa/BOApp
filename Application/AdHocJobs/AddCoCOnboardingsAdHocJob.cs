@@ -11,7 +11,7 @@ using Application.CQRS.CoCCQRS.Onboarding.Commands;
 using Application.CQRS.CoCCQRS.Positions.Queries;
 using Application.CQRS.General.Organisations.Queries;
 using Application.CQRS.ITWarehouseCQRS.Employees.Queries;
-using Application.Forms;
+using Application.Forms.Accounting;
 using Application.Interfaces;
 using Application.ITWarehouseCQRS.Employees.Queries;
 
@@ -128,4 +128,20 @@ public class AddCoCOnboardingsAdHocJob
         return items == null || items.Count == 0 ? null : JsonSerializer.Serialize(items);
     }
 
+    private class OnboardingFormVm : Forms.CoC.OnboardingFormVm
+    {
+        public int EmployeeId { get; set; }
+        public string EmployeeName { get; set; }
+        public List<Approval> Approvals { get; set; }
+        public List<OrganisationRoleForFormVm> Level1Approvers { get; set; }
+        public List<OrganisationRoleForFormVm> Level2Approvers { get; set; }
+        public string LVL1_EnovaEmpId { get; set; }
+        public string LVL2_EnovaEmpId { get; set; }
+        public string LVL1_EmployeeName { get; set; }
+        public string LVL2_EmployeeName { get; set; }
+        public int ManagerId { get; set; }
+        public List<InstructionStatus> Instructions { get; set; }
+        public string Group { get; set; }
+        public bool FirstRun { get; set; }
+    }
 }

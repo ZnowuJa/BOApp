@@ -43,6 +43,7 @@ public class TokenValidatedHandlerService : ITokenValidatedHandlerService
 
     public async Task HandleTokenValidation(TokenValidatedContext context)
     {
+        await _userRegistrationService.CheckRoles();
         var appUser = new AppUser();
         var empl = new Employee();
         //var userCreated = false;

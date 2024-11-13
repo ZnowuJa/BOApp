@@ -15,10 +15,10 @@ using Application.ViewModels.CoC;
 using System.Text.Json;
 using Application.Mappings;
 
-namespace Application.Forms;
+namespace Application.Forms.IT;
 public class ITScrappingFormVm : IMapFrom<ITScrappingForm>
 {
-    
+
     public int Id { get; set; }
     public string Name { get; set; } = "Złomowanie sprzętu IT";
     public string Description { get; set; } = "Formularz do złomowania sprzętu IT.";
@@ -61,7 +61,7 @@ public class ITScrappingFormVm : IMapFrom<ITScrappingForm>
             .ForMember(dest => dest.Level2Approvers, opt => opt.MapFrom(src => SerializeRoles(src.Level2Approvers)))
             .ForMember(dest => dest.Approvals, opt => opt.MapFrom(src => SerializeApprovals(src.Approvals)));
     }
-    private string SerializeApprovals(List<ViewModels.General.Approval> approvals)
+    private string SerializeApprovals(List<Approval> approvals)
     {
         return approvals == null || approvals.Count == 0 ? string.Empty : JsonSerializer.Serialize(approvals);
     }

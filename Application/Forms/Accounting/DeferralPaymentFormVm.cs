@@ -1,6 +1,4 @@
-﻿
-
-using Application.Common;
+﻿using Application.Common;
 using Application.ExportModels;
 using Application.Interfaces;
 using Application.Mappings;
@@ -13,7 +11,7 @@ using Domain.Entities.ITWarehouse;
 using Domain.Forms;
 using Domain.WorkFlows;
 
-namespace Application.Forms;
+namespace Application.Forms.Accounting;
 
 public class DeferralPaymentFormVm : IMapFrom<DeferralPaymentForm>, IFormVm
 {
@@ -38,11 +36,11 @@ public class DeferralPaymentFormVm : IMapFrom<DeferralPaymentForm>, IFormVm
     public int? EmployeeId { get; set; }
     public string? EmployeeName { get; set; }
     public DateTime? Requested { get; set; }
-    public List<Approval>? Approvals { get; set;}
-    public List<OrganisationRoleForFormVm> Level1Approvers { get; set;}
-    public List<OrganisationRoleForFormVm> Level2Approvers { get; set;}
+    public List<Approval>? Approvals { get; set; }
+    public List<OrganisationRoleForFormVm> Level1Approvers { get; set; }
+    public List<OrganisationRoleForFormVm> Level2Approvers { get; set; }
 
-    public string LVL1_EnovaEmpId {  get; set; }
+    public string LVL1_EnovaEmpId { get; set; }
     public string LVL2_EnovaEmpId { get; set; }
     public string LVL1_EmployeeName { get; set; }
     public string LVL2_EmployeeName { get; set; }
@@ -64,13 +62,13 @@ public class DeferralPaymentFormVm : IMapFrom<DeferralPaymentForm>, IFormVm
 
     public void Mapping(Profile profile)
     {
-       profile.CreateMap<DeferralPaymentForm, DeferralPaymentFormVm>()
-            .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status))
-            .ForMember(dest => dest.Statuses, opt => opt.MapFrom(src => src.Statuses.ToList())) // Ensure Statuses is a List<string>
-            
-            // Assuming Number is based on Id
+        profile.CreateMap<DeferralPaymentForm, DeferralPaymentFormVm>()
+             .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status))
+             .ForMember(dest => dest.Statuses, opt => opt.MapFrom(src => src.Statuses.ToList())) // Ensure Statuses is a List<string>
 
-            .ReverseMap();
+             // Assuming Number is based on Id
+
+             .ReverseMap();
         profile.CreateMap<DeferralPaymentFormVm, DeferralPaymentExportModel>().ReverseMap();
     }
 

@@ -4,8 +4,6 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-
-using Application.Forms;
 using AutoMapper;
 using Domain.Forms;
 using Application.Interfaces;
@@ -18,6 +16,7 @@ using Microsoft.Extensions.Configuration;
 
 using Microsoft.Graph.Models;
 using Microsoft.EntityFrameworkCore;
+using Application.Forms.Accounting;
 
 namespace Application.CQRS.AccountingCQRS.DeferralPayment.Commands
 {

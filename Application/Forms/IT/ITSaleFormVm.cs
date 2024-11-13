@@ -1,5 +1,4 @@
 ﻿using System.Text.Json;
-
 using Application.DTOs;
 using Application.Mappings;
 using Application.ViewModels;
@@ -10,7 +9,7 @@ using AutoMapper;
 using Domain.Forms.ITForms;
 using Domain.WorkFlows;
 
-namespace Application.Forms;
+namespace Application.Forms.IT;
 public class ITSaleFormVm : IMapFrom<ITSaleForm>
 {
     public ITSaleFormVm()
@@ -51,7 +50,7 @@ public class ITSaleFormVm : IMapFrom<ITSaleForm>
     public int? CompanyId { get; set; }
     public int? CompanyName { get; set; }
     public CompanyVm? Company { get; set; }
-    public int? EmployeeId {  get; set; }
+    public int? EmployeeId { get; set; }
     public int? EmployeeName { get; set; }
     public EmployeeVm? Employee { get; set; }
     public ICollection<AssetMinimal>? Assets { get; set; }
@@ -72,7 +71,7 @@ public class ITSaleFormVm : IMapFrom<ITSaleForm>
             .ForMember(dest => dest.AssetIds, opt => opt.MapFrom(src => SerializeAssetIds(src.Assets)));
     }
 
-    private string SerializeApprovals(List<ViewModels.General.Approval> approvals)
+    private string SerializeApprovals(List<Approval> approvals)
     {
         return approvals == null || approvals.Count == 0 ? string.Empty : JsonSerializer.Serialize(approvals);
     }

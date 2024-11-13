@@ -22,7 +22,7 @@
 else
 {
 
-    <FluentDataGrid Items="@costCenter" TGridItem="CostCenterVm" GridTemplateColumns="50px 1fr 2fr 1fr">
+    <FluentDataGrid Items="@costCenter" TGridItem="CostCenterVm" GridTemplateColumns="50px 1fr 1fr 1fr" AutoFit="true">
 
 
         <PropertyColumn Property="@(c => c.Id)" Sortable="true" Align="Align.Start" Tooltip="true" />

@@ -1,6 +1,7 @@
 ﻿@using Application.CQRS.ITWarehouseCQRS.Sales.Commands
 @using Application.DTOs
 @using Application.Forms
+@using Application.Forms.IT
 @using Application.ViewModels.General
 @using BOAppFluentUI.Data.DialogParameters
 @using MediatR
@@ -89,17 +90,23 @@
     {
 
         selectedSale = new ITSaleFormVm();
-        selectedSale.OperatorId = int.Parse(Content.FormUserContext.EnovaEmpId);
-        selectedSale.OperatorName = Content.FormUserContext.Employee.LongName;
+        try
+        {
 
-        selectedSale.Level1Approvers = Content.OrganisationVm.Role_ComplianceAssistant.Select(role => new OrganisationRoleForFormVm(role)).ToList() ?? new List<OrganisationRoleForFormVm>();
+        } catch (Exception ex){
+            selectedSale.OperatorId = int.Parse(Content.FormUserContext.EnovaEmpId);
+            selectedSale.OperatorName = Content.FormUserContext.Employee.LongName;
 
-        selectedSale.Level2Approvers = Content.OrganisationVm.Role_ComplianceAssistant.Select(role => new OrganisationRoleForFormVm(role)).ToList() ?? new List<OrganisationRoleForFormVm>();
+            selectedSale.Level1Approvers = Content.OrganisationVm.Role_ComplianceAssistant.Select(role => new OrganisationRoleForFormVm(role)).ToList() ?? new List<OrganisationRoleForFormVm>();
 
-        selectedSale.LVL1_EnovaEmpId = Content.OrganisationVm.Role_ComplianceAssistant.Where(e => e.IsDefault == true).Select(m => m.EmpId).FirstOrDefault().ToString() ?? String.Empty;
-        selectedSale.LVL2_EnovaEmpId = Content.OrganisationVm.Role_ComplianceAssistant.Where(e => e.IsDefault == true).Select(m => m.EmpId).FirstOrDefault().ToString() ?? String.Empty;
+            selectedSale.Level2Approvers = Content.OrganisationVm.Role_ComplianceAssistant.Select(role => new OrganisationRoleForFormVm(role)).ToList() ?? new List<OrganisationRoleForFormVm>();
 
-        selectedSale.EmployeeId = int.Parse(Content.FormUserContext.EnovaEmpId);
+            selectedSale.LVL1_EnovaEmpId = Content.OrganisationVm.Role_ComplianceAssistant.Where(e => e.IsDefault == true).Select(m => m.EmpId).FirstOrDefault().ToString() ?? String.Empty;
+            selectedSale.LVL2_EnovaEmpId = Content.OrganisationVm.Role_ComplianceAssistant.Where(e => e.IsDefault == true).Select(m => m.EmpId).FirstOrDefault().ToString() ?? String.Empty;
+
+            selectedSale.EmployeeId = int.Parse(Content.FormUserContext.EnovaEmpId);
+        }
+
 
         // selectedSale.Employee = Content.FormUserContext.Employee;
         Approval approval = new Approval()

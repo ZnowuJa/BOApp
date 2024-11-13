@@ -19,7 +19,7 @@ public class UserRegistrationService : IUserRegistrationService
     }
     public async Task CheckRoles()
     {
-        string[] roles = ["User", "Manager", "Technician", "Administrator", "AppAdmin", "Accountant", "AccountantTL", "Settlement", "Compliance", "ComplianceAssistant"];
+        string[] roles = ["User", "Manager", "Technician", "Administrator", "AppAdmin", "Accountant", "AccountantTL", "Settlement", "Compliance", "ComplianceAssistant", "Disposition", "DispositionManager"];
         foreach (string role in roles)
         {
             if (!await _roleManager.RoleExistsAsync(role))

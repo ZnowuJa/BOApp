@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
 using Application.Interfaces;
 using Application.Mappings;
 using Application.ViewModels.CoC;
@@ -14,7 +13,7 @@ using Domain.Entities.CoC;
 using Domain.Entities.Common;
 using Domain.Forms;
 
-namespace Application.Forms
+namespace Application.Forms.CoC
 {
     public class OnboardingFormVm : IMapFrom<OnboardingForm>, IFormVm
     {
@@ -41,7 +40,7 @@ namespace Application.Forms
         public string LVL1_EnovaEmpId { get; set; }
         public string LVL2_EnovaEmpId { get; set; }
         public string LVL1_EmployeeName { get; set; }
-        public string LVL2_EmployeeName { get; set; } 
+        public string LVL2_EmployeeName { get; set; }
         public int ManagerId { get; set; }
 
         // Core Properties 
