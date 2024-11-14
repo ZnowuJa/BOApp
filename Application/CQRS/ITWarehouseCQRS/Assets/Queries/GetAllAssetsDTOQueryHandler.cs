@@ -1,4 +1,5 @@
 ﻿using Application.DTOs;
+using Application.Forms.IT;
 using Application.Interfaces;
 using Application.ViewModels;
 using Application.ViewModels.General;
@@ -35,6 +36,8 @@ public class GetAllAssetsDTOQueryHandler : IRequestHandler<GetAllAssetsDTOQuery,
         var departments = await _appDbContext.Departments.ToListAsync(cancellationToken);
         var warehouses = await _appDbContext.Warehouses.ToListAsync(cancellationToken);
         var currencies = await _appDbContext.Currencies.ToListAsync(cancellationToken);
+        var saleForms = await _appDbContext.ITSaleForms.ToListAsync(cancellationToken);
+        var scrapForms = await _appDbContext.ITScrappingForms.ToListAsync(cancellationToken);
 
         var result = await _appDbContext.Assets.Where(p => p.StatusId == 1)
             .ToListAsync(cancellationToken);
@@ -46,6 +49,8 @@ public class GetAllAssetsDTOQueryHandler : IRequestHandler<GetAllAssetsDTOQuery,
             var state = states.FirstOrDefault(p => p.Id == item.StateId);
             var warehouse = warehouses.FirstOrDefault(p => p.Id == item.WarehouseId);
             var currency = currencies.FirstOrDefault(p => p.Id == item.CurrencyId);
+            var saleform = saleForms.FirstOrDefault(p => p.Id == item.SaleFormId);
+            var scrapform = scrapForms.FirstOrDefault(p => p.Id == item.ScrappingFormId);
             IAssigneeVm vm = null;
             if(item.AssigneeType == "DepartmentVm")
             {
@@ -103,6 +108,14 @@ public class GetAllAssetsDTOQueryHandler : IRequestHandler<GetAllAssetsDTOQuery,
             itemDto.AssigneeVmName = item.AssigneeName;
             itemDto.AssigneeVmType = item.AssigneeType;
             itemDto.AssigneeVM = vm;
+
+            itemDto.SaleFormId = item.SaleFormId;
+            itemDto.ScrappingFormId = item.ScrappingFormId;
+            itemDto.ScrappingReason = item.ScrappingReason;
+            itemDto.SaleForm = _mapper.Map<ITSaleFormVm>(saleform);
+            itemDto.ScrappingForm = _mapper.Map<ITScrappingFormVm>(scrapform);
+
+
             listItems.Add(itemDto);
         }
 

@@ -66,6 +66,9 @@ public class Asset : AuditableEntity
         Imei = other.Imei;
         Mac = other.Mac;
         EndOfSupport = other.EndOfSupport;
+        ScrappingFormId = other.ScrappingFormId;
+        SaleFormId = other.SaleFormId;
+        ScrappingReason = other.ScrappingReason;
     }
 
 }

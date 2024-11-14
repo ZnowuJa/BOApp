@@ -1,7 +1,10 @@
 ﻿@page "/assets"
 @using Application.AdHocJobs
 @using Application.CQRS.General.Organisations.Queries
+@using Application.CQRS.ITWarehouseCQRS.Assets.Commands
+@using Application.CQRS.ITWarehouseCQRS.Assets.Queries
 @using Application.CQRS.ITWarehouseCQRS.Sales.Commands
+@using Application.CQRS.ITWarehouseCQRS.Sales.Queries
 @using Application.CQRS.ITWarehouseCQRS.Scrappings.Queries
 @using Application.DTOs
 @using Application.ExportModels
@@ -244,7 +247,7 @@ else
         itemWarehousesList = await _mediator.Send(new GetAllWarehousesQuery());
 
 
-        
+
 
         var assignees = new List<IAssigneeVm>();
         assignees.AddRange(itemEmployeesList.Select(employee => (IAssigneeVm)new EmployeeVm { Id = employee.EnovaEmpId, LongName = employee.LongName, typeName = "EmployeeVm" }));
@@ -298,7 +301,7 @@ else
             if (final.Id > 0)
             {
                 _logger.LogInformation("AssetsPage | EditType(item) | Update Asset start...");
-                i = await _mediator.Send(new UpdateAssetCommand(final.Id, final.PartVmId, final.InvoiceVmId, final.InvoiceItemID, final.AssetTagNumber, final.StateVmId, final.SerialNumber, final.LastSeen, final.AssigneeVmId, final.AssigneeVmType, final.AssigneeVmName, final.WarehouseVmId, final.Price, final.CurrencyVmId, date, final.Leasing, final.EndOfContract, final.WarrantyUntil, final.Imei, final.Mac, final.EndOfSupport, username));
+                i = await _mediator.Send(new UpdateAssetCommand(final.Id, final.PartVmId, final.InvoiceVmId, final.InvoiceItemID, final.AssetTagNumber, final.StateVmId, final.SerialNumber, final.LastSeen, final.AssigneeVmId, final.AssigneeVmType, final.AssigneeVmName, final.WarehouseVmId, final.Price, final.CurrencyVmId, date, final.Leasing, final.EndOfContract, final.WarrantyUntil, final.Imei, final.Mac, final.EndOfSupport, final.SaleFormId, final.ScrappingFormId, final.ScrappingReason, username));
                 _logger.LogInformation("AssetsPage | EditType(item) | Update Asset finished...");
                 intent = ToastIntent.Success;
                 message = "Asset has been updated!";
@@ -443,7 +446,7 @@ else
                         asst.StateVmName = stateProd.Name;
                     }
 
-                    var i = await _mediator.Send(new UpdateAssetCommand(asst.Id, asst.PartVmId, asst.InvoiceVmId, asst.InvoiceItemID, asst.AssetTagNumber, asst.StateVmId, asst.SerialNumber, asst.LastSeen, asst.AssigneeVmId, asst.AssigneeVmType, asst.AssigneeVmName, asst.WarehouseVmId, asst.Price, asst.CurrencyVmId, asst.PurchaseDate, asst.Leasing, asst.EndOfContract, asst.WarrantyUntil, asst.Imei, asst.Mac, asst.EndOfSupport, username));
+                    var i = await _mediator.Send(new UpdateAssetCommand(asst.Id, asst.PartVmId, asst.InvoiceVmId, asst.InvoiceItemID, asst.AssetTagNumber, asst.StateVmId, asst.SerialNumber, asst.LastSeen, asst.AssigneeVmId, asst.AssigneeVmType, asst.AssigneeVmName, asst.WarehouseVmId, asst.Price, asst.CurrencyVmId, asst.PurchaseDate, asst.Leasing, asst.EndOfContract, asst.WarrantyUntil, asst.Imei, asst.Mac, asst.EndOfSupport, asst.ScrappingFormId, asst.SaleFormId, asst.ScrappingReason, username));
 
                     Console.WriteLine();
 
@@ -473,12 +476,21 @@ else
     {
         // var ogn = _userContext.Employee.SapNumber;
         var org = await _mediator.Send(new GetOrganisationByEmpSapNumberQuery(_userContext.Employee.SapNumber));
-        var sales = new List<ITSaleFormVm>();
-        var assetMinimals = AppUtils.ConvertAssetDTO2Minimal(assetsToSale, _mapper);
+        var sales = await _mediator.Send(new GetAllITSaleFormsQuery());
+        foreach(var sale in sales)
+        {
+            sale.Assets = new List<AssetDTO>();
+            foreach(var asId in sale.AssetIds)
+            {
+                var asdto = await _mediator.Send(new GetAssetDTObyIdQuery(asId));
+                sale.Assets.Add(asdto);
+            }
+        }
+        // var assetMinimals = AppUtils.ConvertAssetDTO2Minimal(assetsToSale, _mapper);
         // await _mediator.Send(new GetActiveITSaleFormsQuery());
         var dataParameter = new ITSalesAssetsDialogParameter
             {
-                AssetsLists = assetMinimals,
+                AssetsLists = assetsToSale,
                 Sales = sales,
                 SelectedSaleId = 0,
                 FormUserContext = _userContext,
@@ -497,14 +509,24 @@ else
         if (!result.Cancelled)
         {
             var updatedData = (dynamic)result.Data;
-            var updatedAssets = updatedData.AssetsLists as List<AssetDTO>;
+            // var updatedAssets = updatedData.AssetsLists as List<AssetDTO>;
             var selectedSale = updatedData.SelectedSale as ITSaleFormVm;
-            if(selectedSale.Id == 0)
+            if (selectedSale.Id > 0)
             {
-                // await _mediator.Send(new CreateITSaleFormCommand(selectedSale));
-                Console.WriteLine(selectedSale.Id);
-            } else if (selectedSale.Id > 0)
-            {
+                showUpdate = false; 
+                assetsToChangeList.Clear();
+                assetsToChange = assetsToChangeList.AsQueryable();
+                foreach (var ass in assetsToSale)
+                {
+                    DateTime date = ass.PurchaseDate ?? DateTime.Now;
+                    ass.StateVmId = 7;
+                    ass.SaleFormId = selectedSale.Id;
+                    var i = await _mediator.Send(new UpdateAssetCommand(ass.Id, ass.PartVmId, ass.InvoiceVmId, ass.InvoiceItemID, ass.AssetTagNumber, ass.StateVmId, ass.SerialNumber, ass.LastSeen, ass.AssigneeVmId, ass.AssigneeVmType, ass.AssigneeVmName, ass.WarehouseVmId, ass.Price, ass.CurrencyVmId, date, ass.Leasing, ass.EndOfContract, ass.WarrantyUntil, ass.Imei, ass.Mac, ass.EndOfSupport, ass.ScrappingFormId, ass.SaleFormId, ass.ScrappingReason, username));
+                    _logger.LogInformation("AssetsPage | EditType(item) | Update Asset finished...");
+                    // var res = await _mediator.Send(new UpdateAssetDTOCommand(ass));
+                    Console.WriteLine(i);
+                }
+                //TUTAJ DOROBIĆ przypisanie do Assetu numeru Sprzedaży i przypisać 
                 // await _mediator.Send(new UpdateITSaleFormCommand(selectedSale));
             } 
         }

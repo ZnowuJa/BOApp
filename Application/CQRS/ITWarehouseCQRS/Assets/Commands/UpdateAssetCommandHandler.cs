@@ -42,6 +42,9 @@ public class UpdateAssetCommandHandler : IRequestHandler<UpdateAssetCommand, int
         itemB.Imei = request.Imei;
         itemB.Mac = request.Mac;
         itemB.EndOfSupport = request.EndOfSupport;
+        itemB.ScrappingFormId = request.ScrappingFormId;
+        itemB.SaleFormId = request.SaleFormId;
+        itemB.ScrappingReason = request.ScrappingReason;
 
 
         _appDbContext.Assets.Update(itemB);

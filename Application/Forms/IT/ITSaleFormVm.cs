@@ -53,7 +53,8 @@ public class ITSaleFormVm : IMapFrom<ITSaleForm>
     public int? EmployeeId { get; set; }
     public int? EmployeeName { get; set; }
     public EmployeeVm? Employee { get; set; }
-    public ICollection<AssetMinimal>? Assets { get; set; }
+    public ICollection<AssetDTO>? Assets { get; set; }
+    public List<int>? AssetIds { get; set; }
 
 
     public void Mapping(Profile profile)
@@ -62,7 +63,8 @@ public class ITSaleFormVm : IMapFrom<ITSaleForm>
             .ForMember(dest => dest.Level1Approvers, opt => opt.MapFrom(src => DeserializeRoles(src.Level1Approvers)))
             .ForMember(dest => dest.Level2Approvers, opt => opt.MapFrom(src => DeserializeRoles(src.Level2Approvers)))
             .ForMember(dest => dest.Approvals, opt => opt.MapFrom(src => DeserializeApprovals(src.Approvals)))
-            .ForMember(dest => dest.Assets, opt => opt.MapFrom(src => src.AssetIds.Select(id => new AssetDTO { Id = id }).ToList()));
+            .ForMember(dest => dest.AssetIds, opt => opt.MapFrom(src => DeserializeAssetIds2Int(src.AssetIds)))
+            /*.ForMember(dest => dest.Assets, opt => opt.MapFrom(src => src.AssetIds.Select(id => new AssetDTO { Id = id }).ToList()))*/;
 
         profile.CreateMap<ITSaleFormVm, ITSaleForm>()
             .ForMember(dest => dest.Level1Approvers, opt => opt.MapFrom(src => SerializeRoles(src.Level1Approvers)))
@@ -87,7 +89,7 @@ public class ITSaleFormVm : IMapFrom<ITSaleForm>
     {
         return string.IsNullOrEmpty(json) ? new List<OrganisationRoleForFormVm>() : JsonSerializer.Deserialize<List<OrganisationRoleForFormVm>>(json);
     }
-    private string SerializeAssetIds(ICollection<AssetMinimal>? assets)
+    private string SerializeAssetIds(ICollection<AssetDTO>? assets)
     {
         return assets == null || !assets.Any()
             ? string.Empty
@@ -101,5 +103,13 @@ public class ITSaleFormVm : IMapFrom<ITSaleForm>
             : JsonSerializer.Deserialize<List<int>>(assetIdsJson)
                 .Select(id => new AssetDTO { Id = id })
                 .ToList();
+    }
+   
+
+    private List<int> DeserializeAssetIds2Int(string assetIdsJson)
+    {
+        return string.IsNullOrEmpty(assetIdsJson)
+            ? new List<int>()
+            : JsonSerializer.Deserialize<List<int>>(assetIdsJson);
     }
 }
