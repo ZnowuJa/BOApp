@@ -25,6 +25,11 @@ public class UpdateAssetCommand : IRequest<int>
     public string? Mac { get; set; }
     public DateTime? EndOfSupport { get; set; }
     public string? ModifiedBy { get; set; }
+    public int? ScrappingFormId { get; set; }
+    public int? SaleFormId { get; set; }
+    public string? ScrappingReason { get; set; }
+
+
 
     public UpdateAssetCommand(
         int id, 
@@ -48,6 +53,9 @@ public class UpdateAssetCommand : IRequest<int>
         string? imei, 
         string? mac,
         DateTime? endOfSupport,
+        int? scrappingFormId,
+        int? saleFormId,
+        string? scrappingReason,
         string? modifiedBy
         )
     {
@@ -73,5 +81,8 @@ public class UpdateAssetCommand : IRequest<int>
         Mac = mac;
         EndOfSupport = endOfSupport;
         ModifiedBy = modifiedBy;
+        ScrappingFormId = scrappingFormId;
+        SaleFormId = saleFormId;
+        ScrappingReason = scrappingReason;
     }
 }

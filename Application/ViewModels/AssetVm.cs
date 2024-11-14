@@ -1,6 +1,7 @@
 ﻿using Application.Mappings;
 using AutoMapper;
 using Domain.Entities.ITWarehouse;
+using Domain.Forms.ITForms;
 
 namespace Application.ViewModels;
 public class AssetVm : IMapFrom<Asset>
@@ -25,6 +26,9 @@ public class AssetVm : IMapFrom<Asset>
     public string? Imei { get; set; }
     public string? Mac { get; set; }
     public DateTime? EndOfSupport { get; set; }
+    public int? ScrappingFormId { get; set; }
+    public int? SaleFormId { get; set; }
+    public string? ScrappingReason { get; set; }
 
     public void Mapping(Profile profile)
     {

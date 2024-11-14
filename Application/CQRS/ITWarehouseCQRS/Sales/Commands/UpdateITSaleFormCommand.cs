@@ -9,6 +9,8 @@ using AutoMapper;
 using Domain.Forms.ITForms;
 using MediatR;
 
+using Microsoft.EntityFrameworkCore;
+
 namespace Application.CQRS.ITWarehouseCQRS.Sales.Commands;
 public class UpdateITSaleFormCommand : IRequest<ITSaleFormVm>
 {
@@ -33,10 +35,22 @@ public class UpdateITSaleFormCommandHandler : IRequestHandler<UpdateITSaleFormCo
 
     public async Task<ITSaleFormVm> Handle(UpdateITSaleFormCommand command, CancellationToken cancellationToken)
     {
-        var form = _mapper.Map<ITSaleForm>(command.Form);
-        _context.ITSaleForms.Update(form);
+        //var form = _mapper.Map<ITSaleForm>(command.Form);
+
+        var existingSaleForm = await _context.ITSaleForms
+        .AsNoTracking()
+        .FirstOrDefaultAsync(x => x.Id == command.Form.Id);
+
+        if (existingSaleForm != null)
+        {
+            _context.Entry(existingSaleForm).State = EntityState.Detached;
+        }
+
+        _mapper.Map(command.Form, existingSaleForm);
+        
+        //_context.ITSaleForms.Update(form);
         await _context.SaveChangesAsync(cancellationToken);
-        command.Form.Id = form.Id;
+        //command.Form.Id = existingSaleForm.Id;
 
         return command.Form;
     }

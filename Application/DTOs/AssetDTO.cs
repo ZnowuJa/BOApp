@@ -58,9 +58,9 @@ public class AssetDTO : IMapFrom<Asset>
         profile.CreateMap<Asset, AssetDTO>().ReverseMap();
         profile.CreateMap<AssetDTO, AssetExportModel>()
                 .ForMember(dest => dest.InvoiceDocNumber, opt => opt.MapFrom(src => src.invoiceVm.Number));
-        profile.CreateMap<AssetDTO, AssetMinimal>()
-            .ForMember(dest => dest.ScrappingFormNumber, opt => opt.MapFrom(src => src.ScrappingForm.Number))
-            .ForMember(dest => dest.SaleFormNumber, opt => opt.MapFrom(src => src.SaleForm.Number));
+        //profile.CreateMap<AssetDTO, AssetMinimal>()
+        //    .ForMember(dest => dest.ScrappingFormNumber, opt => opt.MapFrom(src => src.ScrappingForm.Number))
+        //    .ForMember(dest => dest.SaleFormNumber, opt => opt.MapFrom(src => src.SaleForm.Number));
     }
 
 
@@ -114,6 +114,9 @@ public class AssetDTO : IMapFrom<Asset>
         Imei = other.Imei;
         Mac = other.Mac;
         EndOfSupport = other.EndOfSupport;
+        SaleFormId = other.SaleFormId;
+        ScrappingFormId = other.ScrappingFormId;
+        ScrappingReason = other.ScrappingReason;
     }
 }
 

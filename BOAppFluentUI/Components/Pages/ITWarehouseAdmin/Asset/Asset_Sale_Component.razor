@@ -48,11 +48,11 @@
                               Autofocus="true"
                               Items="Content.Sales"
                               Multiple="false"
-                              OptionValue="@(p => p.Number)"
+                              OptionValue="@(p => p.Id.ToString())"
                               OptionText="@(p => p.Number)"
                               @bind-SelectedOption="selectedSale"
                               Height="200px"
-                              />
+                              @onchange="HandleChangeSale" />
             
         </FluentStack>
     }
@@ -72,18 +72,17 @@
     [CascadingParameter]
     public FluentDialog? Dialog { get; set; }
 
-    private List<AssetMinimal> AssetsList {get; set;}
+    private List<AssetDTO> AssetsList {get; set;}
     private List<ITSaleFormVm> SaleForms { get; set; }
 
-    private ITSaleFormVm selectedSale { get; set; } 
+    private ITSaleFormVm selectedSale { get; set; } = new ITSaleFormVm();
 
     protected override async Task OnInitializedAsync()
     {
         AssetsList = Content.AssetsLists;
         SaleForms = Content.Sales;
+        selectedSale = SaleForms.First();
 
-
-        // Console.WriteLine(selectedSale.OperatorName);
     }
 
     private async Task CreateNewSale()
@@ -92,8 +91,6 @@
         selectedSale = new ITSaleFormVm();
         try
         {
-
-        } catch (Exception ex){
             selectedSale.OperatorId = int.Parse(Content.FormUserContext.EnovaEmpId);
             selectedSale.OperatorName = Content.FormUserContext.Employee.LongName;
 
@@ -105,6 +102,9 @@
             selectedSale.LVL2_EnovaEmpId = Content.OrganisationVm.Role_ComplianceAssistant.Where(e => e.IsDefault == true).Select(m => m.EmpId).FirstOrDefault().ToString() ?? String.Empty;
 
             selectedSale.EmployeeId = int.Parse(Content.FormUserContext.EnovaEmpId);
+        } catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
         }
 
 
@@ -120,33 +120,27 @@
         selectedSale.Approvals.Add(approval);
         selectedSale.Assets = Content.AssetsLists;
         Content.SelectedSale = selectedSale;
-        await _mediator.Send(new CreateITSaleFormCommand(selectedSale));
-        Content.SelectedSale = selectedSale;
-
+        var result = await _mediator.Send(new CreateITSaleFormCommand(selectedSale));
+        Content.SelectedSale = result;
+        // foreach(asst in selectedSale.a)
         await Dialog.CloseAsync(Content);
     }
 
-    private async Task AssignSale()
+    private async Task HandleChangeSale(ChangeEventArgs e)
     {
-        // var selected = await _mediator.Send(new CreateNewITSaleFormCommand());
-        // var newSale = new ITSaleFormVm();
-        if(selectedSale != null)
-        {
-            Content.SelectedSale = selectedSale;
-            await Dialog.CloseAsync();
-        }
-
-
+        // var selectedId = ;
+        Content.SelectedSale = Content.Sales.FirstOrDefault(s => s.Id == int.Parse(e.Value.ToString()));
     }
+
 
     private async Task SaveAsync()
     {
-
-        // selectedSale.Assets = AssetsList;
-        selectedSale.EmployeeId = int.Parse(Content.FormUserContext.EnovaEmpId);
-        selectedSale.Employee = Content.FormUserContext.Employee;
+        Content.SelectedSale.Assets = AssetsList;
+        
+        Content.SelectedSale.EmployeeId = int.Parse(Content.FormUserContext.EnovaEmpId);
+        Content.SelectedSale.Employee = Content.FormUserContext.Employee;
         Content.SelectedSale = selectedSale;
-
+        var result = await _mediator.Send(new UpdateITSaleFormCommand(selectedSale));
         await Dialog.CloseAsync(Content);
     }
 

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Application.Forms.IT;
 using Application.Interfaces;
@@ -28,12 +29,23 @@ public class GetAllITSaleFormsQueryHandler : IRequestHandler<GetAllITSaleFormsQu
 
     public async Task<List<ITSaleFormVm>> Handle(GetAllITSaleFormsQuery query, CancellationToken cancellationToken)
     {
-        var forms = await _context.ITSaleForms
-            .Include(f => f.FormFiles)
+        var formVms = new List<ITSaleFormVm>();
+        var forms = await _context.ITSaleForms.AsNoTracking()
+            .Where(s => s.StatusId == 1)
+            .Include(f => f.FormFiles).AsNoTracking()
             //.Include(f => f.Company)
             //.Include(f => f.Assets)
             .ToListAsync(cancellationToken);
+        foreach (var form in forms)
+        { 
+            var res = _mapper.Map<ITSaleFormVm>(form);
+            //res.Assets.Clear();
+            //res.AssetIds.Clear();
+            //res.AssetIds = JsonSerializer.Deserialize<List<int>>(form.AssetIds);
 
-        return _mapper.Map<List<ITSaleFormVm>>(forms);
+            formVms.Add(res);
+        }
+        //var formVms = _mapper.Map<List<ITSaleFormVm>>(forms);
+        return formVms;
     }
 }
