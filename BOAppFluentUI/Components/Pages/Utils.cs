@@ -195,9 +195,17 @@ public static class Utils
             var values = properties.Select(p => p.GetValue(record, null)?.ToString() ?? string.Empty);
             csv.AppendLine(string.Join("|", values));
         }
-        Console.WriteLine(csv.ToString());
+        //Console.WriteLine(csv.ToString());
         // Convert the CSV content to a byte array using UTF-8 encoding
-        return Encoding.UTF8.GetBytes(csv.ToString());
+        //return Encoding.UTF8.GetBytes(csv.ToString());
+        // Convert the CSV content to a byte array using UTF-8 encoding
+        var csvBytes = Encoding.UTF8.GetBytes(csv.ToString());
+
+        // Add BOM to the beginning of the byte array
+        var bom = new byte[] { 0xEF, 0xBB, 0xBF };
+        var csvWithBom = bom.Concat(csvBytes).ToArray();
+
+        return csvWithBom;
     }
 
 }
