@@ -37,6 +37,8 @@ public class OrganisationVm : IMapFrom<Organisation>
     public List<OrganisationRoleVm> Role_ComplianceManager { get; set; }
     public List<OrganisationRoleVm> Role_Disposition { get; set; }
     public List<OrganisationRoleVm> Role_DispositionManager { get; set; }
+    public List<OrganisationRoleVm> Role_ITAssetManager { get; set; }
+    public List<OrganisationRoleVm> Role_ITManager { get; set; }
 
     public void InitializeRoles()
     {
@@ -55,6 +57,8 @@ public class OrganisationVm : IMapFrom<Organisation>
         Role_ComplianceManager = Role_ComplianceManager ?? new List<OrganisationRoleVm> { new OrganisationRoleVm() };
         Role_Disposition = Role_Disposition ?? new List<OrganisationRoleVm> { new OrganisationRoleVm() };
         Role_DispositionManager = Role_DispositionManager ?? new List<OrganisationRoleVm> { new OrganisationRoleVm() };
+        Role_ITAssetManager = Role_ITAssetManager ?? new List<OrganisationRoleVm> { new OrganisationRoleVm() };
+        Role_ITManager = Role_ITManager ?? new List<OrganisationRoleVm> { new OrganisationRoleVm() };
     }
 
     public void Mapping(Profile profile)
@@ -74,7 +78,9 @@ public class OrganisationVm : IMapFrom<Organisation>
             .ForMember(dest => dest.Role_ComplianceAssistant, opt => opt.MapFrom(src => DeserializeRoles(src.Role_ComplianceAssistant)))
             .ForMember(dest => dest.Role_ComplianceManager, opt => opt.MapFrom(src => DeserializeRoles(src.Role_ComplianceManager)))
             .ForMember(dest => dest.Role_Disposition, opt => opt.MapFrom(src => DeserializeRoles(src.Role_Disposition)))
-            .ForMember(dest => dest.Role_DispositionManager, opt => opt.MapFrom(src => DeserializeRoles(src.Role_DispositionManager)));
+            .ForMember(dest => dest.Role_DispositionManager, opt => opt.MapFrom(src => DeserializeRoles(src.Role_DispositionManager)))
+            .ForMember(dest => dest.Role_ITAssetManager, opt => opt.MapFrom(src => DeserializeRoles(src.Role_ITAssetManager)))
+            .ForMember(dest => dest.Role_ITManager, opt => opt.MapFrom(src => DeserializeRoles(src.Role_ITManager)));
 
 
         profile.CreateMap<OrganisationVm, Organisation>()
@@ -92,7 +98,9 @@ public class OrganisationVm : IMapFrom<Organisation>
             .ForMember(dest => dest.Role_ComplianceAssistant, opt => opt.MapFrom(src => SerializeRoles(src.Role_ComplianceAssistant)))
             .ForMember(dest => dest.Role_ComplianceManager, opt => opt.MapFrom(src => SerializeRoles(src.Role_ComplianceManager)))
             .ForMember(dest => dest.Role_Disposition, opt => opt.MapFrom(src => SerializeRoles(src.Role_Disposition)))
-            .ForMember(dest => dest.Role_DispositionManager, opt => opt.MapFrom(src => SerializeRoles(src.Role_DispositionManager)));
+            .ForMember(dest => dest.Role_DispositionManager, opt => opt.MapFrom(src => SerializeRoles(src.Role_DispositionManager)))
+            .ForMember(dest => dest.Role_ITAssetManager, opt => opt.MapFrom(src => SerializeRoles(src.Role_ITAssetManager)))
+            .ForMember(dest => dest.Role_ITManager, opt => opt.MapFrom(src => SerializeRoles(src.Role_ITManager)));
 
     }
 

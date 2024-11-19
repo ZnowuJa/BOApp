@@ -29,8 +29,6 @@ public class GetAllITScrappingFormsQueryHandler : IRequestHandler<GetAllITScrapp
     public async Task<List<ITScrappingFormVm>> Handle(GetAllITScrappingFormsQuery query, CancellationToken cancellationToken)
     {
         var forms = await _context.ITScrappingForms
-            .Include(f => f.FormFiles)
-            .Include(f => f.Company)
             .Include(f => f.Assets)
             .ToListAsync(cancellationToken);
 

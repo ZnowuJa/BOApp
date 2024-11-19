@@ -2,7 +2,7 @@
 
 @using Application.ITWarehouseCQRS.CompanyTypes.Queries
 @using MediatR
-@using Application.ITWarehouseCQRS.Companies.Commands
+@using Application.ITWarehouseCQRS.Companies.Commands   
 @inject IMediator _mediator;
 @implements IDialogContentComponent<CompanyVm>
 
@@ -161,7 +161,6 @@
     JustifyContent Justification = JustifyContent.FlexStart;
 
     private EditContext _editContext;
-    // private EditContext _editContextCatgoryType;
 
     private FluentValidationValidator? _fluentValidator;
     private string errorMessage;

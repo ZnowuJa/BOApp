@@ -1,0 +1,332 @@
+﻿@* <h3>AssetSaleForm_Edit_Component</h3> *@
+
+
+@using Application.CQRS.ITWarehouseCQRS.Assets.Queries
+@using Application.DTOs
+@using Application.Forms.IT
+@using System.Collections.ObjectModel
+@using System.Linq.Expressions
+@using System.Linq
+@using Application.ITWarehouseCQRS.Assets.Queries
+@using Application.ITWarehouseCQRS.Companies.Queries
+@using Application.Interfaces
+@using Application.ViewModels.General
+@using Microsoft.FluentUI.AspNetCore.Components.Extensions
+
+@inject IMediator _mediator;
+@inject ISessionService _sessionService
+@implements IDialogContentComponent<ITSaleFormVm>
+
+
+@* Header *@
+<FluentDialogHeader ShowDismiss="true">
+    <FluentStack VerticalAlignment="VerticalAlignment.Center">
+        <FluentIcon Value="@(new Icons.Regular.Size24.WindowApps())" />
+        <FluentLabel Typo="Typography.PaneHeader">
+            @Dialog.Instance.Parameters.Title
+        </FluentLabel>
+    </FluentStack>
+    <FluentStack HorizontalAlignment="HorizontalAlignment.Left">
+        <p></p>
+        <div>
+            <table>
+                <tr>
+                    <td><b>Number:</b></td>
+                    <td>@Content.Number</td>
+                    <td><b>Status: </b></td>
+                    <td>@Content.Status</td>
+                    <td><b>Created by: </b></td>
+                    <td>@Content.OperatorName</td>
+                </tr>
+            </table>
+        </div>
+        <p></p>
+    </FluentStack>
+</FluentDialogHeader>
+
+@* Body *@
+<FluentDialogBody>
+    <h5>Assets to sale: </h5>
+    <FluentDataGrid Items = "@AssetsList" TGridItem="AssetDTO" Pagination="@pagination" AutoFit = "true" ResizableColumns="true">
+
+        <PropertyColumn Property="@(p => p.AssetTagNumber)" Sortable="true" />
+        <PropertyColumn Property="@(p => p.SerialNumber)" Sortable="true" />
+        <TemplateColumn Title="Actions" Align="Align.End">
+            @{
+                // var viewId = $"viewid-{context.Id}";
+                // var editId = $"editid-{context.Id}";
+                var deleteId = $"deleteid-{context.Id}";
+                // var addId = $"addid-{context.Id}";
+            }
+            <FluentButton Id="@deleteId" IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => DeleteAsset(context.Id))" />
+        </TemplateColumn>
+
+    </FluentDataGrid>
+    <FluentPaginator State="@pagination" />
+    <p></p>
+    <FluentStack Orientation="Orientation.Horizontal">
+        <FluentLabel Typo="Typography.Subject"> Add another Asset:  </FluentLabel>
+        <FluentAutocomplete TOption="AssetVm"
+        AutoComplete="on"
+
+        OnOptionsSearch="OnAssetSearch"
+        Placeholder="Select asset..."
+        MaximumSelectedOptions="1"
+        OptionText="@(p => p.AssetTagNumber)"
+        @bind-SelectedOptions="@SelectedAsset"
+        Height="550px"
+        Width="200px" 
+        />
+        <FluentButton IconStart="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddAsset())" />
+    </FluentStack>
+    <p></p>
+    <h5>Recipient: </h5> 
+    <FluentStack Orientation="Orientation.Horizontal">
+        <FluentLabel Typo="Typography.Subject"> Employee:  </FluentLabel>
+        <FluentAutocomplete TOption="IAssigneeVm"
+        AutoComplete="on"
+
+        OnOptionsSearch="OnAssigneeSearch"
+        Placeholder="Select assignee"
+        MaximumSelectedOptions="1"
+        OptionText="@(p => p.LongName)"
+        @bind-SelectedOptions="@SelectedAssignee"
+        @bind-SelectedOptions:after="UpdateSaleEmployee"
+        Height="550px"
+        Width="200px" 
+        />
+
+        <FluentLabel Typo="Typography.Subject"> Company:  </FluentLabel>
+        <FluentAutocomplete TOption="CompanyVm"
+        AutoComplete="on"
+
+        OnOptionsSearch="OnCompanySearch"
+        Placeholder="Select company..."
+        MaximumSelectedOptions="1"
+        OptionText="@(p => p.Name)"
+        @bind-SelectedOptions="@SelectedCompanies"
+        @bind-SelectedOptions:after="UpdateSaleCompany"
+        Height="550px"
+        Width="200px" 
+        />
+
+        @* <FluentButton Appearance="Appearance.Accent" OnClick="@UpdateSaleCompany"
+    Disabled="@(SelectedCompanies.Count() == 0)">
+        Update
+    </FluentButton> *@
+    </FluentStack>
+</FluentDialogBody>
+
+
+
+@* Footer *@
+<FluentDialogFooter>
+    <FluentButton Appearance="Appearance.Accent" OnClick="@SaveAsync"
+    Disabled="false">Save
+    </FluentButton>
+    <FluentButton Appearance="Appearance.Neutral" OnClick="@CancelAsync">Cancel</FluentButton>
+    <p>
+        @SessionId
+    </p>
+</FluentDialogFooter>
+
+
+@code {
+    #region Declarations
+    private string SessionId { get; set; }
+
+    [Parameter]
+    public ITSaleFormVm Content { get; set; } = default!;
+
+    [CascadingParameter]
+    public FluentDialog Dialog { get; set; } = default!;
+
+    private EditContext _editContext;
+
+    private FluentValidationValidator? _fluentValidator;
+    private string errorMessage;
+
+    private IQueryable<AssetDTO>? AssetsList { get; set; }
+    private IQueryable<AssetVm> AssetsListAll { get; set; }
+    private IEnumerable<AssetVm> SelectedAsset  = Array.Empty<AssetVm>();
+    private IQueryable<EmployeeVm> itemEmployeesList { get; set; }
+    private IQueryable<IAssigneeVm> itemAssigneesList { get; set; }
+    private IEnumerable<IAssigneeVm> SelectedAssignee = Array.Empty<IAssigneeVm>();
+    private IQueryable<CompanyVm> itemCompaniesList { get; set; }
+    private IEnumerable<CompanyVm> SelectedCompanies = Array.Empty<CompanyVm>();
+
+    private bool showAssetAdd = false;
+    PaginationState pagination = new PaginationState { ItemsPerPage = 5 };
+    #endregion Declarations
+
+    protected override async Task OnInitializedAsync()
+    {
+        SessionId = _sessionService.GetSessionId();
+        _editContext = new EditContext(Content);
+        itemEmployeesList = await _mediator.Send(new GetAllEmployeesQuery());
+        var assignees = new List<IAssigneeVm>();
+        assignees.AddRange(itemEmployeesList.Select(employee => (IAssigneeVm)new EmployeeVm { Id = employee.EnovaEmpId, LongName = employee.LongName, typeName = "EmployeeVm" }));
+        itemAssigneesList = assignees.AsQueryable();
+        itemCompaniesList = await _mediator.Send(new GetAllCompaniesQuery());
+        if(Content.EmployeeId > 0){
+            var tempEmp = itemEmployeesList.Where(e => e.EnovaEmpId == Content.EmployeeId).FirstOrDefault();
+            var assList = SelectedAssignee.ToList();
+            assList.Add((IAssigneeVm)new EmployeeVm { Id = tempEmp.EnovaEmpId, LongName = tempEmp.LongName, typeName = "EmployeeVm" });
+            SelectedAssignee = assList;
+
+        } else if (Content.CompanyId > 0) {
+            var tempComp = itemCompaniesList.Where(c => c.Id == Content.CompanyId).FirstOrDefault();
+            var compList = SelectedCompanies.ToList();
+            compList.Add(tempComp);
+            SelectedCompanies = compList;
+        }
+
+        AssetsListAll = await _mediator.Send(new GetAllAssetsQuery());
+        // AssetsList = Content.Assets.AsQueryable();
+        await LoadAssets();
+    }
+
+    private async Task LoadAssets()
+    {
+        List<AssetDTO> assetsList = new();
+
+        foreach(var aid in Content.AssetIds){
+            var tmp = await _mediator.Send(new GetAssetDTObyIdQuery(aid));
+            assetsList.Add(tmp);
+        }
+
+        AssetsList = assetsList.AsQueryable();
+        Content.Assets = AssetsList.ToList();
+        SelectedAsset = Array.Empty<AssetVm>();
+
+    }
+
+    private async Task SaveAsync()
+    {
+        await Dialog.CloseAsync(Content);
+    }
+
+    private async Task CancelAsync()
+    {
+        await Dialog.CancelAsync();
+    }
+
+    private async void UpdateSaleEmployee()
+    {
+        var selectedAssignee = SelectedAssignee.FirstOrDefault();
+        // Console.WriteLine(selectedAssignee.LongName);
+
+        Console.WriteLine("ACTION WORKING!!!!" + SelectedAssignee.Count());
+        try
+        {
+            if (selectedAssignee != null)
+            {
+                var newEmpl = itemEmployeesList.Where(p => p.EnovaEmpId == selectedAssignee.Id).FirstOrDefault();
+                Content.EmployeeId = newEmpl.EnovaEmpId;
+                Content.EmployeeName = newEmpl.LongName;
+                Content.CompanyId = null;
+                Content.CompanyName = null;
+                SelectedCompanies = Array.Empty<CompanyVm>();
+            }
+            else
+            {
+                throw new Exception("No assignee selected");
+            }
+
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message.ToString());
+            return;
+        }
+
+    }
+
+    private async void UpdateSaleCompany()
+    {
+        var selectedAssignee = SelectedAssignee.FirstOrDefault();
+        // Console.WriteLine(selectedAssignee.LongName);
+
+        Console.WriteLine("ACTION WORKING!!!!" + SelectedAssignee.Count());
+        try
+        {
+            if (!string.IsNullOrEmpty(SelectedCompanies.FirstOrDefault().Name) )
+            {
+                Content.CompanyId = SelectedCompanies.FirstOrDefault().Id;
+                Content.CompanyName = SelectedCompanies.FirstOrDefault().FullName;
+                Content.EmployeeId = null;
+                Content.EmployeeName = null;
+                SelectedAssignee = Array.Empty<IAssigneeVm>();
+            }
+            else
+            {
+                throw new Exception("No assignee selected");
+            }
+
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message.ToString());
+            return;
+        }
+
+    }
+
+    private async void AddAsset (){
+        if(SelectedAsset.FirstOrDefault() == null){
+            return;
+        } else {
+            // var tmp = await _mediator.Send(new GetAssetDTObyIdQuery(SelectedAsset.FirstOrDefault().Id));
+
+            if(!Content.AssetIds.Contains(SelectedAsset.FirstOrDefault().Id)){
+                Content.AssetIds.Add(SelectedAsset.FirstOrDefault().Id);
+                // Content.Assets.Add(tmp);
+                // AssetsList = Content.Assets.AsQueryable();
+                await LoadAssets();
+                StateHasChanged();
+
+            } else{
+                SelectedAsset = Array.Empty<AssetVm>();
+                StateHasChanged();
+            }
+        }
+    }
+
+    private async void DeleteAsset(int delId){
+        Content.AssetIds.Remove(delId);
+        //wylaczyc state =
+        await LoadAssets();
+        StateHasChanged();
+    }
+
+    private void OnAssigneeSearch(OptionsSearchEventArgs<IAssigneeVm> e)
+    {
+        e.Items = itemAssigneesList.Where(a => a.LongName.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private void OnCompanySearch(OptionsSearchEventArgs<CompanyVm> e)
+    {
+        e.Items = itemCompaniesList.Where(a => a.Name.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private void OnAssetSearch(OptionsSearchEventArgs<AssetVm> e)
+    {
+        e.Items = AssetsListAll.Where(a => a.AssetTagNumber.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
+    }
+
+}
+
+<style>
+        table {
+            margin-top: 20px; /* Adds 50px space above the table */
+            border-collapse: collapse; /* Optional: For a cleaner look */
+            width: 600px; /* Optional: Adjust to fit your container */
+        }
+        th, td {
+            padding: 5px; /* Adds padding inside each cell */
+            text-align: left; /* Optional: Align text to the left */
+        }
+        td:first-child, th:first-child {
+            padding-left: 0; /* Removes padding on the left of the first cell */
+        }
+</style>

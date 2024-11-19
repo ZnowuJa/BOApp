@@ -37,20 +37,13 @@ public class UpdateITSaleFormCommandHandler : IRequestHandler<UpdateITSaleFormCo
     {
         //var form = _mapper.Map<ITSaleForm>(command.Form);
 
-        var existingSaleForm = await _context.ITSaleForms
-        .AsNoTracking()
-        .FirstOrDefaultAsync(x => x.Id == command.Form.Id);
-
-        if (existingSaleForm != null)
-        {
-            _context.Entry(existingSaleForm).State = EntityState.Detached;
-        }
+        var existingSaleForm = await _context.ITSaleForms.FirstOrDefaultAsync(x => x.Id == command.Form.Id);
 
         _mapper.Map(command.Form, existingSaleForm);
-        
-        //_context.ITSaleForms.Update(form);
+
+        _context.ITSaleForms.Update(existingSaleForm);
         await _context.SaveChangesAsync(cancellationToken);
-        //command.Form.Id = existingSaleForm.Id;
+        
 
         return command.Form;
     }

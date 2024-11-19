@@ -246,9 +246,6 @@ else
         itemStatesList = await _mediator.Send(new GetAllStatesQuery());
         itemWarehousesList = await _mediator.Send(new GetAllWarehousesQuery());
 
-
-
-
         var assignees = new List<IAssigneeVm>();
         assignees.AddRange(itemEmployeesList.Select(employee => (IAssigneeVm)new EmployeeVm { Id = employee.EnovaEmpId, LongName = employee.LongName, typeName = "EmployeeVm" }));
         assignees.AddRange(itemDepartmentsList.Select(department => (IAssigneeVm)new DepartmentVm { Id = department.Id, LongName = department.LongName, typeName = "DepartmentVm" }));
@@ -523,11 +520,8 @@ else
                     ass.SaleFormId = selectedSale.Id;
                     var i = await _mediator.Send(new UpdateAssetCommand(ass.Id, ass.PartVmId, ass.InvoiceVmId, ass.InvoiceItemID, ass.AssetTagNumber, ass.StateVmId, ass.SerialNumber, ass.LastSeen, ass.AssigneeVmId, ass.AssigneeVmType, ass.AssigneeVmName, ass.WarehouseVmId, ass.Price, ass.CurrencyVmId, date, ass.Leasing, ass.EndOfContract, ass.WarrantyUntil, ass.Imei, ass.Mac, ass.EndOfSupport, ass.ScrappingFormId, ass.SaleFormId, ass.ScrappingReason, username));
                     _logger.LogInformation("AssetsPage | EditType(item) | Update Asset finished...");
-                    // var res = await _mediator.Send(new UpdateAssetDTOCommand(ass));
-                    Console.WriteLine(i);
                 }
-                //TUTAJ DOROBIĆ przypisanie do Assetu numeru Sprzedaży i przypisać 
-                // await _mediator.Send(new UpdateITSaleFormCommand(selectedSale));
+                await _mediator.Send(new UpdateITSaleFormCommand(selectedSale));
             } 
         }
     }

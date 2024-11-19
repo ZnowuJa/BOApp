@@ -35,8 +35,8 @@ public class GetITScrappingByIdQueryHandler : IRequestHandler<GetITScrappingById
     public async Task<ITScrappingFormVm> Handle(GetITScrappingByIdQuery query, CancellationToken cancellationToken)
     {
         var form = await _context.ITScrappingForms
-            .Include(f => f.FormFiles)
-            .Include(f => f.Company)
+            
+            
             .Include(f => f.Assets)
             .FirstOrDefaultAsync(f => f.Id == query.Id, cancellationToken);
 

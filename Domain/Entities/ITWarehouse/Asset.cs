@@ -33,8 +33,6 @@ public class Asset : AuditableEntity
     public DateTime? EndOfSupport { get; set; }
     public int? ScrappingFormId { get; set; }
     public int? SaleFormId { get; set; }
-    public ITScrappingForm? ScrappingForm { get; set; }
-    public ITSaleForm? SaleForm { get; set; }
     public string? ScrappingReason { get; set; }
 
     public Asset()

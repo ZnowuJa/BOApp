@@ -79,6 +79,11 @@ public class CreateDeferralPaymentCommandHandler : IRequestHandler<CreateDeferra
         string reason = request.Item.Note; 
         string id = request.Item.Id.ToString();
 
+        if (request.Item.Status ==  "AprobataL2")
+        {
+            rcptEmail = "rozrachunki@porscheinterauto.pl" ;
+            rcptName = "Dział Rozrachunków";
+        }
 
         await SendEmail(senderName, rcptEmail, rcptName, custName, frmNumber, reason, id );
         //_logger.LogInformation($"CreateDeferralPaymentCommandHandler {request.Item.EmployeeName}");
@@ -126,6 +131,8 @@ public class CreateDeferralPaymentCommandHandler : IRequestHandler<CreateDeferra
             </div>
         </body>
         </html>";
+
+
 
         var message = new Microsoft.Graph.Models.Message
         {

@@ -32,7 +32,7 @@ public class GetAllITSaleFormsQueryHandler : IRequestHandler<GetAllITSaleFormsQu
         var formVms = new List<ITSaleFormVm>();
         var forms = await _context.ITSaleForms.AsNoTracking()
             .Where(s => s.StatusId == 1)
-            .Include(f => f.FormFiles).AsNoTracking()
+            
             //.Include(f => f.Company)
             //.Include(f => f.Assets)
             .ToListAsync(cancellationToken);

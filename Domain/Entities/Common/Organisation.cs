@@ -29,5 +29,8 @@ public class Organisation : SmallAuditableEntity
     public string Role_Disposition { get; set; }
     public string Role_DispositionManager { get; set; }
 
+    public string Role_ITAssetManager { get; set; }
+    public string Role_ITManager { get; set; }
+
 
 }

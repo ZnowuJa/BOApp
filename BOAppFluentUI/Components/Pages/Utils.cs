@@ -135,6 +135,7 @@ public static class Utils
             Console.WriteLine(test);
             return !(context.LVL1_EnovaEmpId == _userContext.EnovaEmpId);
         }
+
         if (context.Status == "AprobataL2")
         {
             var test = context.Level2Approvers.Any(approver => approver.EmpId.ToString() == _userContext.EnovaEmpId);
@@ -142,7 +143,8 @@ public static class Utils
             return !(context.Level2Approvers.Any(approver => approver.EmpId.ToString() == _userContext.EnovaEmpId));
 
         }
-        return true; // Default to disabled if none of the conditions match
+
+        return true; 
     }
 
     public static void HandleChangeApprover<T>(ChangeEventArgs e, IQueryable<EmployeeVm> itemEmployeesList, T formItem, string approverLevel) where T : IFormVm

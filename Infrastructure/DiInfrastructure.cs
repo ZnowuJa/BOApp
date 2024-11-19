@@ -28,23 +28,15 @@ public static class DiInfrastructure
         services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
         services.AddTransient<IJobSchedulerService, JobSchedulerService>();
 
-        //services.AddTransient<JobSchedulerService>();
-        //services.AddScoped<GraphServiceClient>(provider =>
-        //{
-        //    var confidentialClientApplication = ConfidentialClientApplicationBuilder
-        //        .Create(configuration["AzureAd:ClientId"])
-        //        .WithClientSecret(configuration["AzureAd:ClientSecret"])
-        //        .WithAuthority(new Uri($"{configuration["AzureAd:Instance"]}{configuration["AzureAd:TenantId"]}"))
-        //        .Build();
-
-        //    var authProvider = new ClientCredentialProvider(confidentialClientApplication);
-
-        //    return new GraphServiceClient(authProvider);
-        //});
-
-        //services.AddScoped<ITokenValidatedHandlerService, TokenValidatedHandlerService>();
-
-        //services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
+        services.AddHttpContextAccessor();
+        services.AddScoped<ISessionService, SessionService>();
+        services.AddDistributedMemoryCache(); // Required for session state
+        services.AddSession(options =>
+        {
+            options.IdleTimeout = TimeSpan.FromMinutes(30); // Set session timeout
+            options.Cookie.HttpOnly = true; // Security option
+            options.Cookie.IsEssential = true; // Ensure session works without GDPR consent
+        });
         return services;
     }
 }

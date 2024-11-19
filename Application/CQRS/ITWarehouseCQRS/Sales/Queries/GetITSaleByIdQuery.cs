@@ -41,7 +41,7 @@ public class GetITSaleByIdQueryHandler : IRequestHandler<GetITSaleByIdQuery, ITS
     {
         var assets = _context.Assets.Where(a => a.StatusId == 1);
         var form = await _context.ITSaleForms
-            .Include(f => f.FormFiles)
+            
             //.Include(f => f.Company)
             //.Include(f => f.Assets)
             .FirstOrDefaultAsync(f => f.Id == query.Id, cancellationToken);

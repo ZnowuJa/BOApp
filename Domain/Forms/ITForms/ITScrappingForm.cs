@@ -32,9 +32,7 @@ public class ITScrappingForm : FormTemplate
     public string LVL1_EmployeeName { get; set; }
     public string LVL2_EmployeeName { get; set; }
 
-    public List<FormFile> FormFiles { get; set; }
     public int CompanyId { get; set; }
-    public Company? Company { get; set; }
 
-    public ICollection<Asset>? Assets { get; set; }
+    public List<int>? Assets { get; set; }
 }

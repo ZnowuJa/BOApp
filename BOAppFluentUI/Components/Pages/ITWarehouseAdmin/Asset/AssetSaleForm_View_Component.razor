@@ -1,0 +1,52 @@
+﻿@using Application.Forms
+@using Application.Forms.Accounting
+@using Application.Forms.IT
+@using Application.Interfaces
+@using Application.ViewModels.Accounting
+@using Application.ViewModels
+@using Application.ViewModels.General
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.FluentUI.AspNetCore.Components.Extensions
+
+
+@implements IDialogContentComponent<ITSaleFormVm>
+
+<FluentDialogBody>
+    <h3> Informacja o wniosku: @Content.Number</h3>
+    <p><b>Kontrahent: </b></p>
+    <table>
+        <tr>
+            <th>Status</th>
+            <td>@Content.Status</td>
+        </tr>
+        <tr>
+            <th>Numer wniosku</th>
+            <td>@Content.Number</td>
+        </tr>
+
+        <tr>
+            <th>Uzasadnienie</th>
+            <td>@Content.Note</td>
+        </tr>
+        <tr>
+            <th>Pracownik</th>
+            <td>@Content.EmployeeName</td>
+        </tr>
+      
+        <tr>
+            <th>Aprobata 1</th>
+            <td>@Content.LVL1_EmployeeName</td>
+        </tr>
+        <tr>
+            <th>Aprobata 2</th>
+            <td>@Content.LVL2_EmployeeName</td>
+        </tr>
+    </table>
+
+</FluentDialogBody>
+
+@code {
+    [Parameter]
+    public ITSaleFormVm Content { get; set; } = default!;
+}

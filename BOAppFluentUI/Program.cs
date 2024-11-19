@@ -44,12 +44,11 @@ public class Program
 
         builder.Services.AddFluentUIComponents();
         builder.Services.AddDataGridEntityFrameworkAdapter();
-        //builder.Services.AddScoped<ITooltipService, TooltipService>();
 
 
 
         var app = builder.Build();
-
+        app.UseSession();
         // Configure the HTTP request pipeline.
         if (!app.Environment.IsDevelopment())
         {

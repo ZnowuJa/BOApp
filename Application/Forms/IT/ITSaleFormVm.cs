@@ -1,5 +1,7 @@
 ﻿using System.Text.Json;
 using Application.DTOs;
+using Application.ExportModels;
+using Application.Interfaces;
 using Application.Mappings;
 using Application.ViewModels;
 using Application.ViewModels.General;
@@ -10,7 +12,7 @@ using Domain.Forms.ITForms;
 using Domain.WorkFlows;
 
 namespace Application.Forms.IT;
-public class ITSaleFormVm : IMapFrom<ITSaleForm>
+public class ITSaleFormVm : IMapFrom<ITSaleForm>, IFormVm
 {
     public ITSaleFormVm()
     {
@@ -48,10 +50,10 @@ public class ITSaleFormVm : IMapFrom<ITSaleForm>
 
     public List<FormFileVm> FormFiles { get; set; }
     public int? CompanyId { get; set; }
-    public int? CompanyName { get; set; }
+    public string? CompanyName { get; set; }
     public CompanyVm? Company { get; set; }
     public int? EmployeeId { get; set; }
-    public int? EmployeeName { get; set; }
+    public string? EmployeeName { get; set; }
     public EmployeeVm? Employee { get; set; }
     public ICollection<AssetDTO>? Assets { get; set; }
     public List<int>? AssetIds { get; set; }
@@ -70,7 +72,10 @@ public class ITSaleFormVm : IMapFrom<ITSaleForm>
             .ForMember(dest => dest.Level1Approvers, opt => opt.MapFrom(src => SerializeRoles(src.Level1Approvers)))
             .ForMember(dest => dest.Level2Approvers, opt => opt.MapFrom(src => SerializeRoles(src.Level2Approvers)))
             .ForMember(dest => dest.Approvals, opt => opt.MapFrom(src => SerializeApprovals(src.Approvals)))
-            .ForMember(dest => dest.AssetIds, opt => opt.MapFrom(src => SerializeAssetIds(src.Assets)));
+            .ForMember(dest => dest.AssetIds, opt => opt.MapFrom(src => SerializeAssetIds(src.AssetIds)));
+
+        profile.CreateMap<ITSaleFormVm, ITSaleFormExportModel>()
+                .ForMember(dest => dest.AssetIds, opt => opt.MapFrom(src => SerializeAssetIds(src.AssetIds)));
     }
 
     private string SerializeApprovals(List<Approval> approvals)
@@ -89,7 +94,13 @@ public class ITSaleFormVm : IMapFrom<ITSaleForm>
     {
         return string.IsNullOrEmpty(json) ? new List<OrganisationRoleForFormVm>() : JsonSerializer.Deserialize<List<OrganisationRoleForFormVm>>(json);
     }
-    private string SerializeAssetIds(ICollection<AssetDTO>? assets)
+    private string SerializeAssetIds(List<int>? assetIds)
+    {
+        return assetIds == null || !assetIds.Any()
+            ? string.Empty
+            : JsonSerializer.Serialize(assetIds);
+    }
+    private string SerializeAssetIdsOld(ICollection<AssetDTO>? assets)
     {
         return assets == null || !assets.Any()
             ? string.Empty
