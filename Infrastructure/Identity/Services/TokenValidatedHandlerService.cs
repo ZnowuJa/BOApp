@@ -86,18 +86,25 @@ public class TokenValidatedHandlerService : ITokenValidatedHandlerService
         if (emplExists && userExists)
         {
             empl = await _appDbContext.Employees.Where(e => e.Email.ToUpper() == preferredUserName.ToUpper() && e.IsActive == 1).FirstOrDefaultAsync();
-            await UpdateEmployee(appUser, empl);
+            await UpdateEmployee(appUser, empl,context);
             await UpdateClaims(empl, appUser, context);
             ///update claims
         }
 
     }
 
-    public async Task<bool> UpdateEmployee(AppUser appUser, Employee empl)
+    public async Task<bool> UpdateEmployee(AppUser appUser, Employee empl, TokenValidatedContext ctx)
     {
         //empl = await _appDbContext.Employees.Where(e => e.Email.ToString() == user.Email).FirstOrDefaultAsync();
         empl.AspNetUserId = appUser.Id;
         empl.AzureObjectId = appUser.AzureObjectId;
+        if(empl.AzureObjectId.ToString() == "00000000-0000-0000-0000-000000000000")
+        {
+            var aadoidc = Guid.Parse(ctx.Principal.Claims.FirstOrDefault(c => c.Type == "http://schemas.microsoft.com/identity/claims/objectidentifier")?.Value);
+            empl.AzureObjectId = aadoidc;
+            appUser.AzureObjectId = aadoidc;
+            await _userManager.UpdateAsync(appUser);
+        }
         empl.IdentityUserName = appUser.UserName;
         //empl.Type = await _appDbContext.EmployeeTypes.Where(t => t.Name == "User").FirstOrDefaultAsync();
         if (empl.IsManager)
@@ -108,7 +115,7 @@ public class TokenValidatedHandlerService : ITokenValidatedHandlerService
         {
             await _userManager.RemoveFromRoleAsync(appUser, "Manager");
         }
-
+        
         _appDbContext.Employees.Update(empl);
         var res = await _appDbContext.SaveChangesAsync();
         _logger.LogInformation($"res pod SaveChangesAsync to {res}");
