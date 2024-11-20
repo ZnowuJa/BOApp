@@ -1,5 +1,5 @@
 ﻿using Application.Interfaces;
-using Application.ITWarehouseCQRS.Currencies.Commands;
+using Application.CQRS.ITWarehouseCQRS.Currencies.Commands;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System;

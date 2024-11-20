@@ -1,16 +1,23 @@
 ﻿using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Application.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
-namespace Application.ITWarehouseCQRS.Categories.Commands;
-public class DeleteCategoryCommand : IRequest<int>
+namespace Application.CQRS.ITWarehouseCQRS.Categories.Commands;
+public class DeleteCategoryCommand(int id) : IRequest<int>
 {
-    public int Id { get; set; }
-    public DeleteCategoryCommand(int id)
+    public int Id { get; set; } = id;
+}
+public class DeleteCategoryCommandHandler(IAppDbContext appDbContext) : IRequestHandler<DeleteCategoryCommand, int>
+{
+    private readonly IAppDbContext _appDbContext = appDbContext;
+
+    public async Task<int> Handle(DeleteCategoryCommand request, CancellationToken cancellationToken)
     {
-        Id = id;
+
+        var result = await _appDbContext.Categories.Where(p => p.Id == request.Id).FirstOrDefaultAsync(cancellationToken);
+        _appDbContext.Categories.Remove(result);
+        await _appDbContext.SaveChangesAsync();
+
+        return result.Id;
     }
 }

@@ -1,18 +1,23 @@
-﻿using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Application.Interfaces;
+using MediatR;
+using Microsoft.EntityFrameworkCore;
 
-namespace Application.ITWarehouseCQRS.CategoryTypes.Commands;
-public class UpdateCategoryTypeCommand : IRequest<int>
+namespace Application.CQRS.ITWarehouseCQRS.CategoryTypes.Commands;
+public class UpdateCategoryTypeCommand(int id, string name) : IRequest<int>
 {
-    public int Id { get; set; } 
-    public string Name { get; set;}
-    public UpdateCategoryTypeCommand(int id, string name)
+    public int Id { get; set; } = id;
+    public string Name { get; set; } = name;
+}
+public class UpdateCategoryTypeCommandHandler(IAppDbContext context) : IRequestHandler<UpdateCategoryTypeCommand, int>
+{
+    private readonly IAppDbContext _context = context;
+
+    public async Task<int> Handle(UpdateCategoryTypeCommand request, CancellationToken cancellationToken)
     {
-        Id = id;
-        Name = name;
+        // czy ze strony przekazuję ID do Update'u???
+        var categoryType = await _context.CategoryTypes.Where(p => p.Id == request.Id).FirstOrDefaultAsync(cancellationToken);
+        categoryType.Name = request.Name;
+        await _context.SaveChangesAsync();
+        return categoryType.Id;
     }
 }

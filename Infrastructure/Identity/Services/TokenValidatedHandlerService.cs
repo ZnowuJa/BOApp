@@ -1,7 +1,7 @@
 ﻿using Application.Entities;
 using Application.Interfaces;
 using Application.Interfaces.Identity.Services;
-using Application.ITWarehouseCQRS.CategoryTypes.Queries;
+using Application.CQRS.ITWarehouseCQRS.CategoryTypes.Queries;
 using Application.ViewModels.General;
 
 using Domain.Entities.ITWarehouse;
