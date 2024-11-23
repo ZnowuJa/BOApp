@@ -6,7 +6,7 @@
 @using Application.CQRS.AccountingCQRS.DeferralPayment.Commands;
 @using Application.CQRS.AccountingCQRS.DeferralPayment.Queries
 @using Application.CQRS.AccountingCQRS.TestForms.Commands
-@using Application.CQRS.General.FormFiles.Commands
+@* @using Application.CQRS.General.FormFiles.Commands *@
 @using Application.CQRS.General.Organisations.Queries
 @using Application.CQRS.General.Workflows.Queries
 @using Application.Forms
@@ -414,7 +414,7 @@ else
 
                 try
                 {
-                    await _mediator.Send(new CreateFormFileCommand(file));
+                    // await _mediator.Send(new CreateFormFileCommand(file));
                 }
                 catch (Exception ex)
                 {

@@ -15,6 +15,7 @@
 
 @inject IMediator _mediator;
 @inject ISessionService _sessionService
+@inject IFileService _fileService
 @implements IDialogContentComponent<ITSaleFormVm>
 
 
@@ -115,6 +116,25 @@
         Update
     </FluentButton> *@
     </FluentStack>
+    <FluentInputFile
+    @ref="@inputFile"
+    AnchorId="MyUploadStream"
+    DragDropZoneVisible="false"
+    Mode="InputFileMode.Stream"
+    Multiple="true"
+    MaximumFileSize="@(20 * 1024 * 1024)"
+    Accept=".pdf, .jpg, .png"
+    OnFileUploaded="@OnFileUploadedAsync"
+    OnCompleted="@OnCompleted"
+    />
+    <FluentProgress Min="0" Max="100" Value="@progressPercent" Visible="@(progressPercent > 0)" />
+    <FluentLabel Alignment="HorizontalAlignment.Center">
+        @progressTitle
+    </FluentLabel>
+
+    <FluentButton Appearance="Appearance.Accent" Id="MyUploadStream">
+        Upload files
+    </FluentButton>
 </FluentDialogBody>
 
 
@@ -134,12 +154,10 @@
 @code {
     #region Declarations
     private string SessionId { get; set; }
-
     [Parameter]
     public ITSaleFormVm Content { get; set; } = default!;
-
     [CascadingParameter]
-    public FluentDialog Dialog { get; set; } = default!;
+    public FluentDialog Dialog { get; set; }  = default!;
 
     private EditContext _editContext;
 
@@ -157,6 +175,13 @@
 
     private bool showAssetAdd = false;
     PaginationState pagination = new PaginationState { ItemsPerPage = 5 };
+
+    FluentInputFile? inputFile = default!;
+    private int? progressPercent;
+    private string? progressTitle;
+    List<string> Files = new();
+    List<FormFile> formFiles = new();
+
     #endregion Declarations
 
     protected override async Task OnInitializedAsync()
@@ -200,7 +225,6 @@
         SelectedAsset = Array.Empty<AssetVm>();
 
     }
-
     private async Task SaveAsync()
     {
         await Dialog.CloseAsync(Content);
@@ -314,6 +338,45 @@
         e.Items = AssetsListAll.Where(a => a.AssetTagNumber.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
     }
 
+    private async Task OnFileUploadedAsync(FluentInputFileEventArgs file)
+    {
+        progressPercent = file.ProgressPercent;
+        progressTitle = file.ProgressTitle;
+
+        var localFile = Path.GetTempFileName() + file.Name;
+        Files.Add(localFile);
+
+        var fileInfo = await _fileService.UploadTemporaryFileAsync(file.Stream, file.Name, SessionId);
+        var resultFile = new FormFileVm{
+            TmpPath = fileInfo["TmpPath"],
+            TmpFileName = fileInfo["TmpFileName"],
+            TmpFileExtension = fileInfo["TmpFileExtension"],
+            OriginalFileName = fileInfo["OriginalFileName"],
+            Prefix = Content.NumberPrefix,
+            FolderName = Content.FolderName,
+            FormClassName = "ITSaleFormVm",
+
+        };
+
+        Content.FormFiles.Add(resultFile);
+        // Write to the FileStream
+        // See other samples: https://docs.microsoft.com/en-us/aspnet/core/blazor/file-uploads
+        // await using FileStream fs = new(localFile, FileMode.Create);
+        // await file.Stream!.CopyToAsync(fs);
+        // await file.Stream!.DisposeAsync();
+    }
+
+    private void OnCompleted(IEnumerable<FluentInputFileEventArgs> files)
+    {
+        progressPercent = inputFile!.ProgressPercent;
+        progressTitle = inputFile!.ProgressTitle;
+
+        // For the demo, delete these files.
+        // foreach (var file in Files)
+        // {
+        //     File.Delete(file);
+        // }
+    }
 }
 
 <style>

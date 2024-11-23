@@ -12,13 +12,13 @@
 @implements IDialogContentComponent<AssetDTO>
 @implements IDisposable
 
-    @if (editable == true)
+@if (editable == true)
 {
-    <FluentProgressRing>Loading...</FluentProgressRing>
+        <FluentProgressRing>Loading...</FluentProgressRing>
 }
 else
 {
-    
+
 }
 @* Header *@
 <FluentDialogHeader ShowDismiss="true">
@@ -40,7 +40,7 @@ else
 @* Body *@
 <FluentDialogBody Orientation="Orientation.Horizontal">
     <EditForm EditContext="_editContext">
-        
+
 
         <FluentGrid Justify="@Justification">
             @* AssetTagNumber *@
@@ -74,18 +74,18 @@ else
                 <div class="card">
 
                     @{
-                        <FluentCombobox TOption="PartVm"
-                                        Autocomplete="ComboboxAutocomplete.Inline"
-                                        Label="Part:"
-                                        Items="@itemPartsList"
-                                        Disabled="@editmode"
-                                        Id="PartId"
-                                        Width="150px"
-                                        Height="250px"
-                                        OptionValue="@(p => p.Id.ToString())"
-                                        OptionText="@(p => p.Name)"
-                                        @bind-SelectedOption="@Content.partVm"
-                                        ValueChanged="HandlePartChange" />
+                            <FluentCombobox TOption="PartVm"
+                                            Autocomplete="ComboboxAutocomplete.Inline"
+                                            Label="Part:"
+                                            Items="@itemPartsList"
+                                            Disabled="@editmode"
+                                            Id="PartId"
+                                            Width="150px"
+                                            Height="250px"
+                                            OptionValue="@(p => p.Id.ToString())"
+                                            OptionText="@(p => p.Name)"
+                                            @bind-SelectedOption="@Content.partVm"
+                                            ValueChanged="HandlePartChange" />
                     }
                     <FluentValidationMessage For="@(() => Content.PartVmId)" />
 
@@ -96,18 +96,18 @@ else
                 <div class="card">
 
                     @{
-                        <FluentCombobox TOption="StateVm"
-                                        Autocomplete="ComboboxAutocomplete.Inline"
-                                        Label="Select state:"
-                                        Disabled="@editable"
-                                        Items="@itemStatesList"
-                                        Id="StateId"
-                                        Width="150px"
-                                        Height="250px"
-                                        OptionValue="@(p => p.Id.ToString())"
-                                        OptionText="@(p => p.Name)"
-                                        @bind-SelectedOption="@Content.stateVm"
-                                        ValueChanged="HandleStateChange" />
+                            <FluentCombobox TOption="StateVm"
+                                            Autocomplete="ComboboxAutocomplete.Inline"
+                                            Label="Select state:"
+                                            Disabled="@editable"
+                                            Items="@itemStatesList"
+                                            Id="StateId"
+                                            Width="150px"
+                                            Height="250px"
+                                            OptionValue="@(p => p.Id.ToString())"
+                                            OptionText="@(p => p.Name)"
+                                            @bind-SelectedOption="@Content.stateVm"
+                                            ValueChanged="HandleStateChange" />
 
                     }
                     <FluentValidationMessage For="@(() => Content.StateVmId)" />
@@ -118,21 +118,21 @@ else
             <FluentGridItem xs="6" sm="4">
                 <div class="card">
                     @{
-                        <div>
-                            <FluentAutocomplete TOption="IAssigneeVm"
-                                                AutoComplete="on"
-                                                Label="Select assignment..."
-                                                Disabled="@editable"
-                                                OnOptionsSearch="OnAssigneeSearch"
-                                                Placeholder="Select assignee"
-                                                MaximumSelectedOptions="1"
-                                                OptionText="@(p => p.LongName + ' '  + @p.Id)"
-                                                Value="@Content.AssigneeVM.LongName"
-                                                @bind-SelectedOptions="@SelectedAssignee"
-                                                Height="550px"
-                                                Width="200px"
-                                                ValueChanged="@HandleAssigneeChange" />
-                        </div>
+                            <div>
+                                <FluentAutocomplete TOption="IAssigneeVm"
+                                                    AutoComplete="on"
+                                                    Label="Select assignment..."
+                                                    Disabled="@editable"
+                                                    OnOptionsSearch="OnAssigneeSearch"
+                                                    Placeholder="Select assignee"
+                                                    MaximumSelectedOptions="1"
+                                                    OptionText="@(p => p.LongName + ' '  + @p.Id)"
+                                                    Value="@Content.AssigneeVM.LongName"
+                                                    @bind-SelectedOptions="@SelectedAssignee"
+                                                    Height="550px"
+                                                    Width="200px"
+                                                    ValueChanged="@HandleAssigneeChange" />
+                            </div>
                     }
                 </div>
             </FluentGridItem>
@@ -140,17 +140,17 @@ else
             <FluentGridItem xs="6" sm="4">
                 <div class="card">
                     @{
-                        <FluentCombobox TOption="WarehouseVm"
-                                        Autocomplete="ComboboxAutocomplete.Inline"
-                                        Label="Select warehouse:"
-                                        Disabled="@editable"
-                                        Items="@itemWarehousesList"
-                                        Id="WareHId"
-                                        Width="150px"
-                                        Height="250px"
-                                        OptionValue="@(p => p.Id.ToString())"
-                                        OptionText="@(p => p.Name)"
-                                        @bind-SelectedOption="@Content.warehouseVm" />
+                            <FluentCombobox TOption="WarehouseVm"
+                                            Autocomplete="ComboboxAutocomplete.Inline"
+                                            Label="Select warehouse:"
+                                            Disabled="@editable"
+                                            Items="@itemWarehousesList"
+                                            Id="WareHId"
+                                            Width="150px"
+                                            Height="250px"
+                                            OptionValue="@(p => p.Id.ToString())"
+                                            OptionText="@(p => p.Name)"
+                                            @bind-SelectedOption="@Content.warehouseVm" />
                         // ValueChanged = "HandleWarehouseChange"
                     }
                     <FluentValidationMessage For="@(() => Content.WarehouseVmId)" />
@@ -189,20 +189,20 @@ else
             <FluentGridItem xs="6" sm="4">
                 <div class="card">
                     @{
-                        <FluentCombobox TOption="CurrencyVm"
-                                        Autocomplete="ComboboxAutocomplete.Inline"
-                                        Disabled="@editmode"
-                                        Label="Select currency:"
-                                        Items="@itemCurrenciesList"
-                                        Id="CurrencyId"
-                                        Width="150px"
-                                        Height="250px"
-                                        OptionValue="@(p => p.Id.ToString())"
-                                        OptionText="@(p => p.Name)"
-                                        @bind-SelectedOption="@Content.currencyVm"
-                                        ValueChanged="HandleCurrencyChange" />
+                            <FluentCombobox TOption="CurrencyVm"
+                                            Autocomplete="ComboboxAutocomplete.Inline"
+                                            Disabled="@editmode"
+                                            Label="Select currency:"
+                                            Items="@itemCurrenciesList"
+                                            Id="CurrencyId"
+                                            Width="150px"
+                                            Height="250px"
+                                            OptionValue="@(p => p.Id.ToString())"
+                                            OptionText="@(p => p.Name)"
+                                            @bind-SelectedOption="@Content.currencyVm"
+                                            ValueChanged="HandleCurrencyChange" />
 
-                        <FluentValidationMessage For="@(() => Content.CurrencyVmId)" />
+                            <FluentValidationMessage For="@(() => Content.CurrencyVmId)" />
                     }
 
                 </div>
@@ -211,18 +211,18 @@ else
             <FluentGridItem xs="6" sm="4">
                 <div class="card">
                     @{
-                        <FluentCombobox TOption="InvoiceVm"
-                                        Autocomplete="ComboboxAutocomplete.Inline"
-                                        Disabled="@editmode"
-                                        Label="Select invoice:"
-                                        Items="@itemInvoicesList"
-                                        Id="InvoiceId"
-                                        Width="150px"
-                                        Height="250px"
-                                        OptionValue="@(p => p.Id.ToString())"
-                                        OptionText="@(p => p.Number.ToString())"
-                                        @bind-SelectedOption="@Content.invoiceVm"
-                                        ValueChanged="HandleInvoiceChange" />
+                            <FluentCombobox TOption="InvoiceVm"
+                                            Autocomplete="ComboboxAutocomplete.Inline"
+                                            Disabled="@editmode"
+                                            Label="Select invoice:"
+                                            Items="@itemInvoicesList"
+                                            Id="InvoiceId"
+                                            Width="150px"
+                                            Height="250px"
+                                            OptionValue="@(p => p.Id.ToString())"
+                                            OptionText="@(p => p.Number.ToString())"
+                                            @bind-SelectedOption="@Content.invoiceVm"
+                                            ValueChanged="HandleInvoiceChange" />
 
                     }
 
@@ -258,56 +258,56 @@ else
             @if (Content.EndOfSupport != null)
             {
                 @* EndOfSupport Date *@
-                <FluentGridItem xs="6" sm="4">
-                    <div class="card">
-                        <FluentDatePicker Id="EOSID"
-                                          Disabled="@editmode"
-                                          Label="End of support:"
-                                          @bind-Value="@Content.EndOfSupport"
-                                          Placeholder="Enter date">
-                            End of support:
-                        </FluentDatePicker>
-                        <FluentValidationMessage For="@(() => Content.EndOfSupport)" />
-                    </div>
-                </FluentGridItem>
+                    <FluentGridItem xs="6" sm="4">
+                        <div class="card">
+                            <FluentDatePicker Id="EOSID"
+                                              Disabled="@editmode"
+                                              Label="End of support:"
+                                              @bind-Value="@Content.EndOfSupport"
+                                              Placeholder="Enter date">
+                                End of support:
+                            </FluentDatePicker>
+                            <FluentValidationMessage For="@(() => Content.EndOfSupport)" />
+                        </div>
+                    </FluentGridItem>
             }
             @if (Content.Leasing)
             {
                 @* Warranty Date *@
-                <FluentGridItem xs="6" sm="4">
-                    <div class="card">
-                        <FluentDatePicker Id="EOCID"
-                                          Disabled="@editmode"
-                                          Label="End of contract:"
-                                          @bind-Value="@Content.EndOfContract"
-                                          Placeholder="Enter date">
-                            End of contract:
-                        </FluentDatePicker>
-                        <FluentValidationMessage For="@(() => Content.EndOfContract)" />
-                    </div>
-                </FluentGridItem>
+                    <FluentGridItem xs="6" sm="4">
+                        <div class="card">
+                            <FluentDatePicker Id="EOCID"
+                                              Disabled="@editmode"
+                                              Label="End of contract:"
+                                              @bind-Value="@Content.EndOfContract"
+                                              Placeholder="Enter date">
+                                End of contract:
+                            </FluentDatePicker>
+                            <FluentValidationMessage For="@(() => Content.EndOfContract)" />
+                        </div>
+                    </FluentGridItem>
             }
         </FluentGrid>
         @if (itemAssetHistory != null)
         {
-            <p></p>
-            <p></p>
-            <FluentLabel Typo="Typography.PaneHeader">
-                Asset history:
-            </FluentLabel>
-            <FluentDataGrid Items="itemAssetHistory" TGridItem="AssetHistoryVm" GridTemplateColumns="80px repeat(4, 0.75fr)" ResizableColumns=true Pagination="@paginationHistory">
+                <p></p>
+                <p></p>
+                <FluentLabel Typo="Typography.PaneHeader">
+                    Asset history:
+                </FluentLabel>
+                <FluentDataGrid Items="itemAssetHistory" TGridItem="AssetHistoryVm" GridTemplateColumns="80px repeat(4, 0.75fr)" ResizableColumns=true Pagination="@paginationHistory">
 
-                <PropertyColumn Property="@(c => c.Id)" Sortable="true" Align="Align.Start" Tooltip="true" Title="Id"> </PropertyColumn>
-                <PropertyColumn Property="@(c => c.ChangeDate.ToLongDateString())" Sortable="true" Align="Align.Start" Tooltip="true" Title="Name"> </PropertyColumn>
-                <PropertyColumn Property="@(c => c.ALongName)" Sortable="true" Align="Align.Start" Tooltip="true" Title="A Name"> </PropertyColumn>
-                <PropertyColumn Property="@(c => c.BLongName)" Sortable="true" Align="Align.Start" Tooltip="true" Title="B Name"> </PropertyColumn>
-                <PropertyColumn Property="@(c => c.ModifiedBy)" Sortable="true" Align="Align.Start" Tooltip="true" Title="ModifiedBy"> </PropertyColumn>
-            </FluentDataGrid>
+                    <PropertyColumn Property="@(c => c.Id)" Sortable="true" Align="Align.Start" Tooltip="true" Title="Id"> </PropertyColumn>
+                    <PropertyColumn Property="@(c => c.ChangeDate.ToLongDateString())" Sortable="true" Align="Align.Start" Tooltip="true" Title="Name"> </PropertyColumn>
+                    <PropertyColumn Property="@(c => c.ALongName)" Sortable="true" Align="Align.Start" Tooltip="true" Title="A Name"> </PropertyColumn>
+                    <PropertyColumn Property="@(c => c.BLongName)" Sortable="true" Align="Align.Start" Tooltip="true" Title="B Name"> </PropertyColumn>
+                    <PropertyColumn Property="@(c => c.ModifiedBy)" Sortable="true" Align="Align.Start" Tooltip="true" Title="ModifiedBy"> </PropertyColumn>
+                </FluentDataGrid>
         }
 
         @if (!string.IsNullOrEmpty(errorMessage))
         {
-            <div class="validation-error"><p style="color:red;">@errorMessage</p></div>
+                <div class="validation-error"><p style="color:red;">@errorMessage</p></div>
         }
 
     </EditForm>
@@ -354,14 +354,14 @@ else
 
     private CancellationTokenSource cts = new CancellationTokenSource();
 
-    
+
 
     #endregion Properties
 
     protected override async Task OnInitializedAsync()
     {
         _editContext = new EditContext(Content);
-        
+
         itemEmployeesList = await _mediator.Send(new GetAllEmployeesForSelectQuery());
         itemDepartmentsList = await _mediator.Send(new GetAllDepartmentsQuery());
 
@@ -459,7 +459,7 @@ else
     }
     private void OnAssigneeSearch(OptionsSearchEventArgs<IAssigneeVm> e)
     {
-        if(e.Text != null)
+        if (e.Text != null)
         {
             e.Items = itemAssigneesList.Where(a => a.LongName.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
         }
@@ -480,7 +480,8 @@ else
         if (Content.currencyVm.Id != null)
         {
             Content.CurrencyVmId = Content.currencyVm.Id;
-        } else
+        }
+        else
         {
             Content.CurrencyVmId = 1;
         }
@@ -522,7 +523,7 @@ else
                 Content.WarehouseVmId = wh.Id;
                 Content.WarehouseVmName = wh.Name;
                 Content.WarehouseVmNumber = wh.Number.ToString();
-               
+
 
                 if (Content.StateVmId == 1)
                 {
@@ -536,7 +537,7 @@ else
             }
         }
 
-        
+
     }
     private void HandleStateChange(string newValue)
     {
@@ -556,7 +557,7 @@ else
     }
     private void HandleWarehouseChange(string newValue)
     {
-        if(Content.warehouseVm.Id != null)
+        if (Content.warehouseVm.Id != null)
         {
             Content.WarehouseVmId = Content.warehouseVm.Id;
         }

@@ -30,4 +30,5 @@ public class ITSaleForm : FormTemplate
     public int? EmployeeId { get; set; } //Person buying asset - EnovaEmpId from Employee
     public string? EmployeeName { get; set; } //Person buying asset - from Employee
     public string AssetIds { get; set; }
+    public string FormFiles { get; set; }
 }

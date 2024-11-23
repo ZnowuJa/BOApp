@@ -82,13 +82,13 @@ public class ITSaleFormVm : IMapFrom<ITSaleForm>, IFormVm
     {
         return approvals == null || approvals.Count == 0 ? string.Empty : JsonSerializer.Serialize(approvals);
     }
-    private string SerializeRoles(List<OrganisationRoleForFormVm> roles)
-    {
-        return roles == null || roles.Count == 0 ? string.Empty : JsonSerializer.Serialize(roles);
-    }
     private List<Approval> DeserializeApprovals(string json)
     {
         return string.IsNullOrEmpty(json) ? new List<Approval>() : JsonSerializer.Deserialize<List<Approval>>(json);
+    }
+    private string SerializeRoles(List<OrganisationRoleForFormVm> roles)
+    {
+        return roles == null || roles.Count == 0 ? string.Empty : JsonSerializer.Serialize(roles);
     }
     private List<OrganisationRoleForFormVm> DeserializeRoles(string json)
     {
@@ -100,27 +100,21 @@ public class ITSaleFormVm : IMapFrom<ITSaleForm>, IFormVm
             ? string.Empty
             : JsonSerializer.Serialize(assetIds);
     }
-    private string SerializeAssetIdsOld(ICollection<AssetDTO>? assets)
-    {
-        return assets == null || !assets.Any()
-            ? string.Empty
-            : JsonSerializer.Serialize(assets.Select(a => a.Id));
-    }
-
-    private List<AssetDTO> DeserializeAssetIds(string assetIdsJson)
-    {
-        return string.IsNullOrEmpty(assetIdsJson)
-            ? new List<AssetDTO>()
-            : JsonSerializer.Deserialize<List<int>>(assetIdsJson)
-                .Select(id => new AssetDTO { Id = id })
-                .ToList();
-    }
-   
-
     private List<int> DeserializeAssetIds2Int(string assetIdsJson)
     {
         return string.IsNullOrEmpty(assetIdsJson)
             ? new List<int>()
             : JsonSerializer.Deserialize<List<int>>(assetIdsJson);
     }
+    private string SerializeFiles(List<FileFormVm> files)
+    {
+        return files == null || files.Count == 0 ? string.Empty : JsonSerializer.Serialize(files);
+    }
+
+    private List<FileFormVm> DeserializeFiles(string json)
+    {
+        return string.IsNullOrEmpty(json) ? new List<FileFormVm>() : JsonSerializer.Deserialize<List<FileFormVm>>(json);
+    }
+    
+
 }

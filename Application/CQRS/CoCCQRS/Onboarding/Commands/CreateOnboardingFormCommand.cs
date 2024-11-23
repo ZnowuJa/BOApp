@@ -78,7 +78,7 @@ public class CreateOnboardingFormCommandHandler : IRequestHandler<CreateOnboardi
             LVL2_EnovaEmpId = _LVL2_EnovaEmpId,
             LVL1_EmployeeName = _LVL1_EmployeeName,
             LVL2_EmployeeName = _LVL2_EmployeeName,
-            FormFiles = _FormFiles,
+            //FormFiles = _FormFiles,
         };
 
         _appDbContext.OnboardingForms.Add(item);

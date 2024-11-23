@@ -31,7 +31,7 @@ public class FileService : IFileService
         return fileName;
     }
 
-    public async Task<string> UploadTemporaryFileAsync(IBrowserFile file, string sessionId)
+    public async Task<Dictionary<string, string>> UploadTemporaryFileAsync(Stream fileStream, string fileName, string sessionId)
     {
         var tempFolder = Path.Combine(_environment.WebRootPath, "temp", sessionId);
         if (!Directory.Exists(tempFolder))
@@ -40,15 +40,23 @@ public class FileService : IFileService
         }
 
         var timestamp = DateTime.Now.ToString("yyyyMMddHHmmssfff");
-        var fileExtension = Path.GetExtension(file.Name);
+        var fileExtension = Path.GetExtension(fileName);
         var customFileName = $"{timestamp}{fileExtension}";
 
         var filePath = Path.Combine(tempFolder, customFileName);
-        await using var fileStream = new FileStream(filePath, FileMode.Create);
-        await file.OpenReadStream().CopyToAsync(fileStream);
-        return customFileName;
-    }
+        await using var newFileStream = new FileStream(filePath, FileMode.Create);
+        await fileStream.CopyToAsync(newFileStream);
 
+        return new Dictionary<string, string>
+        {
+            { "TmpPath", filePath },
+            { "TmpFileName", customFileName },
+            { "TmpFileExtension", fileExtension },
+            { "OriginalFileName", fileName.ToUpper() }
+        };
+    }
+    //add method to delete temporary file if deleted by user on form before first save
+    //add method to colle
     public async Task MoveTemporaryFilesToPermanentLocationAsync(string sessionId, string sourceFolder, string folderName, string numberPrefix, int id)
     {
         var tempFolder = Path.Combine(_environment.WebRootPath, "temp", sessionId);
@@ -60,7 +68,7 @@ public class FileService : IFileService
         }
 
         var tempFiles = Directory.GetFiles(sourceFolder);
-        var idFormatted = id.ToString("D10");
+        var idFormatted = id.ToString("D8");
         var fileCounter = 1;
 
         foreach (var tempFile in tempFiles)

@@ -18,12 +18,11 @@ using System.Threading.Tasks;
 namespace Application.CQRS.General.Organisations.Queries;
 public class GetOrganisationByEmpSapNumberQuery : IRequest<OrganisationVm>
 {
+    public string Sn { get; set; }
     public GetOrganisationByEmpSapNumberQuery(string sn)
     {
         Sn = sn;
     }
-
-    public string Sn { get; set; }
 }
 
 public class GetOrganisationByEmpSapNumberQueryHandler : IRequestHandler<GetOrganisationByEmpSapNumberQuery, OrganisationVm>

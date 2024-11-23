@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="CQRS\General\FormFiles\**" />
     <Compile Remove="Interfaces\ITWarehouse.Services\**" />
     <Compile Remove="CQRS\ITWarehouseCQRS\AssetsById\**" />
     <Compile Remove="CQRS\ITWarehouseCQRS\EmpInfos\**" />
@@ -14,6 +15,7 @@
     <Compile Remove="Services\**" />
     <Compile Remove="ViewModels\Category\**" />
     <Compile Remove="ViewModels\Employees\**" />
+    <EmbeddedResource Remove="CQRS\General\FormFiles\**" />
     <EmbeddedResource Remove="Interfaces\ITWarehouse.Services\**" />
     <EmbeddedResource Remove="CQRS\ITWarehouseCQRS\AssetsById\**" />
     <EmbeddedResource Remove="CQRS\ITWarehouseCQRS\EmpInfos\**" />
@@ -21,6 +23,7 @@
     <EmbeddedResource Remove="Services\**" />
     <EmbeddedResource Remove="ViewModels\Category\**" />
     <EmbeddedResource Remove="ViewModels\Employees\**" />
+    <None Remove="CQRS\General\FormFiles\**" />
     <None Remove="Interfaces\ITWarehouse.Services\**" />
     <None Remove="CQRS\ITWarehouseCQRS\AssetsById\**" />
     <None Remove="CQRS\ITWarehouseCQRS\EmpInfos\**" />

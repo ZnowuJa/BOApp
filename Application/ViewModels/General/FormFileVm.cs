@@ -14,9 +14,10 @@ public class FormFileVm : IMapFrom<FormFile>
     public string Prefix { get; set; }
     public string FolderName { get; set; }
     public string FormClassName { get; set; }
-    public int FormId { get; set; }
-    public int Order { get; set; }
+    public int? FormId { get; set; }
+    public int Order { get; set; } //order of files
     public bool Deleted { get; set; } = false;
+    public string OriginalFileName { get; set; }
 
     public void Mapping(Profile profile)
     {
