@@ -8,7 +8,6 @@ using AutoMapper;
 using MediatR;
 
 using Microsoft.EntityFrameworkCore;
-using Application.ITWarehouseCQRS.Assets.Queries;
 
 namespace Application.CQRS.ITWarehouseCQRS.Assets.Queries;
 public class GetAssetDTObyIdQuery : IRequest<AssetDTO>

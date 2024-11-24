@@ -8,11 +8,8 @@ using AutoMapper;
 using Domain.Forms;
 
 using MediatR;
-
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using Microsoft.Graph.Models;
 
 namespace Application.CQRS.AccountingCQRS.DeferralPayment.Commands;

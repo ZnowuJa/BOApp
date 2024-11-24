@@ -28,6 +28,8 @@
     <None Remove="Controllers\**" />
     <None Remove="Pages\**" />
     <None Remove="Shared\**" />
+    <Content Remove="_ViewStart.cshtml" />
+    <Content Remove="_ViewImports.cshtml" />
   </ItemGroup>
 
   <ItemGroup>

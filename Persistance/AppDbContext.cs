@@ -1,6 +1,4 @@
-﻿using System.Reflection.Emit;
-
-using Application.Entities;
+﻿using Application.Entities;
 using Application.Interfaces;
 using BackOfficeApp_Domain.Common;
 using Domain.Entities.Accounting;
@@ -49,7 +47,7 @@ public class AppDbContext : IdentityDbContext<AppUser>, IAppDbContext
     public DbSet<WorkflowStep> WorkflowSteps { get; set; }
     public DbSet<Organisation> Organisations { get; set; }
     public DbSet<TestForm> TestForms { get; set; }
-    //public DbSet<FormFile> FormFiles { get; set; }
+    public DbSet<FormFile> FormFiles { get; set; }
     public DbSet<GroupCoC> Groups { get; set; }
     public DbSet<Position> Positions { get; set; }
     public DbSet<InstructionCoC> Instructions { get; set; }

@@ -3,7 +3,6 @@
 using AutoMapper;
 
 using Domain.Entities.CoC;
-using Domain.Entities.ITWarehouse;
 
 
 namespace Application.ViewModels.CoC;

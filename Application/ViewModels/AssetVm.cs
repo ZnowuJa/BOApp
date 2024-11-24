@@ -1,7 +1,6 @@
 ﻿using Application.Mappings;
 using AutoMapper;
 using Domain.Entities.ITWarehouse;
-using Domain.Forms.ITForms;
 
 namespace Application.ViewModels;
 public class AssetVm : IMapFrom<Asset>

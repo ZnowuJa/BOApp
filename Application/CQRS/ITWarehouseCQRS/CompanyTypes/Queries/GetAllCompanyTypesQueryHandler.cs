@@ -4,11 +4,6 @@ using AutoMapper;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application.ITWarehouseCQRS.CompanyTypes.Queries;
 public class GetAllCompanyTypesQueryHandler : IRequestHandler<GetAllCompanyTypesQuery, IQueryable<CompanyTypeVm>>

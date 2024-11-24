@@ -1,11 +1,7 @@
-﻿using Application.Common;
-using Application.Mappings;
+﻿using Application.Mappings;
 using Application.ViewModels.General;
 using AutoMapper;
-
-using Domain.Entities.ITWarehouse;
 using Domain.Forms;
-using Domain.WorkFlows;
 
 namespace Application.Forms;
 

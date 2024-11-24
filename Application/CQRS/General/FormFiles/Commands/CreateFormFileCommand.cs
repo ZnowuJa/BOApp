@@ -38,18 +38,25 @@ public class CreateFormFileCommandHandler : IRequestHandler<CreateFormFileComman
 
     public async Task<int> Handle(CreateFormFileCommand request, CancellationToken cancellationToken)
     {
+        // var entity = new FormFile();
+        // _mapper.Map(request.FormFile, entity);
         var entity = new FormFile()
         {
-            Deleted = request.FormFile.Deleted,
+            
             TmpPath = request.FormFile.TmpPath,
             TmpFileName = request.FormFile.TmpFileName,
             TmpFileExtension = request.FormFile.TmpFileExtension,
+            DstPath = request.FormFile.DstPath,
+            DstFileName = request.FormFile.DstFileName,
+            FormPurpose = request.FormFile.FormPurpose,
             Prefix = request.FormFile.Prefix,
             FolderName = request.FormFile.FolderName,
             FormClassName = request.FormFile.FormClassName,
             FormId = request.FormFile.FormId,
             Order = request.FormFile.Order,
-
+            Deleted = request.FormFile.Deleted,
+            OriginalFileName = request.FormFile.OriginalFileName,
+        
         };
 
         _context.FormFiles.Add(entity);

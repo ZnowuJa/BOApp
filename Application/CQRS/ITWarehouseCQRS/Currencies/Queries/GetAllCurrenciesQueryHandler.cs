@@ -1,7 +1,6 @@
 ﻿using Application.Interfaces;
 using Application.ViewModels;
 using AutoMapper;
-using AutoMapper.QueryableExtensions;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;

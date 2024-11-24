@@ -1,9 +1,6 @@
 ﻿using Application.Interfaces;
-using Application.ITWarehouseCQRS.EmployeeTypes.Queries;
-using AutoMapper;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 
 namespace Application.ITWarehouseCQRS.EmployeeTypes.Commands;
 public class DeleteEmployeeTypeCommandHandler : IRequestHandler<DeleteEmployeeTypeCommand, int>

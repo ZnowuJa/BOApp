@@ -1,6 +1,4 @@
-﻿using Application.ViewModels;
-using Domain.Entities.ITWarehouse;
-using MediatR;
+﻿using MediatR;
 
 namespace Application.ITWarehouseCQRS.Assets.Commands;
 public class CreateAssetCommand : IRequest<int>

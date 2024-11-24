@@ -1,20 +1,14 @@
 ﻿
 @page "/deferralpaymentedit/{id:int}"
 @page "/platnoscodroczona/{id:int}"
-
-@using Application.CQRS.AccountingCQRS.Customer.Queries
 @using Application.CQRS.AccountingCQRS.DeferralPayment.Commands
 @using Application.CQRS.AccountingCQRS.DeferralPayment.Queries
 @using Application.CQRS.General.Organisations.Queries
-@using Application.Forms
 @using Application.Forms.Accounting
-@using Application.Interfaces
 @using Application.ViewModels.Accounting
 @using Application.ViewModels.General
 @using Microsoft.AspNetCore.Authorization
-@using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.FluentUI.AspNetCore.Components.Extensions
-@using MediatR
 @using System.Security.Claims
 
 @attribute [Authorize(Policy = "User")]

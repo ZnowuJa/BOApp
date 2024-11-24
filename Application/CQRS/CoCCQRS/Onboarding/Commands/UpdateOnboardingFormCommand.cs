@@ -5,10 +5,6 @@ using Application.ViewModels.CoC;
 using Application.ViewModels.General;
 
 using AutoMapper;
-
-using Domain.Entities.Common;
-using Domain.Forms;
-
 using MediatR;
 
 using Microsoft.EntityFrameworkCore;

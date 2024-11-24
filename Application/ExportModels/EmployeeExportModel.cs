@@ -1,15 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using Application.Interfaces;
-using Application.Mappings;
-using Application.ViewModels.General;
-using Domain.Entities.ITWarehouse;
-
-namespace Application.ExportModels;
+﻿namespace Application.ExportModels;
 public class EmployeeExportModel
 {
     public int Id { get; set; }

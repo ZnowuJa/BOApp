@@ -1,5 +1,4 @@
-﻿using Application.ViewModels;
-using MediatR;
+﻿using MediatR;
 
 namespace Application.ITWarehouseCQRS.Invoices.Commands;
 public class CreateInvoiceItemCommand : IRequest<int>

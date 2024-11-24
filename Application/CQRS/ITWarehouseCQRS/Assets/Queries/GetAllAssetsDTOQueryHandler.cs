@@ -6,8 +6,6 @@ using Application.ViewModels.General;
 using AutoMapper;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Diagnostics;
 
 namespace Application.ITWarehouseCQRS.Assets.Queries;
 public class GetAllAssetsDTOQueryHandler : IRequestHandler<GetAllAssetsDTOQuery, IQueryable<AssetDTO>>

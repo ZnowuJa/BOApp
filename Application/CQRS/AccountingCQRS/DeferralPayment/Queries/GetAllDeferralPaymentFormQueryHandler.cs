@@ -1,13 +1,9 @@
 ﻿using System.Text.Json;
 using Application.Forms.Accounting;
 using Application.Interfaces;
-using Application.ViewModels;
 using Application.ViewModels.General;
 
 using AutoMapper;
-
-using Domain.Forms;
-
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;

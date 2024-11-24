@@ -1,5 +1,4 @@
 ﻿using Application.Interfaces;
-using Application.ViewModels.General;
 using MediatR;
 
 using Microsoft.EntityFrameworkCore;

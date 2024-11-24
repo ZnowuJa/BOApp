@@ -10,8 +10,6 @@ using Domain.Entities.Common;
 using Domain.Forms;
 
 using MediatR;
-
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Graph.Models;
 

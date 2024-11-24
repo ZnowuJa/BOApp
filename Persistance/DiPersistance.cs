@@ -1,6 +1,4 @@
-﻿using System.Security.Claims;
-
-using Application.Entities;
+﻿using Application.Entities;
 using Application.Interfaces;
 using Application.Interfaces.Identity.Services;
 

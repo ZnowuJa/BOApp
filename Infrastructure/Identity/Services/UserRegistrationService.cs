@@ -1,8 +1,6 @@
 ﻿using Application.Entities;
 using Application.Interfaces.Identity.Services;
-using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Identity;
-using System.Security.Claims;
 
 namespace Infrastructure.Identity.Services;
 

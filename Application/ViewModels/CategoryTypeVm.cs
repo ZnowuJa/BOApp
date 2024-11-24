@@ -1,7 +1,6 @@
 ﻿using Application.Mappings;
 using AutoMapper;
 using Domain.Entities.ITWarehouse;
-using System.ComponentModel.DataAnnotations;
 
 namespace Application.ViewModels;
 public class CategoryTypeVm : IMapFrom<CategoryType>

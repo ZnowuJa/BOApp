@@ -6,9 +6,6 @@ using Application.Interfaces;
 using Application.ViewModels.General;
 
 using AutoMapper;
-
-using Domain.Forms;
-
 using MediatR;
 
 namespace Application.CQRS.AccountingCQRS.DeferralPayment.Commands;

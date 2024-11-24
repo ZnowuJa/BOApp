@@ -1,16 +1,9 @@
-﻿using Application.Forms;
-using Application.Interfaces;
-using Application.ViewModels;
+﻿using Application.Interfaces;
 using Application.ViewModels.Accounting;
 
 using AutoMapper;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application.CQRS.AccountingCQRS.Customer.Queries;
 public class GetCustomerQueryHandler : IRequestHandler<GetCustomerQuery, CustomerVm>

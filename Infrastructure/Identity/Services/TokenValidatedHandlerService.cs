@@ -1,25 +1,12 @@
 ﻿using Application.Entities;
 using Application.Interfaces;
 using Application.Interfaces.Identity.Services;
-using Application.ITWarehouseCQRS.CategoryTypes.Queries;
-using Application.ViewModels.General;
-
 using Domain.Entities.ITWarehouse;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Microsoft.Graph.Education.Classes.Item.Assignments.Item.Submissions.Item.Return;
-using Microsoft.Graph.Models;
-
-using Serilog;
-using Serilog.Core;
-
-using System.Globalization;
-using System.Net.Mail;
 using System.Security.Claims;
-
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Infrastructure.Identity.Services;
 public class TokenValidatedHandlerService : ITokenValidatedHandlerService

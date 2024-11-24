@@ -1,5 +1,4 @@
 ﻿using Application.ViewModels.General;
-using Domain.Entities.ITWarehouse;
 using MediatR;
 
 namespace Application.ITWarehouseCQRS.Employees.Commands;

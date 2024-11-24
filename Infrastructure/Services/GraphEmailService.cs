@@ -4,7 +4,6 @@ using Azure.Identity;
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Graph;
-using Microsoft.Graph.Me.SendMail;
 using Microsoft.Graph.Models;
 
 

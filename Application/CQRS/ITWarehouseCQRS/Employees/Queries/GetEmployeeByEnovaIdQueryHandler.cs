@@ -1,6 +1,4 @@
-﻿using System.Data;
-
-using Application.Interfaces;
+﻿using Application.Interfaces;
 using Application.Interfaces.Identity.Services;
 using Application.ViewModels.General;
 using AutoMapper;

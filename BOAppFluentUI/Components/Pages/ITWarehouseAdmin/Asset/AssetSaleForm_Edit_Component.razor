@@ -4,14 +4,12 @@
 @using Application.CQRS.ITWarehouseCQRS.Assets.Queries
 @using Application.DTOs
 @using Application.Forms.IT
-@using System.Collections.ObjectModel
-@using System.Linq.Expressions
 @using System.Linq
+@using Application.CQRS.General.FormFiles.Commands
 @using Application.ITWarehouseCQRS.Assets.Queries
 @using Application.ITWarehouseCQRS.Companies.Queries
 @using Application.Interfaces
 @using Application.ViewModels.General
-@using Microsoft.FluentUI.AspNetCore.Components.Extensions
 
 @inject IMediator _mediator;
 @inject ISessionService _sessionService
@@ -22,7 +20,7 @@
 @* Header *@
 <FluentDialogHeader ShowDismiss="true">
     <FluentStack VerticalAlignment="VerticalAlignment.Center">
-        <FluentIcon Value="@(new Icons.Regular.Size24.WindowApps())" />
+        <FluentIcon Value="@(new Icons.Regular.Size24.WindowApps())"/>
         <FluentLabel Typo="Typography.PaneHeader">
             @Dialog.Instance.Parameters.Title
         </FluentLabel>
@@ -48,10 +46,11 @@
 @* Body *@
 <FluentDialogBody>
     <h5>Assets to sale: </h5>
-    <FluentDataGrid Items = "@AssetsList" TGridItem="AssetDTO" Pagination="@pagination" AutoFit = "true" ResizableColumns="true">
+    <FluentDataGrid Items="@AssetsList" TGridItem="AssetDTO" Pagination="@pagination" AutoFit="true"
+                    ResizableColumns="true">
 
-        <PropertyColumn Property="@(p => p.AssetTagNumber)" Sortable="true" />
-        <PropertyColumn Property="@(p => p.SerialNumber)" Sortable="true" />
+        <PropertyColumn Property="@(p => p.AssetTagNumber)" Sortable="true"/>
+        <PropertyColumn Property="@(p => p.SerialNumber)" Sortable="true"/>
         <TemplateColumn Title="Actions" Align="Align.End">
             @{
                 // var viewId = $"viewid-{context.Id}";
@@ -59,56 +58,57 @@
                 var deleteId = $"deleteid-{context.Id}";
                 // var addId = $"addid-{context.Id}";
             }
-            <FluentButton Id="@deleteId" IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => DeleteAsset(context.Id))" />
+            <FluentButton Id="@deleteId" IconEnd="@(new Icons.Regular.Size20.Delete())"
+                          OnClick="@(() => DeleteAsset(context.Id))"/>
         </TemplateColumn>
 
     </FluentDataGrid>
-    <FluentPaginator State="@pagination" />
+    <FluentPaginator State="@pagination"/>
     <p></p>
     <FluentStack Orientation="Orientation.Horizontal">
-        <FluentLabel Typo="Typography.Subject"> Add another Asset:  </FluentLabel>
+        <FluentLabel Typo="Typography.Subject"> Add another Asset:</FluentLabel>
         <FluentAutocomplete TOption="AssetVm"
-        AutoComplete="on"
+                            AutoComplete="on"
 
-        OnOptionsSearch="OnAssetSearch"
-        Placeholder="Select asset..."
-        MaximumSelectedOptions="1"
-        OptionText="@(p => p.AssetTagNumber)"
-        @bind-SelectedOptions="@SelectedAsset"
-        Height="550px"
-        Width="200px" 
+                            OnOptionsSearch="OnAssetSearch"
+                            Placeholder="Select asset..."
+                            MaximumSelectedOptions="1"
+                            OptionText="@(p => p.AssetTagNumber)"
+                            @bind-SelectedOptions="@SelectedAsset"
+                            Height="550px"
+                            Width="200px"
         />
-        <FluentButton IconStart="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddAsset())" />
+        <FluentButton IconStart="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddAsset())"/>
     </FluentStack>
     <p></p>
-    <h5>Recipient: </h5> 
+    <h5>Recipient: </h5>
     <FluentStack Orientation="Orientation.Horizontal">
-        <FluentLabel Typo="Typography.Subject"> Employee:  </FluentLabel>
+        <FluentLabel Typo="Typography.Subject"> Employee:</FluentLabel>
         <FluentAutocomplete TOption="IAssigneeVm"
-        AutoComplete="on"
+                            AutoComplete="on"
 
-        OnOptionsSearch="OnAssigneeSearch"
-        Placeholder="Select assignee"
-        MaximumSelectedOptions="1"
-        OptionText="@(p => p.LongName)"
-        @bind-SelectedOptions="@SelectedAssignee"
-        @bind-SelectedOptions:after="UpdateSaleEmployee"
-        Height="550px"
-        Width="200px" 
+                            OnOptionsSearch="OnAssigneeSearch"
+                            Placeholder="Select assignee"
+                            MaximumSelectedOptions="1"
+                            OptionText="@(p => p.LongName)"
+                            @bind-SelectedOptions="@SelectedAssignee"
+                            @bind-SelectedOptions:after="UpdateSaleEmployee"
+                            Height="550px"
+                            Width="200px"
         />
 
-        <FluentLabel Typo="Typography.Subject"> Company:  </FluentLabel>
+        <FluentLabel Typo="Typography.Subject"> Company:</FluentLabel>
         <FluentAutocomplete TOption="CompanyVm"
-        AutoComplete="on"
+                            AutoComplete="on"
 
-        OnOptionsSearch="OnCompanySearch"
-        Placeholder="Select company..."
-        MaximumSelectedOptions="1"
-        OptionText="@(p => p.Name)"
-        @bind-SelectedOptions="@SelectedCompanies"
-        @bind-SelectedOptions:after="UpdateSaleCompany"
-        Height="550px"
-        Width="200px" 
+                            OnOptionsSearch="OnCompanySearch"
+                            Placeholder="Select company..."
+                            MaximumSelectedOptions="1"
+                            OptionText="@(p => p.Name)"
+                            @bind-SelectedOptions="@SelectedCompanies"
+                            @bind-SelectedOptions:after="UpdateSaleCompany"
+                            Height="550px"
+                            Width="200px"
         />
 
         @* <FluentButton Appearance="Appearance.Accent" OnClick="@UpdateSaleCompany"
@@ -116,18 +116,38 @@
         Update
     </FluentButton> *@
     </FluentStack>
+    @if (Content.FormFiles.Any())
+    {
+        <FluentDataGrid Items="@formFiles" TGridItem="FormFileVm" Pagination="@pagination" AutoFit="true"
+                        ResizableColumns="true">
+
+            <PropertyColumn Property="@(p => p.OriginalFileName)" Sortable="true"/>
+            <PropertyColumn Property="@(p => p.FormPurpose)" Sortable="true"/>
+            <TemplateColumn Title="Actions" Align="Align.End">
+                @{
+                    // var viewId = $"viewid-{context.Id}";
+                    // var editId = $"editid-{context.Id}";
+                    var deletefileId = $"deletefile-{context.Id}";
+                    // var addId = $"addid-{context.Id}";
+                }
+                <FluentButton Id="@deletefileId" IconEnd="@(new Icons.Regular.Size20.Delete())"
+                              OnClick="@(() => DeleteFile(context.Id))"/>
+            </TemplateColumn>
+
+        </FluentDataGrid>
+    }
     <FluentInputFile
-    @ref="@inputFile"
-    AnchorId="MyUploadStream"
-    DragDropZoneVisible="false"
-    Mode="InputFileMode.Stream"
-    Multiple="true"
-    MaximumFileSize="@(20 * 1024 * 1024)"
-    Accept=".pdf, .jpg, .png"
-    OnFileUploaded="@OnFileUploadedAsync"
-    OnCompleted="@OnCompleted"
+        @ref="@inputFile"
+        AnchorId="MyUploadStream"
+        DragDropZoneVisible="false"
+        Mode="InputFileMode.Stream"
+        Multiple="true"
+        MaximumFileSize="@(20 * 1024 * 1024)"
+        Accept=".pdf, .jpg, .png"
+        OnFileUploaded="@OnFileUploadedAsync"
+        OnCompleted="@OnCompleted"
     />
-    <FluentProgress Min="0" Max="100" Value="@progressPercent" Visible="@(progressPercent > 0)" />
+    <FluentProgress Min="0" Max="100" Value="@progressPercent" Visible="@(progressPercent > 0)"/>
     <FluentLabel Alignment="HorizontalAlignment.Center">
         @progressTitle
     </FluentLabel>
@@ -137,12 +157,10 @@
     </FluentButton>
 </FluentDialogBody>
 
-
-
 @* Footer *@
 <FluentDialogFooter>
     <FluentButton Appearance="Appearance.Accent" OnClick="@SaveAsync"
-    Disabled="false">Save
+                  Disabled="false">Save
     </FluentButton>
     <FluentButton Appearance="Appearance.Neutral" OnClick="@CancelAsync">Cancel</FluentButton>
     <p>
@@ -152,12 +170,12 @@
 
 
 @code {
+
     #region Declarations
+
     private string SessionId { get; set; }
-    [Parameter]
-    public ITSaleFormVm Content { get; set; } = default!;
-    [CascadingParameter]
-    public FluentDialog Dialog { get; set; }  = default!;
+    [Parameter] public ITSaleFormVm Content { get; set; } = default!;
+    [CascadingParameter] public FluentDialog Dialog { get; set; } = default!;
 
     private EditContext _editContext;
 
@@ -165,22 +183,23 @@
     private string errorMessage;
 
     private IQueryable<AssetDTO>? AssetsList { get; set; }
-    private IQueryable<AssetVm> AssetsListAll { get; set; }
-    private IEnumerable<AssetVm> SelectedAsset  = Array.Empty<AssetVm>();
-    private IQueryable<EmployeeVm> itemEmployeesList { get; set; }
-    private IQueryable<IAssigneeVm> itemAssigneesList { get; set; }
+    private IQueryable<AssetVm>? AssetsListAll { get; set; }
+    private IEnumerable<AssetVm> SelectedAsset = Array.Empty<AssetVm>();
+    private IQueryable<EmployeeVm>? itemEmployeesList { get; set; }
+    private IQueryable<IAssigneeVm>? itemAssigneesList { get; set; }
     private IEnumerable<IAssigneeVm> SelectedAssignee = Array.Empty<IAssigneeVm>();
-    private IQueryable<CompanyVm> itemCompaniesList { get; set; }
+    private IQueryable<CompanyVm>? itemCompaniesList { get; set; }
     private IEnumerable<CompanyVm> SelectedCompanies = Array.Empty<CompanyVm>();
-
+    private IQueryable<FormFileVm> formFiles { get; set; }
+    
     private bool showAssetAdd = false;
-    PaginationState pagination = new PaginationState { ItemsPerPage = 5 };
+    private PaginationState pagination = new PaginationState { ItemsPerPage = 5 };
 
-    FluentInputFile? inputFile = default!;
+    private FluentInputFile? inputFile = default!;
     private int? progressPercent;
     private string? progressTitle;
-    List<string> Files = new();
-    List<FormFile> formFiles = new();
+    private List<string> Files = new();
+    private List<FormFileVm> addedFiles = new();
 
     #endregion Declarations
 
@@ -193,13 +212,15 @@
         assignees.AddRange(itemEmployeesList.Select(employee => (IAssigneeVm)new EmployeeVm { Id = employee.EnovaEmpId, LongName = employee.LongName, typeName = "EmployeeVm" }));
         itemAssigneesList = assignees.AsQueryable();
         itemCompaniesList = await _mediator.Send(new GetAllCompaniesQuery());
-        if(Content.EmployeeId > 0){
+        if (Content.EmployeeId > 0)
+        {
             var tempEmp = itemEmployeesList.Where(e => e.EnovaEmpId == Content.EmployeeId).FirstOrDefault();
             var assList = SelectedAssignee.ToList();
             assList.Add((IAssigneeVm)new EmployeeVm { Id = tempEmp.EnovaEmpId, LongName = tempEmp.LongName, typeName = "EmployeeVm" });
             SelectedAssignee = assList;
-
-        } else if (Content.CompanyId > 0) {
+        }
+        else if (Content.CompanyId > 0)
+        {
             var tempComp = itemCompaniesList.Where(c => c.Id == Content.CompanyId).FirstOrDefault();
             var compList = SelectedCompanies.ToList();
             compList.Add(tempComp);
@@ -207,15 +228,16 @@
         }
 
         AssetsListAll = await _mediator.Send(new GetAllAssetsQuery());
+        formFiles = Content.FormFiles.AsQueryable();
         // AssetsList = Content.Assets.AsQueryable();
         await LoadAssets();
     }
-
     private async Task LoadAssets()
     {
         List<AssetDTO> assetsList = new();
 
-        foreach(var aid in Content.AssetIds){
+        foreach (var aid in Content.AssetIds)
+        {
             var tmp = await _mediator.Send(new GetAssetDTObyIdQuery(aid));
             assetsList.Add(tmp);
         }
@@ -223,18 +245,19 @@
         AssetsList = assetsList.AsQueryable();
         Content.Assets = AssetsList.ToList();
         SelectedAsset = Array.Empty<AssetVm>();
-
     }
     private async Task SaveAsync()
     {
         await Dialog.CloseAsync(Content);
     }
-
     private async Task CancelAsync()
     {
+        foreach (var file in addedFiles)
+        {
+            DeleteFile(file.Id);
+        }
         await Dialog.CancelAsync();
     }
-
     private async void UpdateSaleEmployee()
     {
         var selectedAssignee = SelectedAssignee.FirstOrDefault();
@@ -256,16 +279,13 @@
             {
                 throw new Exception("No assignee selected");
             }
-
         }
         catch (Exception ex)
         {
             Console.WriteLine(ex.Message.ToString());
             return;
         }
-
     }
-
     private async void UpdateSaleCompany()
     {
         var selectedAssignee = SelectedAssignee.FirstOrDefault();
@@ -274,7 +294,7 @@
         Console.WriteLine("ACTION WORKING!!!!" + SelectedAssignee.Count());
         try
         {
-            if (!string.IsNullOrEmpty(SelectedCompanies.FirstOrDefault().Name) )
+            if (!string.IsNullOrEmpty(SelectedCompanies.FirstOrDefault().Name))
             {
                 Content.CompanyId = SelectedCompanies.FirstOrDefault().Id;
                 Content.CompanyName = SelectedCompanies.FirstOrDefault().FullName;
@@ -286,58 +306,57 @@
             {
                 throw new Exception("No assignee selected");
             }
-
         }
         catch (Exception ex)
         {
             Console.WriteLine(ex.Message.ToString());
             return;
         }
-
     }
-
-    private async void AddAsset (){
-        if(SelectedAsset.FirstOrDefault() == null){
+    private async void AddAsset()
+    {
+        if (SelectedAsset.FirstOrDefault() == null)
+        {
             return;
-        } else {
+        }
+        else
+        {
             // var tmp = await _mediator.Send(new GetAssetDTObyIdQuery(SelectedAsset.FirstOrDefault().Id));
 
-            if(!Content.AssetIds.Contains(SelectedAsset.FirstOrDefault().Id)){
+            if (!Content.AssetIds.Contains(SelectedAsset.FirstOrDefault().Id))
+            {
                 Content.AssetIds.Add(SelectedAsset.FirstOrDefault().Id);
                 // Content.Assets.Add(tmp);
                 // AssetsList = Content.Assets.AsQueryable();
                 await LoadAssets();
                 StateHasChanged();
-
-            } else{
+            }
+            else
+            {
                 SelectedAsset = Array.Empty<AssetVm>();
                 StateHasChanged();
             }
         }
     }
-
-    private async void DeleteAsset(int delId){
+    private async void DeleteAsset(int delId)
+    {
         Content.AssetIds.Remove(delId);
         //wylaczyc state =
         await LoadAssets();
         StateHasChanged();
     }
-
     private void OnAssigneeSearch(OptionsSearchEventArgs<IAssigneeVm> e)
     {
         e.Items = itemAssigneesList.Where(a => a.LongName.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
     }
-
     private void OnCompanySearch(OptionsSearchEventArgs<CompanyVm> e)
     {
         e.Items = itemCompaniesList.Where(a => a.Name.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
     }
-
     private void OnAssetSearch(OptionsSearchEventArgs<AssetVm> e)
     {
         e.Items = AssetsListAll.Where(a => a.AssetTagNumber.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
     }
-
     private async Task OnFileUploadedAsync(FluentInputFileEventArgs file)
     {
         progressPercent = file.ProgressPercent;
@@ -347,7 +366,8 @@
         Files.Add(localFile);
 
         var fileInfo = await _fileService.UploadTemporaryFileAsync(file.Stream, file.Name, SessionId);
-        var resultFile = new FormFileVm{
+        var resultFile = new FormFileVm
+        {
             TmpPath = fileInfo["TmpPath"],
             TmpFileName = fileInfo["TmpFileName"],
             TmpFileExtension = fileInfo["TmpFileExtension"],
@@ -355,41 +375,46 @@
             Prefix = Content.NumberPrefix,
             FolderName = Content.FolderName,
             FormClassName = "ITSaleFormVm",
-
         };
-
+        var fileId = await _mediator.Send(new CreateFormFileCommand(resultFile));
+        resultFile.Id = fileId;
+        
         Content.FormFiles.Add(resultFile);
-        // Write to the FileStream
-        // See other samples: https://docs.microsoft.com/en-us/aspnet/core/blazor/file-uploads
-        // await using FileStream fs = new(localFile, FileMode.Create);
-        // await file.Stream!.CopyToAsync(fs);
-        // await file.Stream!.DisposeAsync();
+        addedFiles.Add(resultFile);
+        formFiles = Content.FormFiles.AsQueryable();
     }
 
+    private async void DeleteFile(int fileId)
+    {
+        var fileToDelete = formFiles.FirstOrDefault(f => f.Id == fileId);
+        await _mediator.Send(new DeleteFormFileCommand(fileId));
+        _fileService.DeleteFile(fileToDelete.TmpPath);
+        _fileService.DeleteFile(fileToDelete.DstPath);
+        
+        formFiles = formFiles.Where(file => file.Id != fileId).AsQueryable();
+        addedFiles.Remove(fileToDelete);
+    }
     private void OnCompleted(IEnumerable<FluentInputFileEventArgs> files)
     {
         progressPercent = inputFile!.ProgressPercent;
         progressTitle = inputFile!.ProgressTitle;
-
-        // For the demo, delete these files.
-        // foreach (var file in Files)
-        // {
-        //     File.Delete(file);
-        // }
     }
+    
 }
 
 <style>
-        table {
-            margin-top: 20px; /* Adds 50px space above the table */
-            border-collapse: collapse; /* Optional: For a cleaner look */
-            width: 600px; /* Optional: Adjust to fit your container */
-        }
-        th, td {
-            padding: 5px; /* Adds padding inside each cell */
-            text-align: left; /* Optional: Align text to the left */
-        }
-        td:first-child, th:first-child {
-            padding-left: 0; /* Removes padding on the left of the first cell */
-        }
+    table {
+        margin-top: 20px; /* Adds 50px space above the table */
+        border-collapse: collapse; /* Optional: For a cleaner look */
+        width: 600px; /* Optional: Adjust to fit your container */
+    }
+
+    th, td {
+        padding: 5px; /* Adds padding inside each cell */
+        text-align: left; /* Optional: Align text to the left */
+    }
+
+    td:first-child, th:first-child {
+        padding-left: 0; /* Removes padding on the left of the first cell */
+    }
 </style>

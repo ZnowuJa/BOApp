@@ -1,12 +1,7 @@
 ﻿@page "/invoiceitems"
-@using Application.ITWarehouseCQRS.InvoiceItems
 @using Application.ITWarehouseCQRS.InvoiceItems.Queries
-@using Application.ITWarehouseCQRS.Invoices.Queries
 @using Application.ITWarehouseCQRS.Invoices.Commands
-@using BOAppFluentUI.Components.Pages.ITWarehouseAdmin.Invoice
-@using MediatR
 @using Microsoft.AspNetCore.Authorization
-@using Microsoft.AspNetCore.Components.Authorization
 
 @attribute [Authorize(Policy = "Technician")]
 

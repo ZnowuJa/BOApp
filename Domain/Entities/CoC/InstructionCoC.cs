@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-
-using BackOfficeApp_Domain.Common;
+﻿using BackOfficeApp_Domain.Common;
 
 namespace Domain.Entities.CoC;
 public class InstructionCoC : SmallAuditableEntity

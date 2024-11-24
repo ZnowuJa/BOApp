@@ -1,8 +1,6 @@
 ﻿using Application.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using AutoMapper.QueryableExtensions;
 
 namespace Application.ITWarehouseCQRS.CategoryTypes.Commands;
 public class DeleteCategoryTypeCommandHandler : IRequestHandler<DeleteCategoryTypeCommand, int>

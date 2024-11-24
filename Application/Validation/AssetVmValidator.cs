@@ -1,9 +1,5 @@
 ﻿using FluentValidation;
 using Application.ViewModels;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application.Validation;
 public class AssetVmValidator : AbstractValidator<AssetVm>

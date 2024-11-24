@@ -1,6 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Graph.Models.ExternalConnectors;
 
 namespace Persistance;
 public class AsDbContextFactory : DesignTimeDbContextFactoryBase<AsDbContext>

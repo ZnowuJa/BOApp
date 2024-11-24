@@ -1,6 +1,5 @@
 ﻿using Application.ViewModels;
 using FluentValidation;
-using FluentValidation.AspNetCore;
 
 namespace Application.Validation;
 public class InvoiceVmValidator : AbstractValidator<InvoiceVm>

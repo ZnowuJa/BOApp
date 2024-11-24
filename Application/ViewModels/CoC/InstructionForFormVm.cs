@@ -1,6 +1,4 @@
-﻿using Application.ViewModels.CoC;
-
-namespace Application.ViewModels.CoC;
+﻿namespace Application.ViewModels.CoC;
 
 public class InstructionForFormVm
 {

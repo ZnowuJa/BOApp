@@ -3,7 +3,6 @@ using Application.ViewModels;
 using AutoMapper;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Domain.Entities.ITWarehouse;
 
 namespace Application.ITWarehouseCQRS.Currencies.Queries;
 public class GetCurrencyQueryHandler : IRequestHandler<GetCurrencyQuery, CurrencyVm>

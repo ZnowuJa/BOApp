@@ -1,6 +1,4 @@
-﻿using System.Security.Claims;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Components.Authorization;
+﻿using Microsoft.AspNetCore.Components.Authorization;
 
 namespace Infrastructure.Identity.Services;
 public class CustomAuthenticationStateProvider : AuthenticationStateProvider

@@ -1,15 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Application.Interfaces;
+﻿using Application.Interfaces;
 using Application.Mappings;
 using Application.ViewModels.CoC;
 using Application.ViewModels.General;
 using AutoMapper;
-
-using Domain.Entities.CoC;
 using Domain.Entities.Common;
 using Domain.Forms;
 

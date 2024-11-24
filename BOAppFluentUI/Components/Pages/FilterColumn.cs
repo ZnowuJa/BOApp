@@ -1,6 +1,4 @@
-﻿using Application.DTOs;
-
-namespace BOAppFluentUI.Components.Pages;
+﻿namespace BOAppFluentUI.Components.Pages;
 
 public class FilterColumn<T>
 {

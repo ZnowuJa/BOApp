@@ -1,17 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
-
+﻿using System.Text.Json;
 using Application.Interfaces;
 using Application.ViewModels.General;
 
 using AutoMapper;
-
-using Domain.Entities.Common;
-
 using MediatR;
 
 using Microsoft.EntityFrameworkCore;

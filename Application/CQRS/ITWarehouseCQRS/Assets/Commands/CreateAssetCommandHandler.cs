@@ -1,10 +1,4 @@
-﻿using System.Runtime.InteropServices;
-
-using Application.DTOs;
-using Application.Interfaces;
-using Application.ITWarehouseCQRS.AssetHistories.Commands;
-using Application.ITWarehouseCQRS.Parts.Queries;
-using Application.ViewModels;
+﻿using Application.Interfaces;
 using AutoMapper;
 using Domain.Entities.ITWarehouse;
 using MediatR;

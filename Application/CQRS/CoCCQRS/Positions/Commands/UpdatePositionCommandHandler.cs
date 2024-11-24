@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Application.Interfaces;
+﻿using Application.Interfaces;
 using Application.ViewModels.CoC;
-using Domain.Entities.CoC;
 using MediatR;
 
 namespace Application.CQRS.CoCCQRS.Positions.Commands;

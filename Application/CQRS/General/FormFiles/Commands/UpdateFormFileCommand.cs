@@ -41,10 +41,24 @@ public class UpdateFormFileCommandHandler : IRequestHandler<UpdateFormFileComman
             //throw new NotFoundException(nameof(WorkflowTemplate), request.WorkflowTemplate.Id);
         }
 
-        _mapper.Map(request.FormFile, entity);
+        // _mapper.Map(request.FormFile, entity);
+
+        entity.TmpPath = request.FormFile.TmpPath;
+        entity.TmpFileName = request.FormFile.TmpFileName;
+        entity.TmpFileExtension = request.FormFile.TmpFileExtension;
+        entity.DstPath = request.FormFile.DstPath;
+        entity.DstFileName = request.FormFile.DstFileName;
+        entity.FormPurpose = request.FormFile.FormPurpose;
+        entity.Prefix = request.FormFile.Prefix;
+        entity.FolderName = request.FormFile.FolderName;
+        entity.FormClassName = request.FormFile.FormClassName;
+        entity.FormId = request.FormFile.FormId;
+        entity.Order = request.FormFile.Order;
+        entity.Deleted = request.FormFile.Deleted;
+        entity.OriginalFileName = request.FormFile.OriginalFileName;
 
         await _context.SaveChangesAsync();
 
-        return request.FormFile.Id;
+        return entity.Id;
     }
 }

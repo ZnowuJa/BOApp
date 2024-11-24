@@ -9,8 +9,6 @@ using Domain.Forms;
 
 using MediatR;
 
-using Microsoft.EntityFrameworkCore;
-
 namespace Application.CQRS.AccountingCQRS.TestForms.Commands;
 public class CreateTestFormCommandHandler : IRequestHandler<CreateTestFormCommand, TestFormVm>
 {

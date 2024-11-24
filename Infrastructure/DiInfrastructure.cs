@@ -2,12 +2,8 @@
 using Application.Interfaces.Identity.Services;
 using Infrastructure.Identity.Services;
 using Infrastructure.Services;
-using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Graph;
-using Microsoft.Identity.Client;
-
 using Quartz;
 
 namespace Infrastructure;

@@ -1,27 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
-
+﻿using System.Text.Json;
 using Application.CQRS.CoCCQRS.GroupCoCs.Queries;
 using Application.CQRS.CoCCQRS.InstructionCoCs.Queries;
 using Application.CQRS.CoCCQRS.Onboarding.Commands;
 using Application.CQRS.CoCCQRS.Positions.Queries;
 using Application.CQRS.General.Organisations.Queries;
 using Application.CQRS.ITWarehouseCQRS.Employees.Queries;
-using Application.Forms.Accounting;
-using Application.Interfaces;
-using Application.ITWarehouseCQRS.Employees.Queries;
-
 using Application.ViewModels.CoC;
 
 using Application.ViewModels.General;
 
 using MediatR;
-
-using Quartz;
 
 namespace Application.AdHocJobs;
 public class AddCoCOnboardingsAdHocJob

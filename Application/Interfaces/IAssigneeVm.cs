@@ -1,8 +1,4 @@
-﻿using Application.Mappings;
-using AutoMapper;
-using Domain.Entities.ITWarehouse;
-
-namespace Application.Interfaces;
+﻿namespace Application.Interfaces;
 public interface IAssigneeVm 
 {
     int Id { get; set; }

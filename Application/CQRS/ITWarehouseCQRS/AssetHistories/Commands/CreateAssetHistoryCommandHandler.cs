@@ -1,9 +1,7 @@
 ﻿using Application.Interfaces;
-using Application.ViewModels;
 using AutoMapper;
 using Domain.Entities.ITWarehouse;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 
 namespace Application.ITWarehouseCQRS.AssetHistories.Commands;
 public class CreateAssetHistoryCommandHandler : IRequestHandler<CreateAssetHistoryCommand, int>

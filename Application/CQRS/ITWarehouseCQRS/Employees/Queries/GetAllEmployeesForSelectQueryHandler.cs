@@ -4,8 +4,6 @@ using AutoMapper;
 using Domain.Entities.ITWarehouse;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Serilog.Core;
-using System.Diagnostics;
 
 namespace Application.ITWarehouseCQRS.Employees.Queries;
 internal class GetAllEmployeesForSelectQueryHandler : IRequestHandler<GetAllEmployeesForSelectQuery, IQueryable<EmployeeVm>>

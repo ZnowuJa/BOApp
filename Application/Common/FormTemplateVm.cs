@@ -2,7 +2,6 @@
 using AutoMapper;
 
 using Domain.Common;
-using Domain.Entities.Common;
 
 namespace Application.Common;
 public class FormTemplateVm : IMapFrom<FormTemplate>

@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection.Emit;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Domain.WorkFlows;
+﻿namespace Domain.WorkFlows;
 public class WorkflowStep
 {
     public int Id { get; set; }

@@ -1,20 +1,10 @@
 ﻿@page "/deferralpayments/{role}"
 @page "/platnosciodroczone/{role}"
-
-@using Application.CQRS.CoCCQRS.Onboarding.Commands
 @using Application.CQRS.AccountingCQRS.DeferralPayment.Queries
 @using Application.ExportModels
-@using Application.Forms;
 @using Application.Forms.Accounting;
-@using Application.ViewModels.General
 @using AutoMapper
-@using MediatR;
 @using Microsoft.AspNetCore.Authorization
-@using Microsoft.AspNetCore.Components.Authorization
-@using Microsoft.FluentUI.AspNetCore.Components.Extensions
-@using System.Linq.Expressions
-@using System.Security.Claims
-@using System.Text
 
 @attribute [Authorize(Policy = "User")]
 

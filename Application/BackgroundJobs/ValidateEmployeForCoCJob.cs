@@ -1,17 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-
+﻿using System.Text.RegularExpressions;
 using Application.CQRS.CoCCQRS.Positions.Queries;
 using Application.Interfaces;
 using Application.ITWarehouseCQRS.Employees.Queries;
 
 using MediatR;
-
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Graph.Models;
 

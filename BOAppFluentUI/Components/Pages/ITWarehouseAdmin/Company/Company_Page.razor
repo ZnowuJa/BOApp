@@ -1,12 +1,7 @@
 ﻿@page "/companies"
-@using Application.ITWarehouseCQRS.Companies
 @using Application.ITWarehouseCQRS.Companies.Queries
 @using Application.ITWarehouseCQRS.Companies.Commands
-@using Application.ITWarehouseCQRS.CompanyTypes
-@using BOAppFluentUI.Components.Pages.ITWarehouseAdmin.Company
-@using MediatR
 @using Microsoft.AspNetCore.Authorization
-@using Microsoft.AspNetCore.Components.Authorization
 
 @attribute [Authorize(Policy = "Technician")]
 

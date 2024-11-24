@@ -6,19 +6,14 @@
 @using Application.CQRS.ITWarehouseCQRS.Sales.Queries
 @using Application.DTOs
 @using Application.ExportModels
-@using Application.Forms;
 @using Application.Forms.IT;
 @using Application.ITWarehouseCQRS.AssetHistories.Queries
 @using Application.ITWarehouseCQRS.Assets.Commands
-@using Application.ViewModels.General
 @using AutoMapper
-@using MediatR;
 @using Microsoft.AspNetCore.Authorization
-@using Microsoft.AspNetCore.Components.Authorization
-@using Microsoft.FluentUI.AspNetCore.Components.Extensions
-@using System.Linq.Expressions
+@using Application.Interfaces
+@using Application.CQRS.General.FormFiles.Commands
 @using System.Linq
-@using System.Security.Claims
 
 @attribute [Authorize(Policy = "Technician")]
 
@@ -28,6 +23,8 @@
 @inject IToastService _toastService
 @inject IJSRuntime JS
 @inject IMapper _mapper
+@inject IFileService _fileService
+@inject ISessionService _sessionService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager _navigationManager
 
@@ -123,7 +120,8 @@
     #region Declarations
     // [Parameter]
     // public string? role { get; set; }
-
+    private string SessionId { get; set; }
+    
     private IQueryable<ITSaleFormVm> items { get; set; } = Enumerable.Empty<ITSaleFormVm>().AsQueryable();
 
 
@@ -156,11 +154,10 @@
 
     protected override async Task OnInitializedAsync()
     {
-
+        SessionId = _sessionService.GetSessionId();
         await Utils.GetUserName(AuthenticationStateProvider, _userContext, _mediator);
         await Load();
     }
-
     private async Task Load()
     {
         var itemsList = await _mediator.Send(new GetAllITSaleFormsQuery());
@@ -182,13 +179,11 @@
     //     _toastService.ShowToast(intent, toastMessage, 3000);
     //     return resultss;
     // }
-
     private void HandleClearFilter(ref string filter) => filter = string.IsNullOrWhiteSpace(filter) ? string.Empty : filter;
-
     private async Task Edit(ITSaleFormVm item = null)
     {
         ToastIntent intent;
-        string message = string.Empty;
+        string message;
 
         List<AssetDTO> assetsList = new();
         foreach(var aid in item.AssetIds){
@@ -196,8 +191,6 @@
             assetsList.Add(tmp);
         }
         item.Assets = assetsList;
-
-
 
 
         var dialog = await _dialogService.ShowPanelAsync<AssetSaleForm_Edit_Component>(item, new DialogParameters()
@@ -222,13 +215,48 @@
                 var i = await _mediator.Send(new UpdateAssetCommand(ass.Id, ass.PartVmId, ass.InvoiceVmId, ass.InvoiceItemID, ass.AssetTagNumber, ass.StateVmId, ass.SerialNumber, ass.LastSeen, ass.AssigneeVmId, ass.AssigneeVmType, ass.AssigneeVmName, ass.WarehouseVmId, ass.Price, ass.CurrencyVmId, date, ass.Leasing, ass.EndOfContract, ass.WarrantyUntil, ass.Imei, ass.Mac, ass.EndOfSupport, ass.ScrappingFormId, ass.SaleFormId, ass.ScrappingReason, _userContext.LongName));
                 _logger.LogInformation("AssetsPage | EditType(item) | Update Asset finished...");
             }
+            var returnedFiles = res.FormFiles.ToList();
+            if (returnedFiles.Any())
+            {
+                var newFiles = returnedFiles
+                    .Where(returnedFile => item.FormFiles.All(file => file.Id != returnedFile.Id))
+                    .ToList();
+                foreach (var file in newFiles)
+                {
+                    var newFileInfo = await _fileService.MoveTempFileToDestFolderAsync(file.TmpPath, file.FolderName, file.Prefix, res.Id);
+                    file.DstPath = newFileInfo["DstPath"];
+                    file.DstFileName = newFileInfo["DstFileName"];
+                    file.FormPurpose = "default";
+                    var fileId = await _mediator.Send(new CreateFormFileCommand(file));
+                    file.Id = fileId;
+                }
+                
+                var deletedFiles = item.FormFiles
+                    .Where(file => returnedFiles.All(returnedFile => returnedFile.Id != file.Id))
+                    .ToList();
+                foreach (var file in deletedFiles)
+                {
+                    _fileService.DeleteFile(file.TmpPath);
+                    _fileService.DeleteFile(file.DstPath);
+                    await _mediator.Send(new DeleteFormFileCommand(file.Id));
+                }
+                
+            }
+            
+            
+            var fin = await _mediator.Send(new UpdateITSaleFormCommand(res));
+            
+            //After all, does all changes to Form, to Assets, to Files are applied correctly?
+            //After all, does all changes to Form, to Assets, to Files are applied correctly?
+            //After all, does all changes to Form, to Assets, to Files are applied correctly?
+            //After all, does all changes to Form, to Assets, to Files are applied correctly?
+            
             intent = ToastIntent.Success;
             message = "Sale Form has been updated!";
 
             //below find if any assets have been removed from SaleForm
             var returnedAssets = returnedItem.Assets.ToList();
             var deletedAssets = assetsList.Where(asset => !returnedAssets.Any(returned => returned.Id == asset.Id)).ToList();
-
             //if there are deleted assets update its state, and history to previous version
             foreach( var dAsset in deletedAssets){
                 DateTime date = dAsset.PurchaseDate ?? DateTime.Now;
@@ -252,12 +280,8 @@
                 dAsset.SaleFormId = null;
                 var i = await _mediator.Send(new UpdateAssetCommand(dAsset.Id, dAsset.PartVmId, dAsset.InvoiceVmId, dAsset.InvoiceItemID, dAsset.AssetTagNumber, dAsset.StateVmId, dAsset.SerialNumber, dAsset.LastSeen, dAsset.AssigneeVmId, dAsset.AssigneeVmType, dAsset.AssigneeVmName, dAsset.WarehouseVmId, dAsset.Price, dAsset.CurrencyVmId, date, dAsset.Leasing, dAsset.EndOfContract, dAsset.WarrantyUntil, dAsset.Imei, dAsset.Mac, dAsset.EndOfSupport, dAsset.ScrappingFormId, dAsset.SaleFormId, dAsset.ScrappingReason, _userContext.LongName));
             }
-
-
-
         } else
         {
-
             intent = ToastIntent.Info;
             message = "Operation Cancelled...";
         }

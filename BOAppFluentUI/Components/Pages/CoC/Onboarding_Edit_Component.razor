@@ -68,17 +68,12 @@
 @using Application.CQRS.CoCCQRS.Onboarding.Commands
 @using Application.CQRS.General.Organisations.Queries
 @using Application.CQRS.CoCCQRS.Onboarding.Queries;
-@using Application.Forms
 @using Application.Forms.CoC
-@using Application.Interfaces
 @using Application.ViewModels.CoC
 @using Application.ViewModels.General
 @using Microsoft.AspNetCore.Authorization
-@using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.FluentUI.AspNetCore.Components.Extensions
-@using MediatR
 @using System.Security.Claims
-@using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage
 
 @attribute [Authorize(Policy = "User")]
 

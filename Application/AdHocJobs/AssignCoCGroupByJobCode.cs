@@ -1,16 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using Application.CQRS.ITWarehouseCQRS.Employees.Queries;
-using Application.ITWarehouseCQRS.Employees.Commands;
+﻿using Application.ITWarehouseCQRS.Employees.Commands;
 using Application.ITWarehouseCQRS.Employees.Queries;
 
 using MediatR;
-
-using Microsoft.Graph.Models;
 
 namespace Application.AdHocJobs;
 public class AssignCoCGroupByJobCode

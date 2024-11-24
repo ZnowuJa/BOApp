@@ -9,9 +9,6 @@ using MediatR;
 
 using Microsoft.EntityFrameworkCore;
 
-using System.Collections.Generic;
-using System.Diagnostics;
-
 namespace Application.ITWarehouseCQRS.Assets.Queries;
 public class GetAllAssetsDTObyEmpIdQueryHandler : IRequestHandler<GetAllAssetsDTObyEmpIdQuery, IQueryable<AssetDTO>>
 {

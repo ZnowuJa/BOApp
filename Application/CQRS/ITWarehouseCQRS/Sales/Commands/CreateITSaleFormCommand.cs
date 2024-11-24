@@ -1,15 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Application.Forms.IT;
+﻿using Application.Forms.IT;
 using Application.Interfaces;
 using AutoMapper;
 using Domain.Forms.ITForms;
 using MediatR;
-
-using Microsoft.EntityFrameworkCore;
 
 namespace Application.CQRS.ITWarehouseCQRS.Sales.Commands;
 public class CreateITSaleFormCommand : IRequest<ITSaleFormVm>

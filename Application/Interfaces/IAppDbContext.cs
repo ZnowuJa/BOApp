@@ -39,7 +39,7 @@ public interface IAppDbContext
     DbSet<WorkflowStep> WorkflowSteps { get; set; }
     DbSet<Organisation> Organisations { get; set; }
     DbSet<TestForm> TestForms { get; set; }
-    //DbSet<FormFile> FormFiles { get; set; }
+    DbSet<FormFile> FormFiles { get; set; }
     public DbSet<GroupCoC> Groups { get; set; }
     public DbSet<Position> Positions { get; set; }
     public DbSet<InstructionCoC> Instructions { get; set; }

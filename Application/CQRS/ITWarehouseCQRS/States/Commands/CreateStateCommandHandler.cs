@@ -1,11 +1,6 @@
 ﻿using Application.Interfaces;
 using Domain.Entities.ITWarehouse;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application.ITWarehouseCQRS.States.Commands;
 public class CreateStateCommandHandler : IRequestHandler<CreateStateCommand, int>

@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components.Forms;
 using Application.Interfaces;
 using Microsoft.AspNetCore.Hosting;
-using Application.Common;
-using Domain.Entities.Common;
 
 namespace Infrastructure.Services;
 
@@ -55,10 +53,60 @@ public class FileService : IFileService
             { "OriginalFileName", fileName.ToUpper() }
         };
     }
-    //add method to delete temporary file if deleted by user on form before first save
-    //add method to colle
-    public async Task MoveTemporaryFilesToPermanentLocationAsync(string sessionId, string sourceFolder, string folderName, string numberPrefix, int id)
+    
+    public async Task<Dictionary<string, string>> MoveTempFileToDestFolderAsync(string tmpPath, string folderName, string numberPrefix, int id)
     {
+        var permanentFolder = Path.Combine(_environment.WebRootPath, folderName);
+
+        if (!Directory.Exists(permanentFolder))
+        {
+            Directory.CreateDirectory(permanentFolder);
+        }
+
+        var fileExtension = Path.GetExtension(tmpPath);
+        var idFormatted = id.ToString("D8");
+        var newFileName = $"{numberPrefix}{idFormatted}{fileExtension}";
+        var newFilePath = Path.Combine(permanentFolder, newFileName);
+
+        File.Move(tmpPath, newFilePath);
+
+        var result = new Dictionary<string, string>
+        {
+            { "DstPath", newFilePath },
+            { "DstFileName", newFileName }
+        };
+
+        // Optionally delete the temp folder if it's empty
+        var tempFolder = Path.GetDirectoryName(tmpPath);
+        if (tempFolder != null && Directory.GetFiles(tempFolder).Length == 0)
+        {
+            Directory.Delete(tempFolder, true);
+        }
+
+        return result;
+    }
+
+    public void DeleteFile(string path)
+    {
+        try
+        {
+            File.Delete(path);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+        }
+    }
+    
+    public async Task<Dictionary<string, string>> MoveTemporaryFilesToPermanentLocationAsync(string sessionId, string folderName, string numberPrefix, int id)
+    {
+        var result = new Dictionary<string, string>
+        {
+            // { "TmpPath", filePath },
+            // { "TmpFileName", customFileName },
+            // { "TmpFileExtension", fileExtension },
+            // { "OriginalFileName", fileName.ToUpper() }
+        };
         var tempFolder = Path.Combine(_environment.WebRootPath, "temp", sessionId);
         var permanentFolder = Path.Combine(_environment.WebRootPath, folderName);
 
@@ -67,7 +115,7 @@ public class FileService : IFileService
             Directory.CreateDirectory(permanentFolder);
         }
 
-        var tempFiles = Directory.GetFiles(sourceFolder);
+        var tempFiles = Directory.GetFiles(tempFolder);
         var idFormatted = id.ToString("D8");
         var fileCounter = 1;
 
@@ -83,6 +131,7 @@ public class FileService : IFileService
 
         // Optionally delete the temp folder after moving files
         Directory.Delete(tempFolder, true);
+        return result;
     }
 
     public async Task MoveFormFilesToDestinationAsync(string tmpPath, string tmpFileName,string tmpFileExtension, string prefix, string folderName, string formClassName, string formId, int fileCounter)

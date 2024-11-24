@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Domain.Entities.Accounting;
+﻿namespace Domain.Entities.Accounting;
 
 public class Customer
 {

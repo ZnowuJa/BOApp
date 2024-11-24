@@ -1,6 +1,4 @@
-﻿using Application.Forms;
-using Application.Interfaces;
-using Application.ViewModels;
+﻿using Application.Interfaces;
 using Application.ViewModels.General;
 
 using AutoMapper;
@@ -8,12 +6,6 @@ using AutoMapper;
 using MediatR;
 
 using Microsoft.EntityFrameworkCore;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application.CQRS.General.Organisations.Queries;
 public class GetOrganisationByEmpSapNumberQuery : IRequest<OrganisationVm>

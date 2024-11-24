@@ -4,8 +4,6 @@ using Domain.Entities.ITWarehouse;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Serilog;
-using System.Security.Claims;
 
 
 namespace Infrastructure.Identity.Services;

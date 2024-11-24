@@ -4,10 +4,6 @@ using Application.ViewModels.General;
 
 using BOAppFluentUI.Components.Pages;
 
-using Microsoft.AspNetCore.Components;
-
-using Persistance.Migrations;
-
 namespace BOAppFluentUI.Data.DialogParameters;
 
 public record ITSalesAssetsDialogParameter

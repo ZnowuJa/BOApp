@@ -5,7 +5,6 @@ using Application.Interfaces;
 using Application.Mappings;
 using Application.ViewModels;
 using Application.ViewModels.General;
-
 using AutoMapper;
 
 using Domain.Forms.ITForms;
@@ -32,7 +31,7 @@ public class ITSaleFormVm : IMapFrom<ITSaleForm>, IFormVm
     public WorkflowTemplate WorkflowTemplate { get; set; }
     public string? Number { get; set; } = "New sale - not saved";
     // Properties specific to Form
-
+    
 
     public string? Note { get; set; }
     public int? OperatorId { get; set; }
@@ -66,13 +65,15 @@ public class ITSaleFormVm : IMapFrom<ITSaleForm>, IFormVm
             .ForMember(dest => dest.Level2Approvers, opt => opt.MapFrom(src => DeserializeRoles(src.Level2Approvers)))
             .ForMember(dest => dest.Approvals, opt => opt.MapFrom(src => DeserializeApprovals(src.Approvals)))
             .ForMember(dest => dest.AssetIds, opt => opt.MapFrom(src => DeserializeAssetIds2Int(src.AssetIds)))
+            .ForMember(dest => dest.FormFiles, opt => opt.MapFrom(src => DeserializeFiles(src.FormFiles)));
             /*.ForMember(dest => dest.Assets, opt => opt.MapFrom(src => src.AssetIds.Select(id => new AssetDTO { Id = id }).ToList()))*/;
 
         profile.CreateMap<ITSaleFormVm, ITSaleForm>()
             .ForMember(dest => dest.Level1Approvers, opt => opt.MapFrom(src => SerializeRoles(src.Level1Approvers)))
             .ForMember(dest => dest.Level2Approvers, opt => opt.MapFrom(src => SerializeRoles(src.Level2Approvers)))
             .ForMember(dest => dest.Approvals, opt => opt.MapFrom(src => SerializeApprovals(src.Approvals)))
-            .ForMember(dest => dest.AssetIds, opt => opt.MapFrom(src => SerializeAssetIds(src.AssetIds)));
+            .ForMember(dest => dest.AssetIds, opt => opt.MapFrom(src => SerializeAssetIds(src.AssetIds)))
+            .ForMember(dest => dest.FormFiles, opt => opt.MapFrom(src => SerializeFiles(src.FormFiles)));
 
         profile.CreateMap<ITSaleFormVm, ITSaleFormExportModel>()
                 .ForMember(dest => dest.AssetIds, opt => opt.MapFrom(src => SerializeAssetIds(src.AssetIds)));
@@ -106,14 +107,14 @@ public class ITSaleFormVm : IMapFrom<ITSaleForm>, IFormVm
             ? new List<int>()
             : JsonSerializer.Deserialize<List<int>>(assetIdsJson);
     }
-    private string SerializeFiles(List<FileFormVm> files)
+    private string SerializeFiles(List<FormFileVm> files)
     {
         return files == null || files.Count == 0 ? string.Empty : JsonSerializer.Serialize(files);
     }
 
-    private List<FileFormVm> DeserializeFiles(string json)
+    private List<FormFileVm> DeserializeFiles(string json)
     {
-        return string.IsNullOrEmpty(json) ? new List<FileFormVm>() : JsonSerializer.Deserialize<List<FileFormVm>>(json);
+        return string.IsNullOrEmpty(json) ? new List<FormFileVm>() : JsonSerializer.Deserialize<List<FormFileVm>>(json);
     }
     
 

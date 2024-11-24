@@ -1,6 +1,4 @@
 ﻿using System.Reflection;
-
-using Application.BackgroundJobs;
 using Application.Common.Behaviors;
 using FluentValidation;
 using MediatR;

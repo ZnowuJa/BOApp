@@ -2,9 +2,6 @@
 using Application.ViewModels.CoC;
 
 using AutoMapper;
-
-using Domain.Entities.CoC;
-
 using MediatR;
 
 using Microsoft.EntityFrameworkCore;

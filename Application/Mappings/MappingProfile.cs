@@ -1,6 +1,4 @@
-﻿using Application.Interfaces;
-using AutoMapper;
-using Domain.Entities.ITWarehouse;
+﻿using AutoMapper;
 using System.Reflection;
 
 namespace Application.Mappings;

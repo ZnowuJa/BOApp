@@ -1,11 +1,7 @@
 ﻿@page "/employeetypes"
 @using Application.ITWarehouseCQRS.EmployeeTypes.Commands
-@using Application.ITWarehouseCQRS.EmployeeTypes.Queries
-@using Application.ViewModels
 @using Application.ViewModels.General
-@using MediatR
 @using Microsoft.AspNetCore.Authorization
-@using Microsoft.AspNetCore.Components.Authorization
 
 @attribute [Authorize(Policy = "Technician")]
 @inject IMediator _mediator

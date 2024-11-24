@@ -3,7 +3,6 @@
 @page "/testformfor/{id:int}"
 
 @using Application.CQRS.AccountingCQRS.Customer.Queries
-@using Application.CQRS.AccountingCQRS.DeferralPayment.Commands;
 @using Application.CQRS.AccountingCQRS.DeferralPayment.Queries
 @using Application.CQRS.AccountingCQRS.TestForms.Commands
 @* @using Application.CQRS.General.FormFiles.Commands *@
@@ -14,9 +13,6 @@
 @using Application.ViewModels.Accounting
 @using Application.ViewModels.General
 @using Microsoft.AspNetCore.Authorization
-@using Microsoft.AspNetCore.Components.Authorization
-@using Microsoft.FluentUI.AspNetCore.Components.Extensions
-@using MediatR
 @using System.Security.Claims
 
 @attribute [Authorize(Policy = "Technician")]
@@ -104,7 +100,7 @@ else
                           @onchange="HandleChangeApproverL2" />
         }
 
-        <H3></H3>
+        
         <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
                       Appearance="Appearance.Accent" OnClick="@Save" BackgroundColor="#509EDB" Style="width: 100px" Disabled="@SendButton"> Wyślij</FluentButton>
         <FluentSpacer Width="@buttonSpacer" />

@@ -3,11 +3,6 @@ using Application.ViewModels;
 using AutoMapper;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application.ITWarehouseCQRS.Assets.Queries;
 public class GetAllAssetsQueryHandler : IRequestHandler<GetAllAssetsQuery, IQueryable<AssetVm>>

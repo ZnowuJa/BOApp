@@ -1,17 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using Application.Interfaces;
-using Application.Mappings;
-using Application.ViewModels;
-using AutoMapper;
-using Domain.Entities.ITWarehouse;
-using FluentValidation;
-
-namespace Application.ExportModels;
+﻿namespace Application.ExportModels;
 public class AssetExportModel
 { 
     public int Id { get; set; }

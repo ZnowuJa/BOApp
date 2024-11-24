@@ -1,13 +1,9 @@
-﻿using System.Data;
-using System.Text.Json;
+﻿using System.Text.Json;
 using Application.Forms.Accounting;
 using Application.Interfaces;
 using Application.ViewModels.General;
 
 using AutoMapper;
-
-using Domain.Forms;
-
 using MediatR;
 
 using Microsoft.EntityFrameworkCore;
@@ -15,10 +11,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph.Models;
-using Microsoft.Graph.Models.ExternalConnectors;
-using Microsoft.Graph.Models.Security;
-using Microsoft.Graph.Privacy.SubjectRightsRequests.Item.Approvers;
-using Microsoft.IdentityModel.Tokens;
 
 namespace Application.CQRS.AccountingCQRS.DeferralPayment.Commands;
 public class UpdateDeferralPaymentCommandHandler : IRequestHandler<UpdateDeferralPaymentCommand, DeferralPaymentFormVm>

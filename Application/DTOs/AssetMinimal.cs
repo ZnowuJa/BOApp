@@ -1,14 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using Application.Forms;
-using Application.Interfaces;
-using Application.ViewModels;
-
-namespace Application.DTOs;
+﻿namespace Application.DTOs;
 public class AssetMinimal
 {
     public int Id { get; set; }

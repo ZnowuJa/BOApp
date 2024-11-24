@@ -1,6 +1,4 @@
 ﻿using Domain.Common;
-using Domain.Entities.Common;
-using Domain.Entities.ITWarehouse;
 
 namespace Domain.Forms.ITForms;
 public class ITSaleForm : FormTemplate

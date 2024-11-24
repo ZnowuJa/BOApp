@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Authentication.OpenIdConnect;
-using System.Security.Claims;
 
 namespace Application.Interfaces.Identity.Services;
 public interface ITokenValidatedHandlerService

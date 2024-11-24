@@ -1,16 +1,10 @@
-﻿using Application.Forms;
-using Application.Interfaces;
+﻿using Application.Interfaces;
 using Application.ViewModels.General;
 using AutoMapper;
 
 using Domain.Entities.Common;
 
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application.CQRS.General.Organisations.Commands;
 public class CreateOrganisationCommand : IRequest<int>

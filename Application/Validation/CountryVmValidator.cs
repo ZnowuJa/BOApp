@@ -1,13 +1,4 @@
-﻿using Application.ViewModels.Accounting;
-using Domain.Entities.Accounting;
-using FluentValidation;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Application.Validation
+﻿namespace Application.Validation
 {
 /*    public class CountryVmValidator : AbstractValidator<CountryVm>
     {

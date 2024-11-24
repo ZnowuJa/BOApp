@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using Application.ViewModels.General;
+﻿using Application.ViewModels.General;
 
 namespace Application.Interfaces;
 public interface IFormVm

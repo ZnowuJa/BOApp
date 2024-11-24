@@ -1,8 +1,6 @@
 ﻿using Application.Interfaces;
-using Application.ITWarehouseCQRS.Invoices.Queries;
 using Application.ViewModels;
 using AutoMapper;
-using Domain.Entities.ITWarehouse;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 

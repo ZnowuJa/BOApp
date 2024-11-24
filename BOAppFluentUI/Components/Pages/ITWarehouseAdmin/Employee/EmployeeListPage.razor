@@ -1,18 +1,13 @@
 ﻿@page "/employees"
 @using Application.Entities
 @using Application.ExportModels
-@using Application.ITWarehouseCQRS.Employees
-@using Application.ITWarehouseCQRS.Employees.Queries
 @using Application.ITWarehouseCQRS.Employees.Commands
 @using Application.Interfaces
 @using Application.Interfaces.Identity.Services
-@using Application.ViewModelsForForms
 @using Application.ViewModels.General
 @using AutoMapper
-@using MediatR
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.AspNetCore.Authorization
-@using Microsoft.AspNetCore.Components.Authorization
 
 @attribute [Authorize(Policy = "Technician")]
 

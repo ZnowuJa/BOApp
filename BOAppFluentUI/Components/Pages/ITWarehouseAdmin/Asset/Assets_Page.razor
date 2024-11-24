@@ -1,30 +1,21 @@
 ﻿@page "/assets"
-@using Application.AdHocJobs
 @using Application.CQRS.General.Organisations.Queries
-@using Application.CQRS.ITWarehouseCQRS.Assets.Commands
 @using Application.CQRS.ITWarehouseCQRS.Assets.Queries
 @using Application.CQRS.ITWarehouseCQRS.Sales.Commands
 @using Application.CQRS.ITWarehouseCQRS.Sales.Queries
-@using Application.CQRS.ITWarehouseCQRS.Scrappings.Queries
 @using Application.DTOs
 @using Application.ExportModels
-@using Application.Forms
 @using Application.Forms.IT
 @using Application.ViewModels.General
 @using Application.Interfaces
-@using Application.ITWarehouseCQRS.AssetHistories.Commands
 @using Application.ITWarehouseCQRS.Assets.Commands
 @using Application.ITWarehouseCQRS.Assets.Queries
 @using Application.ITWarehouseCQRS.Departments.Queries
-@using BOAppFluentUI.Components.Pages.ITWarehouseAdmin.Asset
 @using BOAppFluentUI.Components.Pages
 @using BOAppFluentUI.Data.DialogParameters
-@using MediatR
 @using AutoMapper
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Authorization
-@using Microsoft.AspNetCore.Components.Authorization
-@using System.Collections.ObjectModel
 @using System.Linq.Expressions
 @using Microsoft.FluentUI.AspNetCore.Components.Extensions
 
@@ -57,7 +48,7 @@
 }
 else
 {
-    <p>
+    <div>
         <FluentStack Orientation="Orientation.Horizontal">
             <FluentLabel Typo="Typography.Subject"> Show columns:  </FluentLabel>
             @foreach (var column in filterColumns)
@@ -69,7 +60,7 @@ else
                 
             }
             </FluentStack>
-    <p></p>
+        <p></p>
         <FluentStack Orientation="Orientation.Horizontal">
             @foreach (var column in filterColumns)
             {
@@ -80,7 +71,7 @@ else
 
             }
         </FluentStack>
-    </p>
+    </div>
     @* GridTemplateColumns = "80px repeat(6, 0.75fr) repeat(3, 0.5fr)" *@
     <FluentDataGrid Items="@filteredProducts" Pagination="@pagination" TGridItem="AssetDTO" Style="width: 100%;" AutoFit="true"         ResizableColumns="true">
        
@@ -154,13 +145,13 @@ else
                                     Height="550px"
                                     Width="200px" />
                 <FluentButton Appearance="Appearance.Accent" OnClick="@UpdateAssets"
-                              Disabled="@(SelectedAssignee.Count() == 0)">
+                              Disabled="@(!SelectedAssignee.Any())">
                     Update
                 </FluentButton>
             </FluentStack>
 
         </div>
-        if (errorMessageUpdate.Count() > 0)
+        if (errorMessageUpdate.Any())
         {
             <h2>Error</h2>
             @errorMessageUpdate
@@ -182,7 +173,7 @@ else
     filterColumns.All(column => string.IsNullOrWhiteSpace(column.Filter) ||
     column.Property(x).Contains(column.Filter, StringComparison.CurrentCultureIgnoreCase)));
 
-    PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
+    readonly PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
     PaginationState paginationAssets = new PaginationState { ItemsPerPage = 5 };
 
     private DebounceDispatcher debounceDispatcher = new DebounceDispatcher();
@@ -259,7 +250,7 @@ else
         StateHasChanged();
     }
 
-    private void HandleClearFilter(ref string filter) => filter = string.IsNullOrWhiteSpace(filter) ? string.Empty : filter;
+    // private void HandleClearFilter(ref string filter) => filter = string.IsNullOrWhiteSpace(filter) ? string.Empty : filter;
 
     private void HandleFilterDebounced(FilterColumn<AssetDTO> column, ChangeEventArgs args)
     {
@@ -417,12 +408,12 @@ else
                 if (selectedAssignee.typeName == "EmployeeVm")
                 {
                     newEmpl = itemEmployeesList.Where(p => p.EnovaEmpId == selectedAssignee.Id).FirstOrDefault();
-                    wh = itemWarehousesList.Where(p => p.Number.ToString() == newEmpl.SapNumber).FirstOrDefault();
+                    wh = itemWarehousesList.FirstOrDefault(p => p.Number.ToString() == newEmpl.SapNumber);
                 }
                 else if (selectedAssignee.typeName == "DepartmentVm")
                 {
-                    newDept = itemDepartmentsList.Where(p => p.Id == selectedAssignee.Id).FirstOrDefault();
-                    wh = itemWarehousesList.Where(p => p.Number.ToString() == newDept.SapNumber).FirstOrDefault();
+                    newDept = itemDepartmentsList.FirstOrDefault(p => p.Id == selectedAssignee.Id);
+                    wh = itemWarehousesList.FirstOrDefault(p => p.Number.ToString() == newDept.SapNumber);
                 }
                 foreach(AssetDTO asst in assetsToChangeList)
                 {

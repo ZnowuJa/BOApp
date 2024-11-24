@@ -4,7 +4,6 @@ using AutoMapper;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Domain.Entities.ITWarehouse;
 
 namespace Application.ITWarehouseCQRS.Units.Queries;
 public class GetAllUnitsForSelectQueryHandler : IRequestHandler<GetAllUnitsForSelectQuery, IQueryable<UnitVm>>

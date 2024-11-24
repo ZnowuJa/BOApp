@@ -1,17 +1,8 @@
 ﻿using Application.Interfaces;
 using Application.ViewModels;
 using AutoMapper;
-
-using Domain.Entities.ITWarehouse;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Intrinsics.X86;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Application.ITWarehouseCQRS.Warehouses.Queries;
 public class GetWarehouseByNumberQueryHandler : IRequestHandler<GetWarehouseByNumberQuery, WarehouseVm>

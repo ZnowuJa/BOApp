@@ -1,10 +1,4 @@
 ﻿using FluentValidation;
-using Application.ViewModels;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Application.ViewModels.General;
 
 namespace Application.Validation.General;

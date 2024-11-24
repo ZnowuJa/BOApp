@@ -1,18 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
-
-using Application.Forms;
+﻿using System.Text.Json;
 using Application.Mappings;
 
 using AutoMapper;
 
 using Domain.Entities.Common;
-using Domain.Entities.ITWarehouse;
-using Domain.Forms.ITForms;
 
 namespace Application.ViewModels.General;
 public class OrganisationVm : IMapFrom<Organisation>

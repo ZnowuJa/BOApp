@@ -1,8 +1,6 @@
 ﻿using Application.Mappings;
 using AutoMapper;
 using Domain.Entities.ITWarehouse;
-using Microsoft.AspNetCore.Routing.Constraints;
-using System.Diagnostics;
 
 namespace Application.ViewModels;
 public class PartVm : IMapFrom<Part>

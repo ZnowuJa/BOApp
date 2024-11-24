@@ -1,15 +1,9 @@
 ﻿using Application.Interfaces;
-using Application.ITWarehouseCQRS.States.Queries;
 using Application.ViewModels;
 using AutoMapper;
 using Domain.Entities.ITWarehouse;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application.ITWarehouseCQRS.Categories.Queries;
 internal class GetAllCategoriesForSelectQueryHandler : IRequestHandler<GetAllCategoriesForSelectQuery, IQueryable<CategoryVm>>

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Application.Forms.Accounting;
+﻿using Application.Forms.Accounting;
 using MediatR;
 
 namespace Application.CQRS.AccountingCQRS.DeferralPayment.Commands;
