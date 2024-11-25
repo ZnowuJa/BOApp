@@ -28,7 +28,6 @@ namespace Application.ViewModels.Accounting
         public void Mapping(Profile profile)
         {
             profile.CreateMap<GLAccount, GLAccountVm>().ReverseMap();
-            profile.CreateMap<GLAccount, GLAccountVm>().ReverseMap();
         }
     }
 }

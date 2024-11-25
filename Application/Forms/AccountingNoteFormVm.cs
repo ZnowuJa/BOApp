@@ -1,16 +1,27 @@
-﻿using BackOfficeApp_Domain.Common;
+﻿using Application.Mappings;
+using Domain.Entities.Accounting;
+using Domain.Entities.ITWarehouse;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Domain.Entities.Accounting
+namespace Application.Forms
 {
-    public class JournalEntries : AuditableEntity
+    public class AccountingNoteFormVm : IMapFrom<AccountingNoteForm>
     {
+        // Properties from FormTemplate
+        public int Id { get; set; }
+        public string Name { get; set; } = "Formularz Nota Księgowa";
+        public string Description { get; set; } = "Formularz do stworzenia Noty Księgowej";
+        public string FolderName { get; set; } = "accountingNoteForm";
+        public string NumberPrefix { get; set; } = "NK";
         public string Status { get; set; }
+        public List<string> Statuses { get; set; }
+        public int WorkflowTemplateId { get; set; }
+
+        //Properties specific to AccountingNoteForm
         public string DG { get; set; }
         public decimal AmountPaid { get; set; }
         public decimal AmountRemaining { get; set; }

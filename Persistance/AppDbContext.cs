@@ -61,6 +61,7 @@ public class AppDbContext : IdentityDbContext<AppUser>, IAppDbContext
     public DbSet<VATRate> VATRates { get; set; }
     public DbSet<ITScrappingForm> ITScrappingForms { get; set; }
     public DbSet<ITSaleForm> ITSaleForms { get; set; }
+    public DbSet<AccountingNoteForm> AccountingNotes { get; set; }
 
 
 
