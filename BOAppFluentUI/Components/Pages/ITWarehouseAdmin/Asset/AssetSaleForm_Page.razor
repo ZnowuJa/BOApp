@@ -121,7 +121,7 @@
     // [Parameter]
     // public string? role { get; set; }
     private string SessionId { get; set; }
-    
+
     private IQueryable<ITSaleFormVm> items { get; set; } = Enumerable.Empty<ITSaleFormVm>().AsQueryable();
 
 
@@ -164,21 +164,7 @@
         items = itemsList.AsQueryable();
 
     }
-    // private async Task<IQueryable<ITSaleFormVm>> HandleSavedCase()
-    // {
-    //     var resultss = await _mediator.Send(new GetDeferralPaymentByEmpIdQuery(_userContext.EnovaEmpId));
-    //     intent = ToastIntent.Success;
-    //     if (role is "zapisane" or "saved")
-    //     {
-    //         toastMessage = "Wniosek wysłany do aprobaty!";
-    //     } else
-    //     {
-    //         toastMessage = "Wystąpił błąd, wniosek nie zapisany!";
-    //     }
 
-    //     _toastService.ShowToast(intent, toastMessage, 3000);
-    //     return resultss;
-    // }
     private void HandleClearFilter(ref string filter) => filter = string.IsNullOrWhiteSpace(filter) ? string.Empty : filter;
     private async Task Edit(ITSaleFormVm item = null)
     {
@@ -196,12 +182,13 @@
         var dialog = await _dialogService.ShowPanelAsync<AssetSaleForm_Edit_Component>(item, new DialogParameters()
                     {
                         Height = "240px",
-                        Width = "720px",
+                        Width = "850px",
                         Title = item.Id > 0 ? "IT Sale Form" : "New IT Sale Form",
                         PreventDismissOnOverlayClick = false,
                         PreventScroll = true,
                     });
         var result = await dialog.Result;
+        // Console.WriteLine(item.FormFiles.Count());
 
         if(!result.Cancelled)
         {
@@ -209,54 +196,25 @@
             var res = await _mediator.Send(new UpdateITSaleFormCommand(returnedItem));
             foreach (var ass in returnedItem.Assets)
             {
-                DateTime date = ass.PurchaseDate ?? DateTime.Now;
-                ass.StateVmId = 7;
-                ass.SaleFormId = returnedItem.Id;
-                var i = await _mediator.Send(new UpdateAssetCommand(ass.Id, ass.PartVmId, ass.InvoiceVmId, ass.InvoiceItemID, ass.AssetTagNumber, ass.StateVmId, ass.SerialNumber, ass.LastSeen, ass.AssigneeVmId, ass.AssigneeVmType, ass.AssigneeVmName, ass.WarehouseVmId, ass.Price, ass.CurrencyVmId, date, ass.Leasing, ass.EndOfContract, ass.WarrantyUntil, ass.Imei, ass.Mac, ass.EndOfSupport, ass.ScrappingFormId, ass.SaleFormId, ass.ScrappingReason, _userContext.LongName));
-                _logger.LogInformation("AssetsPage | EditType(item) | Update Asset finished...");
-            }
-            var returnedFiles = res.FormFiles.ToList();
-            if (returnedFiles.Any())
-            {
-                var newFiles = returnedFiles
-                    .Where(returnedFile => item.FormFiles.All(file => file.Id != returnedFile.Id))
-                    .ToList();
-                foreach (var file in newFiles)
-                {
-                    var newFileInfo = await _fileService.MoveTempFileToDestFolderAsync(file.TmpPath, file.FolderName, file.Prefix, res.Id);
-                    file.DstPath = newFileInfo["DstPath"];
-                    file.DstFileName = newFileInfo["DstFileName"];
-                    file.FormPurpose = "default";
-                    var fileId = await _mediator.Send(new CreateFormFileCommand(file));
-                    file.Id = fileId;
+                if(ass.StateVmName == "Sold"){
+                    continue;
+                } else {
+                    DateTime date = ass.PurchaseDate ?? DateTime.Now;
+                    ass.StateVmId = 7;
+                    ass.SaleFormId = returnedItem.Id;
+                    var i = await _mediator.Send(new UpdateAssetCommand(ass.Id, ass.PartVmId, ass.InvoiceVmId, ass.InvoiceItemID, ass.AssetTagNumber, ass.StateVmId, ass.SerialNumber, ass.LastSeen, ass.AssigneeVmId, ass.AssigneeVmType, ass.AssigneeVmName, ass.WarehouseVmId, ass.Price, ass.CurrencyVmId, date, ass.Leasing, ass.EndOfContract, ass.WarrantyUntil, ass.Imei, ass.Mac, ass.EndOfSupport, ass.ScrappingFormId, ass.SaleFormId, ass.ScrappingReason, _userContext.LongName));
+                    _logger.LogInformation("AssetsPage | EditType(item) | Update Asset finished...");
                 }
-                
-                var deletedFiles = item.FormFiles
-                    .Where(file => returnedFiles.All(returnedFile => returnedFile.Id != file.Id))
-                    .ToList();
-                foreach (var file in deletedFiles)
-                {
-                    _fileService.DeleteFile(file.TmpPath);
-                    _fileService.DeleteFile(file.DstPath);
-                    await _mediator.Send(new DeleteFormFileCommand(file.Id));
-                }
-                
             }
-            
-            
             var fin = await _mediator.Send(new UpdateITSaleFormCommand(res));
-            
-            //After all, does all changes to Form, to Assets, to Files are applied correctly?
-            //After all, does all changes to Form, to Assets, to Files are applied correctly?
-            //After all, does all changes to Form, to Assets, to Files are applied correctly?
-            //After all, does all changes to Form, to Assets, to Files are applied correctly?
             
             intent = ToastIntent.Success;
             message = "Sale Form has been updated!";
 
             //below find if any assets have been removed from SaleForm
-            var returnedAssets = returnedItem.Assets.ToList();
+            var returnedAssets = res.Assets.ToList();
             var deletedAssets = assetsList.Where(asset => !returnedAssets.Any(returned => returned.Id == asset.Id)).ToList();
+            
             //if there are deleted assets update its state, and history to previous version
             foreach( var dAsset in deletedAssets){
                 DateTime date = dAsset.PurchaseDate ?? DateTime.Now;

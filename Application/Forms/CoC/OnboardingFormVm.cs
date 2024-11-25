@@ -42,8 +42,7 @@ namespace Application.Forms.CoC
         public string? Note { get; set; }
         public int? Progress { get; set; } = 0;
         public bool FirstRun { get; set; } = false;
-
-
+        List<FormFileVm> IFormVm.FormFiles { get; set; }
 
         public void Mapping(Profile profile)
         {

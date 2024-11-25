@@ -1,4 +1,6 @@
 ﻿using System.Text.Json;
+
+using Application.AdHocJobs;
 using Application.DTOs;
 using Application.ExportModels;
 using Application.Interfaces;
@@ -61,19 +63,20 @@ public class ITSaleFormVm : IMapFrom<ITSaleForm>, IFormVm
     public void Mapping(Profile profile)
     {
         profile.CreateMap<ITSaleForm, ITSaleFormVm>()
-            .ForMember(dest => dest.Level1Approvers, opt => opt.MapFrom(src => DeserializeRoles(src.Level1Approvers)))
-            .ForMember(dest => dest.Level2Approvers, opt => opt.MapFrom(src => DeserializeRoles(src.Level2Approvers)))
-            .ForMember(dest => dest.Approvals, opt => opt.MapFrom(src => DeserializeApprovals(src.Approvals)))
+            .ForMember(dest => dest.Level1Approvers, opt => opt.MapFrom(src => AppUtils.DeserializeRoles(src.Level1Approvers)))
+            .ForMember(dest => dest.Level2Approvers, opt => opt.MapFrom(src => AppUtils.DeserializeRoles(src.Level2Approvers)))
+            .ForMember(dest => dest.Approvals, opt => opt.MapFrom(src => AppUtils.DeserializeApprovals(src.Approvals)))
             .ForMember(dest => dest.AssetIds, opt => opt.MapFrom(src => DeserializeAssetIds2Int(src.AssetIds)))
-            .ForMember(dest => dest.FormFiles, opt => opt.MapFrom(src => DeserializeFiles(src.FormFiles)));
+            .ForMember(dest => dest.FormFiles, opt => opt.MapFrom(src => AppUtils.DeserializeFiles(src.FormFiles)));
             /*.ForMember(dest => dest.Assets, opt => opt.MapFrom(src => src.AssetIds.Select(id => new AssetDTO { Id = id }).ToList()))*/;
 
         profile.CreateMap<ITSaleFormVm, ITSaleForm>()
-            .ForMember(dest => dest.Level1Approvers, opt => opt.MapFrom(src => SerializeRoles(src.Level1Approvers)))
-            .ForMember(dest => dest.Level2Approvers, opt => opt.MapFrom(src => SerializeRoles(src.Level2Approvers)))
-            .ForMember(dest => dest.Approvals, opt => opt.MapFrom(src => SerializeApprovals(src.Approvals)))
+            .ForMember(dest => dest.Level1Approvers, opt => opt.MapFrom(src =>
+            AppUtils.SerializeRoles(src.Level1Approvers)))
+            .ForMember(dest => dest.Level2Approvers, opt => opt.MapFrom(src => AppUtils.SerializeRoles(src.Level2Approvers)))
+            .ForMember(dest => dest.Approvals, opt => opt.MapFrom(src => AppUtils.SerializeApprovals(src.Approvals)))
             .ForMember(dest => dest.AssetIds, opt => opt.MapFrom(src => SerializeAssetIds(src.AssetIds)))
-            .ForMember(dest => dest.FormFiles, opt => opt.MapFrom(src => SerializeFiles(src.FormFiles)));
+            .ForMember(dest => dest.FormFiles, opt => opt.MapFrom(src => AppUtils.SerializeFiles(src.FormFiles)));
 
         profile.CreateMap<ITSaleFormVm, ITSaleFormExportModel>()
                 .ForMember(dest => dest.AssetIds, opt => opt.MapFrom(src => SerializeAssetIds(src.AssetIds)));
@@ -107,15 +110,15 @@ public class ITSaleFormVm : IMapFrom<ITSaleForm>, IFormVm
             ? new List<int>()
             : JsonSerializer.Deserialize<List<int>>(assetIdsJson);
     }
-    private string SerializeFiles(List<FormFileVm> files)
-    {
-        return files == null || files.Count == 0 ? string.Empty : JsonSerializer.Serialize(files);
-    }
+    //private string SerializeFiles(List<FormFileVm> files)
+    //{
+    //    return files == null || files.Count == 0 ? string.Empty : JsonSerializer.Serialize(files);
+    //}
 
-    private List<FormFileVm> DeserializeFiles(string json)
-    {
-        return string.IsNullOrEmpty(json) ? new List<FormFileVm>() : JsonSerializer.Deserialize<List<FormFileVm>>(json);
-    }
+    //private List<FormFileVm> DeserializeFiles(string json)
+    //{
+    //    return string.IsNullOrEmpty(json) ? new List<FormFileVm>() : JsonSerializer.Deserialize<List<FormFileVm>>(json);
+    //}
     
 
 }

@@ -47,6 +47,8 @@ public class DeferralPaymentFormVm : IMapFrom<DeferralPaymentForm>, IFormVm
     public int CC { get; set; }
     public string VATID { get; set; }
     public string RejectReason { get; set; } = string.Empty;
+    public List<FormFileVm> FormFiles { get; set; }
+
     //public static readonly List<string> StatusValues = new List<string>
     //{
     //    "Rejestracja",

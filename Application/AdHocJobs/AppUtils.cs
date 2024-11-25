@@ -1,4 +1,8 @@
-﻿using Application.DTOs;
+﻿using System.Text.Json;
+
+using Application.DTOs;
+using Application.ViewModels.General;
+
 using AutoMapper;
 
 namespace Application.AdHocJobs;
@@ -14,23 +18,31 @@ public static class AppUtils
 
         return minimals;
     }
-}
-//public  class Utils
-//{
-//    public static Expression<Func<T, string>> GetPropertyExpression<T>(Func<T, string> propertyFunc)
-//    {
-//        return x => propertyFunc(x);
-//    }
+    public static string SerializeFiles(List<FormFileVm> files)
+    {
+        return files == null || files.Count == 0 ? string.Empty : JsonSerializer.Serialize(files);
+    }
+    public static List<FormFileVm> DeserializeFiles(string json)
+    {
+        return string.IsNullOrEmpty(json) ? new List<FormFileVm>() : JsonSerializer.Deserialize<List<FormFileVm>>(json);
+    }
+    public static string SerializeApprovals(List<Approval> approvals)
+    {
+        return approvals == null || approvals.Count == 0 ? string.Empty : JsonSerializer.Serialize(approvals);
+    }
+    public static List<Approval> DeserializeApprovals(string json)
+    {
+        return string.IsNullOrEmpty(json) ? new List<Approval>() : JsonSerializer.Deserialize<List<Approval>>(json);
+    }
+    public static string SerializeRoles(List<OrganisationRoleForFormVm> roles)
+    {
+        return roles == null || roles.Count == 0 ? string.Empty : JsonSerializer.Serialize(roles);
+    }
 
-//    public static void HandleFilterDebounced<T>(FilterColumn<T> column,
-//        ChangeEventArgs args,
-//        DebounceDispatcher debounceDispatcher,
-//        Func<Task> stateHasChangedInvoker)
-//    {
-//        debounceDispatcher.Debounce(400, _ =>
-//        {
-//            column.Filter = args.Value.ToString();
-//            stateHasChangedInvoker();
-//        });
-//    }
+    public static List<OrganisationRoleForFormVm> DeserializeRoles(string json)
+    {
+        return string.IsNullOrEmpty(json) ? new List<OrganisationRoleForFormVm>() : JsonSerializer.Deserialize<List<OrganisationRoleForFormVm>>(json);
+    }
+}
+
     

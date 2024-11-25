@@ -1,5 +1,7 @@
 ﻿using System.Linq.Expressions;
 using System.Text;
+
+using Application.CQRS.General.FormFiles.Commands;
 using Application.CQRS.ITWarehouseCQRS.Employees.Queries;
 using Application.Interfaces;
 
@@ -11,6 +13,8 @@ using MediatR;
 
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using Microsoft.FluentUI.AspNetCore.Components;
 
 namespace BOAppFluentUI.Components.Pages;
 
@@ -20,7 +24,6 @@ public static class Utils
     {
         return x => propertyFunc(x);
     }
-
     public static void HandleFilterDebounced<T>(FilterColumn<T> column,
         ChangeEventArgs args,
         DebounceDispatcher debounceDispatcher,
@@ -72,7 +75,6 @@ public static class Utils
 
         return query.OrderByDescending(r => r.GetType().GetProperty("Id").GetValue(r));
     }
-
     public static async Task GetUserName(
         AuthenticationStateProvider authenticationStateProvider,
         FormUserContext userContext,
@@ -116,7 +118,6 @@ public static class Utils
         }
 
     }
-
     public static bool IsEditDisabled<T>(T context, FormUserContext _userContext) where T : IFormVm
     {
         var roles = _userContext.Employee.Roles.ToList();
@@ -143,7 +144,6 @@ public static class Utils
 
         return true; 
     }
-
     public static void HandleChangeApprover<T>(ChangeEventArgs e, IQueryable<EmployeeVm> itemEmployeesList, T formItem, string approverLevel) where T : IFormVm
     {
         var tempEmp = itemEmployeesList.First(p => p.EnovaEmpId == int.Parse(e.Value.ToString()));
@@ -159,7 +159,6 @@ public static class Utils
         }
         //Console.WriteLine(tempEmp.LongName);
     }
-
     public static string GenerateCsv<T>(IQueryable<T> records)
     {
         var csv = new StringBuilder();
@@ -177,7 +176,6 @@ public static class Utils
 
         return csv.ToString();
     }
-
     public static byte[] GenerateCsvPL<T>(IQueryable<T> records)
     {
         var csv = new StringBuilder();
@@ -204,7 +202,41 @@ public static class Utils
 
         return csvWithBom;
     }
+    public static async Task OnFileUploadedAsync<TContent>(FluentInputFileEventArgs file, IFileService fileService, IMediator mediator, string sessionId, TContent content, List<FormFileVm> addedFiles)
+        where TContent : IFormVm
+    {
+        var fileInfo = await fileService.UploadTemporaryFileAsync(file.Stream, file.Name, sessionId);
+        var resultFile = new FormFileVm
+        {
+            TmpPath = fileInfo["TmpPath"],
+            TmpFileName = fileInfo["TmpFileName"],
+            TmpFileExtension = fileInfo["TmpFileExtension"],
+            OriginalFileName = fileInfo["OriginalFileName"],
+            Prefix = content.NumberPrefix,
+            FolderName = content.FolderName,
+            FormClassName = typeof(TContent).Name,
+            FormId = content.Id,
+        };
+        var fileId = await mediator.Send(new CreateFormFileCommand(resultFile));
+        resultFile.Id = fileId;
 
+        content.FormFiles.Add(resultFile);
+        addedFiles.Add(resultFile);
+    }
+
+    public static async Task DeleteFile<TContent>(int fileId, IQueryable<FormFileVm> formFiles, IFileService fileService, IMediator mediator, List<FormFileVm> addedFiles, TContent content)
+        where TContent : IFormVm
+    {
+        var fileToDelete = formFiles.FirstOrDefault(f => f.Id == fileId);
+
+        await mediator.Send(new DeleteFormFileCommand(fileId));
+        fileService.DeleteFile(fileToDelete.TmpPath);
+        fileService.DeleteFile(fileToDelete.DstPath);
+
+        formFiles = formFiles.Where(file => file.Id != fileId).AsQueryable();
+        addedFiles.Remove(fileToDelete);
+        content.FormFiles = formFiles.ToList();
+    }
 }
 public static class QueryableExtensions
 {

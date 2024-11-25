@@ -65,7 +65,8 @@ public class FileService : IFileService
 
         var fileExtension = Path.GetExtension(tmpPath);
         var idFormatted = id.ToString("D8");
-        var newFileName = $"{numberPrefix}{idFormatted}{fileExtension}";
+        var fileNameOnly = Path.GetFileNameWithoutExtension(tmpPath);
+        var newFileName = $"{numberPrefix}{idFormatted}_{fileNameOnly}{fileExtension}";
         var newFilePath = Path.Combine(permanentFolder, newFileName);
 
         File.Move(tmpPath, newFilePath);

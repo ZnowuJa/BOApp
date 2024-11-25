@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using MediatR;
 using Application.Interfaces;
+using Domain.Entities.Common;
 
 namespace Application.CQRS.General.FormFiles.Commands
 {
@@ -27,16 +28,26 @@ namespace Application.CQRS.General.FormFiles.Commands
 
         public async Task<int> Handle(DeleteFormFileCommand request, CancellationToken cancellationToken)
         {
-            var entity = await _context.FormFiles.FindAsync(request.Id);
+            FormFile entity = new FormFile(); 
+            try
+            {
+                entity = await _context.FormFiles.FindAsync(request.Id);
+            } catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            
 
             if (entity == null)
             {
+                entity.Id = 0;
                 throw new Exception($"Entity with Id {request.Id} not found.");
+            } else
+            {
+                _context.FormFiles.Remove(entity);
+
+                await _context.SaveChangesAsync(cancellationToken);
             }
-
-            _context.FormFiles.Remove(entity);
-
-            await _context.SaveChangesAsync(cancellationToken);
 
             return entity.Id;
         }
