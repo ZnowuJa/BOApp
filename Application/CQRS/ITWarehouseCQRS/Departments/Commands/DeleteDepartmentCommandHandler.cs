@@ -1,6 +1,12 @@
 ﻿using Application.Interfaces;
+using Application.CQRS.ITWarehouseCQRS.Currencies.Commands;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace Application.ITWarehouseCQRS.Departments.Commands;
 public class DeleteDepartmentCommandHandler : IRequestHandler<DeleteDepartmentCommand, int>

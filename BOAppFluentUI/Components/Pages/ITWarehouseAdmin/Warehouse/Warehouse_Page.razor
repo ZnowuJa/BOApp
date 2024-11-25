@@ -1,5 +1,8 @@
 ﻿@page "/warehouses"
-@using Application.ITWarehouseCQRS.Warehouses.Commands
+@using Application.CQRS.ITWarehouseCQRS.Warehouses.Commands
+@using Application.CQRS.ITWarehouseCQRS.Warehouses.Queries
+@using Application.ViewModels
+@using MediatR
 @using Microsoft.AspNetCore.Authorization
 
 @attribute [Authorize(Policy = "Technician")]

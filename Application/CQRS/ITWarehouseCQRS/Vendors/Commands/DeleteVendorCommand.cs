@@ -1,11 +1,23 @@
-﻿using MediatR;
+﻿using Application.Interfaces;
+using MediatR;
+using Microsoft.EntityFrameworkCore;
 
-namespace Application.ITWarehouseCQRS.Vendors.Commands;
-public class DeleteVendorCommand : IRequest<int>
+namespace Application.CQRS.ITWarehouseCQRS.Vendors.Commands;
+public class DeleteVendorCommand(int id) : IRequest<int>
 {
-    public int Id { get; set; }
-    public DeleteVendorCommand(int id)
+    public int Id { get; set; } = id;
+}
+public class DeleteVendorCommandHandler(IAppDbContext context) : IRequestHandler<DeleteVendorCommand, int>
+{
+    private readonly IAppDbContext _context = context;
+
+    public async Task<int> Handle(DeleteVendorCommand request, CancellationToken cancellationToken)
     {
-        Id = id;
+
+        var item = await _context.Vendors.Where(p => p.Id == request.Id).FirstOrDefaultAsync(cancellationToken);
+        _context.Vendors.Remove(item);
+        await _context.SaveChangesAsync();
+
+        return item.Id;
     }
 }

@@ -51,6 +51,7 @@ public interface IAppDbContext
     DbSet<Country> Countries { get; set; }
     DbSet<GLAccount> GLAccounts { get; set; }
     DbSet<VATRate> VATRates { get; set; }
+    DbSet<AccountingNoteForm> AccountingNotes { get; set; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default);

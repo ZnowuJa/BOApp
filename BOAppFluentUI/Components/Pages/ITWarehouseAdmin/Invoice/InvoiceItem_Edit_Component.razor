@@ -1,9 +1,10 @@
 ﻿@* InvoiceItem Edit Component *@
 
-@using Application.ITWarehouseCQRS.Assets.Queries
 @using Application.ITWarehouseCQRS.Invoices.Commands
-@using Application.ITWarehouseCQRS.Units.Queries
-@using Application.ITWarehouseCQRS.Assets.Commands
+@using Application.CQRS.ITWarehouseCQRS.Units.Queries
+@using Application.CQRS.ITWarehouseCQRS.Assets.Commands
+@using Application.CQRS.ITWarehouseCQRS.Assets.Queries
+@using MediatR
 @using System.Security.Claims
 
 @inject IMediator _mediator;

@@ -1,5 +1,11 @@
 ﻿@page "/vendors"
-@using Application.ITWarehouseCQRS.Vendors.Commands
+@using Application.CQRS.ITWarehouseCQRS.Currencies
+@using Application.CQRS.ITWarehouseCQRS.Currencies.Queries
+@using Application.CQRS.ITWarehouseCQRS.Currencies.Commands
+@using Application.CQRS.ITWarehouseCQRS.Vendors.Commands
+@using Application.CQRS.ITWarehouseCQRS.Vendors.Queries
+@using Application.ViewModels
+@using MediatR
 @using Microsoft.AspNetCore.Authorization
 
 @attribute [Authorize(Policy = "Technician")]

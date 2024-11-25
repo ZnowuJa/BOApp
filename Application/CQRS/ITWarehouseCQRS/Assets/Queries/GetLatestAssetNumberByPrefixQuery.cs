@@ -1,11 +1,36 @@
-﻿using MediatR;
+﻿using Application.Interfaces;
+using MediatR;
+using Microsoft.EntityFrameworkCore;
 
-namespace Application.ITWarehouseCQRS.Assets.Queries;
-public class GetLatestAssetNumberByPrefixQuery : IRequest<string>
+namespace Application.CQRS.ITWarehouseCQRS.Assets.Queries;
+public class GetLatestAssetNumberByPrefixQuery(string prefix) : IRequest<string>
 {
-    public string _prefix { get; set; }
-    public GetLatestAssetNumberByPrefixQuery(string prefix)
+    public string _prefix { get; set; } = prefix;
+}
+public class GetLatestAssetNumberByPrefixHandler(IAppDbContext appDbContext) : IRequestHandler<GetLatestAssetNumberByPrefixQuery, string>
+{
+    private readonly IAppDbContext _appDbContext = appDbContext;
+
+    public async Task<string> Handle(GetLatestAssetNumberByPrefixQuery request, CancellationToken cancellationToken)
     {
-        _prefix = prefix;
+        string prefix = request._prefix;
+        var assetTagNumbers = await _appDbContext.Assets
+            .Where(asset => asset.AssetTagNumber.StartsWith(prefix))
+            .Select(asset => asset.AssetTagNumber)
+            .ToListAsync();
+
+        int highestAssetTagNumber = assetTagNumbers
+            .Select(assetTagNumber => int.Parse(assetTagNumber.Substring(prefix.Length)))
+            .OrderByDescending(n => n)
+            .FirstOrDefault();
+
+
+        //string highestAssetTagNumber = await _appDbContext.Assets
+        //    .Where(asset => asset.AssetTagNumber.StartsWith(request._prefix))
+        //    .Select(asset => asset.AssetTagNumber)
+        //    .OrderByDescending(n => n)
+        //    .FirstOrDefaultAsync() ?? string.Empty;
+
+        return highestAssetTagNumber.ToString();
     }
 }

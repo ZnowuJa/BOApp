@@ -1,6 +1,16 @@
 ﻿@*Workflow Edit Component*@
+
+@using Application.CQRS.General.Employees2Select.Queries
+@using Application.CQRS.General.Organisations.Commands
+@using Application.CQRS.General.Organisations.Queries
+@using Application.CQRS.General.Workflows.Queries
+@using Application.CQRS.ITWarehouseCQRS.Companies.Queries
+@using Application.ITWarehouseCQRS.Departments.Queries
 @using Application.ViewModels.General
+@using Microsoft.AspNetCore.Components.Forms
 @using Application.Interfaces
+@using System.Security.Claims
+@using MediatR
 @using System.Reflection
 
 @inject IMediator _mediator

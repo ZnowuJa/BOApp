@@ -1,4 +1,10 @@
 ﻿@page "/categories"
+@using Application.CQRS.ITWarehouseCQRS.Categories
+@using Application.CQRS.ITWarehouseCQRS.Categories.Queries
+@using Application.CQRS.ITWarehouseCQRS.Categories.Commands
+@using Application.CQRS.ITWarehouseCQRS.CategoryTypes
+@using BOAppFluentUI.Components.Pages.ITWarehouseAdmin.Category
+@using MediatR
 @using Microsoft.AspNetCore.Authorization
 
 @attribute [Authorize(Policy = "Technician")]

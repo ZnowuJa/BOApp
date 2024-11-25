@@ -1,13 +1,26 @@
-﻿using MediatR;
+﻿using Application.Interfaces;
+using Domain.Entities.ITWarehouse;
+using MediatR;
 
-namespace Application.ITWarehouseCQRS.CompanyTypes.Commands;
-public class CreateCompanyTypeCommand : IRequest<int>
+namespace Application.CQRS.ITWarehouseCQRS.CompanyTypes.Commands;
+public class CreateCompanyTypeCommand(string name) : IRequest<int>
 {
-    public string Name { get; set; }
+    public string Name { get; set; } = name;
+}
+public class CreateCompanyTypeCommandHandler(IAppDbContext context) : IRequestHandler<CreateCompanyTypeCommand, int>
+{
+    private readonly IAppDbContext _context = context;
 
-    public CreateCompanyTypeCommand(string name)
+    public async Task<int> Handle(CreateCompanyTypeCommand request, CancellationToken cancellationToken)
     {
-        Name = name;
+        CompanyType companytype = new()
+        {
+            Name = request.Name,
+            StatusId = 1
+        };
+        _context.CompanyTypes.Add(companytype);
+        await _context.SaveChangesAsync();
+
+        return companytype.Id;
     }
 }
-

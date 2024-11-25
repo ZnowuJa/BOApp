@@ -1,12 +1,18 @@
 ﻿using Application.Interfaces;
+using Application.CQRS.ITWarehouseCQRS.Currencies.Commands;
 using Domain.Entities.ITWarehouse;
 using MediatR;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace Application.ITWarehouseCQRS.Departments.Commands;
 public class CreateDepartmentCommandHandler : IRequestHandler<CreateDepartmentCommand, int>
 {
     private readonly IAppDbContext _appDbContext;
-
+        
     public CreateDepartmentCommandHandler(IAppDbContext appDbContext)
     {
         _appDbContext = appDbContext;
