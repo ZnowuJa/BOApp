@@ -5,7 +5,7 @@ using AutoMapper;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace Application.ITWarehouseCQRS.Employees.Queries;
+namespace Application.CQRS.ITWarehouseCQRS.Employees.Queries;
 public class GetEmployeeQueryHandler : IRequestHandler<GetEmployeeQuery, EmployeeVm>
 {
     private readonly IAppDbContext _appDbContext;
@@ -36,7 +36,7 @@ public class GetEmployeeQueryHandler : IRequestHandler<GetEmployeeQuery, Employe
             MobileNumber = result.MobileNumber,
             PhoneNumber = result.PhoneNumber,
             ManagerId = (int)result.ManagerId,
-            Manager =  _mapper.Map<ManagerVm>(man),
+            Manager = _mapper.Map<ManagerVm>(man),
             IsManager = result.IsManager,
             EmployeeTypeVm = _mapper.Map<EmployeeTypeVm>(result.Type),
             Roles = roles

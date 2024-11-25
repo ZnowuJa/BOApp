@@ -4,13 +4,13 @@ using AutoMapper;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace Application.ITWarehouseCQRS.Employees.Queries;
+namespace Application.CQRS.ITWarehouseCQRS.Employees.Queries;
 public class GetAllEmployeesQueryHandler : IRequestHandler<GetAllEmployeesQuery, IQueryable<EmployeeVm>>
 {
     private readonly IAppDbContext _appDbContext;
     private IMapper _mapper;
-    
-    public GetAllEmployeesQueryHandler(IAppDbContext appDbContext, IMapper mapper )
+
+    public GetAllEmployeesQueryHandler(IAppDbContext appDbContext, IMapper mapper)
     {
         _appDbContext = appDbContext;
         _mapper = mapper;
@@ -20,12 +20,12 @@ public class GetAllEmployeesQueryHandler : IRequestHandler<GetAllEmployeesQuery,
     {
         if (_appDbContext.Employees == null)
         {
-            
+
             throw new InvalidOperationException("Employees DbSet is null");
         }
 
         var result = await _appDbContext.Employees.Where(p => p.IsActive == 1).Include(i => i.Type).ToListAsync(cancellationToken);
-       
+
         // Create a dictionary for quick lookup of managers by their EnovaEmpId
         var managerLookup = result.ToDictionary(e => e.EnovaEmpId, e => e);
 
@@ -38,7 +38,7 @@ public class GetAllEmployeesQueryHandler : IRequestHandler<GetAllEmployeesQuery,
                 var manager = managerLookup[e.ManagerId.Value];
                 employeeVm.Manager = _mapper.Map<ManagerVm>(manager);
             }
-            if(e.Position == null)
+            if (e.Position == null)
             {
                 employeeVm.Position = string.Empty;
             }

@@ -1,5 +1,5 @@
-﻿using Application.ITWarehouseCQRS.Employees.Commands;
-using Application.ITWarehouseCQRS.Employees.Queries;
+﻿using Application.CQRS.ITWarehouseCQRS.Employees.Commands;
+using Application.CQRS.ITWarehouseCQRS.Employees.Queries;
 
 using MediatR;
 

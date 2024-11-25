@@ -4,7 +4,7 @@ using Domain.Entities.ITWarehouse;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace Application.ITWarehouseCQRS.Employees.Commands;
+namespace Application.CQRS.ITWarehouseCQRS.Employees.Commands;
 public class CreateEmployeeCommandHandler : IRequestHandler<CreateEmployeeCommand, int>
 {
     private readonly IAppDbContext _appDbContext;

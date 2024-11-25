@@ -9,6 +9,7 @@ using Application.Interfaces;
 using Application.ViewModels.General;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Application.Forms.Accounting;
 
 namespace Application.CQRS.AccountingCQRS.DeferralPayment.Commands;
 public class UpdateDeferralPaymentCommand(DeferralPaymentFormVm item) : IRequest<DeferralPaymentFormVm>

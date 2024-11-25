@@ -1,7 +1,7 @@
 ﻿using Application.ViewModels.General;
 using MediatR;
 
-namespace Application.ITWarehouseCQRS.EmployeeTypes.Queries;
+namespace Application.CQRS.ITWarehouseCQRS.EmployeeTypes.Queries;
 public class GetEmployeeTypeQuery : IRequest<EmployeeTypeVm>
 {
     public GetEmployeeTypeQuery(int i)

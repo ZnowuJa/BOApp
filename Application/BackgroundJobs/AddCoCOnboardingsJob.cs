@@ -7,7 +7,6 @@ using Application.CQRS.General.Organisations.Queries;
 using Application.CQRS.ITWarehouseCQRS.Employees.Queries;
 using Application.Forms.CoC;
 using Application.Interfaces;
-using Application.ITWarehouseCQRS.Employees.Queries;
 using Application.ViewModels.CoC;
 using Application.ViewModels.General;
 using MediatR;

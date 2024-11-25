@@ -1,6 +1,6 @@
 ﻿using MediatR;
 
-namespace Application.ITWarehouseCQRS.Employees.Queries;
+namespace Application.CQRS.ITWarehouseCQRS.Employees.Queries;
 
 public class GetRolesForUserByAspNetIdQuery : IRequest<List<string>>
 {

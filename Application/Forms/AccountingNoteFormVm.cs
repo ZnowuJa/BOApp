@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Application.Forms
 {
-    public class AccountingNoteFormVm : IMapFrom<AccountingNoteForm>
+/*    public class AccountingNoteFormVm : IMapFrom<AccountingNoteForm>
     {
         // Properties from FormTemplate
         public int Id { get; set; }
@@ -43,5 +43,5 @@ namespace Application.Forms
         public string DealerName { get; set; }
         public string NoteContent { get; set; }
         public string Attachment { get; set; }
-    }
+    }*/
 }

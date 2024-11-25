@@ -6,6 +6,7 @@ using Application.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Domain.Forms;
 using Application.ViewModels.General;
+using Application.Forms.Accounting;
 
 namespace Application.CQRS.AccountingCQRS.DeferralPayment.Queries;
 public class GetDeferralPaymentByEmpIdQuery(string i) : IRequest<IQueryable<DeferralPaymentFormVm>>

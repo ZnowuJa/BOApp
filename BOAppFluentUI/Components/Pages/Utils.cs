@@ -1,7 +1,7 @@
 ﻿using System.Linq.Expressions;
 using System.Text;
+using Application.CQRS.ITWarehouseCQRS.Employees.Queries;
 using Application.Interfaces;
-using Application.ITWarehouseCQRS.Employees.Queries;
 
 using Application.ViewModels.General;
 

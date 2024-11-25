@@ -2,7 +2,7 @@
 
 using MediatR;
 
-namespace Application.ITWarehouseCQRS.Employees.Commands;
+namespace Application.CQRS.ITWarehouseCQRS.Employees.Commands;
 public class UpdateEmployeeCommand : IRequest<int>
 {
     public int Id { get; set; }

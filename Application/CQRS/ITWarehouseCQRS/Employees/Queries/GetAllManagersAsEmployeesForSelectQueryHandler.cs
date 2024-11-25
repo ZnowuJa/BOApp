@@ -5,7 +5,7 @@ using Domain.Entities.ITWarehouse;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace Application.ITWarehouseCQRS.Employees.Queries;
+namespace Application.CQRS.ITWarehouseCQRS.Employees.Queries;
 internal class GetAllManagersAsEmployeesForSelectQueryHandler : IRequestHandler<GetAllManagersAsEmployeesForSelectQuery, IQueryable<EmployeeVm>>
 {
     private readonly IAppDbContext _appDbContext;
@@ -20,8 +20,8 @@ internal class GetAllManagersAsEmployeesForSelectQueryHandler : IRequestHandler<
 
     public async Task<IQueryable<EmployeeVm>> Handle(GetAllManagersAsEmployeesForSelectQuery request, CancellationToken cancellationToken)
     {
-        Employee item = new Employee() ;
-        
+        Employee item = new Employee();
+
         List<Employee> itemList = [item];
         var result = await _appDbContext.Employees
             .Where(p => p.StatusId == 1)

@@ -1,7 +1,7 @@
 ﻿using System.Text.RegularExpressions;
 using Application.CQRS.CoCCQRS.Positions.Queries;
 using Application.Interfaces;
-using Application.ITWarehouseCQRS.Employees.Queries;
+using Application.CQRS.ITWarehouseCQRS.Employees.Queries;
 
 using MediatR;
 using Microsoft.Extensions.Configuration;

@@ -3,7 +3,7 @@ using AutoMapper;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace Application.ITWarehouseCQRS.Employees.Commands;
+namespace Application.CQRS.ITWarehouseCQRS.Employees.Commands;
 public class UpdateEmployeeCommandHandler : IRequestHandler<UpdateEmployeeCommand, int>
 {
     private readonly IAppDbContext _appDbContext;

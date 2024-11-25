@@ -5,7 +5,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
-namespace Application.ITWarehouseCQRS.EmployeeTypes.Queries;
+namespace Application.CQRS.ITWarehouseCQRS.EmployeeTypes.Queries;
 public class GetAllEmployeeTypesQueryHandler : IRequestHandler<GetAllEmployeeTypesQuery, IQueryable<EmployeeTypeVm>>
 {
     private readonly IAppDbContext _appDbContext;

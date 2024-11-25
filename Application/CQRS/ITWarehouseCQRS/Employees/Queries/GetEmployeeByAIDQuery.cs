@@ -1,7 +1,7 @@
 ﻿using Application.ViewModels.General;
 using MediatR;
 
-namespace Application.ITWarehouseCQRS.Employees.Queries;
+namespace Application.CQRS.ITWarehouseCQRS.Employees.Queries;
 public class GetEmployeeByAIDQuery : IRequest<EmployeeVm>
 {
     public GetEmployeeByAIDQuery(Guid i)

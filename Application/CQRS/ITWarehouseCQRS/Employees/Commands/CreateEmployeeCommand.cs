@@ -1,7 +1,7 @@
 ﻿using Application.ViewModels.General;
 using MediatR;
 
-namespace Application.ITWarehouseCQRS.Employees.Commands;
+namespace Application.CQRS.ITWarehouseCQRS.Employees.Commands;
 public class CreateEmployeeCommand : IRequest<int>
 {
     public string FirstName { get; set; } = string.Empty;

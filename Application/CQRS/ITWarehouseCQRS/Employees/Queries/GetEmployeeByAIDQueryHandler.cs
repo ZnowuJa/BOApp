@@ -5,7 +5,7 @@ using AutoMapper;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace Application.ITWarehouseCQRS.Employees.Queries;
+namespace Application.CQRS.ITWarehouseCQRS.Employees.Queries;
 public class GetEmployeeByAIDQueryHandler : IRequestHandler<GetEmployeeByAIDQuery, EmployeeVm>
 {
     private readonly IAppDbContext _appDbContext;
@@ -23,7 +23,7 @@ public class GetEmployeeByAIDQueryHandler : IRequestHandler<GetEmployeeByAIDQuer
             .Include(b => b.Type).FirstOrDefaultAsync(cancellationToken);
         if (result == null)
         {
-            return null; 
+            return null;
         }
         var man = await _appDbContext.Employees.Where(p => p.EnovaEmpId == result.ManagerId).FirstOrDefaultAsync(cancellationToken);
         var roles = await _postAuthSvc.GetRolesForUserAsync(result.AspNetUserId);

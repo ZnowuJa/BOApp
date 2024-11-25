@@ -4,7 +4,7 @@ using AutoMapper;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace Application.ITWarehouseCQRS.Employees.Queries;
+namespace Application.CQRS.ITWarehouseCQRS.Employees.Queries;
 public class GetManagerQueryHandler : IRequestHandler<GetManagerQuery, ManagerVm>
 {
     private readonly IAppDbContext _appDbContext;

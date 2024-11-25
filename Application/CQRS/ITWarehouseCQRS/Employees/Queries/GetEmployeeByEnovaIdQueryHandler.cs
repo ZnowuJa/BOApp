@@ -5,7 +5,7 @@ using AutoMapper;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace Application.ITWarehouseCQRS.Employees.Queries;
+namespace Application.CQRS.ITWarehouseCQRS.Employees.Queries;
 public class GetEmployeeByEnovaIdQueryHandler : IRequestHandler<GetEmployeeByEnovaIdQuery, EmployeeVm>
 {
     private readonly IAppDbContext _appDbContext;
@@ -28,7 +28,7 @@ public class GetEmployeeByEnovaIdQueryHandler : IRequestHandler<GetEmployeeByEno
 
         resEmpVm.ManagerId = (int)result.ManagerId;
         resEmpVm.Manager = _mapper.Map<ManagerVm>(man);
-        
+
         resEmpVm.EmployeeTypeVm = _mapper.Map<EmployeeTypeVm>(result.Type);
         resEmpVm.Roles = roles;
 

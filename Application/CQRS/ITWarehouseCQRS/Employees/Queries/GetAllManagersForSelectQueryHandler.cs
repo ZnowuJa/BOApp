@@ -5,7 +5,7 @@ using Domain.Entities.ITWarehouse;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace Application.ITWarehouseCQRS.Employees.Queries;
+namespace Application.CQRS.ITWarehouseCQRS.Employees.Queries;
 internal class GetAllManagersForSelectQueryHandler : IRequestHandler<GetAllManagersForSelectQuery, IQueryable<ManagerVm>>
 {
     private readonly IAppDbContext _appDbContext;

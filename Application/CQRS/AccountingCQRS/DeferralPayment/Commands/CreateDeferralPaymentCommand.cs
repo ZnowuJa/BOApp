@@ -8,6 +8,7 @@ using Microsoft.Graph.Models;
 using Application.Interfaces;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Application.Forms.Accounting;
 
 namespace Application.CQRS.AccountingCQRS.DeferralPayment.Commands;
 public class CreateDeferralPaymentCommand(DeferralPaymentFormVm item) : IRequest<DeferralPaymentFormVm>

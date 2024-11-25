@@ -1,4 +1,6 @@
-﻿using Application.ViewModels;
+﻿using Application.Interfaces;
+using Application.ViewModels;
+using AutoMapper;
 using Domain.Entities.ITWarehouse;
 using MediatR;
 

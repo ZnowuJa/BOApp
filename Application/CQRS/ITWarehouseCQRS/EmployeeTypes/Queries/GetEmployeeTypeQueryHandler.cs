@@ -4,7 +4,7 @@ using AutoMapper;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace Application.ITWarehouseCQRS.EmployeeTypes.Queries;
+namespace Application.CQRS.ITWarehouseCQRS.EmployeeTypes.Queries;
 public class GetEmployeeTypeQueryHandler : IRequestHandler<GetEmployeeTypeQuery, EmployeeTypeVm>
 {
     private readonly IAppDbContext _appDbContext;

@@ -7,7 +7,7 @@ using Domain.Entities.ITWarehouse;
 using Application.ViewModels.General;
 
 
-namespace Application.ITWarehouseCQRS.EmployeeTypes.Queries;
+namespace Application.CQRS.ITWarehouseCQRS.EmployeeTypes.Queries;
 public class GetAllEmployeeTypesForSelectQueryHandler : IRequestHandler<GetAllEmployeeTypesForSelectQuery, IQueryable<EmployeeTypeVm>>
 {
     private readonly IAppDbContext _appDbContext;

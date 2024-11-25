@@ -3,7 +3,7 @@ using Application.Interfaces.Identity.Services;
 using AutoMapper;
 using MediatR;
 
-namespace Application.ITWarehouseCQRS.Employees.Queries;
+namespace Application.CQRS.ITWarehouseCQRS.Employees.Queries;
 public class GetRolesForUserByAspNetIdQueryHandler : IRequestHandler<GetRolesForUserByAspNetIdQuery, List<string>>
 {
     private readonly IAppDbContext _appDbContext;
