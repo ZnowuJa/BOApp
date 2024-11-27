@@ -35,21 +35,7 @@ public static class Utils
             stateHasChangedInvoker();
         });
     }
-    //public static void HandleDropdownFilter<T>(FilterColumn<T> column, ChangeEventArgs args, Func<Task> stateHasChangedInvoker)
-    //{
-    //    column.Filter = args.Value.ToString();
-    //    stateHasChangedInvoker();
-    //}
 
-    //public static void HandleDropdownFilter<T>(FilterColumn<T> column, ChangeEventArgs args, Func<Task> stateHasChangedInvoker)
-    //{
-    //    var selectedValues = args.Value as List<string>;
-    //    if (selectedValues != null)
-    //    {
-    //        column.SelectedValues = selectedValues;
-    //        stateHasChangedInvoker();
-    //    }
-    //}
     public static void OnSelectedOptionsChanged<T>(IEnumerable<string> selectedOptions, FilterColumn<T> column)
     {
         column.SelectedValues = selectedOptions.ToList();

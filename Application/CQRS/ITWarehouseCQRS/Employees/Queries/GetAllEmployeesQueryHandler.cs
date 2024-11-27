@@ -44,7 +44,7 @@ public class GetAllEmployeesQueryHandler : IRequestHandler<GetAllEmployeesQuery,
             }
 
             return employeeVm;
-        }).ToList();
+        }).OrderBy(e => e.LastName).ToList();
 
         return res.AsQueryable();
     }
