@@ -20,9 +20,23 @@ else
 {
     <FluentDataGrid Items="@country" TGridItem="CountryVm" GridTemplateColumns="50px 1fr 2fr 1fr">
         <PropertyColumn Property="@(c => c.Id)" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.Code)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.CountryCode)" Sortable="true" Align="Align.Start" Tooltip="true" />
         <PropertyColumn Property="@(c => c.Name)" Sortable="true" Align="Align.Start" Tooltip="true" />
         <PropertyColumn Property="@(c => c.IsEU)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.IsPL)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.CurrencyVmName)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.Allowance)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.AllowanceFirstDay8H)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.AllowanceFirstDay12H)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.AllowanceNextDay8H)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.AllowanceNextDay12H)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.BreakfastReduction)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.LunchReduction)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.DinnerReduction)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.AccomodationAllowance)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.TravelAllowance)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.LocalTravelAllowance)" Sortable="true" Align="Align.Start" Tooltip="true" />
+
         <TemplateColumn Title="Actions" Align="Align.End">
             <FluentButton IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" />
             <FluentButton IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => EditItem(context))" />
@@ -49,7 +63,13 @@ else
 
     private async Task View(CountryVm item)
     {
-        await _dialogService.ShowInfoAsync(message: $"Country ID: {item.Id}, Code: {item.Code}, Name: {item.Name}, IsEU: {item.IsEU}");
+        await _dialogService.ShowInfoAsync
+    (
+        message: $"<p><strong>Country ID:</strong> {item.Id}</p>" +
+                 $"<p><strong>Code:</strong> {item.CountryCode}</p>" +
+                 $"<p><strong>Name:</strong> {item.Name}</p>" +
+                 $"<p><strong>Is EU:</strong> {(item.IsEU ? "Yes" : "No")}</p>"
+    );
     }
 
     private async Task Delete(CountryVm item)

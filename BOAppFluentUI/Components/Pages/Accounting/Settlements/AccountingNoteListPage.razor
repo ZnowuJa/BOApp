@@ -1,0 +1,120 @@
+﻿@page "/accountingnotes"
+@using Application.CQRS.AccountingCQRS.AccountingNote.Queries
+@using Application.Forms
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize(Policy = "Technician")]
+
+@inject IMediator _mediator
+@inject IDialogService _dialogService
+@inject IToastService _toastService
+
+<h3>AccountingNoteListPage</h3>
+
+@if (accountingNote == null)
+{
+    <FluentProgressRing>Loading...</FluentProgressRing>
+
+}
+else
+{
+    <FluentDataGrid Items="@accountingNote" TGridItem="AccountingNoteFormVm" GridTemplateColumns="50px 1fr 1fr 1fr" AutoFit="true">
+
+        <PropertyColumn Property="@(c => c.Status)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.DG)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.Dealer)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.Insurer)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.NoteNumber)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.Date)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.PaymentDeadline)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.Amount)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.AmountPaid)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.AmountRemaining)" Sortable="true" Align="Align.Start" Tooltip="true" />
+
+        <TemplateColumn Title="Actions" Align="Align.End">
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" />
+            @* <FluentButton IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => EditItem(context))" />
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" /> *@
+        </TemplateColumn>
+    </FluentDataGrid>
+    <FluentButton IconStart="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddPanel())" />
+}
+
+@code {
+    private IQueryable<AccountingNoteFormVm> accountingNote;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Load();
+    }
+
+    private async Task Load()
+    {
+        accountingNote = await _mediator.Send(new GetAllAccountingNoteQuery());
+    }
+
+    private async Task View(AccountingNoteFormVm item)
+    {
+    }
+
+    // private async Task EditItem(AccountingNoteFormVm item)
+    // {
+    //     ToastIntent intent;
+    //     string message = string.Empty;
+    //     int resultId = 0;
+
+    //     var dialog = await _dialogService.ShowDialogAsync<AccountingNoteEditComponent>(item, new DialogParameters()
+    //         {
+    //             Height = "500px",
+    //             Width = "400px",
+    //             Title = item.Id > 0 ? "Update Accounting Note..." : "Create New Accounting Note",
+    //             PreventDismissOnOverlayClick = false,
+    //             PreventScroll = true,
+    //         });
+
+    //     var result = await dialog.Result;
+
+    //     if (!result.Cancelled && result.Data != null)
+    //     {
+    //         var final = (AccountingNoteFormVm)result.Data;
+
+    //         if (final.Id > 0)
+    //         {
+    //             resultId = await _mediator.Send(new UpdateAccountingNoteCommand(final));
+    //             intent = ToastIntent.Success;
+    //             message = "Cost Center has been updated!";
+    //         }
+    //         else if (final.Id == 0)
+    //         {
+    //             resultId = await _mediator.Send(new CreateAccountingNoteCommand(final));
+    //             intent = ToastIntent.Success;
+    //             message = "Cost Center has been created!";
+    //         }
+    //         else
+    //         {
+    //             intent = ToastIntent.Warning;
+    //             message = "Something went really wrong!";
+    //         }
+    //     }
+    //     else if (result.Cancelled)
+    //     {
+    //         intent = ToastIntent.Info;
+    //         message = "Operation Cancelled...";
+    //     }
+    //     else
+    //     {
+    //         intent = ToastIntent.Error;
+    //         message = "Something went wrong!!!";
+    //     }
+
+    //     await Load();
+    //     _toastService.ShowToast(intent, message, 3000);
+    // }
+
+    private async Task AddPanel()
+    {
+        // var item = new AccountingNoteFormVm();
+        // await EditItem(item);
+    }
+
+}
