@@ -57,7 +57,9 @@
     protected override async Task OnInitializedAsync()
     {
         // await Utils.GetUserName(AuthenticationStateProvider, _userContext, _mediator);
+        
         SessionId = _sessionService.GetSessionId();
+        _logger.LogInformation($"Home Page is initializing... SESSION_Service :: SessionID is: {SessionId} ");
         await RefreshClaims();
     }
 
@@ -81,6 +83,7 @@
         {
             // Handle any errors
         }
+        _logger.LogInformation($"Home Page is refreshing claims... SESSION_Service :: SessionID is: {SessionId} ");
     }
 
 }
