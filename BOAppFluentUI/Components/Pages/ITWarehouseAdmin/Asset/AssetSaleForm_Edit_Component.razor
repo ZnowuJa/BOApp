@@ -15,6 +15,7 @@
 @inject IMediator _mediator;
 @inject ISessionService _sessionService
 @inject IFileService _fileService
+@inject ILogger<AssetSaleForm_Edit_Component> _logger;
 @implements IDialogContentComponent<ITSaleFormVm>
 
 
@@ -364,7 +365,7 @@
     {
         progressPercent = file.ProgressPercent;
         progressTitle = file.ProgressTitle;
-        await Utils.OnFileUploadedAsync(file, _fileService, _mediator, SessionId, Content, addedFiles);
+        await Utils.OnFileUploadedAsync(file, _fileService, _mediator, SessionId, Content, addedFiles, _logger);
 
         formFiles = Content.FormFiles.AsQueryable();
     }
