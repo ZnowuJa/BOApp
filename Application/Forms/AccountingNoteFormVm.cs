@@ -1,6 +1,11 @@
-﻿using Application.Mappings;
+﻿using Application.Interfaces;
+using Application.Mappings;
+using Application.ViewModels.Accounting;
+using AutoMapper;
 using Domain.Entities.Accounting;
 using Domain.Entities.ITWarehouse;
+using Domain.Forms;
+using Microsoft.Graph.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace Application.Forms
 {
-/*    public class AccountingNoteFormVm : IMapFrom<AccountingNoteForm>
+   public class AccountingNoteFormVm : IMapFrom<AccountingNoteForm>
     {
         // Properties from FormTemplate
         public int Id { get; set; }
@@ -17,8 +22,8 @@ namespace Application.Forms
         public string Description { get; set; } = "Formularz do stworzenia Noty Księgowej";
         public string FolderName { get; set; } = "accountingNoteForm";
         public string NumberPrefix { get; set; } = "NK";
-        public string Status { get; set; }
-        public List<string> Statuses { get; set; }
+        public string Status { get; set; } = "Rejestracja";
+        public List<string> Statuses { get; set; } = ["Rejestracja", "W trakcie", "Zakończony"];
         public int WorkflowTemplateId { get; set; }
 
         //Properties specific to AccountingNoteForm
@@ -43,5 +48,11 @@ namespace Application.Forms
         public string DealerName { get; set; }
         public string NoteContent { get; set; }
         public string Attachment { get; set; }
-    }*/
+
+        public void Mapping(Profile profile)
+        {
+            profile.CreateMap<AccountingNoteForm, AccountingNoteFormVm>().ReverseMap();
+        }
+    }
+
 }

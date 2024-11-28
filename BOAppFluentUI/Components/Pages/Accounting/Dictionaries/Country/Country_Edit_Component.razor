@@ -1,5 +1,9 @@
 ﻿@* Country Edit Component *@
 @using Application.ViewModels.Accounting
+@using Application.CQRS.ITWarehouseCQRS.Currencies.Queries
+@using Application.DTOs
+@using Application.ViewModels
+@using MediatR
 
 @inject IMediator _mediator
 @implements IDialogContentComponent<CountryVm>
@@ -21,8 +25,8 @@
         <DataAnnotationsValidator />
 
         <div class="card">
-            <FluentTextField Id="Code" @bind-Value="@Content.Code" Placeholder="Enter country code">Code:</FluentTextField>
-            <FluentValidationMessage For="@(() => Content.Code)" />
+            <FluentTextField Id="Code" @bind-Value="@Content.CountryCode" Placeholder="Enter country code">CountryCode:</FluentTextField>
+            <FluentValidationMessage For="@(() => Content.CountryCode)" />
         </div>
 
         <div class="card">
@@ -34,6 +38,30 @@
             Country belongs to the EU
             <FluentCheckbox Id="IsEU" @bind-Value="@Content.IsEU"></FluentCheckbox>
             <FluentValidationMessage For="@(() => Content.IsEU)" />
+        </div>
+
+        <div class="card">
+            Is PL:
+            <FluentCheckbox Id="IsPL" @bind-Value="@Content.IsPL"></FluentCheckbox>
+            <FluentValidationMessage For="@(() => Content.IsPL)" />
+        </div>
+
+        <div class="card">
+            <FluentSelect TOption="CurrencyVm"
+                          Label="Select currency..."
+                          Items="@itemCurrencyList"
+                          Id="CurrId"
+                          Width="150px"
+                          Height="250px"
+                          OptionValue="@(p => p.Id.ToString())"
+                          OptionText="@(p => p.Name)"
+                          @bind-SelectedOption="@Content.CurrencyVm"
+                          @onchange="onChangeCurrency" />
+        </div>
+
+        <div class="card">
+            <FluentNumberField Id="Allowance" @bind-Value="@Content.Allowance" Placeholder="Enter allowance">Allowance:</FluentNumberField>
+            <FluentValidationMessage For="@(() => Content.Allowance)" />
         </div>
 
         @* <FluentButton OnClick="() => ShowCurrentValue()">Show Current IsEU Value</FluentButton> *@
@@ -55,16 +83,74 @@
     [CascadingParameter]
     public FluentDialog Dialog { get; set; } = default!;
 
+
     private EditContext _editContext;
 
     private FluentValidationValidator? _fluentValidator;
+
+    private IQueryable<CurrencyVm> itemCurrencyList { get; set; }
+
 
     private string errorMessage;
 
     protected override async Task OnInitializedAsync()
     {
         _editContext = new EditContext(Content);
+        itemCurrencyList = await _mediator.Send(new GetAllCurrenciesForSelectQuery());
         base.OnInitialized();
+    }
+
+    private void onChangeCurrency(ChangeEventArgs e)
+    {
+        var selected = itemCurrencyList.FirstOrDefault(c => c.Id == int.Parse(e.Value.ToString()));
+        Content.CurrencyId = selected.Id;
+        Content.CurrencyVmName = selected.Name;
+        // Console.WriteLine("e.Value " + e.Value);
+        // Console.WriteLine("Przed: " + Content.CurrencyVm.Id + " " + Content.CurrencyVm.Name);
+        // Console.WriteLine("Po: " + Content.CurrencyVmId + " " + Content.CurrencyVmName);
+    }
+
+    // private void HandleCurrencyChange(string newValue)
+    // {
+    //     if (Content.CurrencyVm.Id != null)
+    //     {
+    //         Content.CurrencyVmId = Content.CurrencyVm.Id;
+    //     }
+    //     else
+    //     {
+    //         Content.CurrencyVmId = 1;
+    //     }
+
+    // }
+
+    private void CalculateFields()
+    {
+        if (Content.IsPL)
+        {
+            Content.AllowanceFirstDay8H = Content.Allowance * 0;
+            Content.AllowanceFirstDay12H = Content.Allowance / 2;
+            Content.AllowanceNextDay8H = Content.Allowance / 2;
+            Content.AllowanceNextDay12H = Content.Allowance;
+            Content.BreakfastReduction = Content.Allowance / 4;
+            Content.LunchReduction = Content.Allowance / 2;
+            Content.DinnerReduction = Content.Allowance / 4;
+            Content.AccomodationAllowance = Content.Allowance * 1.5m;
+            Content.TravelAllowance = Content.Allowance * 0;
+            Content.LocalTravelAllowance = Content.Allowance * 0.2m;
+        }
+        else if (Content.IsEU && !Content.IsPL)
+        {
+            Content.AllowanceFirstDay8H = Content.Allowance / 3;
+            Content.AllowanceFirstDay12H = Content.Allowance / 2;
+            Content.AllowanceNextDay8H = Content.Allowance / 3;
+            Content.AllowanceNextDay12H = Content.Allowance / 2;
+            Content.BreakfastReduction = Content.Allowance * 0.15m;
+            Content.LunchReduction = Content.Allowance * 0.3m;
+            Content.DinnerReduction = Content.Allowance * 0.3m;
+            Content.AccomodationAllowance = Content.Allowance * 1.5m;
+            Content.TravelAllowance = Content.Allowance * 0.5m;
+            Content.LocalTravelAllowance = Content.Allowance * 0.1m;
+        }
     }
 
     private async Task SaveAsync()
@@ -73,6 +159,7 @@
         if (_editContext.Validate())
         {
             Console.WriteLine("EditContext Validation OK!...");
+            CalculateFields();
             await Dialog.CloseAsync(Content);
         }
         else
