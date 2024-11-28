@@ -31,12 +31,12 @@
         <div>
             <table>
                 <tr>
-                    <td><b>Number:</b></td>
-                    <td>@Content.Number</td>
-                    <td><b>Status: </b></td>
-                    <td>@Content.Status</td>
-                    <td><b>Created by: </b></td>
-                    <td>@Content.OperatorName</td>
+                    <td class="table-header">Number:</td>
+                    <td class="table-data">@Content.Number</td>
+                    <td class="table-header">Status:</td>
+                    <td class="table-data">@Content.Status</td>
+                    <td class="table-header">Created by:</td>
+                    <td class="table-data">@Content.OperatorName</td>
                 </tr>
             </table>
         </div>
@@ -48,7 +48,7 @@
 <FluentDialogBody>
     <h5>Assets to sale: </h5>
     <FluentDataGrid Items="@AssetsList" TGridItem="AssetDTO" Pagination="@pagination" AutoFit="true"
-    ResizableColumns="true">
+                    ResizableColumns="true">
 
         <PropertyColumn Property="@(p => p.AssetTagNumber)" Sortable="true"/>
         <PropertyColumn Property="@(p => p.SerialNumber)" Sortable="true"/>
@@ -60,67 +60,65 @@
                 // var addId = $"addid-{context.Id}";
             }
             <FluentButton Id="@deleteId" IconEnd="@(new Icons.Regular.Size20.Delete())"
-            OnClick="@(() => DeleteAsset(context.Id))"/>
+                          OnClick="@(() => DeleteAsset(context.Id))"/>
         </TemplateColumn>
 
     </FluentDataGrid>
     <FluentPaginator State="@pagination"/>
-    <p></p>
-    <FluentStack Orientation="Orientation.Horizontal">
-        <FluentLabel Typo="Typography.Subject"> Add another Asset:</FluentLabel>
-        <FluentAutocomplete TOption="AssetVm"
-        AutoComplete="on"
+    <div>
+        <FluentStack Orientation="Orientation.Horizontal">
+            <FluentLabel Typo="Typography.Subject"> Add another Asset:</FluentLabel>
+            <FluentAutocomplete TOption="AssetVm"
+                                AutoComplete="on"
 
-        OnOptionsSearch="OnAssetSearch"
-        Placeholder="Select asset..."
-        MaximumSelectedOptions="1"
-        OptionText="@(p => p.AssetTagNumber)"
-        @bind-SelectedOptions="@SelectedAsset"
-        Height="550px"
-        Width="200px"
-        />
-        <FluentButton IconStart="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddAsset())"/>
-    </FluentStack>
-    <p></p>
+                                OnOptionsSearch="OnAssetSearch"
+                                Placeholder="Select asset..."
+                                MaximumSelectedOptions="1"
+                                OptionText="@(p => p.AssetTagNumber)"
+                                @bind-SelectedOptions="@SelectedAsset"
+                                Height="550px"
+                                Width="200px"
+            />
+            <FluentButton IconStart="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddAsset())"/>
+        </FluentStack>
+    </div>
+    <hr>
+    <div>
     <h5>Recipient: </h5>
     <FluentStack Orientation="Orientation.Horizontal">
         <FluentLabel Typo="Typography.Subject"> Employee:</FluentLabel>
         <FluentAutocomplete TOption="IAssigneeVm"
-        AutoComplete="on"
+                            AutoComplete="on"
 
-        OnOptionsSearch="OnAssigneeSearch"
-        Placeholder="Select assignee"
-        MaximumSelectedOptions="1"
-        OptionText="@(p => p.LongName)"
-        @bind-SelectedOptions="@SelectedAssignee"
-        @bind-SelectedOptions:after="UpdateSaleEmployee"
-        Height="550px"
-        Width="200px"
+                            OnOptionsSearch="OnAssigneeSearch"
+                            Placeholder="Select assignee"
+                            MaximumSelectedOptions="1"
+                            OptionText="@(p => p.LongName)"
+                            @bind-SelectedOptions="@SelectedAssignee"
+                            @bind-SelectedOptions:after="UpdateSaleEmployee"
+                            Height="550px"
+                            Width="200px"
         />
 
         <FluentLabel Typo="Typography.Subject"> Company:</FluentLabel>
         <FluentAutocomplete TOption="CompanyVm"
-        AutoComplete="on"
+                            AutoComplete="on"
 
-        OnOptionsSearch="OnCompanySearch"
-        Placeholder="Select company..."
-        MaximumSelectedOptions="1"
-        OptionText="@(p => p.Name)"
-        @bind-SelectedOptions="@SelectedCompanies"
-        @bind-SelectedOptions:after="UpdateSaleCompany"
-        Height="550px"
-        Width="200px"
+                            OnOptionsSearch="OnCompanySearch"
+                            Placeholder="Select company..."
+                            MaximumSelectedOptions="1"
+                            OptionText="@(p => p.Name)"
+                            @bind-SelectedOptions="@SelectedCompanies"
+                            @bind-SelectedOptions:after="UpdateSaleCompany"
+                            Height="550px"
+                            Width="200px"
         />
 
-        @* <FluentButton Appearance="Appearance.Accent" OnClick="@UpdateSaleCompany"
-    Disabled="@(SelectedCompanies.Count() == 0)">
-        Update
-    </FluentButton> *@
     </FluentStack>
-
+    </div>
+    <hr/>
     @if (Content.FormFiles.Any())
     {
-        <p></p>
         <FluentDataGrid Items="@formFiles" TGridItem="FormFileVm" Pagination="@pagination" AutoFit="true"
         ResizableColumns="true">
 
@@ -139,6 +137,7 @@
 
         </FluentDataGrid>
     }
+
     <FluentInputFile
         @ref="@inputFile"
         AnchorId="MyUploadStream"
@@ -155,7 +154,7 @@
         @progressTitle
     </FluentLabel>
 
-    <FluentButton Appearance="Appearance.Accent" Id="MyUploadStream">
+    <FluentButton  Appearance="Appearance.Accent" Id="MyUploadStream" >
         Upload files
     </FluentButton>
 </FluentDialogBody>
@@ -166,9 +165,7 @@
     Disabled="false">Save
     </FluentButton>
     <FluentButton Appearance="Appearance.Neutral" OnClick="@CancelAsync">Cancel</FluentButton>
-    <p>
-        @SessionId
-    </p>
+
 </FluentDialogFooter>
 
 
@@ -213,6 +210,7 @@
         itemEmployeesList = await _mediator.Send(new GetAllEmployeesQuery());
         var assignees = new List<IAssigneeVm>();
         assignees.AddRange(itemEmployeesList.Select(employee => (IAssigneeVm)new EmployeeVm { Id = employee.EnovaEmpId, LongName = employee.LongName, typeName = "EmployeeVm" }));
+        // assignees = assignees.OrderBy(a => a.LongName).ToList();
         itemAssigneesList = assignees.AsQueryable();
         itemCompaniesList = await _mediator.Send(new GetAllCompaniesQuery());
         if (Content.EmployeeId > 0)
@@ -384,6 +382,20 @@
 }
 
 <style>
+
+    .spaced-element {
+        margin-top: 10px; /* Adds 10px space above */
+        margin-bottom: 10px; /* Adds 10px space below */
+    }
+
+    hr {
+        border: none;
+        border-top: 3px double #333;
+        color: #333;
+        overflow: visible;
+        text-align: center;
+        height: 5px;
+    }
     table {
         margin-top: 20px; /* Adds 50px space above the table */
         border-collapse: collapse; /* Optional: For a cleaner look */
@@ -398,4 +410,13 @@
     td:first-child, th:first-child {
         padding-left: 0; /* Removes padding on the left of the first cell */
     }
+
+    .table-header {
+        font-size: 1.25em; 
+        font-weight: bold;
+    }
+    .table-data {
+        font-size: 1em;
+    }
+    
 </style>

@@ -112,6 +112,17 @@ else
         </TemplateColumn>
     </FluentDataGrid>
     <FluentPaginator State="@pagination" />
+    
+    <div class="center-vertically">
+        
+        <FluentButton OnClick="DownloadCsv" Appearance="Appearance.Accent"  >Pobierz CSV</FluentButton>
+        <FluentLabel class = "margin-vert-20"> <b>Filters: </b> </FluentLabel>
+        <FluentCheckbox Id="AllId" @bind-Value="@isAll" @ValueChanged="@ToggleAll" Label="All"/>
+        <FluentCheckbox Id="SoldId" @bind-Value="@isSold" @ValueChanged="@ToggleSold" Label="Sold"/>
+        <FluentCheckbox Id="ScrapId" @bind-Value="@isScrapped" @ValueChanged="@ToggleScrapped" Label="Scrapped"/>
+    </div> 
+        
+    
     if (actionsDisabled)
     {
         <FluentProgressRing>Loading...</FluentProgressRing>
@@ -168,14 +179,30 @@ else
 
     }
 }
-<FluentButton OnClick="DownloadCsv">Pobierz CSV</FluentButton>
+
+
+
 @code {
     #region Properties
     private IQueryable<AssetDTO> products;
     private IQueryable<AssetDTO> filteredProducts => products.Where(x =>
-    filterColumns.All(column => string.IsNullOrWhiteSpace(column.Filter) ||
-    column.Property(x).Contains(column.Filter, StringComparison.CurrentCultureIgnoreCase)));
+        filterColumns.All(column => string.IsNullOrWhiteSpace(column.Filter) ||
+                                    column.Property(x).Contains(column.Filter, StringComparison.CurrentCultureIgnoreCase)) &&
+        (isAll && x.StateVmId != 5 && x.StateVmId !=7) ||
+         (isSold && x.StateVmId == 7) || 
+          (isScrapped && x.StateVmId == 5)
+    );
 
+
+    // IQueryable<AssetDTO> filteredProducts => products.Where(x =>
+    //     filterColumns.All(column => string.IsNullOrWhiteSpace(column.Filter) ||
+    //                                 column.Property(x).Contains(column.Filter, StringComparison.CurrentCultureIgnoreCase)));
+            // && ((!isSold || x.StateVmId != 7) && (!isScrapped || x.StateVmId != 5)));
+    
+    private bool isSold = true; 
+    private bool isScrapped = true;
+    private bool isAll = true;
+    
     readonly PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
     PaginationState paginationAssets = new PaginationState { ItemsPerPage = 5 };
 
@@ -199,21 +226,21 @@ else
 
     private List<FilterColumn<AssetDTO>> filterColumns = new List<FilterColumn<AssetDTO>>
     {
-        new FilterColumn<AssetDTO> { FirstRow = true, Label = "ID", Property = c => c.Id.ToString(), IsVisible = true },
+        new FilterColumn<AssetDTO> { FirstRow = true, Label = "ID", Property = c => c.Id.ToString(), IsVisible = false },
         new FilterColumn<AssetDTO> { FirstRow = true, Label = "Asset Number", Property = c => c.AssetTagNumber, IsVisible = true, Width = "1FR" },
         new FilterColumn<AssetDTO> { FirstRow = true, Label = "Serial Number", Property = c => c.SerialNumber, IsVisible = true , Width = "1FR" },
         new FilterColumn<AssetDTO> { FirstRow = true, Label = "Part", Property = c => c.PartVmName, IsVisible = true , Width = "1FR" },
         new FilterColumn<AssetDTO> { FirstRow = true, Label = "Assignee", Property = c => c.AssigneeVmName, IsVisible = true , Width = "1FR" },
          new FilterColumn<AssetDTO> { FirstRow = true, Label = "InvNr", Property = c => c.invoiceVm.Number, IsVisible = false , Width = "1FR" },
         // Add other columns as needed
-        new FilterColumn<AssetDTO> { FirstRow = false, Label = "State", Property = c => c.StateVmName, IsVisible = false , Width = "1FR" },
+        new FilterColumn<AssetDTO> { FirstRow = false, Label = "State", Property = c => c.StateVmName, IsVisible = true , Width = "1FR" },
         new FilterColumn<AssetDTO> { FirstRow = false, Label = "Warehouse", Property = c => c.WarehouseVmNumber, IsVisible = false , Width = "1FR" },
         new FilterColumn<AssetDTO> { FirstRow = false, Label = "Invoice", Property = c => c.InvoiceVmNumber, IsVisible = false , Width = "1FR" },
         new FilterColumn<AssetDTO> { FirstRow = false, Label = "Price", Property = c => c.Price.ToString(), IsVisible = false , Width = "1FR" },
         new FilterColumn<AssetDTO> { FirstRow = false, Label = "Purchase Date", Property = c => c.PurchaseDate.ToDateOnly().ToString(), IsVisible = false , Width = "1FR" },
         new FilterColumn<AssetDTO> { FirstRow = false, Label = "Warranty", Property = c => c.WarrantyUntil.ToDateOnly().ToString(), IsVisible = false , Width = "1FR" },
         new FilterColumn<AssetDTO> { FirstRow = false, Label = "EndOfSupport", Property = c => c.EndOfSupport.ToDateOnly().ToString(), IsVisible = false , Width = "1FR" },
-        new FilterColumn<AssetDTO> { FirstRow = false, Label = "Leasing", Property = c => c.Leasing.ToString(), IsVisible = true },
+        new FilterColumn<AssetDTO> { FirstRow = false, Label = "Leasing", Property = c => c.Leasing.ToString(), IsVisible = false },
         new FilterColumn<AssetDTO> { FirstRow = false, Label = "EndOfContract", Property = c => c.EndOfContract.ToDateOnly().ToString(), IsVisible = false , Width = "1FR" },
         new FilterColumn<AssetDTO> { FirstRow = true, Label = "IMEI", Property = c => c.Imei?.ToString() ?? string.Empty, IsVisible = false , Width = "1FR" },
         new FilterColumn<AssetDTO> { FirstRow = true, Label = "MAC Address", Property = c => c.Mac?.ToString() ?? string.Empty, IsVisible = false , Width = "1FR" }
@@ -222,6 +249,8 @@ else
     private FormUserContext _userContext = new FormUserContext("Technician", "Administrator");
     private string env { get; set; } 
     #endregion Properties
+
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -250,6 +279,8 @@ else
         SelectedAssignee = Array.Empty<IAssigneeVm>();
         showUpdate = false;
         actionsDisabled = false;
+        isScrapped = false;
+        isSold = false;
         StateHasChanged();
     }
 
@@ -649,4 +680,48 @@ else
         // Invoke the JavaScript method to download the CSV
         await JS.InvokeVoidAsync("downloadFilePL", filename, base64csv);
     }
+    
+    private void ToggleAll()
+    {
+        isAll = !isAll;
+        if (isAll)
+        {
+            isSold = true;
+            isScrapped = true;
+        }
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void ToggleSold()
+    {
+        isSold = !isSold;
+        // if (!isSold && !isScrapped) isAll = false;
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void ToggleScrapped()
+    {
+        isScrapped = !isScrapped;
+        // if (!isSold && !isScrapped) isAll = false;
+        InvokeAsync(StateHasChanged);
+    }
 }
+
+
+<style>
+   .center-vertically {
+       display: flex;
+       align-items: center;
+       padding-top: 20px;
+       padding-right: 20px;
+   }
+   .margin-left-20{
+       padding-left: 20px;
+   }
+   .margin-vert-20{
+       padding-left: 20px;
+       padding-right: 20px;
+   }
+   
+   
+</style>
