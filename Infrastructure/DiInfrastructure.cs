@@ -2,6 +2,7 @@
 using Application.Interfaces.Identity.Services;
 using Infrastructure.Identity.Services;
 using Infrastructure.Services;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Quartz;
@@ -31,6 +32,8 @@ public static class DiInfrastructure
         {
             options.IdleTimeout = TimeSpan.FromMinutes(30); // Set session timeout
             options.Cookie.HttpOnly = true; // Security option
+            options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+            options.Cookie.SameSite = SameSiteMode.Strict;
             options.Cookie.IsEssential = true; // Ensure session works without GDPR consent
         });
         return services;
