@@ -10,13 +10,16 @@
 @using Application.CQRS.ITWarehouseCQRS.Assets
 @using Application.CQRS.ITWarehouseCQRS.Companies.Queries
 @using Application.Interfaces
+@using Microsoft.EntityFrameworkCore.Metadata
 @using Application.ViewModels.General
 
 @inject IMediator _mediator;
+@inject IJSRuntime JS
 @* @inject ISessionService _sessionService *@
 @* @inject ICircuitService _circuitService *@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IFileService _fileService
+@inject NavigationManager _navigationManager
 @inject ILogger<AssetSaleForm_Edit_Component> _logger;
 @implements IDialogContentComponent<ITSaleFormVm>
 
@@ -123,19 +126,21 @@
     @if (Content.FormFiles.Any())
     {
         <FluentDataGrid Items="@formFiles" TGridItem="FormFileVm" Pagination="@pagination" AutoFit="true"
-        ResizableColumns="true">
+                        ResizableColumns="true">
 
             <PropertyColumn Property="@(p => p.OriginalFileName)" Sortable="true"/>
             <PropertyColumn Property="@(p => p.FormPurpose)" Sortable="true"/>
             <TemplateColumn Title="Actions" Align="Align.End">
                 @{
-                    // var viewId = $"viewid-{context.Id}";
+                    var viewId = $"viewid-{context.Id}";
                     // var editId = $"editid-{context.Id}";
                     var deletefileId = $"deletefile-{context.Id}";
                     // var addId = $"addid-{context.Id}";
                 }
+                <FluentButton Id="@viewId" IconEnd="@(new Icons.Filled.Size20.Open())"
+                              OnClick="@(() => View(context, "ITSaleForm"))"/>
                 <FluentButton Id="@deletefileId" IconEnd="@(new Icons.Regular.Size20.Delete())"
-                OnClick="@(() => DeleteFile(context.Id))"/>
+                              OnClick="@(() => DeleteFile(context.Id))"/>
             </TemplateColumn>
 
         </FluentDataGrid>
@@ -164,9 +169,7 @@
 
 @* Footer *@
 <FluentDialogFooter>
-    <FluentButton Appearance="Appearance.Accent" OnClick="@SaveAsync"
-    Disabled="false">Save
-    </FluentButton>
+    <FluentButton Appearance="Appearance.Accent" OnClick="@SaveAsync" Disabled="false">Save </FluentButton>
     <FluentButton Appearance="Appearance.Neutral" OnClick="@CancelAsync">Cancel</FluentButton>
 
 </FluentDialogFooter>
@@ -387,6 +390,20 @@
         progressPercent = inputFile!.ProgressPercent;
         progressTitle = inputFile!.ProgressTitle;
     }
+        private async Task View(FormFileVm item, string folder)
+        {
+            if (item != null)
+            {
+                // Extract the relative path from the DstPath
+                string relativePath = $"{folder}/{item.DstFileName}".Replace("\\", "/");
+
+                // Generate the URL
+                string url = _navigationManager.BaseUri + relativePath;
+
+                // Navigate to the URL in a new tab
+                await JS.InvokeVoidAsync("open", url, "_blank");
+            }
+        }
 }
 
 <style>
