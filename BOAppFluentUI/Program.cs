@@ -7,6 +7,7 @@ using BOAppFluentUI.Components;
 using Microsoft.FluentUI.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
 using Application.Interfaces;
+using Microsoft.AspNetCore.Components.Server.Circuits;
 
 
 namespace BOAppFluentUI;
@@ -58,8 +59,11 @@ public class Program
         app.UseHttpsRedirection();
 
         app.UseStaticFiles();
-        app.UseSession();
+        // app.UseSession();
+        // app.Services.GetRequiredService<CircuitHandler>();
         app.UseRouting();
+        app.UseAuthentication(); // Ensure this is called before UseAuthorization
+        app.UseAuthorization();  // Add this line
         app.UseAntiforgery();
         //app.MapRazorPages();
         //app.MapControllers();

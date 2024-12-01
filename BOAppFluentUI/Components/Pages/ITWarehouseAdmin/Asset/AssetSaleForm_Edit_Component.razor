@@ -13,7 +13,9 @@
 @using Application.ViewModels.General
 
 @inject IMediator _mediator;
-@inject ISessionService _sessionService
+@* @inject ISessionService _sessionService *@
+@* @inject ICircuitService _circuitService *@
+@inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IFileService _fileService
 @inject ILogger<AssetSaleForm_Edit_Component> _logger;
 @implements IDialogContentComponent<ITSaleFormVm>
@@ -179,7 +181,7 @@
     [CascadingParameter] public FluentDialog Dialog { get; set; } = default!;
 
     private EditContext _editContext;
-
+    private FormUserContext _userContext = new FormUserContext("Settlement", "Technician");
     private FluentValidationValidator? _fluentValidator;
     private string errorMessage;
 
@@ -195,7 +197,7 @@
 
     private bool showAssetAdd = false;
     private PaginationState pagination = new PaginationState { ItemsPerPage = 5 };
-
+    // private FormUserContext _userContext { get; set; }
     private FluentInputFile? inputFile = default!;
     private int? progressPercent;
     private string? progressTitle;
@@ -206,7 +208,11 @@
 
     protected override async Task OnInitializedAsync()
     {
-        SessionId = _sessionService.GetSessionId();
+        await Utils.GetUserName(AuthenticationStateProvider, _userContext, _mediator);
+        // SessionId = _circuitService.GetCircuitId();
+        var timestamp = DateTime.Now.ToString("yyyyMMddHHmmssfff");
+        // SessionId = DateTime.Now.ToString("yyyyMMddHHmmssfff");
+        SessionId = $"{timestamp}_{_userContext.EnovaEmpId}";
         _editContext = new EditContext(Content);
         itemEmployeesList = await _mediator.Send(new GetAllEmployeesQuery());
         var assignees = new List<IAssigneeVm>();
@@ -214,6 +220,7 @@
         // assignees = assignees.OrderBy(a => a.LongName).ToList();
         itemAssigneesList = assignees.AsQueryable();
         itemCompaniesList = await _mediator.Send(new GetAllCompaniesQuery());
+        
         if (Content.EmployeeId > 0)
         {
             var tempEmp = itemEmployeesList.Where(e => e.EnovaEmpId == Content.EmployeeId).FirstOrDefault();

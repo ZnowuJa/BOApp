@@ -24,7 +24,7 @@
 @inject IJSRuntime JS
 @inject IMapper _mapper
 @inject IFileService _fileService
-@inject ISessionService _sessionService
+@* @inject ICircuitService _circuitService *@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager _navigationManager
 
@@ -154,7 +154,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        SessionId = _sessionService.GetSessionId();
+        // SessionId = _circuitService.GetCircuitId();
         await Utils.GetUserName(AuthenticationStateProvider, _userContext, _mediator);
         await Load();
     }
@@ -178,14 +178,18 @@
         }
         item.Assets = assetsList;
 
-
+        // var assetDialogParameter = new DialogParameters
+        // {
+        //     {"UserContext", _userContext},
+        //     {"Content", item}
+        // };
         var dialog = await _dialogService.ShowPanelAsync<AssetSaleForm_Edit_Component>(item, new DialogParameters()
                     {
                         Height = "240px",
                         Width = "850px",
                         Title = item.Id > 0 ? "IT Sale Form" : "New IT Sale Form",
                         PreventDismissOnOverlayClick = false,
-                        PreventScroll = true,
+                        PreventScroll = true
                     });
         var result = await dialog.Result;
         // Console.WriteLine(item.FormFiles.Count());
