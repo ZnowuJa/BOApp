@@ -99,7 +99,7 @@
         <FluentButton Id="@viewId" IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" Disabled="@viewDisabled" />
         <FluentTooltip Anchor="@viewId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Left Delay=50>View Asset</FluentTooltip>
 
-        <FluentButton Id="@editId" IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => Edit(context))" Disabled="@Utils.IsEditDisabled(context, _userContext)" />
+        <FluentButton Id="@editId" IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => Edit(context))" Disabled="@isEditable(context.Status)" />
         @*WARNING it is not tested if isEditDisabled works*@
         <FluentTooltip Anchor="@editId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Edit Sale Form</FluentTooltip>
 
@@ -256,6 +256,13 @@
     }
     private async Task View(ITSaleFormVm item = null)
     {
+        List<AssetDTO> assetsList = new();
+        foreach(var aid in item.AssetIds){
+            var tmp = await _mediator.Send(new GetAssetDTObyIdQuery(aid));
+            assetsList.Add(tmp);
+        }
+        item.Assets = assetsList;
+        
         var dialog = await _dialogService.ShowPanelAsync<AssetSaleForm_View_Component>(item, new DialogParameters()
                     {
                         Height = "240px",
@@ -280,6 +287,17 @@
 
         // Invoke the JavaScript method to download the CSV
         await JS.InvokeVoidAsync("downloadFilePL", filename, base64csv);
+    }
+
+    private bool isEditable(string status)
+    {
+        bool res = status switch
+        {
+            "Zamkniete" => true,
+            _ => false
+        };
+        return res;
+
     }
 
 }
