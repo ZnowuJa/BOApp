@@ -12,6 +12,7 @@
 @using Application.Interfaces
 @using Microsoft.EntityFrameworkCore.Metadata
 @using Microsoft.Graph.Models
+@using Approval = Application.ViewModels.General.Approval
 @using Application.ViewModels.General
 
 @inject IMediator _mediator;
@@ -202,6 +203,8 @@
     private IEnumerable<CompanyVm> SelectedCompanies = Array.Empty<CompanyVm>();
     private IQueryable<FormFileVm> formFiles { get; set; }
 
+    private Approval approval { get; set; }
+    
     private bool showAssetAdd = false;
     private PaginationState pagination = new PaginationState { ItemsPerPage = 5 };
     // private FormUserContext _userContext { get; set; }
@@ -258,19 +261,28 @@
     private async Task LoadAssets()
     {
         List<AssetDTO> assetsList = new();
-
         foreach (var aid in Content.AssetIds)
         {
             var tmp = await _mediator.Send(new GetAssetDTObyIdQuery(aid));
             assetsList.Add(tmp);
         }
-
         AssetsList = assetsList.AsQueryable();
         Content.Assets = AssetsList.ToList();
         SelectedAsset = Array.Empty<AssetVm>();
+        
+        approval = new Approval()
+        {
+            Status = Content.Status,
+            EnovaEmpId = _userContext.EnovaEmpId,
+            LongName = _userContext.LongName,
+            Date = DateTime.Now,
+            IsApproved = false
+        };        
+        
     }
     private async Task SaveAsync()
     {
+        Content.Approvals.Add(approval);
         foreach(var file in Content.FormFiles)
         {   
             if (file.DstPath == null){
@@ -284,8 +296,6 @@
         }
         await Dialog.CloseAsync(Content);
     }
-    
-    
     private async Task CloseAsync()
     {
 
@@ -310,6 +320,7 @@
                     await _mediator.Send(new UpdateFormFileCommand(file));
                 }
             }
+            Content.Approvals.Add(approval);
             Content.Status = "Zamkniete";
         }
         await Dialog.CloseAsync(Content);
