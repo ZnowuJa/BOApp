@@ -1,4 +1,8 @@
-﻿using AutoMapper;
+﻿using Application.ViewModels.Accounting;
+using Application.ViewModels;
+using AutoMapper;
+using Domain.Entities.Accounting;
+using Domain.Entities.ITWarehouse;
 using System.Reflection;
 
 namespace Application.Mappings;

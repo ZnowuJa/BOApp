@@ -57,64 +57,64 @@ else
     {
     }
 
-    // private async Task EditItem(AccountingNoteFormVm item)
-    // {
-    //     ToastIntent intent;
-    //     string message = string.Empty;
-    //     int resultId = 0;
+    private async Task EditItem(AccountingNoteFormVm item)
+    {
+        ToastIntent intent;
+        string message = string.Empty;
+        int resultId = 0;
 
-    //     var dialog = await _dialogService.ShowDialogAsync<AccountingNoteEditComponent>(item, new DialogParameters()
-    //         {
-    //             Height = "500px",
-    //             Width = "400px",
-    //             Title = item.Id > 0 ? "Update Accounting Note..." : "Create New Accounting Note",
-    //             PreventDismissOnOverlayClick = false,
-    //             PreventScroll = true,
-    //         });
+        var dialog = await _dialogService.ShowDialogAsync<AccountingNoteEditComponent>(item, new DialogParameters()
+            {
+                Height = "500px",
+                Width = "400px",
+                Title = item.Id > 0 ? "Update Accounting Note..." : "Create New Accounting Note",
+                PreventDismissOnOverlayClick = false,
+                PreventScroll = true,
+            });
 
-    //     var result = await dialog.Result;
+        var result = await dialog.Result;
 
-    //     if (!result.Cancelled && result.Data != null)
-    //     {
-    //         var final = (AccountingNoteFormVm)result.Data;
+        // if (!result.Cancelled && result.Data != null)
+        // {
+        //     var final = (AccountingNoteFormVm)result.Data;
 
-    //         if (final.Id > 0)
-    //         {
-    //             resultId = await _mediator.Send(new UpdateAccountingNoteCommand(final));
-    //             intent = ToastIntent.Success;
-    //             message = "Cost Center has been updated!";
-    //         }
-    //         else if (final.Id == 0)
-    //         {
-    //             resultId = await _mediator.Send(new CreateAccountingNoteCommand(final));
-    //             intent = ToastIntent.Success;
-    //             message = "Cost Center has been created!";
-    //         }
-    //         else
-    //         {
-    //             intent = ToastIntent.Warning;
-    //             message = "Something went really wrong!";
-    //         }
-    //     }
-    //     else if (result.Cancelled)
-    //     {
-    //         intent = ToastIntent.Info;
-    //         message = "Operation Cancelled...";
-    //     }
-    //     else
-    //     {
-    //         intent = ToastIntent.Error;
-    //         message = "Something went wrong!!!";
-    //     }
+        //     if (final.Id > 0)
+        //     {
+        //         resultId = await _mediator.Send(new UpdateAccountingNoteCommand(final));
+        //         intent = ToastIntent.Success;
+        //         message = "Cost Center has been updated!";
+        //     }
+        //     else if (final.Id == 0)
+        //     {
+        //         resultId = await _mediator.Send(new CreateAccountingNoteCommand(final));
+        //         intent = ToastIntent.Success;
+        //         message = "Cost Center has been created!";
+        //     }
+        //     else
+        //     {
+        //         intent = ToastIntent.Warning;
+        //         message = "Something went really wrong!";
+        //     }
+        // }
+        // else if (result.Cancelled)
+        // {
+        //     intent = ToastIntent.Info;
+        //     message = "Operation Cancelled...";
+        // }
+        // else
+        // {
+        //     intent = ToastIntent.Error;
+        //     message = "Something went wrong!!!";
+        // }
 
-    //     await Load();
-    //     _toastService.ShowToast(intent, message, 3000);
-    // }
+        // await Load();
+        // _toastService.ShowToast(intent, message, 3000);
+    }
 
     private async Task AddPanel()
     {
-        // var item = new AccountingNoteFormVm();
-        // await EditItem(item);
+        var item = new AccountingNoteFormVm();
+        await EditItem(item);
     }
 
 }

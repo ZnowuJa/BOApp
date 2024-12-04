@@ -1,5 +1,6 @@
 ﻿using Application.Interfaces;
 using Application.Mappings;
+using Application.ViewModels;
 using Application.ViewModels.Accounting;
 using AutoMapper;
 using Domain.Entities.Accounting;
@@ -26,6 +27,9 @@ namespace Application.Forms
         public List<string> Statuses { get; set; } = ["Rejestracja", "W trakcie", "Zakończony"];
         public int WorkflowTemplateId { get; set; }
 
+        //Properties specific to SmallAuditableEntity
+        public string CreatedBy { get; set; }
+
         //Properties specific to AccountingNoteForm
         public string DG { get; set; }
         public decimal AmountPaid { get; set; }
@@ -36,6 +40,7 @@ namespace Application.Forms
         public string NoteNumber { get; set; }
         public DateTime Date { get; set; }
         public string ServiceAdvisor { get; set; }
+        public int CompanyId { get; set; }
         public string Dealer { get; set; }
         public string Insurer { get; set; }
         public string VIN { get; set; }
@@ -48,6 +53,11 @@ namespace Application.Forms
         public string DealerName { get; set; }
         public string NoteContent { get; set; }
         public string Attachment { get; set; }
+
+        //
+        public string? CompanyVmName { get; set; }
+        public int? CompanyVmId { get; set; }
+        public CompanyVm? companiesVm { get; set; }
 
         public void Mapping(Profile profile)
         {

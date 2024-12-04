@@ -1,8 +1,16 @@
 ﻿@* Accounting Note Edit Component *@
+@using Application.CQRS.ITWarehouseCQRS.Companies.Queries
 @using Application.Forms
+@using Application.CQRS.ITWarehouseCQRS.Employees.Queries
+@using Application.ViewModels.Accounting
+@using Application.ViewModels.General
+@using Microsoft.AspNetCore.Authorization
+@using System.Security.Claims
+@using Application.Interfaces
 
 @inject IMediator _mediator
 @implements IDialogContentComponent<AccountingNoteFormVm>
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 <!-- Header -->
 <FluentDialogHeader ShowDismiss="true">
@@ -14,6 +22,42 @@
     </FluentStack>
 </FluentDialogHeader>
 
+<!-- Body -->
+<FluentDialogBody Style="overflow-y: auto; overflow-x: auto;">
+    <EditForm EditContext="_editContext">
+        @* <FluentValidationValidator @ref="_fluentValidator" /> *@
+        <DataAnnotationsValidator />
+        <div class="card">
+            <FluentTextField Id="NoteNumber" @bind-Value="@Content.NoteNumber" Disabled="true">NoteNumber:</FluentTextField>
+            <FluentValidationMessage For="@(() => Content.NoteNumber)" />
+        </div>
+        <div class="card">
+            <FluentDatePicker Id="Date" Label="Date:" AriaLabel="To" @bind-Value="@SelectedValue" />
+            <FluentValidationMessage For="@(() => Content.Date)" />
+        </div>
+        <div class="card">
+            <FluentTextField Id="CreatedBy" @bind-Value="@Content.CreatedBy" Disabled="true">Doradca serwisowy:</FluentTextField>
+            <FluentValidationMessage For="@(() => Content.CreatedBy)" />
+        </div>
+@*          <div class="card">
+            <FluentCombobox TOption="CompanyVm"
+                            Autocomplete="ComboboxAutocomplete.Inline"
+                            Label="Select company:"
+                            Items="@itemCompaniesList"
+                            Id="CompanyId"
+                            Width="150px"
+                            Height="250px"
+                            OptionValue="@(p => p.Id.ToString())"
+                            OptionText="@(p => p.Name)"
+                            @bind-SelectedOption="@Content.companiesVm"
+                            @onchange="HandleCompanyChange" />
+        </div> *@
+        <div class="card">
+            <FluentTextField Id="CreatedBy" @bind-Value="@Content.CreatedBy" Disabled="true">Doradca serwisowy:</FluentTextField>
+            <FluentValidationMessage For="@(() => Content.CreatedBy)" />
+        </div>
+    </EditForm>
+</FluentDialogBody>
 
 <!-- Footer -->
 @* <FluentDialogFooter>
@@ -24,10 +68,73 @@
 @code {
     [Parameter]
     public AccountingNoteFormVm Content { get; set; } = default!;
-
     [CascadingParameter]
     public FluentDialog Dialog { get; set; } = default!;
-
     private EditContext _editContext;
 
+    private ClaimsPrincipal? user { get; set; }
+    private string username { get; set; }
+    private EmployeeVm emp { get; set; }
+
+    private DateTime? SelectedValue { get; set; } = DateTime.Today;
+
+    private IQueryable<CompanyVm> itemCompaniesList { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _editContext = new EditContext(Content);
+        itemCompaniesList = await _mediator.Send(new GetAllCompaniesForSelectQuery());
+
+        GenerateNoteNumber();
+        await RefreshClaims();
+    }
+
+    // private void HandleCompanyChange(ChangeEventArgs e)
+    // {
+    //     var selectedComapany = itemCompaniesList.FirstOrDefault(c => c.Id == int.Parse(e.Value.ToString()));
+    //     Content.CompanyVmId = selectedComapany.Id;
+    //     Content.CompanyVmName = selectedComapany.Name;
+
+    // }
+
+    private async Task RefreshClaims()
+    {
+        try
+        {
+            var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authenticationState.User;
+            var nameClaim = user.Claims.FirstOrDefault(c => c.Type == "name");
+            Content.CreatedBy = nameClaim?.Value;
+        }
+        catch (Exception ex)
+        {
+            // Handle any errors
+        }
+    }
+
+    private void GenerateNoteNumber()
+    {
+        var dateNow = DateTime.Now;
+        Content.NoteNumber = $"NT_{dateNow.Year - 2000:D2}{dateNow.Month:D2}{dateNow.Day:D2}_{dateNow.Hour:D2}{dateNow.Minute:D2}{dateNow.Second:D2}";
+    }
+
+    private async Task SaveAsync()
+    {
+        Console.WriteLine("SaveAsync starts...");
+        if (_editContext.Validate())
+        {
+            Console.WriteLine("EditContext Validation OK!...");
+            //Content.Date = SelectedValue;
+            await Dialog.CloseAsync(Content);
+        }
+        else
+        {
+            Console.WriteLine("EditContext Validation NOT OK!...");
+            return;
+        }
+        if (Content.Id != 0)
+        {
+            await Dialog.CloseAsync(Content);
+        }
+    }
 }

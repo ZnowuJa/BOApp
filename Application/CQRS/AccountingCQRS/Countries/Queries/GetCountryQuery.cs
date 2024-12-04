@@ -1,4 +1,5 @@
 ﻿using Application.Interfaces;
+using Application.ViewModels;
 using Application.ViewModels.Accounting;
 using AutoMapper;
 using MediatR;
@@ -17,11 +18,16 @@ namespace Application.CQRS.AccountingCQRS.Countries.Queries
 
         public async Task<CountryVm> Handle(GetCountryQuery request, CancellationToken cancellationToken)
         {
+            //var currencies = await _appDbContext.Currencies.ToListAsync(cancellationToken);
             var country = await _appDbContext.Countries
                                              .Where(c => c.Id == request.CountryId)
                                              .AsNoTracking()
                                              .FirstOrDefaultAsync(cancellationToken);
-            return _mapper.Map<CountryVm>(country);
+            var countryVm = _mapper.Map<CountryVm>(country);
+            //var currency = currencies.FirstOrDefault(p => p.Id == countryVm.CurrencyId);
+            //countryVm.CurrencyVmName = currency?.Name ?? string.Empty;
+
+            return countryVm;
         }
     }
 }

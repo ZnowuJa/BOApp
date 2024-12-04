@@ -18,7 +18,19 @@
 }
 else
 {
-    <FluentDataGrid Items="@country" TGridItem="CountryVm" GridTemplateColumns="50px 1fr 2fr 1fr">
+    <p>
+        Show:
+        <FluentCheckbox @bind-Value="showDailyAllowances">Daily Allowances</FluentCheckbox>
+        <FluentCheckbox @bind-Value="showMealReductions">Meal Reductions</FluentCheckbox>
+        <FluentCheckbox @bind-Value="showTravelAndAccommodation">Travel and Accommodation Allowances</FluentCheckbox>
+
+    </p>
+    <FluentDataGrid Items="@country"
+                    TGridItem="CountryVm"
+                    ResizableColumns=true
+                    Style="height: 600px; overflow:auto;"
+                    ShowHover="true"
+                    GridTemplateColumns="200px 200px 200px 200px 200px 200px 200px 200px 200px 200px 200px 200px 200px 200px 200px 200px 200px 200px">
         <PropertyColumn Property="@(c => c.Id)" Sortable="true" Align="Align.Start" Tooltip="true" />
         <PropertyColumn Property="@(c => c.CountryCode)" Sortable="true" Align="Align.Start" Tooltip="true" />
         <PropertyColumn Property="@(c => c.Name)" Sortable="true" Align="Align.Start" Tooltip="true" />
@@ -26,16 +38,27 @@ else
         <PropertyColumn Property="@(c => c.IsPL)" Sortable="true" Align="Align.Start" Tooltip="true" />
         <PropertyColumn Property="@(c => c.CurrencyVmName)" Sortable="true" Align="Align.Start" Tooltip="true" />
         <PropertyColumn Property="@(c => c.Allowance)" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.AllowanceFirstDay8H)" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.AllowanceFirstDay12H)" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.AllowanceNextDay8H)" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.AllowanceNextDay12H)" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.BreakfastReduction)" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.LunchReduction)" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.DinnerReduction)" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.AccomodationAllowance)" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.TravelAllowance)" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.LocalTravelAllowance)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        @if (showDailyAllowances)
+        {
+            <PropertyColumn Property="@(c => c.AllowanceFirstDay8H)" Sortable="true" Align="Align.Start" Tooltip="true" />
+            <PropertyColumn Property="@(c => c.AllowanceFirstDay12H)" Sortable="true" Align="Align.Start" Tooltip="true" />
+            <PropertyColumn Property="@(c => c.AllowanceNextDay8H)" Sortable="true" Align="Align.Start" Tooltip="true" />
+            <PropertyColumn Property="@(c => c.AllowanceNextDay12H)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        }
+
+        @if (showMealReductions)
+        {
+            <PropertyColumn Property="@(c => c.BreakfastReduction)" Sortable="true" Align="Align.Start" Tooltip="true" />
+            <PropertyColumn Property="@(c => c.LunchReduction)" Sortable="true" Align="Align.Start" Tooltip="true" />
+            <PropertyColumn Property="@(c => c.DinnerReduction)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        }
+
+        @if (showTravelAndAccommodation)
+        {
+            <PropertyColumn Property="@(c => c.AccomodationAllowance)" Sortable="true" Align="Align.Start" Tooltip="true" />
+            <PropertyColumn Property="@(c => c.TravelAllowance)" Sortable="true" Align="Align.Start" Tooltip="true" />
+            <PropertyColumn Property="@(c => c.LocalTravelAllowance)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        }
 
         <TemplateColumn Title="Actions" Align="Align.End">
             <FluentButton IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" />
@@ -49,7 +72,12 @@ else
 
 @code {
     private IQueryable<CountryVm> country;
+
     private bool deleteConfirm = false;
+
+    private bool showDailyAllowances { get; set; } = false;
+    private bool showMealReductions { get; set; } = false;
+    private bool showTravelAndAccommodation { get; set; } = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -60,6 +88,11 @@ else
     {
         country = await _mediator.Send(new GetAllCountryQuery());
     }
+
+    // private void HandleRowFocus(FluentDataGridRow<CountryVm> row)
+    // {
+    //     View(row.Item);
+    // }
 
     private async Task View(CountryVm item)
     {
@@ -108,8 +141,8 @@ else
 
         var dialog = await _dialogService.ShowDialogAsync<Country_Edit_Component>(item, new DialogParameters()
             {
-                Height = "500px",
-                Width = "400px",
+                Height = "60%",
+                Width = "40%",
                 Title = item.Id > 0 ? "Update Country..." : "Create New Country",
                 PreventDismissOnOverlayClick = false,
                 PreventScroll = true,

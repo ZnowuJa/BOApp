@@ -24,7 +24,7 @@ namespace Application.ViewModels.Accounting
         public int CurrencyId { get; set; }
         public int? CurrencyVmId { get; set; }
         public string? CurrencyVmName { get; set; }
-        public CurrencyVm? CurrencyVm { get; set; }
+        public CurrencyVm? currencyVm { get; set; }
         public decimal Allowance { get; set; }
         public decimal AllowanceFirstDay8H { get; set; }
         public decimal AllowanceFirstDay12H { get; set; }
