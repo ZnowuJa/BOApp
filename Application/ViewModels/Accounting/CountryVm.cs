@@ -39,7 +39,6 @@ namespace Application.ViewModels.Accounting
 
         public void Mapping(Profile profile)
         {
-            profile.AllowNullCollections = true;
             profile.CreateMap<Country, CountryVm>().ReverseMap();
         }
     }

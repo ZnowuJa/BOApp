@@ -52,9 +52,54 @@
                             @bind-SelectedOption="@Content.companiesVm"
                             @onchange="HandleCompanyChange" />
         </div> *@
+        @*          <div class="card"> //Dla Ubezpieczyciela
+        <FluentCombobox TOption="CompanyVm"
+        Autocomplete="ComboboxAutocomplete.Inline"
+        Label="Select company:"
+        Items="@itemCompaniesList"
+        Id="CompanyId"
+        Width="150px"
+        Height="250px"
+        OptionValue="@(p => p.Id.ToString())"
+        OptionText="@(p => p.Name)"
+        @bind-SelectedOption="@Content.companiesVm"
+        @onchange="HandleCompanyChange" />
+        </div> *@
         <div class="card">
-            <FluentTextField Id="CreatedBy" @bind-Value="@Content.CreatedBy" Disabled="true">Doradca serwisowy:</FluentTextField>
-            <FluentValidationMessage For="@(() => Content.CreatedBy)" />
+            <FluentTextField Id="VIN" @bind-Value="@Content.VIN"> VIN:</FluentTextField>
+            <FluentValidationMessage For="@(() => Content.VIN)" />
+        </div>
+        <div class="card">
+            <FluentTextField Id="Registration" @bind-Value="@Content.Registration">Rejestracja:</FluentTextField>
+            <FluentValidationMessage For="@(() => Content.Registration)" />
+        </div>
+        <div class="card">
+            <FluentTextField Id="OrderNumber" @bind-Value="@Content.OrderNumber">Numer zlecenia:</FluentTextField>
+            <FluentValidationMessage For="@(() => Content.OrderNumber)" />
+        </div>
+        <div class="card">
+            <FluentTextField Id="DamageNumber" @bind-Value="@Content.DamageNumber">Numer szkody:</FluentTextField>
+            <FluentValidationMessage For="@(() => Content.DamageNumber)" />
+        </div>
+        <div class="card">
+            <FluentNumberField Id="Amount" @bind-Value="@Content.Amount">Kwota:</FluentNumberField>
+            <FluentValidationMessage For="@(() => Content.Amount)" />
+        </div>
+@*         <div class="card">
+            <FluentNumberField Id="Amount" @bind-Value="@Content.Amount" Disabled="true">Kwota:</FluentNumberField>
+            <FluentValidationMessage For="@(() => Content.Amount)" />
+        </div> *@
+        <div class="card">
+            <FluentTextField Id="PaymentMethod" @bind-Value="@Content.PaymentMethod">Metoda płatności:</FluentTextField>
+            <FluentValidationMessage For="@(() => Content.PaymentMethod)" /> @* Raczej jakiś select *@
+        </div>
+        <div class="card">
+            <FluentTextField Id="NoteContent" @bind-Value="@Content.NoteContent">Treść noty:</FluentTextField>
+            <FluentValidationMessage For="@(() => Content.NoteContent)" />
+        </div>
+        <div class="card">
+            <FluentTextField Id="Attachment" @bind-Value="@Content.Attachment">Załącznik:</FluentTextField>
+            <FluentValidationMessage For="@(() => Content.Attachment)" />
         </div>
     </EditForm>
 </FluentDialogBody>

@@ -98,10 +98,11 @@ else
     {
         await _dialogService.ShowInfoAsync
     (
-        message: $"<p><strong>Country ID:</strong> {item.Id}</p>" +
-                 $"<p><strong>Code:</strong> {item.CountryCode}</p>" +
-                 $"<p><strong>Name:</strong> {item.Name}</p>" +
-                 $"<p><strong>Is EU:</strong> {(item.IsEU ? "Yes" : "No")}</p>"
+        message: $"Country ID: {item.Id}" +
+                 $"Code {item.CountryCode}" +
+                 $"Name: {item.Name}" +
+                 $"Currency: {item.CurrencyVmName}" +
+                 $"Is EU:{(item.IsEU ? "Yes" : "No")}"
     );
     }
 
