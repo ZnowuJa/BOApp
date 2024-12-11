@@ -15,23 +15,17 @@ using System.Threading.Tasks;
 
 namespace Application.CQRS.AccountingCQRS.BNP.Queries
 {
-    public class GetAllBNPQuery : IRequest<IQueryable<Bnp20Vm>>
+    public class GetAllBnp20Query(DateOnly startDate, DateOnly endDate) : IRequest<IQueryable<Bnp20Vm>>
     {
-        public DateOnly StartDate { get; set; }
-        public DateOnly EndDate { get; set; }
-
-        public GetAllBNPQuery(DateOnly startDate, DateOnly endDate)
-        {
-            StartDate = startDate;
-            EndDate = endDate;
-        }
+        public DateOnly StartDate { get; set; } = startDate;
+        public DateOnly EndDate { get; set; } = endDate;
     }
-    public class GetAllBNPQueryHandler(IBNPDbContext bnpDbContext, IMapper mapper) : IRequestHandler<GetAllBNPQuery, IQueryable<Bnp20Vm>>
+    public class GetAllBnp20QueryHandler(IBNPDbContext bnpDbContext, IMapper mapper) : IRequestHandler<GetAllBnp20Query, IQueryable<Bnp20Vm>>
     {
         private readonly IBNPDbContext _bnpDbContext = bnpDbContext;
         private readonly IMapper _mapper = mapper;
 
-        public async Task<IQueryable<Bnp20Vm>> Handle(GetAllBNPQuery request, CancellationToken cancellationToken)
+        public async Task<IQueryable<Bnp20Vm>> Handle(GetAllBnp20Query request, CancellationToken cancellationToken)
         {
 
             var bnp20s = await _bnpDbContext.Bnp20s.Where(i => i.Data >= request.StartDate && i.Data <= request.EndDate)

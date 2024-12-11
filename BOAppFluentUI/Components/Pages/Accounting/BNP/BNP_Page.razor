@@ -1,32 +1,38 @@
-﻿   @page "/bnppage"
-   @using Application.CQRS.AccountingCQRS.BNP.Queries
-   @using Application.ViewModels.Accounting
-   @using Microsoft.AspNetCore.Authorization
+﻿@page "/bnppage"
+@using Application.CQRS.AccountingCQRS.BNP.Queries
+@using Application.ViewModels.Accounting
+@using Microsoft.AspNetCore.Authorization
 
 @attribute [Authorize(Policy = "Technician")]
 
-   @inject IMediator _mediator
+@inject IMediator _mediator
+@inject IToastService _toastService
 
-
-<h3>BNP</h3>
+<h3>
+    Wyciągi Bankowe
+</h3>
 
 <FluentTabs @bind-ActiveTabId="@activeid" OnTabChange="HandleOnTabChange">
     <FluentTab Label="BNP20" Id="tab-1">
 
-        <div>
-            <FluentDatePicker Label="Start Date" AriaLabel="Start Date" Value="StartDateTime20" ValueChanged="@(e => OnStartDateChanged20(e))" />
-            <FluentDatePicker Label="End Date" AriaLabel="End Date" Value="EndDateTime20" ValueChanged="@(e => OnEndDateChanged20(e))" />
-            @if (IsLoading20)
-            {
-                <FluentProgressRing />
-            }
-            else
-            {
-                <div>
-                    <p>Data has been loaded successfully.</p>
-                </div>
-            }
+        <div style="display: flex; gap: 16px;">
+            <div>
+                <FluentDatePicker Label="Start Date" AriaLabel="Start Date" Value="StartDateTime20" ValueChanged="@(e => OnDateChanged("Start", 20, e))" />
+            </div>
+            <div>
+                <FluentDatePicker Label="End Date" AriaLabel="End Date" Value="EndDateTime20" ValueChanged="@(e => OnDateChanged("End", 20, e))" />
+            </div>
         </div>
+        @if (IsLoading20)
+        {
+            <FluentProgressRing />
+        }
+        else
+        {
+            <div>
+                <p>Data has been loaded successfully.</p>
+            </div>
+        }
 
         @if (bnp20 == null)
         {
@@ -34,36 +40,51 @@
         }
         else
         {
-            <FluentDataGrid Items="@bnp20" Pagination="@pagination20" Virtualize="true" ItemSize="60" TGridItem="Bnp20Vm" GridTemplateColumns="200px 200px 200px 200px 200px 200px">
+            <FluentDataGrid Items="@bnp20"
+                            Pagination="@pagination20"
+                            Virtualize="true"
+                            ResizableColumns="true"
+                            Style="height: 650px; overflow:auto;"
+                            ShowHover="true"
+                            ItemSize="55"
+                            TGridItem="Bnp20Vm"
+                            GridTemplateColumns="repeat(11, 200px)">
+
+                <PropertyColumn Property="@(c => c.Txid)" Sortable="true" Align="Align.Start" Tooltip="true" />
                 <PropertyColumn Property="@(c => c.Cdtdbtind)" Sortable="true" Align="Align.Start" Tooltip="true" />
                 <PropertyColumn Property="@(c => c.Waluta)" Sortable="true" Align="Align.Start" Tooltip="true" />
                 <PropertyColumn Property="@(c => c.Data)" Sortable="true" Align="Align.Start" Tooltip="true" />
-                <PropertyColumn Property="@(c => c.Kwota)" Sortable="true" Align="Align.Start" Tooltip="true" />
+                <PropertyColumn Property="@(c => c.Amount)" Sortable="true" Align="Align.Start" Tooltip="true" />
                 <PropertyColumn Property="@(c => c.Nazwa)" Sortable="true" Align="Align.Start" Tooltip="true" />
                 <PropertyColumn Property="@(c => c.Adres)" Sortable="true" Align="Align.Start" Tooltip="true" />
                 <PropertyColumn Property="@(c => c.Panstwo)" Sortable="true" Align="Align.Start" Tooltip="true" />
                 <PropertyColumn Property="@(c => c.Iban)" Sortable="true" Align="Align.Start" Tooltip="true" />
                 <PropertyColumn Property="@(c => c.Tytul)" Sortable="true" Align="Align.Start" Tooltip="true" />
             </FluentDataGrid>
+
             <FluentPaginator State="@pagination20" />
         }
     </FluentTab>
     <FluentTab Label="BNP55" Id="tab-2">
 
-        <div>
-            <FluentDatePicker Label="Start Date" AriaLabel="Start Date" Value="StartDateTime55" ValueChanged="@(e => OnStartDateChanged(e))" />
-            <FluentDatePicker Label="End Date" AriaLabel="End Date" Value="EndDateTime55" ValueChanged="@(e => OnEndDateChanged(e))" />
-            @if (IsLoading55)
-            {
-                <FluentProgressRing />
-            }
-            else
-            {
-                <div>
-                    <p>Data has been loaded successfully.</p>
-                </div>
-            }
+        <div style="display: flex; gap: 16px;">
+            <div>
+                <FluentDatePicker Label="Start Date" AriaLabel="Start Date" Value="StartDateTime55" ValueChanged="@(e => OnDateChanged("Start", 55, e))" />
+            </div>
+            <div>
+                <FluentDatePicker Label="End Date" AriaLabel="End Date" Value="EndDateTime55" ValueChanged="@(e => OnDateChanged("End", 55, e))" />
+            </div>
         </div>
+        @if (IsLoading55)
+        {
+            <FluentProgressRing />
+        }
+        else
+        {
+            <div>
+                <p>Data has been loaded successfully.</p>
+            </div>
+        }
 
         @if (bnp55 == null)
         {
@@ -72,17 +93,28 @@
         else
         {
 
-            <FluentDataGrid Items="@bnp55" Pagination="@pagination55" Virtualize="true" ItemSize="60" TGridItem="Bnp55Vm" GridTemplateColumns="200px 200px 200px 200px 200px 200px">
+            <FluentDataGrid Items="@bnp55"
+                            Pagination="@pagination55"
+                            Virtualize="true"
+                            ResizableColumns="true"
+                            Style="height: 650px; overflow:auto;"
+                            ShowHover="true"
+                            ItemSize="55"
+                            TGridItem="Bnp55Vm"
+                            GridTemplateColumns="repeat(11, 200px)">
+
+                <PropertyColumn Property="@(c => c.Txid)" Sortable="true" Align="Align.Start" Tooltip="true" />
                 <PropertyColumn Property="@(c => c.Cdtdbtind)" Sortable="true" Align="Align.Start" Tooltip="true" />
                 <PropertyColumn Property="@(c => c.Waluta)" Sortable="true" Align="Align.Start" Tooltip="true" />
                 <PropertyColumn Property="@(c => c.Data)" Sortable="true" Align="Align.Start" Tooltip="true" />
-                <PropertyColumn Property="@(c => c.Kwota)" Sortable="true" Align="Align.Start" Tooltip="true" />
+                <PropertyColumn Property="@(c => c.Amount)" Sortable="true" Align="Align.Start" Tooltip="true" />
                 <PropertyColumn Property="@(c => c.Nazwa)" Sortable="true" Align="Align.Start" Tooltip="true" />
                 <PropertyColumn Property="@(c => c.Adres)" Sortable="true" Align="Align.Start" Tooltip="true" />
                 <PropertyColumn Property="@(c => c.Panstwo)" Sortable="true" Align="Align.Start" Tooltip="true" />
                 <PropertyColumn Property="@(c => c.Iban)" Sortable="true" Align="Align.Start" Tooltip="true" />
                 <PropertyColumn Property="@(c => c.Tytul)" Sortable="true" Align="Align.Start" Tooltip="true" />
             </FluentDataGrid>
+
             <FluentPaginator State="@pagination55" />
         }
     </FluentTab>
@@ -94,57 +126,52 @@
     private IQueryable<Bnp20Vm> bnp20;
     private IQueryable<Bnp55Vm> bnp55;
 
-    readonly PaginationState pagination20 = new PaginationState { ItemsPerPage = 15 };
-    readonly PaginationState pagination55 = new PaginationState { ItemsPerPage = 15 };
+    readonly PaginationState pagination20 = new PaginationState { ItemsPerPage = 10 };
+    readonly PaginationState pagination55 = new PaginationState { ItemsPerPage = 10 };
 
     private DateTime? StartDateTime20 { get; set; } = DateTime.Today.AddMonths(-3);
     private DateTime? EndDateTime20 { get; set; } = DateTime.Today;
-    private bool IsLoading20 { get; set; } = false;
 
     private DateTime? StartDateTime55 { get; set; } = DateTime.Today.AddMonths(-3);
     private DateTime? EndDateTime55 { get; set; } = DateTime.Today;
+
+    private bool IsLoading20 { get; set; } = false;
     private bool IsLoading55 { get; set; } = false;
+
+    string? activeid = "tab-1";
+    FluentTab? changedto;
+
+    private async Task HandleOnTabChange(FluentTab tab)
+    {
+        changedto = tab;
+    }
 
     private DateOnly ConvertToDateOnly(DateTime? dateTime)
     {
         return dateTime.HasValue ? DateOnly.FromDateTime(dateTime.Value) : DateOnly.MinValue;
     }
 
-    private bool firstLoad = false;
-
-    string? activeid = "tab-1";
-    FluentTab? changedto;
-
-    private DateOnly SelectedDate { get; set; } = DateOnly.FromDateTime(DateTime.Now);
-
-    private async Task OnStartDateChanged20(DateTime? newStartDate)
+    private async Task OnDateChanged(string type, int identifier, DateTime? newDate)
     {
-        StartDateTime20 = newStartDate;
-        await LoadBnp20();
-    }
+        if (type == "Start")
+        {
+            if (identifier == 20)
+                StartDateTime20 = newDate;
+            else if (identifier == 55)
+                StartDateTime55 = newDate;
+        }
+        else if (type == "End")
+        {
+            if (identifier == 20)
+                EndDateTime20 = newDate;
+            else if (identifier == 55)
+                EndDateTime55 = newDate;
+        }
 
-    private async Task OnEndDateChanged20(DateTime? newEndDate)
-    {
-        EndDateTime20 = newEndDate;
-        await LoadBnp20();
-    }
-
-    private async Task OnStartDateChanged(DateTime? newStartDate)
-    {
-        StartDateTime55 = newStartDate;
-        await LoadBnp55();
-    }
-
-    private async Task OnEndDateChanged(DateTime? newEndDate)
-    {
-        EndDateTime55 = newEndDate;
-        await LoadBnp55();
-    }
-
-
-    private async Task HandleOnTabChange(FluentTab tab)
-    {
-        changedto = tab;
+        if (identifier == 20)
+            await LoadBnp20();
+        else if (identifier == 55)
+            await LoadBnp55();
     }
 
     protected override async Task OnInitializedAsync()
@@ -154,7 +181,7 @@
 
     private async Task Load()
     {
-        bnp20 = await _mediator.Send(new GetAllBNPQuery(ConvertToDateOnly(StartDateTime55), ConvertToDateOnly(EndDateTime55)));
+        bnp20 = await _mediator.Send(new GetAllBnp20Query(ConvertToDateOnly(StartDateTime55), ConvertToDateOnly(EndDateTime55)));
         bnp55 = await _mediator.Send(new GetAllBnp55Query(ConvertToDateOnly(StartDateTime55), ConvertToDateOnly(EndDateTime55)));
     }
 
@@ -162,47 +189,65 @@
     {
         IsLoading55 = true;
         StateHasChanged();
-
+        ToastIntent intent;
+        string message = string.Empty;
         try
         {
             if (StartDateTime55.HasValue && EndDateTime55.HasValue)
             {
                 Console.WriteLine("Load Bnp55");
+                intent = ToastIntent.Progress;
+                message = "Data is loading!";
+                _toastService.ShowToast(intent, message, 3000);
                 bnp55 = await _mediator.Send(new GetAllBnp55Query(ConvertToDateOnly(StartDateTime55), ConvertToDateOnly(EndDateTime55)));
             }
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error loading data: {ex.Message}");
+            intent = ToastIntent.Error;
+            message = "Error loading data!";
         }
         finally
         {
             IsLoading55 = false;
+            intent = ToastIntent.Success;
+            message = "Data has been loading properly!";
             StateHasChanged();
         }
+        _toastService.ShowToast(intent, message, 3000);
     }
 
     public async Task LoadBnp20()
     {
         IsLoading20 = true;
         StateHasChanged();
-
+        ToastIntent intent;
+        string message = string.Empty;
         try
         {
             if (StartDateTime20.HasValue && EndDateTime20.HasValue)
             {
                 Console.WriteLine("Load Bnp20");
-                bnp20 = await _mediator.Send(new GetAllBNPQuery(ConvertToDateOnly(StartDateTime20), ConvertToDateOnly(EndDateTime20)));
+                intent = ToastIntent.Progress;
+                message = "Data is loading!";
+                _toastService.ShowToast(intent, message, 3000);
+                bnp20 = await _mediator.Send(new GetAllBnp20Query(ConvertToDateOnly(StartDateTime20), ConvertToDateOnly(EndDateTime20)));
             }
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error loading data: {ex.Message}");
+            intent = ToastIntent.Error;
+            message = "Error loading data!";
         }
         finally
         {
             IsLoading20 = false;
+            intent = ToastIntent.Success;
+            message = "Data has been loading properly!";
             StateHasChanged();
         }
+        _toastService.ShowToast(intent, message, 3000);
     }
 }

@@ -3,6 +3,7 @@ using AutoMapper;
 using Domain.Entities.BNP;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -20,6 +21,12 @@ namespace Application.ViewModels.Accounting
         public string? Waluta { get; set; }
 
         public string? Kwota { get; set; }
+
+        public Decimal? Amount => decimal.TryParse(
+        Kwota,
+        NumberStyles.Number,
+        CultureInfo.InvariantCulture,
+        out var result) ? result : 0;
 
         public string? Cdtdbtind { get; set; }
 

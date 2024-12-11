@@ -11,16 +11,10 @@ using System.Threading.Tasks;
 
 namespace Application.CQRS.AccountingCQRS.BNP.Queries
 {
-    public class GetAllBnp55Query : IRequest<IQueryable<Bnp55Vm>>
+    public class GetAllBnp55Query(DateOnly startDate, DateOnly endDate) : IRequest<IQueryable<Bnp55Vm>>
     {
-        public DateOnly StartDate { get; set; }
-        public DateOnly EndDate { get; set; }
-
-        public GetAllBnp55Query(DateOnly startDate, DateOnly endDate)
-        {
-            StartDate = startDate;
-            EndDate = endDate;
-        }
+        public DateOnly StartDate { get; set; } = startDate;
+        public DateOnly EndDate { get; set; } = endDate;
     }
     public class GetAllBnp55QueryHandler(IBNPDbContext bnpDbContext, IMapper mapper) : IRequestHandler<GetAllBnp55Query, IQueryable<Bnp55Vm>>
     {
