@@ -1,5 +1,10 @@
 ﻿using Application.CQRS.AccountingCQRS.BNP.Queries;
+using Application.Interfaces;
+using Application.ViewModels.Accounting;
+using AutoMapper;
+using Domain.Entities.BNP;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Graph.Models;
 using System;
 using System.Collections.Generic;
@@ -10,5 +15,32 @@ using System.Threading.Tasks;
 
 namespace Application.CQRS.AccountingCQRS.BNP.Queries
 {
+    public class GetAllBNPQuery : IRequest<IQueryable<Bnp20Vm>>
+    {
+        public DateOnly StartDate { get; set; }
+        public DateOnly EndDate { get; set; }
+
+        public GetAllBNPQuery(DateOnly startDate, DateOnly endDate)
+        {
+            StartDate = startDate;
+            EndDate = endDate;
+        }
+    }
+    public class GetAllBNPQueryHandler(IBNPDbContext bnpDbContext, IMapper mapper) : IRequestHandler<GetAllBNPQuery, IQueryable<Bnp20Vm>>
+    {
+        private readonly IBNPDbContext _bnpDbContext = bnpDbContext;
+        private readonly IMapper _mapper = mapper;
+
+        public async Task<IQueryable<Bnp20Vm>> Handle(GetAllBNPQuery request, CancellationToken cancellationToken)
+        {
+
+            var bnp20s = await _bnpDbContext.Bnp20s.Where(i => i.Data >= request.StartDate && i.Data <= request.EndDate)
+                                            .AsNoTracking()
+                                            .ToListAsync(cancellationToken);
+
+            var bnp20Vms = _mapper.Map<List<Bnp20Vm>>(bnp20s);
+            return bnp20Vms.AsQueryable();
+        }
+    }
 }
     

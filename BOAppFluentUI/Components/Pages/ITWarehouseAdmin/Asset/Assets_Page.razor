@@ -76,7 +76,7 @@ else
         </FluentStack>
     </div>
     @* GridTemplateColumns = "80px repeat(6, 0.75fr) repeat(3, 0.5fr)" *@
-    <FluentDataGrid Items="@filteredProducts" Pagination="@pagination" TGridItem="AssetDTO" Style="width: 100%;" AutoFit="true"         ResizableColumns="true">
+    <FluentDataGrid Items="@filteredProducts" Pagination="@pagination" TGridItem="AssetDTO" Style="width: 100%;" AutoFit="true" ResizableColumns="true">
        
         @foreach (var column in filterColumns.Where(c => c.IsVisible))
         {

@@ -42,6 +42,16 @@ public static class DiPersistance
             return factory.CreateDbContext();
         });
 
+        // Register BNPDbContext
+        services.AddDbContextFactory<BNPDbContext>(options =>
+            options.UseSqlServer(configuration.GetConnectionString("BNPDbContextConnection")));
+        services.AddScoped<IBNPDbContext>(provider =>
+        {
+            var factory = provider.GetRequiredService<IDbContextFactory<BNPDbContext>>();
+            return factory.CreateDbContext();
+        });
+
+
         services.AddScoped<ITokenValidatedHandlerService, TokenValidatedHandlerService>();
 
         services.AddDefaultIdentity<AppUser>(options => options.SignIn.RequireConfirmedAccount = false)
