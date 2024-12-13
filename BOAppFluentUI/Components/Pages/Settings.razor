@@ -60,8 +60,6 @@
                 .Select(c => c.Value)
                 .Distinct()
                 .ToList();
-            
-
         }
         var aidClaim = user.Claims.FirstOrDefault(c => c.Type == claimTypeAID);
         if (aidClaim != null)

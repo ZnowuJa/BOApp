@@ -1,0 +1,152 @@
+﻿@page "/edit-business-trip/{id:int}"
+@using Application.CQRS.General.Organisations.Queries
+@using Application.Forms.Accounting
+@using BOAppFluentUI.Components.Pages
+@using Application.ViewModels.General
+@using Microsoft.AspNetCore.Components
+@using Microsoft.FluentUI.AspNetCore.Components.Extensions
+
+@inject IConfiguration _configuration
+@inject IMediator _mediator
+@inject IJSRuntime JS
+@inject ILogger<BusinessTravelFormVm> _logger
+@inject IToastService _toastService
+@inject AuthenticationStateProvider _authenticationStateProvider
+@inject NavigationManager _navigationManager
+
+<h3>@(formItem.Id == 0 ? "Create Business Trip" : "Edit Business Trip")</h3>
+
+<EditForm Model="formItem" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    @* Header table *@
+    <div>
+        <table>
+            <tr>
+                <td><b>Numer:</b></td>
+                <td>@formItem.Number</td>
+                <td><b>Zgłoszone: </b></td>
+                <td>@formItem.CreatedDate.ToDateOnly()</td>
+            </tr>
+            <tr>
+                <td><b>Organizacja:</b></td>
+                <td>@_organisation.Name</td>
+                <td><b>Zgłaszający:</b></td>
+                <td>@formItem.EmployeeName</td>
+            </tr>
+            @* <tr> *@
+            @*     <td><b>Numer FK:</b></td> *@
+            @*     <td>@formItem.Numer_Fk</td> *@
+            @*     <td><b>Lokalizacja:</b></td> *@
+            @*     <td>@formItem.CC</td> *@
+            @* </tr> *@
+            @* <tr> *@
+            @*     <td><b>NIP:</b></td> *@
+            @*     <td>@formItem.VATID</td> *@
+            @*     <td><b></b></td> *@
+            @*     <td></td> *@
+            @* </tr> *@
+        </table>
+    </div>
+    
+    <FluentTextField Label="Number" @bind-Value="formItem.Number" />
+    <FluentTextField Label="Destination" @bind-Value="formItem.Destination" />
+    <FluentTextField Label="Objective" @bind-Value="formItem.Objective" />
+    @* <FluentDatePicker Label="Start Date" @bind-Value="formItem.StartDate" /> *@
+    @* <FluentDatePicker Label="End Date" @bind-Value="formItem.EndDate" /> *@
+    <FluentCheckbox Label="Private Vehicle" @bind-Value="formItem.PrivateVehicle" />
+    <FluentTextField Label="Engine Size" @bind-Value="formItem.EngineSize" />
+    <FluentTextField Label="Company Vehicle" @bind-Value="formItem.CompanyVehicle" />
+    <FluentTextField Label="Vehicle Number" @bind-Value="formItem.VehicleNumber" />
+    <FluentTextField Label="Employee Name" @bind-Value="formItem.EmployeeName" />
+    <FluentTextField Label="Enova Employee ID" @bind-Value="formItem.EnovaEmpId" />
+
+    @* <FluentButton Type="submit">Submit</FluentButton> *@
+</EditForm>
+
+@code {
+    # region Declarations
+    [Parameter]
+    public int Id { get; set; }
+
+    private BusinessTravelFormVm formItem = new BusinessTravelFormVm();
+    private FormUserContext _userContext = new FormUserContext("BusinessTrip", "Technician");
+    
+    private OrganisationRoleForFormVm approverL1 { get; set; }
+    private OrganisationRoleForFormVm approverL2 { get; set; }
+    private OrganisationRoleForFormVm approverL3 { get; set; }
+    private OrganisationRoleForFormVm approverL4 { get; set; }
+    private OrganisationRoleForFormVm approverL5 { get; set; }
+    private bool al1 = false;
+    private bool al2 = false;
+    private bool al3 = false;
+    private bool al4 = false;
+    private bool al5 = false;
+    private bool ApproveButton = true;
+    private bool SendButton = true;
+    private OrganisationVm _organisation { get; set; }
+    private WorkflowTemplateVm wf { get; set; }
+    private string FormName = "BusinessTravelFormVm";
+    private bool local = true;
+    
+    # endregion
+    
+    protected override async Task OnInitializedAsync()
+    {
+        if (Id != 0)
+        {
+            try
+            {
+                // Fetch the business trip details based on Id
+                // formItem = await _mediator.Send(new GetBusinessTravelFormByIdQuery(Id));
+                formItem.Id = 0;
+            }
+            catch (Exception ex)
+            {
+                _toastService.ShowError($"An error occurred: {ex.Message}");
+            }
+        }
+        else
+        {
+            formItem.Number = "will be generated";
+            
+        }
+
+        try
+        {
+            await Utils.GetUserName(_authenticationStateProvider, _userContext, _mediator);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+        _organisation = await _mediator.Send(new GetOrganisationByEmpSapNumberQuery(_userContext.Employee.SapNumber));
+        formItem.EmployeeName = _userContext.LongName;
+
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        try
+        {
+            if (formItem.Id == 0)
+            {
+                // Logic to create a new business trip
+                // await _mediator.Send(new CreateBusinessTravelCommand(formItem));
+                _toastService.ShowSuccess("Business travel form created successfully!");
+            }
+            else
+            {
+                // Logic to update an existing business trip
+                // await _mediator.Send(new UpdateBusinessTravelCommand(formItem));
+                _toastService.ShowSuccess("Business travel form updated successfully!");
+            }
+
+            _navigationManager.NavigateTo("/business-trips");
+        }
+        catch (Exception ex)
+        {
+            _toastService.ShowError($"An error occurred: {ex.Message}");
+        }
+    }
+}

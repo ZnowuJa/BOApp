@@ -1,5 +1,6 @@
 ﻿using System.Linq.Expressions;
 using System.Net;
+using System.Security.Claims;
 using System.Text;
 
 using Application.CQRS.General.FormFiles.Commands;
@@ -62,6 +63,18 @@ public static class Utils
 
         return query.OrderByDescending(r => r.GetType().GetProperty("Id").GetValue(r));
     }
+
+    public static async Task GetUserRoles(FormUserContext userContext)
+    {
+        if (userContext.User.Identity.IsAuthenticated)
+        {
+            var userRoles = userContext.User.Claims.Where(c => c.Type == ClaimTypes.Role)
+                .Select(c => c.Value)
+                .Distinct()
+                .ToList();
+            userContext.Employee.Roles = userRoles;
+        }
+    }
     public static async Task GetUserName(
         AuthenticationStateProvider authenticationStateProvider,
         FormUserContext userContext,
@@ -81,7 +94,10 @@ public static class Utils
             userContext.EnovaEmpId = enovaEmpIdClaim.Value;
             try
             {
-                userContext.Employee = await mediator.Send(new GetEmployeeByEnovaIdQuery(int.Parse(userContext.EnovaEmpId)));
+                var empId = int.Parse(userContext.EnovaEmpId);
+                if (userContext != null)
+                    userContext.Employee = await mediator.Send(new GetEmployeeByEnovaIdQuery(empId));
+                await GetUserRoles(userContext);
             }
             catch (Exception ex)
             {

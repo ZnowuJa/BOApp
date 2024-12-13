@@ -15,7 +15,6 @@
 @using Microsoft.AspNetCore.Authorization
 @using System.Security.Claims
 
-
 @attribute [Authorize(Policy = "User")]
 
 @inject IConfiguration _configuration
@@ -216,7 +215,6 @@ else
             try
             {
                 customer = await _mediator.Send(new GetCustomerQuery(Id));
-
 
                 if (customer != null)
                 {

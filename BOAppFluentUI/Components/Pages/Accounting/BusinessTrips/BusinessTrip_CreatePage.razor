@@ -1,0 +1,58 @@
+﻿@page "/create-business-travel"
+
+@using Application.Forms.Accounting
+@using Application.ViewModels.General
+@using Microsoft.AspNetCore.Components
+@using Microsoft.AspNetCore.Components.Forms
+
+@inject IMediator _mediator
+@inject NavigationManager _navigationManager
+@inject IToastService _toastService
+
+<h3>BusinessTrip_CreatePage</h3>
+
+<EditForm Model="formItem" OnValidSubmit="HandleValidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <FluentTextField Label="Numer" @bind-Value="formItem.Number" />
+    <FluentTextField Label="Destination" @bind-Value="formItem.Destination" />
+    <FluentTextField Label="Objective" @bind-Value="formItem.Objective" />
+    <FluentCheckbox Label="Private Vehicle" @bind-Value="formItem.PrivateVehicle" />
+    <FluentTextField Label="Engine Size" @bind-Value="formItem.EngineSize" />
+    <FluentTextField Label="Company Vehicle" @bind-Value="formItem.CompanyVehicle" />
+    <FluentTextField Label="Vehicle Number" @bind-Value="formItem.VehicleNumber" />
+    <FluentTextField Label="Employee Name" @bind-Value="formItem.EmployeeName" />
+    <FluentTextField Label="Enova Employee ID" @bind-Value="formItem.EnovaEmpId" />
+
+    
+</EditForm>
+
+@code {
+    private BusinessTravelFormVm formItem = new BusinessTravelFormVm();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            // Initialize any necessary data here
+            // For example, you can load data from the server using _mediator
+            // formItem = await _mediator.Send(new GetBusinessTravelFormQuery());
+
+            // Example: Initialize form with default values or data from the server
+            formItem.StartDate = DateTime.Now;
+            formItem.EndDate = DateTime.Now.AddDays(1);
+            formItem.EmployeeName = "John Doe"; // Replace with actual data
+            formItem.EnovaEmpId = "12345"; // Replace with actual data
+        }
+        catch (Exception ex)
+        {
+            _toastService.ShowError($"An error occurred during initialization: {ex.Message}");
+        }
+    }
+
+    private void HandleValidSubmit()
+    {
+        
+    }
+}

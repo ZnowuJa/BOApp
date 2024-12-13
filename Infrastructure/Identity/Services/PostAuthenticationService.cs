@@ -21,12 +21,19 @@ public class PostAuthenticationService : IPostAuthenticationService
 
     public async Task<List<string>> GetRolesForUserAsync(string userId)
     {
-
-        var user = await _userManager.FindByIdAsync(userId);
-        if (user != null)
+        try
         {
-            var roles = await _userManager.GetRolesAsync(user);
-            return new List<string>(roles);
+            AppUser user = await _userManager.FindByIdAsync(userId);
+        
+            if (user != null)
+            {
+                var rolesy = await _userManager.GetRolesAsync(user);
+                return new List<string>(rolesy);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
         }
         return new List<string>(); // If user not found or has no roles, return an empty list
     }
