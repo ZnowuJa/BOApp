@@ -1,12 +1,6 @@
 ﻿using Application.Mappings;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Domain.Entities.BNP;
 using AutoMapper;
-using Domain.Entities.Accounting;
 using System.Globalization;
 
 namespace Application.ViewModels.Accounting
@@ -23,7 +17,7 @@ namespace Application.ViewModels.Accounting
 
         public string? Kwota { get; set; }
 
-        public Decimal? Amount => decimal.TryParse(
+        public Decimal Amount => decimal.TryParse(
         Kwota,
         NumberStyles.Number,
         CultureInfo.InvariantCulture,

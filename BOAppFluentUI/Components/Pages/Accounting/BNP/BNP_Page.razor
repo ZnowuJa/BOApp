@@ -1,7 +1,10 @@
 ﻿@page "/bnppage"
+@using System.Diagnostics.CodeAnalysis
 @using Application.CQRS.AccountingCQRS.BNP.Queries
 @using Application.ViewModels.Accounting
 @using Microsoft.AspNetCore.Authorization
+@using System.Linq.Expressions
+@using System.Globalization;
 
 @attribute [Authorize(Policy = "Technician")]
 
@@ -14,13 +17,12 @@
 
 <FluentTabs @bind-ActiveTabId="@activeid" OnTabChange="HandleOnTabChange">
     <FluentTab Label="BNP20" Id="tab-1">
-
         <div style="display: flex; gap: 16px;">
             <div>
-                <FluentDatePicker Label="Start Date" AriaLabel="Start Date" Value="StartDateTime20" ValueChanged="@(e => OnDateChanged("Start", 20, e))" />
+                <FluentDatePicker DisabledDateFunc="@IsAfterEndDate" Label="Start Date" AriaLabel="Start Date" Value="StartDateTime20" ValueChanged="@(e => OnDateChanged("Start", "tab-1", e))"/>
             </div>
             <div>
-                <FluentDatePicker Label="End Date" AriaLabel="End Date" Value="EndDateTime20" ValueChanged="@(e => OnDateChanged("End", 20, e))" />
+                <FluentDatePicker DisabledDateFunc="@IsDateDisabled" Label="End Date" AriaLabel="End Date" Value="EndDateTime20" ValueChanged="@(e => OnDateChanged("End", "tab-1", e))"/>
             </div>
         </div>
         @if (IsLoading20)
@@ -40,26 +42,28 @@
         }
         else
         {
-            <FluentDataGrid Items="@bnp20"
+            <FluentDataGrid Items="@FilteredItems"
                             Pagination="@pagination20"
                             Virtualize="true"
                             ResizableColumns="true"
                             Style="height: 650px; overflow:auto;"
                             ShowHover="true"
                             ItemSize="55"
-                            TGridItem="Bnp20Vm"
-                            GridTemplateColumns="repeat(11, 200px)">
+                            TGridItem="Bnp20Vm">
 
-                <PropertyColumn Property="@(c => c.Txid)" Sortable="true" Align="Align.Start" Tooltip="true" />
-                <PropertyColumn Property="@(c => c.Cdtdbtind)" Sortable="true" Align="Align.Start" Tooltip="true" />
-                <PropertyColumn Property="@(c => c.Waluta)" Sortable="true" Align="Align.Start" Tooltip="true" />
-                <PropertyColumn Property="@(c => c.Data)" Sortable="true" Align="Align.Start" Tooltip="true" />
-                <PropertyColumn Property="@(c => c.Amount)" Sortable="true" Align="Align.Start" Tooltip="true" />
-                <PropertyColumn Property="@(c => c.Nazwa)" Sortable="true" Align="Align.Start" Tooltip="true" />
-                <PropertyColumn Property="@(c => c.Adres)" Sortable="true" Align="Align.Start" Tooltip="true" />
-                <PropertyColumn Property="@(c => c.Panstwo)" Sortable="true" Align="Align.Start" Tooltip="true" />
-                <PropertyColumn Property="@(c => c.Iban)" Sortable="true" Align="Align.Start" Tooltip="true" />
-                <PropertyColumn Property="@(c => c.Tytul)" Sortable="true" Align="Align.Start" Tooltip="true" />
+                @foreach (var column in filterColumns.Where(c => c.IsVisible))
+                {
+                    <PropertyColumn TGridItem="Bnp20Vm" TProp="string" Property="@(GetPropertyExpression(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label" Filtered="!string.IsNullOrWhiteSpace(column.Filter)" Width="@column.Width" IsDefaultSortColumn="@column.IsDefaultSortColumn"
+                                    InitialSortDirection="@column.InitialSortDirection">
+                        <ColumnOptions>
+                            <div class="search-box">
+                                <FluentSearch type="search" Autofocus="true" @bind-Value="column.Filter" @oninput="(args) => HandleFilterDebounced(column, args)" Placeholder="@($"{column.Label.ToLower()}...")" />
+                            </div>
+                        </ColumnOptions>
+                    </PropertyColumn>
+                }
+                <PropertyColumn Property="@(c => c.Amount)" Sortable="true" Align="Align.Start" Tooltip="true" Width="200px">
+                </PropertyColumn>
             </FluentDataGrid>
 
             <FluentPaginator State="@pagination20" />
@@ -69,10 +73,10 @@
 
         <div style="display: flex; gap: 16px;">
             <div>
-                <FluentDatePicker Label="Start Date" AriaLabel="Start Date" Value="StartDateTime55" ValueChanged="@(e => OnDateChanged("Start", 55, e))" />
+                <FluentDatePicker Label="Start Date" AriaLabel="Start Date" Value="StartDateTime55" ValueChanged="@(e => OnDateChanged("Start", "tab-2", e))" />
             </div>
             <div>
-                <FluentDatePicker Label="End Date" AriaLabel="End Date" Value="EndDateTime55" ValueChanged="@(e => OnDateChanged("End", 55, e))" />
+                <FluentDatePicker Label="End Date" AriaLabel="End Date" Value="EndDateTime55" ValueChanged="@(e => OnDateChanged("End", "tab-2", e))" />
             </div>
         </div>
         @if (IsLoading55)
@@ -93,27 +97,33 @@
         else
         {
 
-            <FluentDataGrid Items="@bnp55"
+            <FluentDataGrid Items="@FilteredItems55"
                             Pagination="@pagination55"
                             Virtualize="true"
                             ResizableColumns="true"
                             Style="height: 650px; overflow:auto;"
                             ShowHover="true"
                             ItemSize="55"
-                            TGridItem="Bnp55Vm"
-                            GridTemplateColumns="repeat(11, 200px)">
+                            TGridItem="Bnp55Vm">
 
-                <PropertyColumn Property="@(c => c.Txid)" Sortable="true" Align="Align.Start" Tooltip="true" />
-                <PropertyColumn Property="@(c => c.Cdtdbtind)" Sortable="true" Align="Align.Start" Tooltip="true" />
-                <PropertyColumn Property="@(c => c.Waluta)" Sortable="true" Align="Align.Start" Tooltip="true" />
-                <PropertyColumn Property="@(c => c.Data)" Sortable="true" Align="Align.Start" Tooltip="true" />
-                <PropertyColumn Property="@(c => c.Amount)" Sortable="true" Align="Align.Start" Tooltip="true" />
-                <PropertyColumn Property="@(c => c.Nazwa)" Sortable="true" Align="Align.Start" Tooltip="true" />
-                <PropertyColumn Property="@(c => c.Adres)" Sortable="true" Align="Align.Start" Tooltip="true" />
-                <PropertyColumn Property="@(c => c.Panstwo)" Sortable="true" Align="Align.Start" Tooltip="true" />
-                <PropertyColumn Property="@(c => c.Iban)" Sortable="true" Align="Align.Start" Tooltip="true" />
-                <PropertyColumn Property="@(c => c.Tytul)" Sortable="true" Align="Align.Start" Tooltip="true" />
-            </FluentDataGrid>
+                @foreach (var column in filterColumns55.Where(c => c.IsVisible))
+                {
+                    if (column.Property != null)
+                    {
+                        <PropertyColumn TGridItem="Bnp55Vm" TProp="string" Property="@(GetPropertyExpression55(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label" Filtered="!string.IsNullOrWhiteSpace(column.Filter)" Width="@column.Width" IsDefaultSortColumn="@column.IsDefaultSortColumn"
+                                        InitialSortDirection="@column.InitialSortDirection">
+                            <ColumnOptions>
+                                <div class="search-box">
+                                    <FluentSearch type="search" Autofocus="true" @bind-Value="column.Filter" @oninput="(args) => HandleFilterDebounced55(column, args)" Placeholder="@($"{column.Label.ToLower()}...")" />
+                                </div>
+                            </ColumnOptions>
+                        </PropertyColumn>
+                    }
+                }
+                <PropertyColumn Property="@(c => c.Amount)" Sortable="true" Align="Align.Start" Tooltip="true" Width="200px">
+                </PropertyColumn>
+                
+                </FluentDataGrid>
 
             <FluentPaginator State="@pagination55" />
         }
@@ -123,9 +133,16 @@
 
 
 @code {
-    private IQueryable<Bnp20Vm> bnp20;
-    private IQueryable<Bnp55Vm> bnp55;
+    private IQueryable<Bnp20Vm>? bnp20;
+    private IQueryable<Bnp20Vm> FilteredItems => bnp20.Where(x =>
+        filterColumns.All(column => string.IsNullOrWhiteSpace(column.Filter) || column.Property(x).Contains(column.Filter, StringComparison.CurrentCultureIgnoreCase)));
+    
+    private IQueryable<Bnp55Vm>? bnp55;
+    private IQueryable<Bnp55Vm> FilteredItems55 => bnp55.Where(x =>
+        filterColumns55.All(column => string.IsNullOrWhiteSpace(column.Filter) || column.Property(x).Contains(column.Filter, StringComparison.CurrentCultureIgnoreCase)));
 
+    private readonly DebounceDispatcher debounceDispatcher = new DebounceDispatcher();
+    
     readonly PaginationState pagination20 = new PaginationState { ItemsPerPage = 10 };
     readonly PaginationState pagination55 = new PaginationState { ItemsPerPage = 10 };
 
@@ -135,66 +152,149 @@
     private DateTime? StartDateTime55 { get; set; } = DateTime.Today.AddMonths(-3);
     private DateTime? EndDateTime55 { get; set; } = DateTime.Today;
 
-    private bool IsLoading20 { get; set; } = false;
-    private bool IsLoading55 { get; set; } = false;
+    private bool IsLoading20 { get; set; }
+    private bool IsLoading55 { get; set; }
 
     string? activeid = "tab-1";
     FluentTab? changedto;
 
-    private async Task HandleOnTabChange(FluentTab tab)
+    private bool IsDateDisabled(DateTime date)
     {
+        return date.Date > DateTime.Today || date.Date < StartDateTime20; // Wyłącza wszystkie daty po dzisiejszym dniu i przed StartDateTime20
+    }
+    private bool IsAfterEndDate(DateTime date)
+    {
+        return date.Date > EndDateTime20; // Wyłącza wszystkie daty po EndDate
+    }
+
+    string nameFilter = string.Empty;
+
+    private readonly List<FilterColumn<Bnp20Vm>> filterColumns = new List<FilterColumn<Bnp20Vm>>
+    {
+        new FilterColumn<Bnp20Vm> {FirstRow = true, Label = "Txid", Property = c => c.Txid, IsVisible = true, Width= "200px"},
+        new FilterColumn<Bnp20Vm> {FirstRow = true, Label = "Cdtdbtind", Property = c => c.Cdtdbtind, IsVisible = true, Width= "100px"},
+        new FilterColumn<Bnp20Vm> {FirstRow = true, Label = "Waluta", Property = c => c.Waluta, IsVisible = true, Width= "100px"},
+        new FilterColumn<Bnp20Vm> {FirstRow = true, Label = "Data", Property = c => c.Data.ToString(), IsVisible = true, Width= "200px", IsDefaultSortColumn = true, InitialSortDirection = SortDirection.Descending},
+        //new FilterColumn<Bnp20Vm> {FirstRow = true, Label = "Amount", Property = c => c.Kwota, IsVisible = true, Width= "200px"},
+        new FilterColumn<Bnp20Vm> {FirstRow = true, Label = "Nazwa", Property = c => c.Nazwa, IsVisible = true, Width= "200px"},
+        new FilterColumn<Bnp20Vm> {FirstRow = true, Label = "Adres", Property = c => c.Adres, IsVisible = true, Width= "200px"},
+        new FilterColumn<Bnp20Vm> {FirstRow = true, Label = "Panstwo", Property = c => c.Panstwo, IsVisible = true, Width= "100px"},
+        new FilterColumn<Bnp20Vm> {FirstRow = true, Label = "Iban", Property = c => c.Iban, IsVisible = true, Width= "200px"},
+        new FilterColumn<Bnp20Vm> {FirstRow = true, Label = "Tytul", Property = c => c.Tytul, IsVisible = true, Width= "200px"},
+    };
+
+    private readonly List<FilterColumn<Bnp55Vm>> filterColumns55 = new List<FilterColumn<Bnp55Vm>>
+    {
+        new FilterColumn<Bnp55Vm> {FirstRow = true, Label = "Txid", Property = c => c.Txid, IsVisible = true, Width= "200px"},
+        new FilterColumn<Bnp55Vm> {FirstRow = true, Label = "Cdtdbtind", Property = c => c.Cdtdbtind, IsVisible = true, Width= "100px"},
+        new FilterColumn<Bnp55Vm> {FirstRow = true, Label = "Waluta", Property = c => c.Waluta, IsVisible = true, Width= "100px"},
+        new FilterColumn<Bnp55Vm> {FirstRow = true, Label = "Data", Property = c => c.Data.ToString(), IsVisible = true, Width= "200px", IsDefaultSortColumn = true, InitialSortDirection = SortDirection.Descending},
+        //new FilterColumn<Bnp55Vm> {FirstRow = true, Label = "Amount", Property = c => c.Kwota, IsVisible = true, Width= "200px"},
+        new FilterColumn<Bnp55Vm> {FirstRow = true, Label = "Nazwa", Property = c => c.Nazwa, IsVisible = true, Width= "200px"},
+        new FilterColumn<Bnp55Vm> {FirstRow = true, Label = "Adres", Property = c => c.Adres, IsVisible = true, Width= "200px"},
+        new FilterColumn<Bnp55Vm> {FirstRow = true, Label = "Panstwo", Property = c => c.Panstwo, IsVisible = true, Width= "100px"},
+        new FilterColumn<Bnp55Vm> {FirstRow = true, Label = "Iban", Property = c => c.Iban, IsVisible = true, Width= "200px"},
+        new FilterColumn<Bnp55Vm> {FirstRow = true, Label = "Tytul", Property = c => c.Tytul, IsVisible = true, Width= "200px"},
+    };
+
+    private static Expression<Func<Bnp20Vm, string>> GetPropertyExpression(Func<Bnp20Vm, string> propertyFunc)
+    {
+        return x => propertyFunc(x);
+    }
+
+    private static Expression<Func<Bnp55Vm, string>> GetPropertyExpression55(Func<Bnp55Vm, string> propertyFunc)
+    {
+        return x => propertyFunc(x);
+    }
+
+    private void HandleFilterDebounced(FilterColumn<Bnp20Vm> column, ChangeEventArgs args)
+    {
+        debounceDispatcher.Debounce(500, _ =>
+        {
+            column.Filter = args.Value.ToString();
+            InvokeAsync(StateHasChanged);
+        });
+    }
+
+    private void HandleFilterDebounced55(FilterColumn<Bnp55Vm> column, ChangeEventArgs args)
+    {
+        debounceDispatcher.Debounce(500, _ =>
+        {
+            column.Filter = args.Value.ToString();
+            InvokeAsync(StateHasChanged);
+        });
+    }
+
+    private void HandleClear()
+    {
+        if (string.IsNullOrWhiteSpace(nameFilter))
+        {
+            nameFilter = string.Empty;
+        }
+    }
+
+    private void HandleOnTabChange(FluentTab tab)
+    { 
         changedto = tab;
     }
 
-    private DateOnly ConvertToDateOnly(DateTime? dateTime)
+    private static DateOnly ConvertToDateOnly(DateTime? dateTime)
     {
         return dateTime.HasValue ? DateOnly.FromDateTime(dateTime.Value) : DateOnly.MinValue;
     }
 
-    private async Task OnDateChanged(string type, int identifier, DateTime? newDate)
+    private async Task OnDateChanged(string type, string identifier, DateTime? newDate)
     {
-        if (type == "Start")
+        switch ((type, identifier))
         {
-            if (identifier == 20)
+            case ("Start", "tab-1"):
                 StartDateTime20 = newDate;
-            else if (identifier == 55)
+                break;
+            case ("Start", "tab-2"):
                 StartDateTime55 = newDate;
-        }
-        else if (type == "End")
-        {
-            if (identifier == 20)
+                break;
+            case ("End", "tab-1"):
                 EndDateTime20 = newDate;
-            else if (identifier == 55)
+                break;
+            case ("End", "tab-2"):
                 EndDateTime55 = newDate;
+                break;
+            default:
+                throw new ArgumentException($"Nieobsługiwane wartości: {type}, {identifier}");
         }
-
-        if (identifier == 20)
-            await LoadBnp20();
-        else if (identifier == 55)
-            await LoadBnp55();
+        await LoadBnp(identifier);
     }
 
     protected override async Task OnInitializedAsync()
     {
         await Load();
     }
-
+    
     private async Task Load()
     {
-        bnp20 = await _mediator.Send(new GetAllBnp20Query(ConvertToDateOnly(StartDateTime55), ConvertToDateOnly(EndDateTime55)));
+        bnp20 = await _mediator.Send(new GetAllBnp20Query(ConvertToDateOnly(StartDateTime20), ConvertToDateOnly(EndDateTime20)));
         bnp55 = await _mediator.Send(new GetAllBnp55Query(ConvertToDateOnly(StartDateTime55), ConvertToDateOnly(EndDateTime55)));
     }
 
-    public async Task LoadBnp55()
+    private async Task LoadBnp(string identifier)
     {
-        IsLoading55 = true;
         StateHasChanged();
         ToastIntent intent;
         string message = string.Empty;
         try
         {
-            if (StartDateTime55.HasValue && EndDateTime55.HasValue)
+            if (identifier == "tab-1")
             {
+                IsLoading20 = true;
+                Console.WriteLine("Load Bnp20");
+                intent = ToastIntent.Progress;
+                message = "Data is loading!";
+                _toastService.ShowToast(intent, message, 3000);
+                bnp20 = await _mediator.Send(new GetAllBnp20Query(ConvertToDateOnly(StartDateTime20), ConvertToDateOnly(EndDateTime20)));
+            }
+            else
+            {
+                IsLoading55 = true;
                 Console.WriteLine("Load Bnp55");
                 intent = ToastIntent.Progress;
                 message = "Data is loading!";
@@ -210,44 +310,12 @@
         }
         finally
         {
+            IsLoading20 = false;
             IsLoading55 = false;
             intent = ToastIntent.Success;
             message = "Data has been loading properly!";
             StateHasChanged();
         }
         _toastService.ShowToast(intent, message, 3000);
-    }
-
-    public async Task LoadBnp20()
-    {
-        IsLoading20 = true;
-        StateHasChanged();
-        ToastIntent intent;
-        string message = string.Empty;
-        try
-        {
-            if (StartDateTime20.HasValue && EndDateTime20.HasValue)
-            {
-                Console.WriteLine("Load Bnp20");
-                intent = ToastIntent.Progress;
-                message = "Data is loading!";
-                _toastService.ShowToast(intent, message, 3000);
-                bnp20 = await _mediator.Send(new GetAllBnp20Query(ConvertToDateOnly(StartDateTime20), ConvertToDateOnly(EndDateTime20)));
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error loading data: {ex.Message}");
-            intent = ToastIntent.Error;
-            message = "Error loading data!";
-        }
-        finally
-        {
-            IsLoading20 = false;
-            intent = ToastIntent.Success;
-            message = "Data has been loading properly!";
-            StateHasChanged();
-        }
-        _toastService.ShowToast(intent, message, 3000);
-    }
+     }
 }
