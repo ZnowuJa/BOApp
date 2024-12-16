@@ -19,10 +19,10 @@
     <FluentTab Label="BNP20" Id="tab-1">
         <div style="display: flex; gap: 16px;">
             <div>
-                <FluentDatePicker DisabledDateFunc="@IsAfterEndDate" Label="Start Date" AriaLabel="Start Date" Value="StartDateTime20" ValueChanged="@(e => OnDateChanged("Start", "tab-1", e))"/>
+                <FluentDatePicker DisabledDateFunc="@IsAfterEndDate20" Label="Start Date" AriaLabel="Start Date" Value="StartDateTime20" ValueChanged="@(e => OnDateChanged("Start", "tab-1", e))"/>
             </div>
             <div>
-                <FluentDatePicker DisabledDateFunc="@IsDateDisabled" Label="End Date" AriaLabel="End Date" Value="EndDateTime20" ValueChanged="@(e => OnDateChanged("End", "tab-1", e))"/>
+                <FluentDatePicker DisabledDateFunc="@IsDateDisabled20" Label="End Date" AriaLabel="End Date" Value="EndDateTime20" ValueChanged="@(e => OnDateChanged("End", "tab-1", e))"/>
             </div>
         </div>
         @if (IsLoading20)
@@ -73,10 +73,10 @@
 
         <div style="display: flex; gap: 16px;">
             <div>
-                <FluentDatePicker Label="Start Date" AriaLabel="Start Date" Value="StartDateTime55" ValueChanged="@(e => OnDateChanged("Start", "tab-2", e))" />
+                <FluentDatePicker DisabledDateFunc="@IsAfterEndDate55" Label="Start Date" AriaLabel="Start Date" Value="StartDateTime55" ValueChanged="@(e => OnDateChanged("Start", "tab-2", e))" />
             </div>
             <div>
-                <FluentDatePicker Label="End Date" AriaLabel="End Date" Value="EndDateTime55" ValueChanged="@(e => OnDateChanged("End", "tab-2", e))" />
+                <FluentDatePicker DisabledDateFunc="@IsDateDisabled55" Label="End Date" AriaLabel="End Date" Value="EndDateTime55" ValueChanged="@(e => OnDateChanged("End", "tab-2", e))" />
             </div>
         </div>
         @if (IsLoading55)
@@ -158,11 +158,20 @@
     string? activeid = "tab-1";
     FluentTab? changedto;
 
-    private bool IsDateDisabled(DateTime date)
+    private bool IsDateDisabled20(DateTime date)
     {
         return date.Date > DateTime.Today || date.Date < StartDateTime20; // Wyłącza wszystkie daty po dzisiejszym dniu i przed StartDateTime20
     }
-    private bool IsAfterEndDate(DateTime date)
+    private bool IsAfterEndDate20(DateTime date)
+    {
+        return date.Date > EndDateTime20; // Wyłącza wszystkie daty po EndDate
+    }
+    
+    private bool IsDateDisabled55(DateTime date)
+    {
+        return date.Date > DateTime.Today || date.Date < StartDateTime55; // Wyłącza wszystkie daty po dzisiejszym dniu i przed StartDateTime20
+    }
+    private bool IsAfterEndDate55(DateTime date)
     {
         return date.Date > EndDateTime20; // Wyłącza wszystkie daty po EndDate
     }
