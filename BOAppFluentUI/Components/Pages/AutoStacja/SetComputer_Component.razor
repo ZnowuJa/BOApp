@@ -1,0 +1,74 @@
+@using Application.CQRS.AutoStacjaCQRS.Command
+@using Application.CQRS.AutoStacjaCQRS.Queries
+@using Application.ViewModels.AutoStacja
+
+@inject IMediator _mediator
+
+<h3>Przypisanie komputera</h3>
+
+<EditForm EditContext="_editContext">
+    <DataAnnotationsValidator/>
+    <FluentTextField @bind-Value="Content.Nazwa" Label="Nazwa licencji"></FluentTextField>
+    <FluentValidationMessage For="@(() => Content.Nazwa)" />
+    <FluentTextField @bind-Value="Content.PunktTelefon" Label="Nazwa komputera"></FluentTextField>
+    <FluentValidationMessage For="@(() => Content.PunktTelefon)" />
+    <div>
+    <FluentButton Appearance="Appearance.Accent" OnClick="@SaveAsync">Przypisz komputer</FluentButton>
+    </div>
+</EditForm>
+
+@if (!string.IsNullOrEmpty(Message))
+{
+    <div>
+        <p>@Message</p>
+    </div>
+}
+
+@code {
+    private MysystemPunktVm Content { get; set; } = new MysystemPunktVm();
+    private EditContext _editContext;
+    private string Message { get; set; }
+    
+    private string checkLicence { get; set; }
+
+    protected override void OnInitialized()
+    {
+        _editContext = new EditContext(Content);
+    }
+    
+    private async Task SaveAsync()
+    {
+        Console.WriteLine("SaveAsync starts...");
+        if (_editContext.Validate())
+        {
+            try
+            {
+                Console.WriteLine("EditContext Validation OK!...");
+
+                // Wywołanie handlera Mediatora
+                var result = await _mediator.Send(new CheckLicenseQuery(Content.Nazwa));
+
+                if (result)
+                {
+                    checkLicence = $"Licencja {Content.Nazwa} istnieje";
+                    await _mediator.Send(new AssignLicenseCommand(Content.Nazwa, Content.PunktTelefon));
+                    Message = $"Przypisano komputer {Content.Nazwa} do licencji {Content.PunktTelefon}";
+                }
+                else
+                {
+                    Message = "System nie może znaleźć podanej licencji";
+                }
+                // Przypisanie wyniku do Content.Nazwa
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Błąd: {ex.Message}");
+                Message = $"Błąd: {ex.Message}";
+            }
+        }
+        else
+        {
+            Console.WriteLine("EditContext Validation NOT OK!...");
+        }
+    }
+}

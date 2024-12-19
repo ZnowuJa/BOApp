@@ -51,6 +51,15 @@ public static class DiPersistance
             return factory.CreateDbContext();
         });
 
+        // Register AutoStacjaDbContext
+        services.AddDbContextFactory<AutoStacjaDbContext>(options =>
+            options.UseSqlServer(configuration.GetConnectionString("AutoStacjaDbContextConnection")));
+        services.AddScoped<IAutoStacjaDbContext>(provider =>
+        {
+            var factory = provider.GetRequiredService<IDbContextFactory<AutoStacjaDbContext>>();
+            return factory.CreateDbContext();
+        });
+
 
         services.AddScoped<ITokenValidatedHandlerService, TokenValidatedHandlerService>();
 
