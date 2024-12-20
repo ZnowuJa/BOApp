@@ -10,7 +10,6 @@ public class MysystemPunktVm : IMapFrom<MysystemPunkt>
     public long MysystemPunktId { get; set; }
 
     public long? JednostkaOrgId { get; set; }
-    [Required(ErrorMessage = "Pole Nazwa Licencji jest wymagana.")]
     public string? Nazwa { get; set; }
     
     [Required(ErrorMessage = "Pole Nazwa Komputera jest wymagana.")]

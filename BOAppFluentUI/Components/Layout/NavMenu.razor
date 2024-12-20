@@ -26,7 +26,9 @@
             </AuthorizeView>
             <AuthorizeView Policy="User">
                 
-                <FluentNavLink Href="rozrachunki" Match="NavLinkMatch.All" Icon="@(new Icons.Regular.Size20.MoneyHand())" IconColor="Microsoft.FluentUI.AspNetCore.Components.Color.Accent">Rozrachunki</FluentNavLink>
+                <FluentNavGroup Href="rozrachunki" OnClick="OnClick" Title="Rozrachunki" Match="NavLinkMatch.All" Icon="@(new Icons.Regular.Size20.MoneyHand())" IconColor="Microsoft.FluentUI.AspNetCore.Components.Color.Accent">
+                    <FluentNavLink Href="bnppage" Icon="@(new Icons.Regular.Size20.Money())">Wyciągi Bankowe</FluentNavLink>
+                    </FluentNavGroup>
                 <FluentNavLink Href="/coc" Match="NavLinkMatch.All" Icon="@(new Icons.Regular.Size20.BookInformation())" IconColor="Microsoft.FluentUI.AspNetCore.Components.Color.Accent">Compliance</FluentNavLink>
 
                 @if (envi == "DEV")

@@ -52,7 +52,7 @@
                 {
                     checkLicence = $"Licencja {Content.Nazwa} istnieje";
                     await _mediator.Send(new AssignLicenseCommand(Content.Nazwa, Content.PunktTelefon));
-                    Message = $"Przypisano komputer {Content.Nazwa} do licencji {Content.PunktTelefon}";
+                    Message = $"Przypisano komputer {Content.PunktTelefon} do licencji {Content.Nazwa}";
                 }
                 else
                 {

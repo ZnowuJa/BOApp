@@ -40,6 +40,10 @@
             LicenseList = await _mediator.Send(new GetLicenseConnectionsQuery(@Content.Nazwa));
             // Wyświetl informację
             Console.WriteLine($"Licencja {Content.Nazwa} może przełączyć się do: \n\n{LicenseList}");
+            if (string.IsNullOrEmpty(LicenseList))
+            {
+                LicenseList = "Nie ma dopisanych innych punktów do tej licencji";
+            }
         }
         catch (Exception ex)
         {
