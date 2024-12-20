@@ -16,7 +16,7 @@ namespace Application.ViewModels.Accounting
 
         public string Instrid { get; set; } = null!;
 
-        public DateOnly? Data { get; set; }
+        public DateOnly Data { get; set; }
 
         public string? Waluta { get; set; }
 
