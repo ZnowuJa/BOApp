@@ -10,11 +10,21 @@
 @using Application.CQRS.ITWarehouseCQRS.Assets
 @using Application.CQRS.ITWarehouseCQRS.Companies.Queries
 @using Application.Interfaces
+@using Microsoft.EntityFrameworkCore.Metadata
+@using Microsoft.Graph.Models
+@using Approval = Application.ViewModels.General.Approval
 @using Application.ViewModels.General
 
 @inject IMediator _mediator;
-@inject ISessionService _sessionService
+@inject IJSRuntime JS
+@inject IDialogService _dialogService
+@inject IToastService _toastService
+@* @inject ISessionService _sessionService *@
+@* @inject ICircuitService _circuitService *@
+@inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IFileService _fileService
+@inject NavigationManager _navigationManager
+@inject ILogger<AssetSaleForm_Edit_Component> _logger;
 @implements IDialogContentComponent<ITSaleFormVm>
 
 
@@ -120,19 +130,21 @@
     @if (Content.FormFiles.Any())
     {
         <FluentDataGrid Items="@formFiles" TGridItem="FormFileVm" Pagination="@pagination" AutoFit="true"
-        ResizableColumns="true">
+                        ResizableColumns="true">
 
             <PropertyColumn Property="@(p => p.OriginalFileName)" Sortable="true"/>
             <PropertyColumn Property="@(p => p.FormPurpose)" Sortable="true"/>
             <TemplateColumn Title="Actions" Align="Align.End">
                 @{
-                    // var viewId = $"viewid-{context.Id}";
+                    var viewId = $"viewid-{context.Id}";
                     // var editId = $"editid-{context.Id}";
                     var deletefileId = $"deletefile-{context.Id}";
                     // var addId = $"addid-{context.Id}";
                 }
+                <FluentButton Id="@viewId" IconEnd="@(new Icons.Filled.Size20.Open())"
+                              OnClick="@(() => View(context, "ITSaleForm"))"/>
                 <FluentButton Id="@deletefileId" IconEnd="@(new Icons.Regular.Size20.Delete())"
-                OnClick="@(() => DeleteFile(context.Id))"/>
+                              OnClick="@(() => DeleteFile(context.Id))"/>
             </TemplateColumn>
 
         </FluentDataGrid>
@@ -161,10 +173,9 @@
 
 @* Footer *@
 <FluentDialogFooter>
-    <FluentButton Appearance="Appearance.Accent" OnClick="@SaveAsync"
-    Disabled="false">Save
-    </FluentButton>
-    <FluentButton Appearance="Appearance.Neutral" OnClick="@CancelAsync">Cancel</FluentButton>
+    <FluentButton Appearance="Appearance.Accent" OnClick="@SaveAsync" BackgroundColor="#509EDB" Style="width: 100px"  Disabled="false">Save </FluentButton>
+    <FluentButton Appearance="Appearance.Accent" OnClick="@CloseAsync" BackgroundColor="#1FC91F" Style="width: 100px" Disabled="@canClose">Close </FluentButton>
+    <FluentButton Appearance="Appearance.Neutral" OnClick="@CancelAsync" BackgroundColor="#808080" Color="#FFFFFF" Style="width: 100px">Cancel</FluentButton>
 
 </FluentDialogFooter>
 
@@ -178,7 +189,7 @@
     [CascadingParameter] public FluentDialog Dialog { get; set; } = default!;
 
     private EditContext _editContext;
-
+    private FormUserContext _userContext = new FormUserContext("Settlement", "Technician");
     private FluentValidationValidator? _fluentValidator;
     private string errorMessage;
 
@@ -192,27 +203,34 @@
     private IEnumerable<CompanyVm> SelectedCompanies = Array.Empty<CompanyVm>();
     private IQueryable<FormFileVm> formFiles { get; set; }
 
+    private Approval approval { get; set; }
+    
     private bool showAssetAdd = false;
     private PaginationState pagination = new PaginationState { ItemsPerPage = 5 };
-
+    // private FormUserContext _userContext { get; set; }
     private FluentInputFile? inputFile = default!;
     private int? progressPercent;
     private string? progressTitle;
     private List<string> Files = new();
     private List<FormFileVm> addedFiles = new();
+    private int filesCount { get; set; }
+    private bool canClose { get; set; }
+    private bool isAssigned { get; set; }
 
     #endregion Declarations
 
     protected override async Task OnInitializedAsync()
     {
-        SessionId = _sessionService.GetSessionId();
+        await Utils.GetUserName(AuthenticationStateProvider, _userContext, _mediator);
+        var timestamp = DateTime.Now.ToString("yyyyMMddHHmmssfff");
+        SessionId = $"{timestamp}_{_userContext.EnovaEmpId}";
         _editContext = new EditContext(Content);
         itemEmployeesList = await _mediator.Send(new GetAllEmployeesQuery());
         var assignees = new List<IAssigneeVm>();
         assignees.AddRange(itemEmployeesList.Select(employee => (IAssigneeVm)new EmployeeVm { Id = employee.EnovaEmpId, LongName = employee.LongName, typeName = "EmployeeVm" }));
-        // assignees = assignees.OrderBy(a => a.LongName).ToList();
         itemAssigneesList = assignees.AsQueryable();
         itemCompaniesList = await _mediator.Send(new GetAllCompaniesQuery());
+        
         if (Content.EmployeeId > 0)
         {
             var tempEmp = itemEmployeesList.Where(e => e.EnovaEmpId == Content.EmployeeId).FirstOrDefault();
@@ -230,24 +248,41 @@
 
         AssetsListAll = await _mediator.Send(new GetAllAssetsQuery());
         formFiles = Content.FormFiles.AsQueryable();
+        CanCloseCheck();
         await LoadAssets();
+    }
+
+    private async Task CanCloseCheck()
+    {
+        filesCount = Content.FormFiles.Count;
+        isAssigned = Content.Company == null || Content.Employee == null;
+        canClose = !(filesCount > 0 && Content.AssetIds.Count() > 0 && isAssigned);
     }
     private async Task LoadAssets()
     {
         List<AssetDTO> assetsList = new();
-
         foreach (var aid in Content.AssetIds)
         {
             var tmp = await _mediator.Send(new GetAssetDTObyIdQuery(aid));
             assetsList.Add(tmp);
         }
-
         AssetsList = assetsList.AsQueryable();
         Content.Assets = AssetsList.ToList();
         SelectedAsset = Array.Empty<AssetVm>();
+        
+        approval = new Approval()
+        {
+            Status = Content.Status,
+            EnovaEmpId = _userContext.EnovaEmpId,
+            LongName = _userContext.LongName,
+            Date = DateTime.Now,
+            IsApproved = false
+        };        
+        
     }
     private async Task SaveAsync()
     {
+        Content.Approvals.Add(approval);
         foreach(var file in Content.FormFiles)
         {   
             if (file.DstPath == null){
@@ -258,6 +293,35 @@
                 await _mediator.Send(new UpdateFormFileCommand(file));
             }
 
+        }
+        await Dialog.CloseAsync(Content);
+    }
+    private async Task CloseAsync()
+    {
+
+        var dialog = await _dialogService.ShowConfirmationAsync(
+            $"You are about to close Sale Form {Content.Number}. \n You won't be able to make changes after this. Are you sure?",
+            "Yes",
+            "No",
+            "Confirm delete operation");
+        var result = await dialog.Result;
+        bool closeConfirm = result.Cancelled;
+        string message = string.Empty;
+
+        if (!closeConfirm)
+        {
+            foreach(var file in Content.FormFiles)
+            {   
+                if (file.DstPath == null){
+                    var updatedFileVm = await _fileService.MoveTempFileToDestFolderAsync(file.TmpPath, Content.FolderName, Content.NumberPrefix, Content.Id);
+                    file.DstPath = updatedFileVm["DstPath"];
+                    file.DstFileName = updatedFileVm["DstFileName"];
+                    file.FormPurpose = "default";
+                    await _mediator.Send(new UpdateFormFileCommand(file));
+                }
+            }
+            Content.Approvals.Add(approval);
+            Content.Status = "Zamkniete";
         }
         await Dialog.CloseAsync(Content);
     }
@@ -364,21 +428,36 @@
     {
         progressPercent = file.ProgressPercent;
         progressTitle = file.ProgressTitle;
-        await Utils.OnFileUploadedAsync(file, _fileService, _mediator, SessionId, Content, addedFiles);
-
+        await Utils.OnFileUploadedAsync(file, _fileService, _mediator, SessionId, Content, addedFiles, _logger);
         formFiles = Content.FormFiles.AsQueryable();
+        CanCloseCheck();
+        StateHasChanged();
     }
     private async void DeleteFile(int fileId)
     {
         await Utils.DeleteFile(fileId, formFiles, _fileService, _mediator, addedFiles, Content);
-
-        formFiles = Content.FormFiles.AsQueryable();
+        CanCloseCheck();
+        StateHasChanged();
     }
     private void OnCompleted(IEnumerable<FluentInputFileEventArgs> files)
     {
         progressPercent = inputFile!.ProgressPercent;
         progressTitle = inputFile!.ProgressTitle;
     }
+    private async Task View(FormFileVm item, string folder)
+        {
+            if (item != null)
+            {
+                // Extract the relative path from the DstPath
+                string relativePath = $"{folder}/{item.DstFileName}".Replace("\\", "/");
+
+                // Generate the URL
+                string url = _navigationManager.BaseUri + relativePath;
+
+                // Navigate to the URL in a new tab
+                await JS.InvokeVoidAsync("open", url, "_blank");
+            }
+        }
 }
 
 <style>

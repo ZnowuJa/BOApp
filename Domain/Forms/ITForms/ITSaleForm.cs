@@ -7,7 +7,7 @@ public class ITSaleForm : FormTemplate
     {
         Statuses = new List<string>
         {
-            "Rejestracja", "W trakcie", "Zakończony" 
+            "Rejestracja", "W trakcie", "Zamkniete" 
         };
     }
 

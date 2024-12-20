@@ -24,7 +24,7 @@
 @inject IJSRuntime JS
 @inject IMapper _mapper
 @inject IFileService _fileService
-@inject ISessionService _sessionService
+@* @inject ICircuitService _circuitService *@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager _navigationManager
 
@@ -99,7 +99,7 @@
         <FluentButton Id="@viewId" IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" Disabled="@viewDisabled" />
         <FluentTooltip Anchor="@viewId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Left Delay=50>View Asset</FluentTooltip>
 
-        <FluentButton Id="@editId" IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => Edit(context))" Disabled="@Utils.IsEditDisabled(context, _userContext)" />
+        <FluentButton Id="@editId" IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => Edit(context))" Disabled="@isEditable(context.Status)" />
         @*WARNING it is not tested if isEditDisabled works*@
         <FluentTooltip Anchor="@editId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Edit Sale Form</FluentTooltip>
 
@@ -154,7 +154,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        SessionId = _sessionService.GetSessionId();
+        // SessionId = _circuitService.GetCircuitId();
         await Utils.GetUserName(AuthenticationStateProvider, _userContext, _mediator);
         await Load();
     }
@@ -178,14 +178,18 @@
         }
         item.Assets = assetsList;
 
-
+        // var assetDialogParameter = new DialogParameters
+        // {
+        //     {"UserContext", _userContext},
+        //     {"Content", item}
+        // };
         var dialog = await _dialogService.ShowPanelAsync<AssetSaleForm_Edit_Component>(item, new DialogParameters()
                     {
                         Height = "240px",
                         Width = "850px",
                         Title = item.Id > 0 ? "IT Sale Form" : "New IT Sale Form",
                         PreventDismissOnOverlayClick = false,
-                        PreventScroll = true,
+                        PreventScroll = true
                     });
         var result = await dialog.Result;
         // Console.WriteLine(item.FormFiles.Count());
@@ -252,6 +256,13 @@
     }
     private async Task View(ITSaleFormVm item = null)
     {
+        List<AssetDTO> assetsList = new();
+        foreach(var aid in item.AssetIds){
+            var tmp = await _mediator.Send(new GetAssetDTObyIdQuery(aid));
+            assetsList.Add(tmp);
+        }
+        item.Assets = assetsList;
+        
         var dialog = await _dialogService.ShowPanelAsync<AssetSaleForm_View_Component>(item, new DialogParameters()
                     {
                         Height = "240px",
@@ -276,6 +287,17 @@
 
         // Invoke the JavaScript method to download the CSV
         await JS.InvokeVoidAsync("downloadFilePL", filename, base64csv);
+    }
+
+    private bool isEditable(string status)
+    {
+        bool res = status switch
+        {
+            "Zamkniete" => true,
+            _ => false
+        };
+        return res;
+
     }
 
 }

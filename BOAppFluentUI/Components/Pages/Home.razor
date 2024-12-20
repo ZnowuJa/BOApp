@@ -1,6 +1,7 @@
 ﻿@page "/"
 @using Application.Interfaces
 @using Application.ViewModels.General
+@using Microsoft.AspNetCore.Components.Server.Circuits
 @using System.Security.Claims
 
 
@@ -12,7 +13,8 @@
 @inject IJSRuntime JS
 @inject IDialogService _dialogService
 @inject IToastService _toastService
-@inject ISessionService _sessionService
+@* @inject ISessionService _sessionService *@
+@* @inject ICircuitService _circuitService *@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager _navigationManager
 
@@ -57,7 +59,9 @@
     protected override async Task OnInitializedAsync()
     {
         // await Utils.GetUserName(AuthenticationStateProvider, _userContext, _mediator);
-        SessionId = _sessionService.GetSessionId();
+        // var SessionId = _circuitService.GetCircuitId();
+        // SessionId = _circuitService.GetSessionId(circuitId);
+        _logger.LogInformation($"Home Page is initializing... SESSION_Service :: SessionID is: {SessionId} ");
         await RefreshClaims();
     }
 
@@ -81,6 +85,7 @@
         {
             // Handle any errors
         }
+        _logger.LogInformation($"Home Page is refreshing claims... SESSION_Service :: SessionID is: {SessionId} ");
     }
 
 }

@@ -1,4 +1,5 @@
 ﻿using System.Linq.Expressions;
+using System.Net;
 using System.Text;
 
 using Application.CQRS.General.FormFiles.Commands;
@@ -188,10 +189,25 @@ public static class Utils
 
         return csvWithBom;
     }
-    public static async Task OnFileUploadedAsync<TContent>(FluentInputFileEventArgs file, IFileService fileService, IMediator mediator, string sessionId, TContent content, List<FormFileVm> addedFiles)
+    public static async Task OnFileUploadedAsync<TContent>(FluentInputFileEventArgs file, IFileService fileService, IMediator mediator, string sessionId, TContent content, List<FormFileVm> addedFiles, ILogger logger) 
         where TContent : IFormVm
     {
-        var fileInfo = await fileService.UploadTemporaryFileAsync(file.Stream, file.Name, sessionId);
+        var fileInfo = new Dictionary<string, string>();
+        try
+        {
+            fileInfo = await fileService.UploadTemporaryFileAsync(file.Stream, file.Name, sessionId);
+        }
+        catch (WebException ex)
+        {
+            logger.LogError(ex.Message);
+        }
+
+        if (fileInfo.Any())
+        {
+            logger.LogInformation(fileInfo.ToString());
+        }
+        
+        // fileInfo = await fileService.UploadTemporaryFileAsync(file.Stream, file.Name, sessionId);
         var resultFile = new FormFileVm
         {
             TmpPath = fileInfo["TmpPath"],
@@ -205,7 +221,7 @@ public static class Utils
         };
         var fileId = await mediator.Send(new CreateFormFileCommand(resultFile));
         resultFile.Id = fileId;
-
+        logger.LogInformation($"File {fileId} uploaded");
         content.FormFiles.Add(resultFile);
         addedFiles.Add(resultFile);
     }

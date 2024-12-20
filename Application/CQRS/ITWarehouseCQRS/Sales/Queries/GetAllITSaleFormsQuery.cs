@@ -1,5 +1,6 @@
 ﻿using Application.Forms.IT;
 using Application.Interfaces;
+using Application.ViewModels.General;
 using AutoMapper;
 using MediatR;
 
@@ -33,6 +34,8 @@ public class GetAllITSaleFormsQueryHandler : IRequestHandler<GetAllITSaleFormsQu
         foreach (var form in forms)
         { 
             var res = _mapper.Map<ITSaleFormVm>(form);
+            var files = await _context.FormFiles.Where(f => f.FormId == form.Id && f.FormClassName == "ITSaleFormVm").ToListAsync(cancellationToken);
+            res.FormFiles.RemoveAll(f => !files.Any(file => file.Id == f.Id));
             //res.Assets.Clear();
             //res.AssetIds.Clear();
             //res.AssetIds = JsonSerializer.Deserialize<List<int>>(form.AssetIds);

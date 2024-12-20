@@ -19,7 +19,7 @@ public class ITSaleFormVm : IMapFrom<ITSaleForm>, IFormVm
     {
         Statuses = new List<string>
         {
-            "Rejestracja", "W trakcie", "Zakończony"
+            "Rejestracja", "W trakcie", "Zamkniete"
         };
     }
     public int Id { get; set; }
@@ -33,13 +33,9 @@ public class ITSaleFormVm : IMapFrom<ITSaleForm>, IFormVm
     public WorkflowTemplate WorkflowTemplate { get; set; }
     public string? Number { get; set; } = "New sale - not saved";
     // Properties specific to Form
-    
-
     public string? Note { get; set; }
     public int? OperatorId { get; set; }
     public string? OperatorName { get; set; }
-
-
     public List<Approval>? Approvals { get; set; } = new List<Approval>();
     public List<OrganisationRoleForFormVm> Level1Approvers { get; set; } = new List<OrganisationRoleForFormVm>();
     public List<OrganisationRoleForFormVm> Level2Approvers { get; set; } = new List<OrganisationRoleForFormVm>();
@@ -47,8 +43,6 @@ public class ITSaleFormVm : IMapFrom<ITSaleForm>, IFormVm
     public string LVL2_EnovaEmpId { get; set; } = string.Empty;
     public string LVL1_EmployeeName { get; set; } = string.Empty;
     public string LVL2_EmployeeName { get; set; } = string.Empty;
-
-
     public List<FormFileVm> FormFiles { get; set; }
     public int? CompanyId { get; set; }
     public string? CompanyName { get; set; }
@@ -58,8 +52,6 @@ public class ITSaleFormVm : IMapFrom<ITSaleForm>, IFormVm
     public EmployeeVm? Employee { get; set; }
     public ICollection<AssetDTO>? Assets { get; set; }
     public List<int>? AssetIds { get; set; }
-
-
     public void Mapping(Profile profile)
     {
         profile.CreateMap<ITSaleForm, ITSaleFormVm>()
@@ -81,7 +73,6 @@ public class ITSaleFormVm : IMapFrom<ITSaleForm>, IFormVm
         profile.CreateMap<ITSaleFormVm, ITSaleFormExportModel>()
                 .ForMember(dest => dest.AssetIds, opt => opt.MapFrom(src => SerializeAssetIds(src.AssetIds)));
     }
-
     private string SerializeApprovals(List<Approval> approvals)
     {
         return approvals == null || approvals.Count == 0 ? string.Empty : JsonSerializer.Serialize(approvals);
