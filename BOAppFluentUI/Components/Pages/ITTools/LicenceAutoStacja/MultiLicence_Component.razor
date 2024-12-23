@@ -1,0 +1,21 @@
+@using Application.ViewModels.AutoStacja
+<h3>Przełączanie licencji</h3>
+
+<EditForm EditContext="_context">
+    <DataAnnotationsValidator/>
+    <FluentTextField @bind-Value="Content.Nazwa" Label="Nazwa licencji"></FluentTextField>
+    <FluentValidationMessage For="@(() => Content.Nazwa)"/>
+    <div>
+        <FluentButton Appearance="Appearance.Accent" >Przypisz punkty</FluentButton>
+    </div>
+</EditForm>
+
+@code {
+    private MysystemPunktLicenceVm Content { get; set; } = new MysystemPunktLicenceVm();
+    private EditContext _context;
+    
+    protected override void OnInitialized()
+    {
+        _context = new EditContext(Content);
+    }
+}

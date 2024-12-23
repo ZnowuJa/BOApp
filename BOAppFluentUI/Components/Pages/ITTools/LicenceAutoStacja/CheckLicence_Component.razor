@@ -1,4 +1,4 @@
-@using Application.CQRS.AutoStacjaCQRS.Queries
+@using Application.CQRS.ITToolsCQRS.LicenceAutoStacja.Queries
 @using Application.ViewModels.AutoStacja
 
 @inject IMediator _mediator
@@ -49,6 +49,7 @@
         {
             // Obsłuż błąd
             Console.WriteLine($"Błąd: {ex.Message}");
+            LicenseList = $"Błąd: {ex.Message}";
         }
     }
 }

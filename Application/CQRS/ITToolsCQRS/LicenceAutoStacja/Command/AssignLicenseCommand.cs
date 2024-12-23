@@ -5,7 +5,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 
-namespace Application.CQRS.AutoStacjaCQRS.Command;
+namespace Application.CQRS.ITToolsCQRS.LicenceAutoStacja.Command;
 
 public class AssignLicenseCommand(string licenseName, string computerName) : IRequest<Unit>
 {

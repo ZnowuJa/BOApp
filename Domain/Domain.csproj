@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <Folder Include="Entities\CoC\Enums\" />
+    <Folder Include="Entities\ITTools\" />
     <Folder Include="Entities\Settlements\" />
   </ItemGroup>
 

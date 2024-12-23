@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Domain.Entities.AutoStacja;
-
-namespace Persistance.AutoStacja;
+﻿namespace Domain.Entities.ITTools.LicenceAutoStacja;
 
 /// <summary>
 /// Tabela definiująca zmiany kontekstu między punktami różnych jednostek

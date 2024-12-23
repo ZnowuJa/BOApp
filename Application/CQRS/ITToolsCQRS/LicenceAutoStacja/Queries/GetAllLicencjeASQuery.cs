@@ -5,7 +5,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 
-namespace Application.CQRS.AutoStacjaCQRS.Queries
+namespace Application.CQRS.ITToolsCQRS.LicenceAutoStacja.Queries
 {
     public class GetAllLicencjeASQuery : IRequest<IQueryable<MysystemPunktVm>>
     {
