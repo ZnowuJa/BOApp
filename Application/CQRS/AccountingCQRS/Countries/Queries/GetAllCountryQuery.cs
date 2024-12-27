@@ -20,8 +20,36 @@ namespace Application.CQRS.AccountingCQRS.Countries.Queries
                                                .Where(ct => ct.StatusId == 1)
                                                .AsNoTracking()
                                                .ToListAsync(cancellationToken);
-
-            var countryVms = _mapper.Map<List<CountryVm>>(countries);
+            // var countryVms = _mapper.Map<List<CountryVm>>(countries);
+            var currencies = await _appDbContext.Currencies
+                                                .AsNoTracking()
+                                                .ToListAsync(cancellationToken);
+            var countryVms = countries.Select(country =>
+            {
+                var currency = currencies.FirstOrDefault(c => c.Id == country.CurrencyId);
+                return new CountryVm
+                {
+                    Id = country.Id,
+                    CountryCode = country.CountryCode,
+                    Name = country.Name,
+                    IsEU = country.IsEU,
+                    IsPL = country.IsPL,
+                    CurrencyId = country.CurrencyId,
+                    CurrencyVmId = currency?.Id,
+                    CurrencyVmName = currency?.Name,
+                    Allowance = country.Allowance,
+                    AllowanceFirstDay8H = country.AllowanceFirstDay8H,
+                    AllowanceFirstDay12H = country.AllowanceFirstDay12H,
+                    AllowanceNextDay8H = country.AllowanceNextDay8H,
+                    AllowanceNextDay12H = country.AllowanceNextDay12H,
+                    BreakfastReduction = country.BreakfastReduction,
+                    LunchReduction = country.LunchReduction,
+                    DinnerReduction = country.DinnerReduction,
+                    AccomodationAllowance = country.AccomodationAllowance,
+                    TravelAllowance = country.TravelAllowance,
+                    LocalTravelAllowance = country.LocalTravelAllowance
+                };
+            }).ToList();
             return countryVms.AsQueryable();
         }
     }

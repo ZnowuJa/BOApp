@@ -1,58 +1,980 @@
-﻿@page "/create-business-travel"
+﻿@page "/create-business-travel/{id:int}"
 
+@using Application.CQRS.AccountingCQRS.Countries.Queries
+@using Application.CQRS.General.Organisations.Queries
+@using Application.CQRS.ITWarehouseCQRS.Employees.Queries
 @using Application.Forms.Accounting
+@using Application.ViewModels.Accounting
+@using BOAppFluentUI.Components.Pages
 @using Application.ViewModels.General
 @using Microsoft.AspNetCore.Components
-@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.CodeAnalysis.Elfie.Extensions
+@using Microsoft.FluentUI.AspNetCore.Components.Extensions
 
+@inject IConfiguration _configuration
 @inject IMediator _mediator
-@inject NavigationManager _navigationManager
+@inject IJSRuntime JS
+@inject ILogger<BusinessTravelFormVm> _logger
 @inject IToastService _toastService
+@inject AuthenticationStateProvider _authenticationStateProvider
+@inject NavigationManager _navigationManager
 
 <h3>BusinessTrip_CreatePage</h3>
 
 <EditForm Model="formItem" OnValidSubmit="HandleValidSubmit">
     <DataAnnotationsValidator />
     <ValidationSummary />
-
-    <FluentTextField Label="Numer" @bind-Value="formItem.Number" />
-    <FluentTextField Label="Destination" @bind-Value="formItem.Destination" />
-    <FluentTextField Label="Objective" @bind-Value="formItem.Objective" />
-    <FluentCheckbox Label="Private Vehicle" @bind-Value="formItem.PrivateVehicle" />
-    <FluentTextField Label="Engine Size" @bind-Value="formItem.EngineSize" />
-    <FluentTextField Label="Company Vehicle" @bind-Value="formItem.CompanyVehicle" />
-    <FluentTextField Label="Vehicle Number" @bind-Value="formItem.VehicleNumber" />
-    <FluentTextField Label="Employee Name" @bind-Value="formItem.EmployeeName" />
-    <FluentTextField Label="Enova Employee ID" @bind-Value="formItem.EnovaEmpId" />
-
+    @* Header Table *@
+    @if (formItem != null && _organisation != null)
+    {
+        <div class="form-section">
+            <table class="info-table">
+                <tr>
+                    <td><b>Numer:</b></td>
+                    <td>@formItem.Number</td>
+                    <td><b>Zgłoszone: </b></td>
+                    <td>@formItem.CreatedDate.ToIsoDateString()</td>
+                </tr>
+                <tr>
+                    <td><b>Organizacja:</b></td>
+                    <td>@_organisation.Name</td>
+                    <td><b>Zgłaszający:</b></td>
+                    <td>@formItem.EmployeeName</td>
+                </tr>
+            </table>
+        </div>
+    }
     
+    @* Employee *@
+    <div class="form-section">
+        <FluentGrid>
+            <FluentGridItem>
+                <FluentAutocomplete TOption="EmployeeVm"
+                                    Label="Pracownik: "
+                                    AutoComplete="on"
+                                    OnOptionsSearch="@OnAssigneeSearch"
+                                    Placeholder="Select assignee..."
+                                    MaximumSelectedOptions="1"
+                                    OptionText="@(p => p.LongName + ' ' + p.Position)"
+
+                                    @bind-SelectedOptions="@SelectedEmpl"
+                                    @bind-SelectedOptions:after="@HandleAssigneeChange"
+                                    Height="550px"
+                                    Width="200px" />
+            </FluentGridItem>
+            @* <FluentTextField @bind-Value = "@formItem.EmployeeName"/> *@
+        </FluentGrid>
+    </div>
+    
+    @* Destination and Objective *@
+    <div class="form-section">
+        <FluentGrid>
+            <FluentGridItem>
+                <FluentAutocomplete TOption="CountryVm"
+                                    Label="Kraj docelowy:"
+                                    AutoComplete="on"
+                                    OnOptionsSearch="@OnCountrySearch"
+                                    Placeholder="Wybierz kraj docelowy..."
+                                    MaximumSelectedOptions="1"
+                                    OptionText="@(p => p.Name)"
+                                    @bind-SelectedOptions="@SelectedCountry"
+                                    @bind-SelectedOptions:after="HandleCountryAdd"
+                                    Width="200px" />
+            </FluentGridItem>
+            <FluentGridItem>
+                <FluentCombobox Items="@_cities"
+                                Label = "Miasto"
+                                @bind-Value="formItem.Destination"
+                                AllowFreeform="true"
+                                Placeholder="Wybierz lub wprowadź..." >
+                </FluentCombobox>
+            </FluentGridItem>
+            <FluentGridItem>
+                <FluentAutocomplete TOption="string"
+                                    Label="Cel podróży: "
+                                    AutoComplete="on"
+                                    OnOptionsSearch="@OnObjectiveSearch"
+                                    Placeholder="Wybierz cel podrózy..."
+                                    MaximumSelectedOptions="1"
+                                    @bind-SelectedOptions="@SelectedObjective"
+                                    bind-SelectedOptions:after="@HandleObjectiveChange"
+                                    Height="550px"
+                                    Width="200px" />
+            </FluentGridItem>
+        </FluentGrid>
+    </div>
+    @foreach (var sc in SelectedCountries)
+    {
+        @sc.CountryCode
+    }
+    
+    @* Dates *@
+    <div class="form-section">
+        <FluentGrid class="fluent-grid">
+            <DateTimePickerComponent Label="Początek: "
+                                     DateTimeValue="@formItem.StartDate"
+                                     DateTimeValueChanged="@(e => HandleDateTimeChanged(e, "from"))"/>
+            <DateTimePickerComponent Label="Koniec: "
+                                     DateTimeValue="@formItem.EndDate"
+                                     DateTimeValueChanged="@(e => HandleDateTimeChanged(e, "to"))"/>
+            @if (!string.IsNullOrEmpty(DateTimeValidationMessage))
+            {
+                <div class="validation-error"><p style="color:red;">@DateTimeValidationMessage</p></div>
+            }
+        </FluentGrid>
+    </div>
+
+    @* List of stages - if country is not PL add Country Trip and then abroad trip and again country trip*@
+    <table>
+        <thead>
+        <tr>
+            <th>Lp.</th>
+            <th>Kraj: </th>
+            <th>Od: </th>
+            <th>Do: </th>
+            <th>Uwzględnij: </th>
+            <th>Dni: </th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var stage in formItem.Stages)
+        {
+            <tr>
+                <td>@stage.Id</td>
+                <td>
+                    <div>
+                        @stage.CountryName
+                    </div>
+                </td>
+                <td>
+                    <DateTimePickerComponent Label=""
+                                             DateTimeValue="@stage.StartDate"
+                                             DateTimeValueChanged="@(value => HandleStageDateTimeChanged(value, stage, nameof(stage.StartDate), stage.Id))" />
+                </td>
+                <td>
+                    <DateTimePickerComponent Label=""
+                                             DateTimeValue="@stage.EndDate"
+                                             DateTimeValueChanged="@(value => HandleStageDateTimeChanged(value, stage, nameof(stage.EndDate), stage.Id))" />
+                </td>
+                <td>
+                    <FluentSwitch @bind-Value:get="@stage.Included"
+                                  @bind-Value:set="@(value => HandleStageIncluded(stage, value))" />
+                </td>
+                <td>
+                    @stage.Duration
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+    @if (!string.IsNullOrEmpty(stagesDatesErrorMessage))
+    {
+        <div class="validation-error"><p style="color:red;">@stagesDatesErrorMessage</p></div>
+    }
+
+    @* Transportation *@
+    <div class="form-section">
+        <FluentGrid>
+            <FluentGridItem >
+                <FluentLabel>Środki transportu:</FluentLabel>
+                <FluentSelect TOption="string"
+                              Items="@Conveyances"
+                              Placeholder="wybierz środek lokomocji"
+                              Multiple="false"
+                              @bind-Value="@SelectedConveyanceTxt"
+                              @bind-Value:after =  "HandleConveyanceStringChange"
+                              Style="width: 150px"
+                /> 
+            </FluentGridItem>
+            <FluentGridItem Style="width: 150px">
+                @if (IsCompanyCar)
+                {
+                    <FluentTextField @bind-Value = "@formItem.CompanyVehicleNumber" Label="Numer rejestracyjny: "/>
+                    <ValidationMessage For="@(() => formItem.PrivateVehicleNumber)" />
+                    @* <BusinessTrip_CompanyVehicle PlateNumber="@formItem.CompanyVehicleNumber"/> *@
+                   
+                }
+                @if (IsPrivateCar)
+                {
+                    <div>
+                        <FluentTextField 
+                            @bind-Value:get="@formItem.PrivateVehicleNumber" 
+                            @bind-Value:set="@(value => formItem.PrivateVehicleNumber = value)"
+                            Label="Numer rejestracyjny: "
+                            Style="width: 150px"
+                        />
+                        <ValidationMessage For="@(() => formItem.PrivateVehicleNumber)" />
+                        <FluentNumberField 
+                            @bind-Value:get="@formItem.PrivateVehicleEngineSize" 
+                            @bind-Value:set="@(value => formItem.PrivateVehicleEngineSize = value)" 
+                            Label="Pojemność silnika: "
+                            Style="width: 150px"
+                        />
+                        <FluentNumberField 
+                            @bind-Value:get="@formItem.PrivateVehicleMilage" 
+                            @bind-Value:set="@(value => formItem.PrivateVehicleMilage = value)"  
+                            Label="Planowany przebieg: "
+                            Style="width: 150px"
+                        />
+                    </div>
+                }
+                @if (IsPublicTransport)
+                {
+                    <FluentLabel>Opłacone przez firmę: </FluentLabel>
+                    <FluentSwitch @bind-Value:get = "@formItem.PublicTransportPaid" 
+                                  @bind-Value:set="@HandlePublicTransportPaidChanged"/>
+                    @* <BusinessTrip_PublicTransport Paid="@formItem.PublicTransportPaid" PaidChanged="@HandlePublicTransportPaidChanged"/> *@
+                   
+                }
+            </FluentGridItem>
+        </FluentGrid>
+    </div>
+    
+    @* Advance Payment *@
+    <div class="form-section">
+        <FluentGrid>
+            <FluentLabel>Zaliczka: </FluentLabel>
+            <FluentSwitch @bind-Value:get="@formItem.AdvancePayment"
+                          @bind-Value:set="@HandleAdvancePaymentPaidChanged"/>
+            @if (formItem.AdvancePayment)
+            {
+                <FluentNumberField
+                    @bind-Value:get="@formItem.AdvancePaymentAmount"
+                    @bind-Value:set="@(value => formItem.AdvancePaymentAmount = value)"
+                    Label="Kwota: "
+                    Style="width: 150px"/>
+                @if (AdvancePaymentMethodsInt != null)
+                {
+                    <FluentSelect Items=@AdvancePaymentMethodsInt
+                                  TOption="Option<int>"
+                                  OptionText="@(a => a.Text)"
+                                  OptionValue="@(a => a.Value.ToString())"
+                                  OptionSelected="@(a => a.Selected)"
+                                  @bind-Value="@AdvancePaymentCashString"
+                                  Label="Wypłata: "
+                                  Style="width: 150px"/>
+                    
+                    @formItem.AdvancePaymentCash.ToString()
+                }
+                @if (!formItem.AdvancePaymentCash.GetValueOrDefault())
+                {
+                    <div>
+                        Tu pokazać listę kas lub alternatywnie wpłatowmatów.
+                    </div>
+                    
+                }
+                else if (formItem.AdvancePaymentCash.GetValueOrDefault())
+                {
+                    <FluentTextField Label = "Podaj numer konta: "
+                                     @bind-Value = "@formItem.BankAccountNumber"/>
+                }
+                @formItem.BankAccountNumber
+            }
+        </FluentGrid>
+    </div>
+
+    @* List of Accommodations - added and removed as Stages*@
+    <table>
+        <thead>
+        <tr>
+            <th>StageId</th>
+            <th>CountryName</th>
+            <th>Duration</th>
+            <th>HasInvoices</th>
+            <th>InvoicesAmount</th>
+            <th>AllowanceRate</th>
+            <th>AllowanceRateCurrency</th>
+            <th>Included</th>
+            <th>Total</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var accommodation in formItem.Accommodations)
+        {
+            <tr>
+                
+                <td>@accommodation.StageId</td>
+                <td>@accommodation.CountryName</td>
+                <td>@accommodation.Duration</td>
+                <td>
+                    
+                    <FluentSwitch @bind-Value:get="@accommodation.HasInvoices"
+                                  @bind-Value:set="@(value => HandleAccommodationHasInvoices(accommodation, value))" />
+                </td>
+                <td>
+                    <FluentNumberField @bind-Value:get="@accommodation.InvoicesAmount"
+                                       @bind-Value:set="@(value => HandleStageInvoicesAmount(accommodation, value))"
+                                       Disabled="!accommodation.HasInvoices"
+                                       Style="@(accommodation.HasInvoices ? "" : "color: gray;")">
+                    </FluentNumberField>
+                </td>
+                <td>
+                <span style="@(accommodation.HasInvoices ? "color: gray;" : "")">
+                    @accommodation.AllowanceRate
+                </span>
+                </td>
+                <td>
+                    <span style="@(accommodation.HasInvoices ? "color: gray;" : "")">
+                        @accommodation.AllowanceRateCurrency
+                    </span>
+                </td>
+                <td>
+                    <FluentSwitch @bind-Value="@accommodation.Included" ReadOnly="true"/>
+                </td>
+                <td>@accommodation.Total</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+    <table>
+        <thead title="Posiłki zapewnione:">
+        <tr>
+            <th>MealId</th>
+            <th>CountryName</th>
+            <th>Breakfasts</th>
+            <th>Lunches</th>
+            <th>Dinners</th>
+            <th>Included</th>
+            <th>Total</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var meal in formItem.Meals)
+        {
+            <tr>
+
+                <td>@meal.StageId</td>
+                <td>@meal.CountryName</td>
+                <td>
+                    <FluentNumberField Min = "0" Max="@meal.Duration.ToString()" @bind-Value="@meal.CoveredBreakfasts"/>
+                </td>
+                <td>
+                    <FluentNumberField  Min = "0" Max="@meal.Duration.ToString()" @bind-Value="@meal.CoveredDinners"/>
+                </td>
+                <td>
+                    <FluentNumberField  Min = "0" Max="@meal.Duration.ToString()" @bind-Value="@meal.CoveredLunches"/>
+                </td>
+                
+                <td>
+                    <FluentSwitch @bind-Value="@meal.Included" ReadOnly="true"/>
+                </td>
+                <td>@meal.Total</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+
 </EditForm>
 
 @code {
-    private BusinessTravelFormVm formItem = new BusinessTravelFormVm();
+    # region Declarations
+    
+        [Parameter]
+        public int Id { get; set; }
+        
+        # region hide
+        private BusinessTravelFormVm formItem = new BusinessTravelFormVm();
+        private FormUserContext _userContext = new FormUserContext("BusinessTrip", "Technician");
+        private OrganisationRoleForFormVm approverL1 { get; set; }
+        private OrganisationRoleForFormVm approverL2 { get; set; }
+        private OrganisationRoleForFormVm approverL3 { get; set; }
+        private OrganisationRoleForFormVm approverL4 { get; set; }
+        private OrganisationRoleForFormVm approverL5 { get; set; }
+        private bool al1 = false;
+        private bool al2 = false;
+        private bool al3 = false;
+        private bool al4 = false;
+        private bool al5 = false;
+        private bool ApproveButton = true;
+        private bool SendButton = true;
+        private OrganisationVm _organisation { get; set; }
+        private WorkflowTemplateVm wf { get; set; }
+        private string FormName = "BusinessTravelFormVm";
+        private bool local = true;
+        #endregion hide
+        
+        #region Time
+        private DateOnly? SelectedDateFrom { get; set; } = DateOnly.FromDateTime(DateTime.Now);
+        private TimeOnly? SelectedTimeFrom { get; set; } = TimeOnly.FromDateTime(DateTime.Now);
+        private DateTime? SelectedDateTimeFrom { get; set; }
+       
+        private DateOnly? SelectedDateTo { get; set; } = DateOnly.FromDateTime(DateTime.Now);
+        private TimeOnly? SelectedTimeTo { get; set; } = TimeOnly.FromDateTime(DateTime.Now);
+        private DateTime? SelectedDateTimeTo { get; set; }
+        private string DateTimeValidationMessage { get; set; } = string.Empty;
+        #endregion Time
+        
+        private IEnumerable<CountryVm> SelectedCountry { get; set; }
+        private IQueryable<CountryVm> Countries { get; set; }
+        private CountryVm Origin { get; set; }
+        
+        #region hide2
+        // private IEnumerable<string> SelectedCity { get; set; } = new List<string>()
+        private string SelectedCity { get; set; } = string.Empty;
+        private IQueryable<string> _cities = Enum.GetValues(typeof(Cities))
+            .Cast<Cities>().Select(c => c.ToString()).AsQueryable();
+        
+        private IEnumerable<string> SelectedObjective { get; set; }
+        private IQueryable<string> _objectives = Enum.GetValues(typeof(Objectives))
+            .Cast<Objectives>().Select(c => c.ToString()).AsQueryable();
+        
+        // private DateTime? DoubleClickToDate = DateTime.Now;
+        // private bool DoubleClickToToday = true;
+        private DateTime SelectedStartDate = DateTime.Now;
+        private DateTime SelectedEndDate = DateTime.Now;
+        
+        private IQueryable<EmployeeVm> Employees { get; set; }
+        private IEnumerable<EmployeeVm> SelectedEmpl { get; set; }
+        
+        private IQueryable<string> Conveyances = new List<string>
+        {
+            "Samochód służbowy",
+            "Samochód prywatny",
+            "Transport publiczny"
+        }.AsQueryable();
+        private IEnumerable<string> SelectedConveyance { get; set; } 
+        private string SelectedConveyanceTxt { get; set; }
+        private bool IsPrivateCar { get; set; } = false;
+        private bool IsCompanyCar { get; set; } = false;
+        private bool IsPublicTransport { get; set; } = false;
+        #endregion hide2
+        
+        public string AdvancePaymentCashString
+        {
+            get => formItem.AdvancePaymentCash.HasValue ? (formItem.AdvancePaymentCash.Value ? "1" : "0") : null;
+            set => formItem.AdvancePaymentCash = value switch
+            {
+                "1" => true,
+                "0" => false,
+                _ => (bool?)null
+            };
+        }
+        private List<Option<int>> AdvancePaymentMethodsInt = new()
+        {
+            { new Option<int> { Value = 0, Text = "Wypłata w Kasie", Selected = true} },
+            { new Option<int> { Value = 1, Text = "Wypłata przelewem" } },
+        };
 
+        private List<CountryVm> SelectedCountries { get; set; } = new();
+        private string stagesDatesErrorMessage { get; set; } = string.Empty;
+    # endregion
+    
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            // Initialize any necessary data here
-            // For example, you can load data from the server using _mediator
-            // formItem = await _mediator.Send(new GetBusinessTravelFormQuery());
-
-            // Example: Initialize form with default values or data from the server
             formItem.StartDate = DateTime.Now;
             formItem.EndDate = DateTime.Now.AddDays(1);
-            formItem.EmployeeName = "John Doe"; // Replace with actual data
-            formItem.EnovaEmpId = "12345"; // Replace with actual data
         }
         catch (Exception ex)
         {
             _toastService.ShowError($"An error occurred during initialization: {ex.Message}");
         }
+        
+        await Utils.GetUserName(_authenticationStateProvider, _userContext, _mediator);
+        await AddEmployee(_userContext.Employee);
+        Console.WriteLine();
+        Countries = await _mediator.Send(new GetAllCountryQuery());
+        SelectedCountries  = new List<CountryVm> { Countries.FirstOrDefault(c => c.Name == "Polska") };
+        SelectedCountry = SelectedCountries;
+        Origin = SelectedCountries[0];
+            
+        _organisation = await _mediator.Send(new GetOrganisationByEmpSapNumberQuery(_userContext.Employee.SapNumber));
+        Employees = await _mediator.Send(new GetAllEmployeesQuery());
+        formItem.EmployeeName = _userContext.LongName;
+        formItem.EnovaEmpId = _userContext.EnovaEmpId;
+        if (SelectedCountry != null && SelectedCountry.Any())
+        {
+            await AddStage(SelectedCountry.First());
+        }
+        else
+        {
+            // Handle the case where SelectedCountry is null or empty
+        }
+        Console.WriteLine();
     }
+    private async Task AddStage(CountryVm country)
+    {
+        var duration = (formItem.EndDate.Value - formItem.StartDate.Value).TotalDays;
+        var firstStage = new Stage( )
+        {
+            Id = formItem.Stages.Count()+1,
+            CountryCode = country.CountryCode,
+            CountryName = country.Name,
+            StartDate = formItem.StartDate,
+            EndDate = formItem.EndDate,
+            Duration = Math.Round((decimal)duration, 2)
+        };
+        formItem.Stages.Add(firstStage);
+        ValidateDates();
 
+        var firstAccomodation = new Accommodation()
+        {
+            
+            StageId = firstStage.Id,
+            CountryCode = country.CountryCode,
+            CountryName = country.Name,
+            Duration = firstStage.Duration,
+            AllowanceRate = country.AccomodationAllowance,
+            AllowanceRateCurrency = country.CurrencyVmName,
+            HasInvoices = false,
+            InvoicesAmount = 0,
+            Total = country.AccomodationAllowance * firstStage.Duration
+        };
+        formItem.Accommodations.Add(firstAccomodation);
+
+        var firstMeal = new Meals()
+        {
+            StageId = firstStage.Id,
+            CountryCode = country.CountryCode,
+            CountryName = country.Name,
+            Duration = firstStage.Duration
+        };
+        formItem.Meals.Add(firstMeal);
+        return ;
+    }
+    
+    #region OnSearch
+        private void OnCountrySearch(OptionsSearchEventArgs<CountryVm> e)
+        {
+            if (e.Text != null)
+            {
+                e.Items = Countries.Where(a => a.Name.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
+            }
+        }
+        private void OnObjectiveSearch(OptionsSearchEventArgs<string> e)
+        {
+            if (e.Text != null)
+            {
+                e.Items = _objectives.Where(a => a.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
+            }
+        }
+        private void OnAssigneeSearch(OptionsSearchEventArgs<EmployeeVm> e)
+        {
+            if (e.Text != null)
+            {
+                e.Items = Employees.Where(a => a.LongName.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
+            }
+        }
+    #endregion OnSearch
+    
+    #region OnChange
+
+        private async Task HandleStageIncluded(Stage stage, bool value)
+        {
+            stage.Included = value;
+            formItem.Accommodations[stage.Id - 1].Included = value;
+            formItem.Meals[stage.Id - 1].Included = value;
+        }
+        private async Task HandleStageInvoicesAmount(Accommodation accommodation, decimal? value)
+        {
+            accommodation.InvoicesAmount = accommodation.Total = value;
+        }
+        private async Task HandleAccommodationHasInvoices(Accommodation accommodation, bool value)
+        {   accommodation.InvoicesAmount = 0;
+            
+            if (value)
+            {
+                accommodation.HasInvoices = value;
+                accommodation.InvoicesAmount = 0;
+                accommodation.Total = 0;
+            }
+            else
+            {
+                accommodation.HasInvoices = value;
+                accommodation.Total = accommodation.AllowanceRate * accommodation.Duration;
+                
+            }
+        }
+        private async Task HandleCountryChange()
+        {
+            Console.WriteLine(SelectedCountry.Count());
+
+            if(SelectedCountry.FirstOrDefault() == null)
+            {
+
+            } else
+            {
+                //
+                // formItem.Countries = SelectedEmpl.FirstOrDefault();
+                // Role.EmpId = SelectedEmpl.FirstOrDefault().EnovaEmpId;
+            }
+            
+            StateHasChanged();
+        }
+        private async Task HandleCountryAdd()
+        {
+            // Console.WriteLine(SelectedCountry.Count());
+ 
+            var newCountry = SelectedCountry.FirstOrDefault();
+
+            if (newCountry != null)
+            {
+                // Check if the new country is already in the list
+                if (!SelectedCountries.Any(c => c.Name == newCountry.Name))
+                {
+                    if (SelectedCountries.Count < 2)
+                    {
+                        // Initially add the first country
+                        SelectedCountries.Add(newCountry);
+                        AddStage(newCountry);
+                        AddStage(Origin);
+
+                    }
+                    else
+                    {
+                        // Update the second country
+                        SelectedCountries[1] = newCountry;
+                        formItem.Stages[1].CountryCode = newCountry.CountryCode;
+                        formItem.Stages[1].CountryName = newCountry.Name;
+                    }
+                }
+                else if (SelectedCountries.Count >= 2 && SelectedCountries[1].Name != newCountry.Name)
+                {
+                    if (formItem.Stages.Count > 2)
+                    {
+                        var originStage = formItem.Stages[2]; // Get the stage at index 2
+                        formItem.Stages.Remove(originStage); // Remove it
+                        var originAccomodation = formItem.Accommodations[2];
+                        formItem.Accommodations.Remove(originAccomodation);
+                        var originMeal = formItem.Meals[2];
+                        formItem.Meals.Remove(originMeal);
+                    }
+                    // Update the second country if it's different from the current second country
+                    SelectedCountries.Remove(SelectedCountries[1]);
+                    var stageToRemove = formItem.Stages[1];
+                    formItem.Stages.Remove(stageToRemove);
+                    var accomodationToRemove = formItem.Accommodations[1];
+                    formItem.Accommodations.Remove(accomodationToRemove);
+                    var mealToRemove = formItem.Meals[1];
+                    formItem.Meals.Remove(mealToRemove);
+                }
+            }
+
+            StateHasChanged();
+        }
+        private async Task HandleObjectiveChange()
+        {
+            Console.WriteLine(SelectedObjective.Count());
+
+            if(SelectedObjective.FirstOrDefault() == null)
+            {
+                
+            } else
+            {
+                //
+                // formItem.Countries = SelectedEmpl.FirstOrDefault();
+                // Role.EmpId = SelectedEmpl.FirstOrDefault().EnovaEmpId;
+            }
+            
+            StateHasChanged();
+        }
+        private async Task HandleCityChange(string value)
+        {
+            Console.WriteLine();
+            formItem.Destination = value;
+            
+            StateHasChanged();
+        }// Currently not in use.
+        private async Task HandleAssigneeChange()
+        {
+            Console.WriteLine(SelectedEmpl.Count());
+
+            if( SelectedEmpl.FirstOrDefault() == null)
+            {
+
+            } else
+            {
+                var emp = SelectedEmpl.FirstOrDefault();
+                formItem.EmployeeName = emp.LongName;
+                formItem.EnovaEmpId =  emp.EnovaEmpId.ToString();
+                _organisation = await _mediator.Send(new GetOrganisationByEmpSapNumberQuery(emp.SapNumber));
+
+            }
+            
+            StateHasChanged();
+        }
+        private async Task HandleConveyanceChange()
+        {
+            Console.WriteLine(SelectedConveyance.Count());
+
+            if(SelectedConveyance.FirstOrDefault() == "Samochód prywatny")
+            {
+                IsPrivateCar = true;
+                IsCompanyCar = false;
+                IsPublicTransport = false;
+            } else if(SelectedConveyance.FirstOrDefault() == "Samochód służbowy")
+            {
+                IsPrivateCar = false;
+                IsCompanyCar = true;
+                IsPublicTransport = false;
+            } else if (SelectedConveyance.FirstOrDefault() == "Transport publiczny")
+            {
+                IsPrivateCar = false;
+                IsCompanyCar = false;
+                IsPublicTransport = true;
+            }
+            StateHasChanged();
+        }
+        private async Task HandleConveyanceStringChange()
+        {
+            // Console.WriteLine(SelectedConveyanceTxt.Count());
+            if(SelectedConveyanceTxt == "Samochód prywatny")
+            {
+                Console.WriteLine(SelectedConveyanceTxt);
+                IsPrivateCar = true;
+                IsCompanyCar = false;
+                IsPublicTransport = false;
+                formItem.PrivateVehicle = true;
+                formItem.CompanyVehicle = false;
+            } else if(SelectedConveyanceTxt == "Samochód służbowy")
+            {
+                Console.WriteLine(SelectedConveyanceTxt);
+                IsPrivateCar = false;
+                IsCompanyCar = true;
+                IsPublicTransport = false;
+                formItem.PrivateVehicle = false;
+                formItem.CompanyVehicle = true;
+                formItem.PublicTransport = false;
+                formItem.PublicTransportPaid = false;
+            } else if (SelectedConveyanceTxt == "Transport publiczny")
+            {
+                Console.WriteLine(SelectedConveyanceTxt);
+                IsPrivateCar = false;
+                IsCompanyCar = false;
+                IsPublicTransport = true;
+                formItem.PrivateVehicle = false;
+                formItem.CompanyVehicle = false;
+                formItem.PublicTransport = false;
+                formItem.PublicTransportPaid = false;
+            }
+            StateHasChanged();
+        }
+        private async Task HandlePublicTransportPaidChanged(bool value)
+        {
+            formItem.PublicTransportPaid = value;
+        }
+        private async Task HandleAdvancePaymentPaidChanged(bool value)
+        {
+            formItem.AdvancePayment = value;
+        }
+        private async Task HandleDateTimeChanged(DateTime? dateTime, string p)
+        {
+            if (p == "to")
+            {
+                formItem.EndDate = dateTime;
+                if (formItem.Stages.Any())
+                {
+                    formItem.Stages.Last().EndDate = dateTime;
+                }
+            }
+            else if (p == "from")
+            {
+                formItem.StartDate = dateTime;
+                if (formItem.Stages.Any())
+                {
+                    formItem.Stages.First().StartDate = dateTime;
+                }
+            }
+
+            RecalculateStages(0, "skip");
+            ValidateDates();
+        }
+
+        private async Task HandleStageDateTimeChanged(DateTime? value, Stage stage, string propertyName, int stageId)
+        {
+            if (propertyName == nameof(stage.StartDate))
+            {
+                stage.StartDate = value;
+            }
+            else if (propertyName == nameof(stage.EndDate))
+            {
+                stage.EndDate = value;
+            }
+
+            RecalculateStages(stageId, propertyName);
+            RecalculateAccomodations();
+            ValidateDates();
+        }
+        private async Task RecalculateStages(int? stageId, string? propertyName)
+        {
+            if (!(stageId == 0 && propertyName == "skip"))
+            {
+                var updatedStageIndex = formItem.Stages.FindIndex(s => s.Id == stageId);
+    
+                if (updatedStageIndex == -1) return;
+
+                var updatedStage = formItem.Stages[updatedStageIndex];
+
+                // If the EndDate is updated, update the StartDate of the next stage
+                if (propertyName == nameof(updatedStage.EndDate) && updatedStage.EndDate.HasValue)
+                {
+                    // Update the next stage's StartDate if it exists
+                    if (updatedStageIndex + 1 < formItem.Stages.Count)
+                    {
+                        var nextStage = formItem.Stages[updatedStageIndex + 1];
+
+                        // Set the next stage's StartDate to be one minute after the current EndDate
+                        nextStage.StartDate = updatedStage.EndDate.Value.AddMinutes(1);
+                    }
+                }
+
+                // If the StartDate is updated, update the EndDate of the previous stage
+                if (propertyName == nameof(updatedStage.StartDate) && updatedStage.StartDate.HasValue)
+                {
+                    // Update the previous stage's EndDate if it exists
+                    if (updatedStageIndex > 0)
+                    {
+                        var previousStage = formItem.Stages[updatedStageIndex - 1];
+
+                        // Set the previous stage's EndDate to be one minute before the current StartDate
+                        previousStage.EndDate = updatedStage.StartDate.Value.AddMinutes(-1);
+                    }
+                }
+            }
+            // Find the index of the stage being updated
+            
+
+            // Recalculate the duration for all stages
+            foreach (var stage in formItem.Stages)
+            {
+                if (stage.StartDate < stage.EndDate)
+                {
+                    var duration = (stage.EndDate.Value - stage.StartDate.Value).TotalDays;
+                    stage.Duration = Math.Round((decimal)duration, 2);
+                }
+                else
+                {
+                    stage.Duration = 0;
+                }
+            }
+        }
+        // private async Task RecalculateStages(int stageId, string propertyName)
+        // {
+        //     int sid = stageId - 1;
+        //     foreach (var stage in formItem.Stages)
+        //     {
+        //         if (stage.StartDate < stage.EndDate)
+        //         {
+        //             var duration = (stage.EndDate.Value - stage.StartDate.Value).TotalDays;
+        //             stage.Duration = Math.Round((decimal)duration, 2);
+        //         }
+        //         else
+        //         {
+        //             stage.Duration = 0;
+        //         }
+        //     }
+        // }
+
+        private async Task RecalculateAccomodations()
+        {
+            foreach (var accomodation in formItem.Accommodations)
+            {
+                //COŚ ZLE się numerują Acomodacje i Stage'e.
+                var stage = formItem.Stages[accomodation.StageId-1];
+                if (stage != null)
+                {
+                    accomodation.Duration = stage.Duration;
+                    accomodation.Included = stage.Included;
+                }
+                
+                
+            }
+        }
+        private async Task ValidateDates()
+        {
+            // Check if the overall start date is before the end date
+            if (formItem.StartDate > formItem.EndDate)
+            {
+                DateTimeValidationMessage = "Start date must be before or equal to end date.";
+            }
+            else
+            {
+                DateTimeValidationMessage = string.Empty;
+            }
+
+            // Check intermediate dates within stages using LINQ
+            var invalidStage = formItem.Stages
+                .Select((stage, index) => new { stage, index })
+                .FirstOrDefault(x =>
+                    x.stage.StartDate > x.stage.EndDate ||
+                    (x.index < formItem.Stages.Count - 1 && x.stage.EndDate >= formItem.Stages[x.index + 1].StartDate));
+
+            if (invalidStage != null)
+            {
+                if (invalidStage.stage.StartDate > invalidStage.stage.EndDate)
+                {
+                    stagesDatesErrorMessage = $"Stage {invalidStage.stage.Id}: Start date must be before or equal to end date.";
+                }
+                else
+                {
+                    stagesDatesErrorMessage = $"Stage {invalidStage.stage.Id}: End date must be before the start date of the next stage.";
+                }
+            }
+            else
+            {
+                // Clear the error message if all dates are valid
+                stagesDatesErrorMessage = string.Empty;
+            }
+        }
+        private async Task AddEmployee(EmployeeVm newEmployee)
+        {
+            var employeesList = new List<EmployeeVm>();
+
+            employeesList.Add(newEmployee);
+
+            SelectedEmpl = employeesList;
+        }
+    #endregion OnChange
+    
     private void HandleValidSubmit()
     {
         
     }
+
 }
+
+
+
+<style>
+    table {
+        border-collapse: collapse; /* Optional: For a cleaner look */
+        width: 500px; /* Optional: Adjust to fit your container */
+    }
+    th, td {
+        padding: 5px; /* Adds padding inside each cell */
+        text-align: left; /* Optional: Align text to the left */
+    }
+    td:first-child, th:first-child {
+        padding-left: 0; /* Removes padding on the left of the first cell */
+    }
+</style>
+
+<style>
+    .form-section {
+        margin-bottom: 20px;
+    }
+    .info-table {
+        width: 650px;
+        
+        margin-bottom: 10px;
+    }
+    .info-table td {
+        padding: 10px;
+        
+    }
+    .fluent-grid {
+        display: flex;
+        gap: 10px; /* Adjust the gap as needed */
+    }
+
+    .fluent-grid-item {
+        display: flex;
+        flex-direction: row;
+        gap: 10px; /* Adjust the gap between date and time pickers */
+    }
+
+    .custom-grid-item {
+        width: 150px;
+    }
+</style>-
