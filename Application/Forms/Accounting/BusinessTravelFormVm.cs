@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using Application.Interfaces;
 using Application.ViewModels.Accounting;
@@ -18,11 +19,10 @@ public class BusinessTravelFormVm : IFormVm
     public List<FormFileVm> FormFiles { get; set; } = new();
     public string NumberPrefix { get; set; } = "DEL";
     public string Status { get; set; } = "Rejestracja";
-    public string? Number { get; set; } = string.Empty;
+    public string? Number { get; set; } = "brak numeru";
     public List<string> Statuses { get; set; } = new();
     public int WorkflowTemplateId { get; set; } = 5;
     # endregion
-    
     public DateTime? StartDate { get; set; } = DateTime.Now;
     public DateTime? EndDate { get; set; } = DateTime.Now;
     public string Destination { get; set; } = string.Empty;
@@ -71,7 +71,7 @@ public class BusinessTravelFormVm : IFormVm
         public DateOnly AdvancePaymentDate { get; set; } = DateOnly.FromDateTime(DateTime.Now);
         // do delegacji zagranicznej to min. 25% diety należnej wg kraju przeznaczenia i wg ilości naliczonej diety czyli czasu na jaki pracownik wypełnia delegację
     #endregion
-    public DateTime? CreatedDate { get; set; } = DateTime.Now;
+    public DateTime CreatedDate { get; set; } = DateTime.Now;
     public List<FormFileVm> Files { get; set; } = new();
     public List<string> ConveyanceTypes { get; set; } = new()
     {
@@ -81,8 +81,18 @@ public class BusinessTravelFormVm : IFormVm
     public List<Stage> Stages { get; set; } = new();
     public List<Accommodation> Accommodations { get; set; } = new();
     public List<Meals> Meals { get; set; } = new();
-    
-    
+    public List<LocalTravel> LocalTravels { get; set; } = new();
+    public Transit Transit { get; set; } = new();
+    public List<Bill> Bills { get; set; } = new();
+    public decimal AllowancePL { get; set; } = 0;
+    public decimal AllowanceNotPL { get; set; } = 0;
+    public decimal SumAllowancePL { get; set; } = 0;
+    public decimal SumAllowanceNotPL { get; set; } = 0;
+    public decimal DeductionAllowancePL { get; set; } = 0;
+    public decimal DeductionAllowanceNotPL { get; set; } = 0;
+    public decimal AccomodationAllowanceSumPL { get; set; } = 0;
+    public decimal AccomodationAllowanceSumNotPL { get; set; } = 0;
+
 }
 
 
@@ -91,30 +101,33 @@ public class Stage()
     public int Id { get; set; }
     public string CountryCode { get; set; } = string.Empty;
     public string CountryName { get; set; } = string.Empty;
+    public decimal CountryAllowance { get; set; } = 0;
+    public string CountryCurrency { get; set; } = string.Empty;
     public DateTime? StartDate { get; set; } = DateTime.Now;
     public DateTime? EndDate { get; set; } = DateTime.Now;
-    public Decimal? Duration { get; set; } = 0;
+    public decimal? Duration { get; set; } = 0;
+    public TimeSpan timeSpan { get; set; } = TimeSpan.Zero;
+    public decimal? AllowanceOrigin { get; set; } = 0;
+    public decimal? AllowanceOriginValue { get; set; } = 0;
+    public decimal? AllowanceAbroad { get; set; } = 0;
+    public decimal? AllowanceAbroadValue { get; set; } = 0;
     public bool Included { get; set; } = true;
 }
-public enum Objectives
-{
-    Szkolenie,
-    Praca,
-    Inne
-}
-
 public class Meals()
 {
     public int StageId { get; set; }
     public string CountryCode { get; set; } = string.Empty;
     public string CountryName { get; set; } = string.Empty;
-    public decimal? Duration { get; set; } = 0;
+    public decimal AllowanceRate { get; set; } = 0;
+    public string AllowanceRateCurrency { get; set; }
+    public int Duration { get; set; } = 0;
     public decimal? BreakfastReduction { get; set; } = 0;
     public decimal? LunchReduction { get; set; } = 0;
     public decimal? DinnerReduction { get; set; } = 0;
-    public int? CoveredBreakfasts { get; set; } = 0;
-    public int? CoveredLunches { get; set; } = 0;
-    public int? CoveredDinners { get; set; } = 0;
+    public int CoveredBreakfasts { get; set; } = 0;
+    public int CoveredLunches { get; set; } = 0;
+    public int CoveredDinners { get; set; } = 0;
+    public int Nights { get; set; } = 0;
     public decimal Total { get; set; } = 0;
     public bool Included { get; set; } = true;
     
@@ -129,27 +142,49 @@ public class Accommodation()
     public string AllowanceRateCurrency { get; set; }
     public bool HasInvoices { get; set; } = false;
     public decimal? InvoicesAmount { get; set; } = 0;
+    public int? Nights { get; set; } = 0;
     public decimal? Total { get; set; } = 0;
     public bool Included { get; set; } = true;
 
 }
-public enum Cities
+public class LocalTravel()
 {
-    Warszawa,
-    Poznań,
-    Kraków,
-    Rybnik,
-    Sosnowiec,
-    Tychy,
-    Katowice,
-    Salzburg,
-    Wiedeń
-}
-public enum Conveyance
-{
-    Samochódsłużbowy,
-        Samochódprywatny
+    //required local travels in stay city (trams, buses, taxis)
+    public int StageId { get; set; }
+    public string CountryCode { get; set; } = string.Empty;
+    public string CountryName { get; set; } = string.Empty;
+    public decimal AllowanceRate { get; set; } = 0;
+    public string AllowanceRateCurrency { get; set; }
+    public int Days { get; set; } = 0;
+    public int Duration { get; set; } = 0;
+    public decimal Total { get; set; } = 0;
+    public bool Included { get; set; } = true;
     
+}
+public class Transit()
+{
+    //transit from public transport station to Accomodation place (
+    public int StageId { get; set; }
+    public string CountryCode { get; set; } = string.Empty;
+    public string CountryName { get; set; } = string.Empty;
+    public decimal AllowanceRate { get; set; } = 0;
+    public string AllowanceRateCurrency { get; set; }
+    public int Directions { get; set; } = 0; // 0-none, 1-one way, 2-both ways
+    public decimal Total { get; set; } = 0;
+    public bool Included { get; set; } = false;
+}
+public enum Statuses
+{
+    Rejestracja,
+    AprobataL1,
+    AprobataL2,
+    Kasa,
+    Rozliczenie,
+    Ksiegowosc,
+    AprobataL11,
+    AprobataL12,
+    Rozliczone,
+    Zamkniete
 }
 public class PrivateCar()
 {

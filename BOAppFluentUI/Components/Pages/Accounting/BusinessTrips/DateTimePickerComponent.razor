@@ -1,9 +1,11 @@
-﻿@using Microsoft.FluentUI.AspNetCore.Components.Extensions
-<FluentGridItem class="fluent-grid-item">
+﻿@using System.Globalization
+@using Microsoft.FluentUI.AspNetCore.Components.Extensions
+<FluentGridItem class = fluent-grid-item>
     <FluentDatePicker Label="@Label" 
                       Value="@SelectedDate.ToDateTimeNullable()"
                       ValueChanged="@(e => OnDateChanged(e.ToDateOnlyNullable()))"
-                      Style="width: 150px"/>
+                      Style="width: 150px"
+    />
     <FluentTimePicker Value="@SelectedTime.ToDateTimeNullable()" 
                       ValueChanged="@(e => OnTimeChanged(e.ToTimeOnlyNullable()))"
                       Style="width: 150px"
@@ -43,3 +45,11 @@
         return null;
     }
 }
+
+<style>
+    .fluent-grid-item {
+        display: flex;
+        flex-direction: row;
+        gap: 10px; /* Adjust the gap between date and time pickers */
+    }
+</style>

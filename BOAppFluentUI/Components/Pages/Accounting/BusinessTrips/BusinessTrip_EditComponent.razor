@@ -32,7 +32,7 @@ else
                 <td><b>Numer:</b></td>
                 <td>@formItem.Number</td>
                 <td><b>Zgłoszone: </b></td>
-                <td>@formItem.CreatedDate.ToIsoDateString()</td>
+                <td>@formItem.CreatedDate.ToString("YYYY-MM-dd")</td>
             </tr>
             <tr>
                 <td><b>Organizacja:</b></td>
@@ -72,6 +72,25 @@ else
 
 }
 
+<h1>Locations</h1>
+<table>
+    <thead>
+    <tr>
+        <th>Name</th>
+        <th>SAP Number</th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var location in _locations)
+    {
+        <tr>
+            <td>@location.Name</td>
+            <td>@location.SapNumber</td>
+        </tr>
+    }
+    </tbody>
+</table>
+
 @code {
     #region Declarations
     [Parameter]
@@ -96,6 +115,7 @@ else
     private WorkflowTemplateVm wf { get; set; }
     private string FormName = "BusinessTravelFormVm";
     private bool local = true;
+    private IQueryable<Location> _locations { get; set; }
     #endregion
 
     protected override async Task OnInitializedAsync()
@@ -120,7 +140,7 @@ else
 
         await Utils.GetUserName(AuthenticationStateProvider, _userContext, _mediator);
         // wf = await _mediator.Send(new GetWorkflowTemplateByFormNameQuery(FormName));
-
+        _locations = await _mediator.Send(new GetLocationsQuery());
         itemEmployeesList = await _mediator.Send(new GetAllEmployeesQuery());
         _organisation = await _mediator.Send(new GetOrganisationByEmpSapNumberQuery(_userContext.Employee.SapNumber));
         string deptNumber = _userContext.Employee.DeptNumber;
