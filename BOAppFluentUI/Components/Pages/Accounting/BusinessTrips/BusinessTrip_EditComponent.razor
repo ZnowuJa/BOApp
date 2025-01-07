@@ -140,7 +140,7 @@ else
 
         await Utils.GetUserName(AuthenticationStateProvider, _userContext, _mediator);
         // wf = await _mediator.Send(new GetWorkflowTemplateByFormNameQuery(FormName));
-        _locations = await _mediator.Send(new GetLocationsQuery());
+        // _locations = await _mediator.Send(new GetLocationsQuery());
         itemEmployeesList = await _mediator.Send(new GetAllEmployeesQuery());
         _organisation = await _mediator.Send(new GetOrganisationByEmpSapNumberQuery(_userContext.Employee.SapNumber));
         string deptNumber = _userContext.Employee.DeptNumber;

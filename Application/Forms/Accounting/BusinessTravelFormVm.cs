@@ -2,6 +2,7 @@
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using Application.Interfaces;
+using Application.ValidationAttributes;
 using Application.ViewModels.Accounting;
 using Application.ViewModels.General;
 using Domain.Entities.ITWarehouse;
@@ -27,7 +28,10 @@ public class BusinessTravelFormVm : IFormVm
     public DateTime? EndDate { get; set; } = DateTime.Now;
     public string Destination { get; set; } = string.Empty;
     public string Objective { get; set; } = string.Empty;
+    
     public List<CountryVm> Countries { get; set; } = new(); //to keep information about flat rates and Allowance
+    [CountryNotEmptyValidation]
+    public CountryVm DestinationCountry { get; set; } = new();
     # region Transport
     public bool PrivateVehicle { get; set; } = false; //does trip requires private car= false;
     public int PrivateVehicleEngineSize { get; set; } = 0;//private
@@ -41,24 +45,26 @@ public class BusinessTravelFormVm : IFormVm
     public bool PublicTransportPaid { get; set; } = false;
     # endregion
     #region Approvers&Approvals
-    public string EmployeeName { get; set; } = string.Empty;
-    public string EnovaEmpId { get; set; } = string.Empty;
-    public List<Approval>? Approvals { get; set; } = new();
-    public List<OrganisationRoleForFormVm> Level1Approvers { get; set; } = new(); // przełożony wniosek
-    public List<OrganisationRoleForFormVm> Level2Approvers { get; set; } = new(); // przełożony rozliczenie
-    public List<OrganisationRoleForFormVm> Level3Approvers { get; set; } = new(); // dyrektor salonu
-    public List<OrganisationRoleForFormVm> Level4Approvers { get; set; } = new(); // Księgowość
-    public List<OrganisationRoleForFormVm> Level5Approvers { get; set; } = new(); // Księgowość TeamLeader
-    public string LVL1_EnovaEmpId { get; set; } = string.Empty;
-    public string LVL1_EmployeeName { get; set; } = string.Empty;
-    public string LVL2_EnovaEmpId { get; set; } = string.Empty;
-    public string LVL2_EmployeeName { get; set; } = string.Empty;
-    public string LVL3_EnovaEmpId { get; set; } = string.Empty;
-    public string LVL3_EmployeeName { get; set; } = string.Empty;
-    public string LVL4_EnovaEmpId { get; set; } = string.Empty;
-    public string LVL4_EmployeeName { get; set; } = string.Empty;
-    public string LVL5_EnovaEmpId { get; set; } = string.Empty;
-    public string LVL5_EmployeeName { get; set; } = string.Empty;
+
+        public string? OrganisationSapNumber { get; set; } = string.Empty;
+        public string EmployeeName { get; set; } = string.Empty;
+        public string EnovaEmpId { get; set; } = string.Empty;
+        public List<Approval>? Approvals { get; set; } = new();
+        public List<OrganisationRoleForFormVm> Level1Approvers { get; set; } = new(); // przełożony wniosek
+        public List<OrganisationRoleForFormVm> Level2Approvers { get; set; } = new(); // przełożony rozliczenie
+        public List<OrganisationRoleForFormVm> Level3Approvers { get; set; } = new(); // dyrektor salonu
+        public List<OrganisationRoleForFormVm> Level4Approvers { get; set; } = new(); // Księgowość
+        public List<OrganisationRoleForFormVm> Level5Approvers { get; set; } = new(); // Księgowość TeamLeader
+        public string LVL1_EnovaEmpId { get; set; } = string.Empty;
+        public string LVL1_EmployeeName { get; set; } = string.Empty;
+        public string LVL2_EnovaEmpId { get; set; } = string.Empty;
+        public string LVL2_EmployeeName { get; set; } = string.Empty;
+        public string LVL3_EnovaEmpId { get; set; } = string.Empty;
+        public string LVL3_EmployeeName { get; set; } = string.Empty;
+        public string LVL4_EnovaEmpId { get; set; } = string.Empty;
+        public string LVL4_EmployeeName { get; set; } = string.Empty;
+        public string LVL5_EnovaEmpId { get; set; } = string.Empty;
+        public string LVL5_EmployeeName { get; set; } = string.Empty;
 
     #endregion
     #region AdvancePayment
@@ -68,7 +74,13 @@ public class BusinessTravelFormVm : IFormVm
         public bool? AdvancePaymentCash {get;set;} = false;
         public string? BankAccountNumber { get; set; } = string.Empty;
         // dorobic walidację numeru konta
-        public DateOnly AdvancePaymentDate { get; set; } = DateOnly.FromDateTime(DateTime.Now);
+        public DateOnly? AdvancePaymentDate { get; set; } = DateOnly.FromDateTime(DateTime.Now);
+        public string? CashPayoutNumber { get; set; } = string.Empty;
+        public string? CashReceiptNumber { get; set; } = string.Empty;
+        public string? PayoutCashierEmpId { get; set; } = string.Empty;
+        public string? ReceiptCashierEmpId { get; set; } = string.Empty;
+        [JsonIgnore] public EmployeeVm? PayoutCashier { get; set; } = new();
+        [JsonIgnore] public EmployeeVm ReceiptCashier { get; set; } = new();
         // do delegacji zagranicznej to min. 25% diety należnej wg kraju przeznaczenia i wg ilości naliczonej diety czyli czasu na jaki pracownik wypełnia delegację
     #endregion
     public DateTime CreatedDate { get; set; } = DateTime.Now;
@@ -77,7 +89,6 @@ public class BusinessTravelFormVm : IFormVm
     {
         "Samochód służbowy", "Samochód prywatny", "Transport publiczny"
     };
-    
     public List<Stage> Stages { get; set; } = new();
     public List<Accommodation> Accommodations { get; set; } = new();
     public List<Meals> Meals { get; set; } = new();
@@ -86,13 +97,14 @@ public class BusinessTravelFormVm : IFormVm
     public List<Bill> Bills { get; set; } = new();
     public decimal AllowancePL { get; set; } = 0;
     public decimal AllowanceNotPL { get; set; } = 0;
-    public decimal SumAllowancePL { get; set; } = 0;
-    public decimal SumAllowanceNotPL { get; set; } = 0;
-    public decimal DeductionAllowancePL { get; set; } = 0;
-    public decimal DeductionAllowanceNotPL { get; set; } = 0;
-    public decimal AccomodationAllowanceSumPL { get; set; } = 0;
-    public decimal AccomodationAllowanceSumNotPL { get; set; } = 0;
+    public decimal? SumAllowancePL { get; set; } = 0;
+    public decimal? SumAllowanceNotPL { get; set; } = 0;
+    public decimal? DeductionMealsPL { get; set; } = 0;
+    public decimal? DeductionMealsNotPL { get; set; } = 0;
+    public decimal? AccomodationAllowanceSumPL { get; set; } = 0;
+    public decimal? AccomodationAllowanceSumNotPL { get; set; } = 0;
 
+    public Location CashPoint { get; set; } = new();
 }
 
 
@@ -183,6 +195,7 @@ public enum Statuses
     Ksiegowosc,
     AprobataL11,
     AprobataL12,
+    KasaRozliczenie,
     Rozliczone,
     Zamkniete
 }
@@ -211,5 +224,17 @@ public class PolishVehicleRegistrationAttribute : ValidationAttribute
         }
 
         return new ValidationResult("Invalid Polish vehicle registration number.");
+    }
+}
+public class CountryNotEmptyValidationAttribute : ValidationAttribute
+{
+    protected override ValidationResult IsValid(object value, ValidationContext validationContext)
+    {
+        var trip = (BusinessTravelFormVm)validationContext.ObjectInstance;
+        if (trip.DestinationCountry == null)
+        {
+            return new ValidationResult("Proszę wybrać kraj docelowy!");
+        }
+        return ValidationResult.Success;
     }
 }

@@ -4,17 +4,20 @@
     <FluentDatePicker Label="@Label" 
                       Value="@SelectedDate.ToDateTimeNullable()"
                       ValueChanged="@(e => OnDateChanged(e.ToDateOnlyNullable()))"
+                      Disabled="Disabled"
                       Style="width: 150px"
     />
     <FluentTimePicker Value="@SelectedTime.ToDateTimeNullable()" 
                       ValueChanged="@(e => OnTimeChanged(e.ToTimeOnlyNullable()))"
                       Style="width: 150px"
+                      Disabled="Disabled"
                       step="900"/>
 </FluentGridItem>
 
 @code {
     [Parameter] public string Label { get; set; }
     [Parameter] public DateTime? DateTimeValue { get; set; }
+    [Parameter] public bool Disabled { get; set; } = false;
     [Parameter] public EventCallback<DateTime?> DateTimeValueChanged { get; set; }
 
     private DateOnly? SelectedDate => DateTimeValue.HasValue ? DateOnly.FromDateTime(DateTimeValue.Value) : (DateOnly?)null;

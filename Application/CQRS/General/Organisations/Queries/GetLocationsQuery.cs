@@ -23,9 +23,16 @@ public class GetLocationsQueryHandler : IRequestHandler<GetLocationsQuery, IEnum
 
     public async Task<IEnumerable<Location>> Handle(GetLocationsQuery request, CancellationToken cancellationToken)
     {
-        var organisations = await _appDbContext.Organisations.Where(p => p.StatusId == 1) .GroupBy(o => o.SapNumber)
-            .Select(g => g.First()).OrderBy(o => o.SapNumber).ToListAsync(cancellationToken);
-        var locations = _mapper.Map<List<Location>>(organisations);
+        var organisations = await _appDbContext.Organisations
+            .Where(p => p.StatusId == 1)
+            .ToListAsync(cancellationToken); // Materialize the query
+
+        var uniqueOrganisations = organisations
+            .GroupBy(o => o.SapNumber)
+            .Select(g => g.First())
+            .OrderBy(o => o.SapNumber)
+            .ToList();
+        var locations = _mapper.Map<List<Location>>(uniqueOrganisations);
 
         return locations;
     }

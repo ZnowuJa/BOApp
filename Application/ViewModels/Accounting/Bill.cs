@@ -8,6 +8,6 @@ public class Bill
     public string? FilePath { get; set; }
     public string? AttUrl { get; set; }
     public string? OriginalFileName { get; set; }
-    public List<InvoiceMapping> Posting { get; set; }
-    
+    public List<InvoiceMapping> InvoiceMappings { get; set; } = new();
+
 }
