@@ -7,6 +7,14 @@
     <FluentValidationMessage For="@(() => Content.Nazwa)" />
     <FluentTextField @bind-Value="Content.PunktTelefon" Label="Nazwa komputera"></FluentTextField>
     <FluentValidationMessage For="@(() => Content.PunktTelefon)" />
+    <FluentRadioGroup TValue="string" Required="true" @bind-Value="SelectedSalonId" name="Salons" Orientation="Orientation.Vertical">
+        @foreach (var salon in Salons)
+        {
+            <FluentRadio Value="@salon.Name">
+                @salon.Name (@salon.Id)
+            </FluentRadio>
+        }
+    </FluentRadioGroup>
     <div>
         <FluentButton Appearance="Appearance.Accent">Dodaj licencję</FluentButton>
     </div>
@@ -15,9 +23,52 @@
 @code {
     private MysystemPunktLicenceVm Content { get; set; } = new MysystemPunktLicenceVm();
     private EditContext _context;
+    private string SelectedSalonId { get; set; }
     
     protected override void OnInitialized()
     {
         _context = new EditContext(Content);
+    }
+    
+    private List<Salon> Salons { get; set; } = new List<Salon>
+    {
+        new Salon { Name = "Bentley Katowice", Id = "997" },
+        new Salon { Name = "Bentley Poznań", Id = "998" },
+        new Salon { Name = "Bentley Warszawa", Id = "999" },
+        new Salon { Name = "Porsche Poznań", Id = "502" },
+        new Salon { Name = "Porsche Warszawa Okęcie", Id = "506" },
+        new Salon { Name = "Porsche Warszawa Połczyńska", Id = "501" },
+        new Salon { Name = "Skoda Kraków", Id = "91" },
+        new Salon { Name = "Skoda Krańcowa", Id = "220" },
+        new Salon { Name = "Skoda Libertów", Id = "257" },
+        new Salon { Name = "Skoda Poznań", Id = "27" },
+        new Salon { Name = "Skoda Ruda Śląska", Id = "178" },
+        new Salon { Name = "Skoda Rybnik", Id = "171" },
+        new Salon { Name = "Skoda Tarnów", Id = "227" },
+        new Salon { Name = "Skoda Tychy", Id = "212" },
+        new Salon { Name = "Skoda Warszawa Połczyńska", Id = "58" },
+        new Salon { Name = "Skoda Warszawa Okęcie", Id = "209" },
+        new Salon { Name = "Audi Poznań", Id = "122" },
+        new Salon { Name = "Audi Warszawa Audi City", Id = "143" },
+        new Salon { Name = "Audi Warszawa Okęcie", Id = "132" },
+        new Salon { Name = "Audi Warszawa Połczyńska", Id = "75" },
+        new Salon { Name = "Audi Kraków", Id = "149" },
+        new Salon { Name = "Audi Kraków Libertów", Id = "187" },
+        new Salon { Name = "VW Katowice", Id = "103" },
+        new Salon { Name = "VW Kraków", Id = "140" },
+        new Salon { Name = "VW Obornicka", Id = "78" },
+        new Salon { Name = "VW Poznań", Id = "6" },
+        new Salon { Name = "VW Rybnik", Id = "47" },
+        new Salon { Name = "VW Sosnowiec", Id = "80" },
+        new Salon { Name = "VW Tychy", Id = "77" },
+        new Salon { Name = "VW Warszawa Okęcie", Id = "133" },
+        new Salon { Name = "VW Warszawa Połczyńska", Id = "11" }
+    };
+
+    private class Salon
+    {
+        public string Name { get; set; }
+        public string Id { get; set; }
+        public bool IsSelected { get; set; }
     }
 }

@@ -64,6 +64,10 @@
                         <FluentNumberField Id="Allowance" Value="Content.Allowance" ValueChanged="@((decimal e)=>OnAmountChange(e))" Placeholder="Enter allowance">Allowance:</FluentNumberField>
                         <FluentValidationMessage For="@(() => Content.Allowance)" />
                     </div>
+                    <div class="card">
+                        <FluentNumberField Id="AccomodationAllowance" @bind-Value="@Content.AccomodationAllowance">AccomodationAllowance:</FluentNumberField>
+                        <FluentValidationMessage For="@(() => Content.AccomodationAllowance)" />
+                    </div>
 @*                     <div>
                         <FluentButton Appearance="Appearance.Accent" OnClick="@CalculateFields">Oblicz</FluentButton>
                         <FluentButton Appearance="Appearance.Accent" OnClick="@ChangeEditMode">Edytuj</FluentButton>
@@ -107,10 +111,6 @@
                             <div class="card">
                                  <FluentNumberField Id="DinnerReduction" @bind-Value="@Content.DinnerReduction">DinnerReduction:</FluentNumberField>
                                 <FluentValidationMessage For="@(() => Content.DinnerReduction)" />
-                            </div>
-                            <div class="card">
-                                <FluentNumberField Id="AccomodationAllowance" @bind-Value="@Content.AccomodationAllowance">AccomodationAllowance:</FluentNumberField>
-                                <FluentValidationMessage For="@(() => Content.AccomodationAllowance)" />
                             </div>
                             <div class="card">
                                 <FluentNumberField Id="TravelAllowance" @bind-Value="@Content.TravelAllowance" >TravelAllowance:</FluentNumberField>
@@ -233,7 +233,6 @@
             Content.BreakfastReduction = Content.Allowance / 4;
             Content.LunchReduction = Content.Allowance / 2;
             Content.DinnerReduction = Content.Allowance / 4;
-            Content.AccomodationAllowance = Content.Allowance * 1.5m;
             Content.TravelAllowance = Content.Allowance * 0;
             Content.LocalTravelAllowance = Content.Allowance * 0.2m;
             isCalculated = false;
@@ -249,13 +248,12 @@
             Content.BreakfastReduction = Content.Allowance * 0.15m;
             Content.LunchReduction = Content.Allowance * 0.3m;
             Content.DinnerReduction = Content.Allowance * 0.3m;
-            Content.AccomodationAllowance = Content.Allowance * 1.5m;
             Content.TravelAllowance = Content.Allowance * 0.5m;
             Content.LocalTravelAllowance = Content.Allowance * 0.1m;
             isCalculated = false;
         }
-        else 
-        { 
+        else
+        {
             Console.WriteLine("Clearing fields");
             Clear(); 
         }

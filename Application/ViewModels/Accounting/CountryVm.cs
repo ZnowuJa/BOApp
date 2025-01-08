@@ -33,6 +33,8 @@ namespace Application.ViewModels.Accounting
         public decimal BreakfastReduction { get; set; }
         public decimal LunchReduction { get; set; }
         public decimal DinnerReduction { get; set; }
+        
+        [Required(ErrorMessage = "Value is required.")]
         public decimal AccomodationAllowance { get; set; }
         public decimal TravelAllowance { get; set; }
         public decimal LocalTravelAllowance { get; set; }
