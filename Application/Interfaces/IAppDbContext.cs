@@ -1,5 +1,6 @@
 ﻿using Domain.Entities.Accounting;
 using Domain.Entities.Administration;
+using Domain.Entities.BusinessOperations;
 using Domain.Entities.CoC;
 using Domain.Entities.Common;
 using Domain.Entities.ITWarehouse;
@@ -52,6 +53,8 @@ public interface IAppDbContext
     DbSet<GLAccount> GLAccounts { get; set; }
     DbSet<VATRate> VATRates { get; set; }
     DbSet<AccountingNoteForm> AccountingNotes { get; set; }
+    DbSet<CompanyCarRegistrationNumber> CompanyCarRegistrationNumbers { get; set; }
+    DbSet<NbpCurrencyRate> NbpCurrencyRates { get; set; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default);

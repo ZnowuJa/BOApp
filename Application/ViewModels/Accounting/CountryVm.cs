@@ -7,6 +7,14 @@ namespace Application.ViewModels.Accounting
 {
     public class CountryVm : IMapFrom<Country>
     {
+        public CountryVm()
+        {
+            Name = "Polska";
+            CountryCode = "PL";
+            IsEU = true;
+            IsPL = true;
+            CurrencyVmName = "PLN";
+        }
         public int Id { get; set; }
 
         [Required(ErrorMessage = "CountryCode is required.")]
@@ -33,9 +41,10 @@ namespace Application.ViewModels.Accounting
         public decimal BreakfastReduction { get; set; }
         public decimal LunchReduction { get; set; }
         public decimal DinnerReduction { get; set; }
-        public decimal AccomodationAllowance { get; set; }
+        public decimal AccomodationAllowance { get; set; } //Ryczałt za nocleg
         public decimal TravelAllowance { get; set; }
         public decimal LocalTravelAllowance { get; set; }
+        public decimal MaxHotelCost { get; set; } = 500;
 
         public void Mapping(Profile profile)
         {
