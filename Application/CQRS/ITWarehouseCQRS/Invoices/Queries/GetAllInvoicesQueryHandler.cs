@@ -46,7 +46,7 @@ public class GetAllInvoicesQueryHandler : IRequestHandler<GetAllInvoicesQuery, I
         //foreach ( var item in result )
         //{
         //    var resCompanyVm = _mapper.Map<CompanyVm>(await _appDbContext.Companies.Where(p => p.Id == item.CompanyId).FirstOrDefaultAsync());
-        //    var resCurrencyVm = _mapper.Map<CurrencyVm>(await _appDbContext.Currencies.Where(p => p.Id == item.CurrencyId).FirstOrDefaultAsync());
+        //    var resCurrencyVm = _mapper.Map<currencyVm>(await _appDbContext.Currencies.Where(p => p.Id == item.CurrencyId).FirstOrDefaultAsync());
         //    var resVm = new InvoiceVm()
         //    {
         //        Id = item.Id,
@@ -58,7 +58,7 @@ public class GetAllInvoicesQueryHandler : IRequestHandler<GetAllInvoicesQuery, I
         //        TotalNet = item.TotalNet,
         //        CurrencyVmId = resCurrencyVm.Id,
         //        CurrencyVmName = resCurrencyVm.Title,
-        //        CurrencyVm = resCurrencyVm
+        //        currencyVm = resCurrencyVm
         //    };
         //    listItem.Add(resVm);
         //}

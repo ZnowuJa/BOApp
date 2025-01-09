@@ -1,4 +1,5 @@
 ﻿using Application.Interfaces;
+using Application.ViewModels;
 using Application.ViewModels.Accounting;
 using AutoMapper;
 using MediatR;
@@ -14,43 +15,46 @@ namespace Application.CQRS.AccountingCQRS.Countries.Queries
         private readonly IAppDbContext _appDbContext = appDbContext;
         private readonly IMapper _mapper = mapper;
 
+       
         public async Task<IQueryable<CountryVm>> Handle(GetAllCountryQuery request, CancellationToken cancellationToken)
         {
+            var listItems = new List<CountryVm>();
+            var currencies = await _appDbContext.Currencies.ToListAsync(cancellationToken);
             var countries = await _appDbContext.Countries
                                                .Where(ct => ct.StatusId == 1)
-                                               .AsNoTracking()
                                                .ToListAsync(cancellationToken);
-            // var countryVms = _mapper.Map<List<CountryVm>>(countries);
-            var currencies = await _appDbContext.Currencies
-                                                .AsNoTracking()
-                                                .ToListAsync(cancellationToken);
-            var countryVms = countries.Select(country =>
+            foreach (var item in countries)
             {
-                var currency = currencies.FirstOrDefault(c => c.Id == country.CurrencyId);
-                return new CountryVm
-                {
-                    Id = country.Id,
-                    CountryCode = country.CountryCode,
-                    Name = country.Name,
-                    IsEU = country.IsEU,
-                    IsPL = country.IsPL,
-                    CurrencyId = country.CurrencyId,
-                    CurrencyVmId = currency?.Id,
-                    CurrencyVmName = currency?.Name,
-                    Allowance = country.Allowance,
-                    AllowanceFirstDay8H = country.AllowanceFirstDay8H,
-                    AllowanceFirstDay12H = country.AllowanceFirstDay12H,
-                    AllowanceNextDay8H = country.AllowanceNextDay8H,
-                    AllowanceNextDay12H = country.AllowanceNextDay12H,
-                    BreakfastReduction = country.BreakfastReduction,
-                    LunchReduction = country.LunchReduction,
-                    DinnerReduction = country.DinnerReduction,
-                    AccomodationAllowance = country.AccomodationAllowance,
-                    TravelAllowance = country.TravelAllowance,
-                    LocalTravelAllowance = country.LocalTravelAllowance
-                };
-            }).ToList();
-            return countryVms.AsQueryable();
+                var currency = currencies.FirstOrDefault(p => p.Id == item.CurrencyId);
+                var newItem = new CountryVm();
+
+                newItem.CurrencyVmId = currency?.Id ?? 0;
+                newItem.CurrencyVmName = currency?.Name ?? string.Empty;
+                newItem.currencyVm = _mapper.Map<CurrencyVm>(currency);
+
+                newItem.Id = item.Id;
+                newItem.CountryCode = item.CountryCode;
+                newItem.Name = item.Name;
+                newItem.Name = item.Name;
+                newItem.IsEU = item.IsEU;
+                newItem.IsPL = item.IsPL;
+                // newItem.CurrencyId = item.CurrencyId;
+                newItem.Allowance = item.Allowance;
+                newItem.AllowanceFirstDay8H = item.AllowanceFirstDay8H;
+                newItem.AllowanceFirstDay12H = item.AllowanceFirstDay12H;
+                newItem.AllowanceNextDay8H = item.AllowanceNextDay8H;
+                newItem.AllowanceNextDay12H = item.AllowanceNextDay12H;
+                newItem.BreakfastReduction = item.BreakfastReduction;
+                newItem.LunchReduction = item.LunchReduction;
+                newItem.DinnerReduction = item.DinnerReduction;
+                newItem.AccomodationAllowance = item.AccomodationAllowance;
+                newItem.TravelAllowance = item.TravelAllowance;
+                newItem.LocalTravelAllowance = item.LocalTravelAllowance;
+
+
+                listItems.Add(newItem);
+            }
+            return listItems.AsQueryable();
         }
     }
 }

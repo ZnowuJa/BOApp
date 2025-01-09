@@ -1,7 +1,10 @@
 ﻿using Application.Interfaces;
 using Application.ViewModels.General;
+
 using AutoMapper;
+
 using MediatR;
+
 using Microsoft.EntityFrameworkCore;
 
 namespace Application.CQRS.General.Organisations.Queries;

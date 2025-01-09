@@ -3,6 +3,7 @@ using Application.Interfaces;
 using BackOfficeApp_Domain.Common;
 using Domain.Entities.Accounting;
 using Domain.Entities.Administration;
+using Domain.Entities.BusinessOperations;
 using Domain.Entities.CoC;
 using Domain.Entities.Common;
 using Domain.Entities.ITWarehouse;
@@ -60,6 +61,8 @@ public class AppDbContext : IdentityDbContext<AppUser>, IAppDbContext
     public DbSet<ITScrappingForm> ITScrappingForms { get; set; }
     public DbSet<ITSaleForm> ITSaleForms { get; set; }
     public DbSet<AccountingNoteForm> AccountingNotes { get; set; }
+    public DbSet<CompanyCarRegistrationNumber> CompanyCarRegistrationNumbers { get ; set; }
+    public DbSet<NbpCurrencyRate> NbpCurrencyRates {  get; set; }
 
 
 
@@ -94,17 +97,18 @@ public class AppDbContext : IdentityDbContext<AppUser>, IAppDbContext
             .WithMany(y => y.Instructions)
             .UsingEntity(e => e.ToTable("InstructionGroup"));
 
-        //builder.Entity<ITScrappingForm>()
-        //    .HasMany(s => s.Assets)
-        //    .WithOne(a => a.ScrappingForm)
-        //    .HasForeignKey(a => a.ScrappingFormId)
-        //    .IsRequired(false);
-
-        //builder.Entity<ITSaleForm>()
-        //    .HasMany(s => s.Assets)
-        //    .WithOne(a => a.SaleForm)
-        //    .HasForeignKey(a => a.SaleFormId)
-        //    .IsRequired(false);
+        builder.Entity<CompanyCarRegistrationNumber>()
+            .ToView("v_CompanyCars")
+            .HasKey(c => c.RegistrationNumber);
+        builder.Entity<CompanyCarRegistrationNumber>()
+            .Property(c => c.RegistrationNumber)
+            .HasColumnName("registration_number");
+        builder.Entity<NbpCurrencyRate>()
+            .ToView("v_NBPExchangeRates")
+            .HasKey(c => c.Id);
+        builder.Entity<NbpCurrencyRate>()
+            .Property(c => c.RateDate)
+            .HasColumnName("Rate_date");
 
         base.OnModelCreating(builder);
 

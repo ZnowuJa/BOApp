@@ -37,7 +37,7 @@ public class AssetVm : IMapFrom<Asset>
             //.ForMember(e => e.InvoiceVm, t => t.MapFrom(src2 => src2.Invoice))
             //.ForMember(f => f.StateVm, u => u.MapFrom(src3 => src3.State))
             //.ForMember(h => h.WarehouseVm, x => x.MapFrom(src5 => src5.Warehouse))
-            //.ForMember(i => i.CurrencyVm, y => y.MapFrom(src6 => src6.Currency))
+            //.ForMember(i => i.currencyVm, y => y.MapFrom(src6 => src6.Currency))
             //.ForMember(i => i.EmployeeVm, y => y.MapFrom(src6 => src6.Employee))
             .ReverseMap();
         

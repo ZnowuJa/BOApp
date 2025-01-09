@@ -39,7 +39,6 @@
     
 }
 
-
 @if (customer == null)
 {
     @* <FluentProgressRing>Loading...</FluentProgressRing> *@
@@ -82,7 +81,6 @@ else
                           OptionValue="@(p => p.EmpId.ToString())"
                           OptionText="@(p => p.LongName)"
                           OptionSelected="@(p => p.IsDefault)"
-                          
                           @bind-SelectedOption="@approverL1"
                           Height="200px"
                           @onchange="HandleChangeApproverL1"

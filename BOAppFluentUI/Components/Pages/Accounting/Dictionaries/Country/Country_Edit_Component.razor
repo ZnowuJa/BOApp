@@ -55,7 +55,7 @@
                           Height="250px"
                           OptionValue="@(p => p.Id.ToString())"
                           OptionText="@(p => p.Name)"
-                          @bind-SelectedOption="@Content.CurrencyVm"
+                          @bind-SelectedOption="@Content.currencyVm"
                           @onchange="onChangeCurrency" />
         </div>
 
@@ -106,15 +106,15 @@
         Content.CurrencyId = selected.Id;
         Content.CurrencyVmName = selected.Name;
         // Console.WriteLine("e.Value " + e.Value);
-        // Console.WriteLine("Przed: " + Content.CurrencyVm.Id + " " + Content.CurrencyVm.Name);
+        // Console.WriteLine("Przed: " + Content.currencyVm.Id + " " + Content.currencyVm.Name);
         // Console.WriteLine("Po: " + Content.CurrencyVmId + " " + Content.CurrencyVmName);
     }
 
     // private void HandleCurrencyChange(string newValue)
     // {
-    //     if (Content.CurrencyVm.Id != null)
+    //     if (Content.currencyVm.Id != null)
     //     {
-    //         Content.CurrencyVmId = Content.CurrencyVm.Id;
+    //         Content.CurrencyVmId = Content.currencyVm.Id;
     //     }
     //     else
     //     {

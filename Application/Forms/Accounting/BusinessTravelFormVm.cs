@@ -26,23 +26,25 @@ public class BusinessTravelFormVm : IFormVm
     # endregion
     public DateTime? StartDate { get; set; } = DateTime.Now;
     public DateTime? EndDate { get; set; } = DateTime.Now;
-    public string Destination { get; set; } = string.Empty;
+    public string? Destination { get; set; } = string.Empty;
     public string Objective { get; set; } = string.Empty;
     
     public List<CountryVm> Countries { get; set; } = new(); //to keep information about flat rates and Allowance
     [CountryNotEmptyValidation]
-    public CountryVm DestinationCountry { get; set; } = new();
+    public CountryVm? DestinationCountry { get; set; } = new();
+    public string? DestinationCountryCurrency { get; set; } = string.Empty;
     # region Transport
-    public bool PrivateVehicle { get; set; } = false; //does trip requires private car= false;
-    public int PrivateVehicleEngineSize { get; set; } = 0;//private
-    public int PrivateVehicleMilage { get; set; } = 0;
-    [PolishVehicleRegistration]
-    public string PrivateVehicleNumber { get; set; } = string.Empty;
-    public bool CompanyVehicle { get; set; } = false;
-    [PolishVehicleRegistration]
-    public string CompanyVehicleNumber { get; set; } = string.Empty;
-    public bool PublicTransport { get; set; } = false;
-    public bool PublicTransportPaid { get; set; } = false;
+        public bool PrivateVehicle { get; set; } = false; //does trip requires private car= false;
+        public int PrivateVehicleEngineSize { get; set; } = 0;//private
+        public int PrivateVehicleMilage { get; set; } = 0;
+        [PolishVehicleRegistration]
+        public string PrivateVehicleNumber { get; set; } = string.Empty;
+    
+        public bool CompanyVehicle { get; set; } = false;
+        [PolishVehicleRegistration]
+        public string CompanyVehicleNumber { get; set; } = string.Empty;
+        public bool PublicTransport { get; set; } = false;
+        public bool PublicTransportPaid { get; set; } = false;
     # endregion
     #region Approvers&Approvals
 
@@ -81,7 +83,9 @@ public class BusinessTravelFormVm : IFormVm
         public string? ReceiptCashierEmpId { get; set; } = string.Empty;
         [JsonIgnore] public EmployeeVm? PayoutCashier { get; set; } = new();
         [JsonIgnore] public EmployeeVm ReceiptCashier { get; set; } = new();
-        // do delegacji zagranicznej to min. 25% diety należnej wg kraju przeznaczenia i wg ilości naliczonej diety czyli czasu na jaki pracownik wypełnia delegację
+        public decimal CurrencyExchamngeRate { get; set; } = 1m;
+        public DateOnly CurrencyExchangeRateDate { get; set; } = DateOnly.FromDateTime(DateTime.Now);
+    // do delegacji zagranicznej to min. 25% diety należnej wg kraju przeznaczenia i wg ilości naliczonej diety czyli czasu na jaki pracownik wypełnia delegację
     #endregion
     public DateTime CreatedDate { get; set; } = DateTime.Now;
     public List<FormFileVm> Files { get; set; } = new();
@@ -103,8 +107,44 @@ public class BusinessTravelFormVm : IFormVm
     public decimal? DeductionMealsNotPL { get; set; } = 0;
     public decimal? AccomodationAllowanceSumPL { get; set; } = 0;
     public decimal? AccomodationAllowanceSumNotPL { get; set; } = 0;
-
+    public decimal? SumLocalTravelAllowancePL { get; set; } = 0;
+    public decimal? SumLocalTravelAllowanceNotPL { get; set; } = 0;
+    public decimal? SumPrivateVehicleAllowance { get; set; } = 0;
     public Location CashPoint { get; set; } = new();
+    public decimal TotalBillsPL
+    {
+        get
+        {
+            return Bills.Where(bill => bill.Currency == "PLN").Sum(bill => bill.Amount);
+        }
+    }
+    public decimal TotalBillsNotPL
+    {
+        get
+        {
+            return Bills.Where(bill => bill.Currency != "PLN").Sum(bill => bill.Amount);
+        }
+    }
+    public decimal TotalAllowancePL
+    {
+        get
+        {
+            return SumAllowancePL.GetValueOrDefault()
+                 + AccomodationAllowanceSumPL.GetValueOrDefault()
+                 + SumLocalTravelAllowancePL.GetValueOrDefault()
+                 + DeductionMealsPL.GetValueOrDefault();
+        }
+    }
+    public decimal TotalAllowanceNotPL
+    {
+        get
+        {
+            return SumAllowanceNotPL.GetValueOrDefault()
+                 + AccomodationAllowanceSumNotPL.GetValueOrDefault()
+                 + SumLocalTravelAllowanceNotPL.GetValueOrDefault()
+                 + DeductionMealsNotPL.GetValueOrDefault();
+        }
+    }
 }
 
 
@@ -150,6 +190,7 @@ public class Accommodation()
     public string CountryCode { get; set; } = string.Empty;
     public string CountryName { get; set; } = string.Empty;
     public decimal? Duration { get; set; } = 0;
+    public decimal MaxHotelCost { get; set; } = 500;
     public decimal AllowanceRate { get; set; } = 0;
     public string AllowanceRateCurrency { get; set; }
     public bool HasInvoices { get; set; } = false;
@@ -208,7 +249,7 @@ public class PrivateCar()
 }
 public class PolishVehicleRegistrationAttribute : ValidationAttribute
 {
-    private const string Pattern = @"^[A-Z]{1,2}[A-Z0-9]{4,5}$|^[A-Z]{2}[0-9]{5}$|^[A-Z]{2}[0-9]{4}[A-Z]{1}$";
+    private const string Pattern = @"^[A-Z]{1,2,3}[A-Z0-9]{4,5}$|^[A-Z]{2}[0-9]{5}$|^[A-Z]{2}[0-9]{4}[A-Z]{1}$|^[A-Z]{2,3}\s?[0-9]{5}$";
 
     protected override ValidationResult IsValid(object value, ValidationContext validationContext)
     {
