@@ -39,6 +39,7 @@ namespace Application.ViewModels.Accounting
         public decimal AccomodationAllowance { get; set; }
         public decimal TravelAllowance { get; set; }
         public decimal LocalTravelAllowance { get; set; }
+        public decimal MaxHotelCost { get; set; }
 
         public void Mapping(Profile profile)
         {
