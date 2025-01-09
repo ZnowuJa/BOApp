@@ -1,0 +1,19 @@
+﻿@using Application.ViewModels.Accounting
+<h3>BusinessTripStage_Component</h3>
+
+
+
+@code {
+
+    [Parameter]
+    public BusinessTripStage Content { get; set; }
+    
+    protected override void OnInitialized()
+    {
+        if (Content == null)
+        {
+            Content = new BusinessTripStage();
+        }
+    }
+
+}

@@ -31,7 +31,7 @@ public class GetOrganisationByEmpSapNumberQueryHandler : IRequestHandler<GetOrga
     public async Task<OrganisationVm> Handle(GetOrganisationByEmpSapNumberQuery request, CancellationToken cancellationToken)
     {
 
-        var organisation = await _appDbContext.Organisations.FirstOrDefaultAsync(o => o.SapNumber == request.Sn, cancellationToken);
+        var organisation = await _appDbContext.Organisations.FirstOrDefaultAsync(o => o.SapNumber == request.Sn && o.StatusId == 1, cancellationToken);
         var organisationVm = _mapper.Map<OrganisationVm>(organisation);
         //if (organisation == null)
         //{

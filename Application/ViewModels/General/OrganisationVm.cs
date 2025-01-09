@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using Application.Forms.Accounting;
 using Application.Mappings;
 
 using AutoMapper;
@@ -54,6 +55,10 @@ public class OrganisationVm : IMapFrom<Organisation>
 
     public void Mapping(Profile profile)
     {
+        profile.CreateMap<Organisation, Location>()
+            .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
+            .ForMember(dest => dest.SapNumber, opt => opt.MapFrom(src => src.SapNumber));
+        
         profile.CreateMap<Organisation, OrganisationVm>()
             .ForMember(dest => dest.Role_SalesManager, opt => opt.MapFrom(src => DeserializeRoles(src.Role_SalesManager)))
             .ForMember(dest => dest.Role_ServiceManager, opt => opt.MapFrom(src => DeserializeRoles(src.Role_ServiceManager)))

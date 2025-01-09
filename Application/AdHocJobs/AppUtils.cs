@@ -8,6 +8,15 @@ using AutoMapper;
 namespace Application.AdHocJobs;
 public static class AppUtils
 {
+    public static string SerializeStringDictionary(List<Dictionary<string, string>> dictionary)
+    {
+        return dictionary == null || dictionary.Count == 0 ? string.Empty : JsonSerializer.Serialize(dictionary);
+    }
+    public static List<Dictionary<string, string>> DeSerializeStringDictionary(string json)
+    {
+        return string.IsNullOrEmpty(json) ? new List<Dictionary<string, string>>() : JsonSerializer.Deserialize<List<Dictionary<string, string>>>(json);
+    }
+
     public static List<AssetMinimal> ConvertAssetDTO2Minimal(List<AssetDTO> assets, IMapper _mapper)
     {
         
