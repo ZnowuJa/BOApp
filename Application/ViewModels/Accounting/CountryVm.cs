@@ -1,20 +1,15 @@
 ﻿using Application.Mappings;
+
 using AutoMapper;
+
 using Domain.Entities.Accounting;
+
 using System.ComponentModel.DataAnnotations;
 
 namespace Application.ViewModels.Accounting
 {
     public class CountryVm : IMapFrom<Country>
     {
-        public CountryVm()
-        {
-            Name = "Polska";
-            CountryCode = "PL";
-            IsEU = true;
-            IsPL = true;
-            CurrencyVmName = "PLN";
-        }
         public int Id { get; set; }
 
         [Required(ErrorMessage = "CountryCode is required.")]
@@ -33,7 +28,6 @@ namespace Application.ViewModels.Accounting
         public int? CurrencyVmId { get; set; }
         public string? CurrencyVmName { get; set; }
         public CurrencyVm? currencyVm { get; set; }
-        
         public decimal Allowance { get; set; }
         public decimal AllowanceFirstDay8H { get; set; }
         public decimal AllowanceFirstDay12H { get; set; }
@@ -42,14 +36,12 @@ namespace Application.ViewModels.Accounting
         public decimal BreakfastReduction { get; set; }
         public decimal LunchReduction { get; set; }
         public decimal DinnerReduction { get; set; }
-        public decimal AccomodationAllowance { get; set; } //Ryczałt za nocleg
+        public decimal AccomodationAllowance { get; set; }
         public decimal TravelAllowance { get; set; }
         public decimal LocalTravelAllowance { get; set; }
-        public decimal MaxHotelCost { get; set; } = 500;
 
         public void Mapping(Profile profile)
         {
-            profile.AllowNullCollections = true;
             profile.CreateMap<Country, CountryVm>().ReverseMap();
         }
     }

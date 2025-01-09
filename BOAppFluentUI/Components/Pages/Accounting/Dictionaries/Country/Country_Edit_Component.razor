@@ -23,47 +23,110 @@
     <EditForm EditContext="_editContext">
         @* <FluentValidationValidator @ref="_fluentValidator" /> *@
         <DataAnnotationsValidator />
+        <FluentSplitter Orientation="@orientation" BarSize="6" Panel1MinSize="15%" Panel1Size="30%">
 
-        <div class="card">
-            <FluentTextField Id="Code" @bind-Value="@Content.CountryCode" Placeholder="Enter country code">CountryCode:</FluentTextField>
-            <FluentValidationMessage For="@(() => Content.CountryCode)" />
-        </div>
+            <Panel1>
+                <div>
+                    <div class="card">
+                        <FluentTextField Id="Code" @bind-Value="@Content.CountryCode" Placeholder="Enter country code">CountryCode:</FluentTextField>
+                        <FluentValidationMessage For="@(() => Content.CountryCode)" />
+                    </div>
 
-        <div class="card">
-            <FluentTextField Id="Name" @bind-Value="@Content.Name" Placeholder="Enter country name">Name:</FluentTextField>
-            <FluentValidationMessage For="@(() => Content.Name)" />
-        </div>
+                    <div class="card">
+                        <FluentTextField Id="Name" @bind-Value="@Content.Name" Placeholder="Enter country name">Name:</FluentTextField>
+                        <FluentValidationMessage For="@(() => Content.Name)" />
+                    </div>
 
-        <div class="card">
-            Country belongs to the EU
-            <FluentCheckbox Id="IsEU" @bind-Value="@Content.IsEU"></FluentCheckbox>
-            <FluentValidationMessage For="@(() => Content.IsEU)" />
-        </div>
+                    <div class="card">
+                        <FluentCheckbox Id="IsEU" Value="@Content.IsEU" ValueChanged="@(e => OnCheckboxChange("IsEU", e))" Label="Is EU"></FluentCheckbox>
+                        <FluentValidationMessage For="@(() => Content.IsEU)" />
+                    </div>
 
-        <div class="card">
-            Is PL:
-            <FluentCheckbox Id="IsPL" @bind-Value="@Content.IsPL"></FluentCheckbox>
-            <FluentValidationMessage For="@(() => Content.IsPL)" />
-        </div>
+                    <div class="card">
+                        <FluentCheckbox Id="IsPL" Value="Content.IsPL" ValueChanged="@(e => OnCheckboxChange("IsPL", e))" Label="Is PL"></FluentCheckbox>
+                        <FluentValidationMessage For="@(() => Content.IsPL)" />
+                    </div>
 
-        <div class="card">
-            <FluentSelect TOption="CurrencyVm"
-                          Label="Select currency..."
-                          Items="@itemCurrencyList"
-                          Id="CurrId"
-                          Width="150px"
-                          Height="250px"
-                          OptionValue="@(p => p.Id.ToString())"
-                          OptionText="@(p => p.Name)"
-                          @bind-SelectedOption="@Content.currencyVm"
-                          @onchange="onChangeCurrency" />
-        </div>
+                    <div class="card">
+                        <FluentSelect TOption="CurrencyVm"
+                                      Label="Select currency..."
+                                      Items="@itemCurrencyList"
+                                      Id="CurrencyId"
+                                      Width="150px"
+                                      Height="250px"
+                                      OptionValue="@(p => p.Id.ToString())"
+                                      OptionText="@(p => p.Name)"
+                                      @bind-SelectedOption="@Content.currencyVm"
+                                      @onchange="onChangeCurrency" />
+                    </div>
 
-        <div class="card">
-            <FluentNumberField Id="Allowance" @bind-Value="@Content.Allowance" Placeholder="Enter allowance">Allowance:</FluentNumberField>
-            <FluentValidationMessage For="@(() => Content.Allowance)" />
-        </div>
+                    <div class="card">
+                        <FluentNumberField Id="Allowance" Value="Content.Allowance" ValueChanged="@((decimal e)=>OnAmountChange(e))" Placeholder="Enter allowance">Allowance:</FluentNumberField>
+                        <FluentValidationMessage For="@(() => Content.Allowance)" />
+                    </div>
+                    @*                     <div>
+                        <FluentButton Appearance="Appearance.Accent" OnClick="@CalculateFields">Oblicz</FluentButton>
+                        <FluentButton Appearance="Appearance.Accent" OnClick="@ChangeEditMode">Edytuj</FluentButton>
+                    </div> *@
+                </div>
+            </Panel1>
 
+            <Panel2>
+                <FluentSplitter Orientation="@orientation" BarSize="6" Panel1MinSize="30%" Panel1Size="50%">
+                    <Panel1>
+                        <div>
+                            <div class="card">
+                                <FluentNumberField Id="AllowanceFirstDay8H" @bind-Value="@Content.AllowanceFirstDay8H">AllowanceFirstDay8H:</FluentNumberField>
+                                <FluentValidationMessage For="@(() => Content.AllowanceFirstDay8H)" />
+                            </div>
+                            <div class="card">
+                                <FluentNumberField Id="AllowanceFirstDay12H" @bind-Value="@Content.AllowanceFirstDay12H">AllowanceFirstDay12H:</FluentNumberField>
+                                <FluentValidationMessage For="@(() => Content.AllowanceFirstDay12H)" />
+                            </div>
+                            <div class="card">
+                                <FluentNumberField Id="AllowanceNextDay8H" @bind-Value="@Content.AllowanceNextDay8H">AllowanceNextDay8H:</FluentNumberField>
+                                <FluentValidationMessage For="@(() => Content.AllowanceNextDay8H)" />
+                            </div>
+                            <div class="card">
+                                <FluentNumberField Id="AllowanceNextDay12H" @bind-Value="@Content.AllowanceNextDay12H">AllowanceNextDay12H:</FluentNumberField>
+                                <FluentValidationMessage For="@(() => Content.AllowanceNextDay12H)" />
+                            </div>
+
+                        </div>
+                    </Panel1>
+                    <Panel2>
+                        <div>
+                            <div class="card">
+                                <FluentNumberField Id="BreakfastReduction" @bind-Value="@Content.BreakfastReduction">BreakfastReduction:</FluentNumberField>
+                                <FluentValidationMessage For="@(() => Content.BreakfastReduction)" />
+                            </div>
+                            <div class="card">
+                                <FluentNumberField Id="LunchReduction" @bind-Value="@Content.LunchReduction">LunchReduction:</FluentNumberField>
+                                <FluentValidationMessage For="@(() => Content.LunchReduction)" />
+                            </div>
+                            <div class="card">
+                                <FluentNumberField Id="DinnerReduction" @bind-Value="@Content.DinnerReduction">DinnerReduction:</FluentNumberField>
+                                <FluentValidationMessage For="@(() => Content.DinnerReduction)" />
+                            </div>
+                            <div class="card">
+                                <FluentNumberField Id="AccomodationAllowance" @bind-Value="@Content.AccomodationAllowance">AccomodationAllowance:</FluentNumberField>
+                                <FluentValidationMessage For="@(() => Content.AccomodationAllowance)" />
+                            </div>
+                            <div class="card">
+                                <FluentNumberField Id="TravelAllowance" @bind-Value="@Content.TravelAllowance">TravelAllowance:</FluentNumberField>
+                                <FluentValidationMessage For="@(() => Content.TravelAllowance)" />
+                            </div>
+                            <div class="card">
+                                <FluentNumberField Id="LocalTravelAllowance" @bind-Value="@Content.LocalTravelAllowance">LocalTravelAllowance:</FluentNumberField>
+                                <FluentValidationMessage For="@(() => Content.LocalTravelAllowance)" />
+                            </div>
+
+                        </div>
+
+                    </Panel2>
+                </FluentSplitter>
+            </Panel2>
+        </FluentSplitter>
         @* <FluentButton OnClick="() => ShowCurrentValue()">Show Current IsEU Value</FluentButton> *@
 
     </EditForm>
@@ -71,12 +134,11 @@
 
 <!-- Footer -->
 <FluentDialogFooter>
-    <FluentButton Appearance="Appearance.Accent" OnClick="@SaveAsync">Save</FluentButton>
+    <FluentButton Appearance="Appearance.Accent" OnClick="@SaveAsync" Disabled="isCalculated">Save</FluentButton>
     <FluentButton Appearance="Appearance.Neutral" OnClick="@CancelAsync">Cancel</FluentButton>
 </FluentDialogFooter>
 
 @code {
-
     [Parameter]
     public CountryVm Content { get; set; } = default!;
 
@@ -90,15 +152,26 @@
 
     private IQueryable<CurrencyVm> itemCurrencyList { get; set; }
 
+    //private bool editMode = true;
 
-    private string errorMessage;
+    private bool isCalculated = true;
+
+    bool isPL, isEU;
+
+    Orientation orientation = Orientation.Horizontal;
 
     protected override async Task OnInitializedAsync()
     {
         _editContext = new EditContext(Content);
         itemCurrencyList = await _mediator.Send(new GetAllCurrenciesForSelectQuery());
+        isCalculated = Content.Id <= 0;
         base.OnInitialized();
     }
+
+    // private void ChangeEditMode()
+    // {
+    //     editMode = !editMode;
+    // }
 
     private void onChangeCurrency(ChangeEventArgs e)
     {
@@ -106,15 +179,15 @@
         Content.CurrencyId = selected.Id;
         Content.CurrencyVmName = selected.Name;
         // Console.WriteLine("e.Value " + e.Value);
-        // Console.WriteLine("Przed: " + Content.currencyVm.Id + " " + Content.currencyVm.Name);
+        // Console.WriteLine("Przed: " + Content.CurrencyVm.Id + " " + Content.CurrencyVm.Name);
         // Console.WriteLine("Po: " + Content.CurrencyVmId + " " + Content.CurrencyVmName);
     }
 
     // private void HandleCurrencyChange(string newValue)
     // {
-    //     if (Content.currencyVm.Id != null)
+    //     if (Content.CurrencyVm.Id != null)
     //     {
-    //         Content.CurrencyVmId = Content.currencyVm.Id;
+    //         Content.CurrencyVmId = Content.CurrencyVm.Id;
     //     }
     //     else
     //     {
@@ -123,10 +196,36 @@
 
     // }
 
+
+    private void OnCheckboxChange(string fieldName, bool newValue)
+    {
+        Console.WriteLine($"Checkbox changed: {fieldName} = {newValue}");
+
+        if (fieldName == "IsPL")
+        {
+            Content.IsPL = newValue;
+        }
+        else if (fieldName == "IsEU")
+        {
+            Content.IsEU = newValue;
+        }
+
+        CalculateFields();
+    }
+
+    private void OnAmountChange(decimal newAmount)
+    {
+        Console.WriteLine($"Amount changed: Allowance = {newAmount}");
+        Content.Allowance = newAmount;
+        CalculateFields();
+    }
+
     private void CalculateFields()
     {
+        Console.WriteLine($"Calculating fields for Allowance: {Content.Allowance}");
         if (Content.IsPL)
         {
+            Console.WriteLine("Using PL rules");
             Content.AllowanceFirstDay8H = Content.Allowance * 0;
             Content.AllowanceFirstDay12H = Content.Allowance / 2;
             Content.AllowanceNextDay8H = Content.Allowance / 2;
@@ -137,9 +236,12 @@
             Content.AccomodationAllowance = Content.Allowance * 1.5m;
             Content.TravelAllowance = Content.Allowance * 0;
             Content.LocalTravelAllowance = Content.Allowance * 0.2m;
+            isCalculated = false;
+
         }
         else if (Content.IsEU && !Content.IsPL)
         {
+            Console.WriteLine("Using EU rules");
             Content.AllowanceFirstDay8H = Content.Allowance / 3;
             Content.AllowanceFirstDay12H = Content.Allowance / 2;
             Content.AllowanceNextDay8H = Content.Allowance / 3;
@@ -150,7 +252,27 @@
             Content.AccomodationAllowance = Content.Allowance * 1.5m;
             Content.TravelAllowance = Content.Allowance * 0.5m;
             Content.LocalTravelAllowance = Content.Allowance * 0.1m;
+            isCalculated = false;
         }
+        else
+        {
+            Console.WriteLine("Clearing fields");
+            Clear();
+        }
+    }
+
+    private void Clear()
+    {
+        Content.AllowanceFirstDay8H = 0;
+        Content.AllowanceFirstDay12H = 0;
+        Content.AllowanceNextDay8H = 0;
+        Content.AllowanceNextDay12H = 0;
+        Content.BreakfastReduction = 0;
+        Content.LunchReduction = 0;
+        Content.DinnerReduction = 0;
+        Content.AccomodationAllowance = 0;
+        Content.TravelAllowance = 0;
+        Content.LocalTravelAllowance = 0;
     }
 
     private async Task SaveAsync()
@@ -159,7 +281,6 @@
         if (_editContext.Validate())
         {
             Console.WriteLine("EditContext Validation OK!...");
-            CalculateFields();
             await Dialog.CloseAsync(Content);
         }
         else
@@ -177,4 +298,5 @@
     {
         await Dialog.CancelAsync();
     }
+
 }
