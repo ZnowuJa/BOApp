@@ -43,7 +43,7 @@
                     </div>
 
                     <div class="card">
-                        <FluentCheckbox Id="IsPL" Value="Content.IsPL" ValueChanged="@(e => OnCheckboxChange("IsPL", e))" Label="Is PL"></FluentCheckbox>
+                        <FluentCheckbox Id="IsPL" Value="Content.IsPL" ValueChanged="@(e => OnCheckboxChange("IsPL", e))"  Label="Is PL"></FluentCheckbox>
                         <FluentValidationMessage For="@(() => Content.IsPL)" />
                     </div>
 
@@ -64,7 +64,7 @@
                         <FluentNumberField Id="Allowance" Value="Content.Allowance" ValueChanged="@((decimal e)=>OnAmountChange(e))" Placeholder="Enter allowance">Allowance:</FluentNumberField>
                         <FluentValidationMessage For="@(() => Content.Allowance)" />
                     </div>
-                    @*                     <div>
+@*                     <div>
                         <FluentButton Appearance="Appearance.Accent" OnClick="@CalculateFields">Oblicz</FluentButton>
                         <FluentButton Appearance="Appearance.Accent" OnClick="@ChangeEditMode">Edytuj</FluentButton>
                     </div> *@
@@ -105,7 +105,7 @@
                                 <FluentValidationMessage For="@(() => Content.LunchReduction)" />
                             </div>
                             <div class="card">
-                                <FluentNumberField Id="DinnerReduction" @bind-Value="@Content.DinnerReduction">DinnerReduction:</FluentNumberField>
+                                 <FluentNumberField Id="DinnerReduction" @bind-Value="@Content.DinnerReduction">DinnerReduction:</FluentNumberField>
                                 <FluentValidationMessage For="@(() => Content.DinnerReduction)" />
                             </div>
                             <div class="card">
@@ -113,7 +113,7 @@
                                 <FluentValidationMessage For="@(() => Content.AccomodationAllowance)" />
                             </div>
                             <div class="card">
-                                <FluentNumberField Id="TravelAllowance" @bind-Value="@Content.TravelAllowance">TravelAllowance:</FluentNumberField>
+                                <FluentNumberField Id="TravelAllowance" @bind-Value="@Content.TravelAllowance" >TravelAllowance:</FluentNumberField>
                                 <FluentValidationMessage For="@(() => Content.TravelAllowance)" />
                             </div>
                             <div class="card">
@@ -239,7 +239,7 @@
             isCalculated = false;
 
         }
-        else if (Content.IsEU && !Content.IsPL)
+        else if(Content.IsEU && !Content.IsPL)
         {
             Console.WriteLine("Using EU rules");
             Content.AllowanceFirstDay8H = Content.Allowance / 3;
@@ -254,10 +254,10 @@
             Content.LocalTravelAllowance = Content.Allowance * 0.1m;
             isCalculated = false;
         }
-        else
-        {
+        else 
+        { 
             Console.WriteLine("Clearing fields");
-            Clear();
+            Clear(); 
         }
     }
 
