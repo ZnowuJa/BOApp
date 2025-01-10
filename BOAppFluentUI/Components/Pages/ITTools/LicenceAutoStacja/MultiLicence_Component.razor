@@ -79,7 +79,7 @@
                 .Select(d => d.Name)
                 .ToList();
 
-            await _mediator.Send(new AssignLicenseToLocationCommand(Content.Nazwa, selectedDealers));
+            //await _mediator.Send(new AssignLicenseToLocationCommand(Content.Nazwa, selectedDealers));
             Message = $"Przypisano lokalizację {selectedDealers} do licencji {@Content.Nazwa}";
         }
         catch (Exception ex)

@@ -26,14 +26,6 @@ namespace Application.ViewModels.Accounting
         public string? CurrencyVmName { get; set; }
         public CurrencyVm? currencyVm { get; set; }
         public decimal Allowance { get; set; }
-        public decimal AllowanceFirstDay8H { get; set; }
-        public decimal AllowanceFirstDay12H { get; set; }
-        public decimal AllowanceNextDay8H { get; set; }
-        public decimal AllowanceNextDay12H { get; set; }
-        public decimal BreakfastReduction { get; set; }
-        public decimal LunchReduction { get; set; }
-        public decimal DinnerReduction { get; set; }
-        public decimal AccomodationAllowance { get; set; }
         public decimal TravelAllowance { get; set; }
         public decimal LocalTravelAllowance { get; set; }
         public decimal MaxHotelCost { get; set; }
