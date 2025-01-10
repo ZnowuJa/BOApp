@@ -1,7 +1,10 @@
-﻿@page "/settlementsettings"
+﻿@page "/accountingsettings"
+@using Microsoft.AspNetCore.Authorization
 @inject NavigationManager _navMan
 
-<h3>SettlementSettings</h3>
+@attribute [Authorize(Policy = "Accountant")]
+
+<h3>Accounting Settings</h3>
 
 <FluentGrid Justify="@Justification">
         <FluentGridItem xs="@xssize" sm="@smsize">
@@ -10,12 +13,12 @@
                          HorizontalAlignment="HorizontalAlignment.Center"
                          VerticalAlignment="VerticalAlignment.Center">
                 <FluentIcon Value="@(new Icons.Regular.Size24.MoneyCalculator())" />
-                <h4>CostCenters</h4>
+                <h4>MPK</h4>
 
                 <FluentButton BackgroundColor="var(--accent-fill-rest)"
                               Color="var(--neutral-fill-rest)"
-                              OnClick="@(()=>_navMan.NavigateTo("/costcenters"))">
-                    CostCenters
+                              OnClick="@(()=>_navMan.NavigateTo("/mpk"))">
+                    MPK
                 </FluentButton>
             </FluentStack>
         </FluentCard>
@@ -26,12 +29,12 @@
                          HorizontalAlignment="HorizontalAlignment.Center"
                          VerticalAlignment="VerticalAlignment.Center">
                 <FluentIcon Value="@(new Icons.Regular.Size24.Globe())" />
-                <h4>Countries</h4>
+                <h4>Państwa</h4>
 
                 <FluentButton BackgroundColor="var(--accent-fill-rest)"
                               Color="var(--neutral-fill-rest)"
-                              OnClick="@(()=>_navMan.NavigateTo("/countries"))">
-                    Countries
+                              OnClick="@(()=>_navMan.NavigateTo("/panstwa"))">
+                    Państwa
                 </FluentButton>
             </FluentStack>
         </FluentCard>
@@ -42,12 +45,12 @@
                          HorizontalAlignment="HorizontalAlignment.Center"
                          VerticalAlignment="VerticalAlignment.Center">
                 <FluentIcon Value="@(new Icons.Regular.Size24.PersonAccounts())" />
-                <h4>GLAccounts</h4>
+                <h4>Konta księgi głównej</h4>
 
                 <FluentButton BackgroundColor="var(--accent-fill-rest)"
                               Color="var(--neutral-fill-rest)"
-                              OnClick="@(()=>_navMan.NavigateTo("/glaccounts"))">
-                    GLAccounts
+                              OnClick="@(()=>_navMan.NavigateTo("/kontaksiegiglownej"))">
+                    Konta księgi głównej
                 </FluentButton>
             </FluentStack>
         </FluentCard>
@@ -58,12 +61,12 @@
                          HorizontalAlignment="HorizontalAlignment.Center"
                          VerticalAlignment="VerticalAlignment.Center">
                 <FluentIcon Value="@(new Icons.Regular.Size24.DocumentMultiplePercent())" />
-                <h4>VATRates</h4>
+                <h4>Stawki VAT</h4>
 
                 <FluentButton BackgroundColor="var(--accent-fill-rest)"
                               Color="var(--neutral-fill-rest)"
-                              OnClick="@(()=>_navMan.NavigateTo("/vatrates"))">
-                    VATRates
+                              OnClick="@(()=>_navMan.NavigateTo("/stawkivat"))">
+                    Stawki VAT
                 </FluentButton>
             </FluentStack>
         </FluentCard>

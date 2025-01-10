@@ -1,25 +1,27 @@
-﻿@page "/countries"
+﻿@page "/panstwa"
+@page "/countries"
+
 @using Application.CQRS.AccountingCQRS.Countries.Queries
 @using Application.CQRS.AccountingCQRS.Countries.Commands
 @using Application.ViewModels.Accounting
 @using Microsoft.AspNetCore.Authorization
 
-@attribute [Authorize(Policy = "Technician")]
+@attribute [Authorize(Policy = "Accountant")]
 
 @inject IMediator _mediator
 @inject IDialogService _dialogService
 @inject IToastService _toastService
 
-<h3>Countries</h3>
+<h3>Państwa</h3>
 
 @if (country == null)
 {
-    <FluentProgressRing>Loading...</FluentProgressRing>
+    <FluentProgressRing>Ładowanie...</FluentProgressRing>
 }
 else
 {
     <p>
-        Show:
+        Pokaż:
         <FluentCheckbox @bind-Value="showDailyAllowances">Daily Allowances</FluentCheckbox>
         <FluentCheckbox @bind-Value="showMealReductions">Meal Reductions</FluentCheckbox>
         <FluentCheckbox @bind-Value="showTravelAndAccommodation">Travel and Accommodation Allowances</FluentCheckbox>
@@ -28,9 +30,9 @@ else
     <FluentDataGrid Items="@country"
                     TGridItem="CountryVm"
                     ResizableColumns=true
-                    Style="height: 600px; overflow:auto;"
+                    Style="overflow:auto;"
                     ShowHover="true"
-                    GridTemplateColumns="200px 200px 200px 200px 200px 200px 200px 200px 200px 200px 200px 200px 200px 200px 200px 200px 200px 200px">
+                    GridTemplateColumns="repeat(17, 200px)">
         <PropertyColumn Property="@(c => c.Id)" Sortable="true" Align="Align.Start" Tooltip="true" />
         <PropertyColumn Property="@(c => c.CountryCode)" Sortable="true" Align="Align.Start" Tooltip="true" />
         <PropertyColumn Property="@(c => c.Name)" Sortable="true" Align="Align.Start" Tooltip="true" />
@@ -89,30 +91,25 @@ else
         country = await _mediator.Send(new GetAllCountryQuery());
     }
 
-    // private void HandleRowFocus(FluentDataGridRow<CountryVm> row)
-    // {
-    //     View(row.Item);
-    // }
-
     private async Task View(CountryVm item)
     {
         await _dialogService.ShowInfoAsync
     (
-        message: $"Country ID: {item.Id}" +
-                 $"Code {item.CountryCode}" +
-                 $"Name: {item.Name}" +
-                 $"Currency: {item.CurrencyVmName}" +
-                 $"Is EU:{(item.IsEU ? "Yes" : "No")}"
+        message: $"ID państwa: {item.Id}" +
+                 $"Kod: {item.CountryCode}"+
+                 $"Nazwa: {item.Name}" +
+                 $"Waluta: {item.CurrencyVmName}"+
+                 $"Czy w UE: {(item.IsEU ? "Tak" : "Nie")}"
     );
     }
 
     private async Task Delete(CountryVm item)
     {
         var dialog = await _dialogService.ShowConfirmationAsync(
-            $"You are about to delete Country: {item.Name} \n Are you sure?",
-            "Yes",
-            "No",
-            "Confirm delete operation");
+            $"Czy na pewno chcesz usunąć państwo: {item.Name}?",
+            "Usuń",
+            "Anuluj",
+            "Potwierdź usunięcie");
         var result = await dialog.Result;
         deleteConfirm = result.Cancelled;
         ToastIntent intent;
@@ -121,13 +118,13 @@ else
         if (deleteConfirm)
         {
             intent = ToastIntent.Error;
-            message = "Country has not been deleted!";
+            message = "Operacja anulowana";
         }
         else
         {
             var i = await _mediator.Send(new DeleteCountryCommand(item.Id));
             intent = ToastIntent.Success;
-            message = "Country has been deleted!";
+            message = "Państwo zostało usunięte!";
         }
 
         _toastService.ShowToast(intent, message, 3000);
@@ -142,9 +139,9 @@ else
 
         var dialog = await _dialogService.ShowDialogAsync<Country_Edit_Component>(item, new DialogParameters()
             {
-                Height = "70%",
-                Width = "50%",
-                Title = item.Id > 0 ? "Update Country..." : "Create New Country",
+                Height = "450px",
+                Width = "720px",
+                Title = item.Id > 0 ? "Aktualizacja państwa" : "Dodanie nowego państwa",
                 PreventDismissOnOverlayClick = false,
                 PreventScroll = true,
             });
@@ -159,29 +156,29 @@ else
             {
                 resultId = await _mediator.Send(new UpdateCountryCommand(final));
                 intent = ToastIntent.Success;
-                message = "Country has been updated!";
+                message = "Państwo zostało zaktualizowane!";
             }
             else if (final.Id == 0)
             {
                 resultId = await _mediator.Send(new CreateCountryCommand(final));
                 intent = ToastIntent.Success;
-                message = "Country has been created!";
+                message = "Państwo zostało utworzone!";
             }
             else
             {
                 intent = ToastIntent.Warning;
-                message = "Something went really wrong!";
+                message = "Coś poszło źle!";
             }
         }
         else if (result.Cancelled)
         {
             intent = ToastIntent.Info;
-            message = "Operation Cancelled...";
+            message = "Operacja anulowana";
         }
         else
         {
             intent = ToastIntent.Error;
-            message = "Something went wrong!!!";
+            message = "Coś poszło źle!";
         }
 
         await Load();

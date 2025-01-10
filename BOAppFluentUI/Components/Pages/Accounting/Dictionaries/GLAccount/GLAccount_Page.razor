@@ -1,20 +1,22 @@
 ﻿@page "/glaccounts"
+@page "/kontaksiegiglownej"
+
 @using Application.CQRS.AccountingCQRS.GLAccounts.Queries
 @using Application.CQRS.AccountingCQRS.GLAccounts.Commands
 @using Application.ViewModels.Accounting
 @using Microsoft.AspNetCore.Authorization
 
-@attribute [Authorize(Policy = "Technician")]
+@attribute [Authorize(Policy = "Accountant")]
 
 @inject IMediator _mediator
 @inject IDialogService _dialogService
 @inject IToastService _toastService
 
-<h3>GLAccounts</h3>
+<h3>Konta księgi głównej</h3>
 
 @if (glaccount == null)
 {
-    <FluentProgressRing>Loading...</FluentProgressRing>
+    <FluentProgressRing>Ładowanie...</FluentProgressRing>
 }
 else
 {
@@ -49,16 +51,16 @@ else
 
     private async Task View(GLAccountVm item)
     {
-        await _dialogService.ShowInfoAsync(message: $"GLAccount ID: {item.Id}, AccountNumber: {item.AccountNumber}, Description: {item.Description}");
+        await _dialogService.ShowInfoAsync(message: $"Id: {item.Id}, Numer Konta: {item.AccountNumber}, Opis: {item.Description}");
     }
 
     private async Task Delete(GLAccountVm item)
     {
         var dialog = await _dialogService.ShowConfirmationAsync(
-            $"You are about to delete GLAccount: {item.Description} \n Are you sure?",
-            "Yes",
-            "No",
-            "Confirm delete operation");
+            $"Czy na pewno chcesz usunąć konto księgi głównej: {item.Description}?",
+            "Usuń",
+            "Anuluj",
+            "Potwierdź usunięcie");
         var result = await dialog.Result;
         deleteConfirm = result.Cancelled;
         ToastIntent intent;
@@ -67,13 +69,13 @@ else
         if (deleteConfirm)
         {
             intent = ToastIntent.Error;
-            message = "GLAccount has not been deleted!";
+            message = "Operacja anulowana";
         }
         else
         {
             var i = await _mediator.Send(new DeleteGLAccountCommand(item.Id));
             intent = ToastIntent.Success;
-            message = "GLAccount has been deleted!";
+            message = "Konto księgi głównej zostało usunięte!";
         }
 
         _toastService.ShowToast(intent, message, 3000);
@@ -90,7 +92,7 @@ else
             {
                 Height = "500px",
                 Width = "400px",
-                Title = item.Id > 0 ? "Update GLAccount..." : "Create New GLAccount",
+                Title = item.Id > 0 ? "Aktualizuj konto księgi głównej" : "Dodanie nowego konta księgi głównej",
                 PreventDismissOnOverlayClick = false,
                 PreventScroll = true,
             });
@@ -105,29 +107,29 @@ else
             {
                 resultId = await _mediator.Send(new UpdateGLAccountCommand(final));
                 intent = ToastIntent.Success;
-                message = "GLAccount has been updated!";
+                message = "Konto księgi głównej zostało zaktualizowane!";
             }
             else if (final.Id == 0)
             {
                 resultId = await _mediator.Send(new CreateGLAccountCommand(final));
                 intent = ToastIntent.Success;
-                message = "GLAccount has been created!";
+                message = "Konto księgi głównej zostało utworzone!";
             }
             else
             {
                 intent = ToastIntent.Warning;
-                message = "Something went really wrong!";
+                message = "Coś poszło źle!";
             }
         }
         else if (result.Cancelled)
         {
             intent = ToastIntent.Info;
-            message = "Operation Cancelled...";
+            message = "Operacja anulowana";
         }
         else
         {
             intent = ToastIntent.Error;
-            message = "Something went wrong!!!";
+            message = "Coś poszło źle!";
         }
 
         await Load();

@@ -1,20 +1,22 @@
 ﻿@page "/vatrates"
+@page "/stawkivat"
+
 @using Application.CQRS.AccountingCQRS.VATRates.Queries
 @using Application.CQRS.AccountingCQRS.VATRates.Commands
 @using Application.ViewModels.Accounting
 @using Microsoft.AspNetCore.Authorization
 
-@attribute [Authorize(Policy = "Technician")]
+@attribute [Authorize(Policy = "Accountant")]
 
 @inject IMediator _mediator
 @inject IDialogService _dialogService
 @inject IToastService _toastService
 
-<h3>VATRates</h3>
+<h3>Stawki VAT</h3>
 
 @if (vatrate == null)
 {
-    <FluentProgressRing>Loading...</FluentProgressRing>
+    <FluentProgressRing>Ładowanie...</FluentProgressRing>
 }
 else
 {
@@ -51,16 +53,16 @@ else
 
     private async Task View(VATRateVm item)
     {
-        await _dialogService.ShowInfoAsync(message: $"VATRate ID: {item.Id}, Name: {item.Name}, Percentage: {item.Percentage}, Information: {item.Information}, Order: {item.Order}");
+        await _dialogService.ShowInfoAsync(message: $"Id: {item.Id}, Nazwa: {item.Name}, Procent: {item.Percentage}, Informacje: {item.Information}, Kolejność: {item.Order}");
     }
 
     private async Task Delete(VATRateVm item)
     {
         var dialog = await _dialogService.ShowConfirmationAsync(
-            $"You are about to delete VATRate: {item.Name} \n Are you sure?",
-            "Yes",
-            "No",
-            "Confirm delete operation");
+            $"Czy na pewno chcesz usunąć stawke VAT: {item.Name}?",
+            "Usuń",
+            "Anuluj",
+            "Potwierdź usunięcie");
         var result = await dialog.Result;
         deleteConfirm = result.Cancelled;
         ToastIntent intent;
@@ -69,13 +71,13 @@ else
         if (deleteConfirm)
         {
             intent = ToastIntent.Error;
-            message = "VATRate has not been deleted!";
+            message = "Operacja anulowana";
         }
         else
         {
             var i = await _mediator.Send(new DeleteVATRateCommand(item.Id));
             intent = ToastIntent.Success;
-            message = "VATRate has been deleted!";
+            message = "Stawka VAT została usunięta!";
         }
 
         _toastService.ShowToast(intent, message, 3000);
@@ -92,7 +94,7 @@ else
             {
                 Height = "500px",
                 Width = "400px",
-                Title = item.Id > 0 ? "Update VATRate..." : "Create New VATRate",
+                Title = item.Id > 0 ? "Aktualizuj stawki VAT" : "Dodanie nowej stawki VAT",
                 PreventDismissOnOverlayClick = false,
                 PreventScroll = true,
             });
@@ -107,29 +109,29 @@ else
             {
                 resultId = await _mediator.Send(new UpdateVATRateCommand(final));
                 intent = ToastIntent.Success;
-                message = "VATRate has been updated!";
+                message = "Stawka VAT została zaktualizowana!";
             }
             else if (final.Id == 0)
             {
                 resultId = await _mediator.Send(new CreateVATRateCommand(final));
                 intent = ToastIntent.Success;
-                message = "VATRate has been created!";
+                message = "Stawka VAT została utworzona!";
             }
             else
             {
                 intent = ToastIntent.Warning;
-                message = "Something went really wrong!";
+                message = "Coś poszło źle!";
             }
         }
         else if (result.Cancelled)
         {
             intent = ToastIntent.Info;
-            message = "Operation Cancelled...";
+            message = "Operacja anulowana";
         }
         else
         {
             intent = ToastIntent.Error;
-            message = "Something went wrong!!!";
+            message = "Coś poszło źle!";
         }
 
         await Load();
