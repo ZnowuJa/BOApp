@@ -1092,7 +1092,7 @@
             CountryCode = country.CountryCode,
             CountryName = country.Name,
             Duration = firstStage.Duration,
-            AllowanceRate = country.AccomodationAllowance,
+            AllowanceRate = country.IsPL ? country.Allowance * 1.5m : country.MaxHotelCost / 4, //Ryczałt za nocleg
             AllowanceRateCurrency = country.CurrencyVmName,
             MaxHotelCost = country.MaxHotelCost,
             HasInvoices = true,
