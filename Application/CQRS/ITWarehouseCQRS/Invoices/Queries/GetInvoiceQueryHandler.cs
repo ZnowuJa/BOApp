@@ -78,7 +78,7 @@ public class GetInvoiceQueryHandler : IRequestHandler<GetInvoiceQuery, InvoiceVm
         //    {
         //        var partVm = _mapper.Map<PartVm>(await _appDbContext.Parts.Where(p => p.Id == item.PartId).Include(i => i.Vendor).Include(i => i.Category).FirstOrDefaultAsync());
         //        var unitVm = _mapper.Map<UnitVm>(await _appDbContext.Units.Where(p => p.Id == item.UnitId).FirstOrDefaultAsync());
-        //        var currencyVm = _mapper.Map<CurrencyVm>(await _appDbContext.Currencies.Where(p => p.Id == item.CurrencyId).FirstOrDefaultAsync());
+        //        var currencyVm = _mapper.Map<currencyVm>(await _appDbContext.Currencies.Where(p => p.Id == item.CurrencyId).FirstOrDefaultAsync());
 
 
         //        var resInvItemVm = new InvoiceItemVm()
@@ -95,7 +95,7 @@ public class GetInvoiceQueryHandler : IRequestHandler<GetInvoiceQuery, InvoiceVm
         //            UnitVm = unitVm,
         //            CurrencyVmId = currencyVm.Id,
         //            CurrencyVmName = currencyVm.Title,
-        //            CurrencyVm = currencyVm,
+        //            currencyVm = currencyVm,
         //            InvoiceVmId = item.InvoiceId,
         //            ItemsGenerated = item.ItemsGenerated
 

@@ -28,6 +28,8 @@
     <None Remove="Controllers\**" />
     <None Remove="Pages\**" />
     <None Remove="Shared\**" />
+    <Content Remove="Components\Pages\Accounting\BusinessTrips\BT2.razor" />
+    <Content Remove="Components\Pages\Accounting\BusinessTrips\BusinessTrip_FromPage.razor" />
     <Content Remove="_ViewStart.cshtml" />
     <Content Remove="_ViewImports.cshtml" />
   </ItemGroup>
@@ -35,6 +37,7 @@
   <ItemGroup>
     <Compile Remove="AccountController.cs" />
     <Compile Remove="Components\LogoutPage.cshtml.cs" />
+    <Compile Remove="Components\Pages\Accounting\BusinessTrips\BusinessTrip_FromPage.razor.cs" />
     <Compile Remove="Components\Pages\Excluded\LogoutPage.cshtml.cs" />
     <Compile Remove="Components\Pages\Excluded\RefreshSignIn.cshtml.cs" />
     <Compile Remove="Components\Pages\RefreshSignIn.cshtml.cs" />

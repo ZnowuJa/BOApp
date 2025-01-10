@@ -1,0 +1,12 @@
+﻿using Application.ViewModels.General;
+
+namespace Application.ViewModels.Accounting;
+
+public class InvoiceMapping
+{
+    public int Id { get; set; }
+    public Location? Location { get; set; } = new();
+    public CostCenterVm CostCenter { get; set; } = new();
+    public GLAccountVm GLAccount { get; set; } = new();
+    public VATRateVm VATRate { get; set; } = new();
+}

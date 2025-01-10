@@ -1,6 +1,9 @@
 ﻿using Application.Mappings;
+
 using AutoMapper;
+
 using Domain.Entities.Accounting;
+
 using System.ComponentModel.DataAnnotations;
 
 namespace Application.ViewModels.Accounting

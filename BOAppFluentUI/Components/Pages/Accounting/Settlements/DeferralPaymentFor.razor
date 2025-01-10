@@ -15,7 +15,6 @@
 @using Microsoft.AspNetCore.Authorization
 @using System.Security.Claims
 
-
 @attribute [Authorize(Policy = "User")]
 
 @inject IConfiguration _configuration
@@ -39,7 +38,6 @@
     }
     
 }
-
 
 @if (customer == null)
 {
@@ -83,7 +81,6 @@ else
                           OptionValue="@(p => p.EmpId.ToString())"
                           OptionText="@(p => p.LongName)"
                           OptionSelected="@(p => p.IsDefault)"
-                          
                           @bind-SelectedOption="@approverL1"
                           Height="200px"
                           @onchange="HandleChangeApproverL1"
@@ -216,7 +213,6 @@ else
             try
             {
                 customer = await _mediator.Send(new GetCustomerQuery(Id));
-
 
                 if (customer != null)
                 {

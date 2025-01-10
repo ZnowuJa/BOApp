@@ -1,0 +1,169 @@
+﻿@page "/delegac/{id:int}"
+
+@using Application.CQRS.General.Workflows.Queries
+@using Application.CQRS.General.Organisations.Queries
+@using Application.CQRS.ITWarehouseCQRS.Employees.Queries
+@using Application.Forms.Accounting
+@using Application.ViewModels.Accounting
+@using Application.ViewModels.General
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.FluentUI.AspNetCore.Components.Extensions
+@using System.Security.Claims
+
+@inject IConfiguration _configuration
+@inject IMediator _mediator
+@inject IJSRuntime JS
+@inject ILogger<BusinessTravelFormVm> _logger
+@inject IToastService _toastService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager _navigationManager
+
+
+<h3>BusinessTrip_EditComponent</h3>
+@if (formItem == null && formItem.Approvals.Count < 1)
+{
+    <FluentProgressRing>Loading...</FluentProgressRing>
+}
+else
+{
+    <div>
+        <table>
+            <tr>
+                <td><b>Numer:</b></td>
+                <td>@formItem.Number</td>
+                <td><b>Zgłoszone: </b></td>
+                <td>@formItem.CreatedDate.ToString("YYYY-MM-dd")</td>
+            </tr>
+            <tr>
+                <td><b>Organizacja:</b></td>
+                <td>@_organisation.Name</td>
+                <td><b>Zgłaszający:</b></td>
+                <td>@formItem.EmployeeName</td>
+            </tr>
+            @* <tr> *@
+            @*     <td><b>Numer FK:</b></td> *@
+            @*     <td>@formItem.Numer_Fk</td> *@
+            @*     <td><b>Lokalizacja:</b></td> *@
+            @*     <td>@formItem.CC</td> *@
+            @* </tr> *@
+            @* <tr> *@
+            @*     <td><b>NIP:</b></td> *@
+            @*     <td>@formItem.VATID</td> *@
+            @*     <td><b></b></td> *@
+            @*     <td></td> *@
+            @* </tr> *@
+        </table>
+    </div>
+    <p></p>
+    @* @if (local) *@
+    @* { *@
+    @*      *@
+    @* } *@
+}
+
+@if(_organisation != null)
+{
+    <h5>Organizacja: @_organisation.Name</h5>
+    <h5>Pracownik: @_userContext.LongName</h5>
+    @if (_configuration["Environment"] == "DEV")
+    {
+        <h5>Status: @formItem.Status</h5>
+    }
+
+}
+
+<h1>Locations</h1>
+<table>
+    <thead>
+    <tr>
+        <th>Name</th>
+        <th>SAP Number</th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var location in _locations)
+    {
+        <tr>
+            <td>@location.Name</td>
+            <td>@location.SapNumber</td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+@code {
+    #region Declarations
+    [Parameter]
+    public int Id { get; set; }
+
+    private BusinessTravelFormVm formItem { get; set; } = new BusinessTravelFormVm();
+    
+    private ClaimsPrincipal? user { get; set; }
+    private string username { get; set; }
+    private EmployeeVm emp { get; set; }
+    private FormUserContext _userContext = new FormUserContext("BusinessTrip", "Technician");
+    private IQueryable<EmployeeVm> itemEmployeesList { get; set; }
+    private OrganisationRoleForFormVm approverL1 { get; set; }
+    private OrganisationRoleForFormVm approverL2 { get; set; }
+    private OrganisationRoleForFormVm approverL3 { get; set; }
+    private OrganisationRoleForFormVm approverL4 { get; set; }
+    private bool al1 = false;
+    private bool al2 = false;
+    private bool ApproveButton = true;
+    private bool SendButton = true;
+    private OrganisationVm _organisation { get; set; }
+    private WorkflowTemplateVm wf { get; set; }
+    private string FormName = "BusinessTravelFormVm";
+    private bool local = true;
+    private IQueryable<Location> _locations { get; set; }
+    #endregion
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Id == 0)
+        {
+            formItem = new BusinessTravelFormVm();
+        }
+        else
+        {
+            
+        }
+
+        try
+        {
+            await Utils.GetUserName(AuthenticationStateProvider, _userContext, _mediator);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+
+        await Utils.GetUserName(AuthenticationStateProvider, _userContext, _mediator);
+        // wf = await _mediator.Send(new GetWorkflowTemplateByFormNameQuery(FormName));
+        // _locations = await _mediator.Send(new GetLocationsQuery());
+        itemEmployeesList = await _mediator.Send(new GetAllEmployeesQuery());
+        _organisation = await _mediator.Send(new GetOrganisationByEmpSapNumberQuery(_userContext.Employee.SapNumber));
+        string deptNumber = _userContext.Employee.DeptNumber;
+        // _userContext.Employee.DeptNumber;
+        formItem.Approvals = new List<Approval>();
+        Approval approval = new Approval()
+        {
+            Status = formItem.Status,
+            EnovaEmpId = _userContext.EnovaEmpId,
+            LongName = _userContext.LongName,
+            Date = DateTime.Now,
+            IsApproved = true
+        };
+        formItem.Approvals.Add(approval);
+        formItem.WorkflowTemplateId = wf.Id;
+        
+    }
+    
+    private List<OrganisationRoleForFormVm> SetApprovers(List<OrganisationRoleVm> rolesIn)
+    {
+        return rolesIn
+            .Select(role => new OrganisationRoleForFormVm(role))
+            .ToList();
+    }
+    
+}

@@ -1,0 +1,15 @@
+﻿<FluentCheckbox @bind-Value:get = "@Paid" 
+                Label="Opłacone przez firmę: "
+                @bind-Value:set="e => OnPaidChanged(e)"/>
+@code {
+    [Parameter]
+    public bool Paid { get; set; } = false;
+    [Parameter]
+    public EventCallback<bool> PaidChanged { get; set; }
+
+    private async Task OnPaidChanged(bool x)
+    {
+        Paid = x;
+        await PaidChanged.InvokeAsync(Paid);
+    }
+}
