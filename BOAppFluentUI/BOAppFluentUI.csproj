@@ -29,6 +29,7 @@
     <None Remove="Pages\**" />
     <None Remove="Shared\**" />
     <Content Remove="Components\Pages\Accounting\BusinessTrips\BT2.razor" />
+    <Content Remove="Components\Pages\Accounting\BusinessTrips\BusinessTripStage_Component.razor" />
     <Content Remove="Components\Pages\Accounting\BusinessTrips\BusinessTrip_FromPage.razor" />
     <Content Remove="_ViewStart.cshtml" />
     <Content Remove="_ViewImports.cshtml" />

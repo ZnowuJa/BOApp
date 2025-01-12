@@ -1,0 +1,37 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+using Application.ViewModels.General;
+
+namespace Application.ViewModels.Accounting
+{
+    public class BankTransferMapping
+    {
+        public DateTime? PostingDate { get; set; } = DateTime.Now;
+        public DateTime? CurrencyExchangeDate { get; set; } = DateTime.Now;
+        public string SapFormType { get; set; } = string.Empty;
+        public bool InSAP { get; set; } = false;
+        public bool TLChecked { get; set; } = false;
+        public string Comment { get; set; } = string.Empty;
+        public string SapDocNumber { get; set; } = string.Empty;
+        public string SapPaymentKey { get; set; } = string.Empty;
+        public int AccountantEmpId { get; set; } = 0;
+        public int AccountantTLEmpId { get; set; } = 0;
+        public DateTime? AccountantTime { get; set; }
+        public DateTime? AccountantTLTime { get; set; }
+        public CostCenterVm CostCenter { get; set; } = new();
+        public GLAccountVm GLAccount { get; set; } = new();
+    }
+
+    public enum SapFormType
+    {
+        FreeForm,
+        FiblaPOP,
+        FiblaROP
+    }
+}
+
+

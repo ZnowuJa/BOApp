@@ -13,10 +13,8 @@
                                     Disabled="@Disabled"
                     SelectValueOnTab="true"
                     AutoComplete="on"
-                    Items="@_locations"
                     OnOptionsSearch="@OnLocationSearch"
                     Placeholder="Wybierz lokalizację..."
-                    Multiple=true
                     MaximumSelectedOptions="1"
                     OptionText="@(p => p.SapNumber + ' ' + p.Name)"
                     @bind-SelectedOptions="@_selectedLocation"
@@ -30,10 +28,8 @@
                                     Disabled="@Disabled"
                     SelectValueOnTab="true"
                     AutoComplete="on"
-                    Items="@_costCenters"
                     OnOptionsSearch="@OnCostCenterSearch"
                     Placeholder="Wybierz MPK..."
-                    Multiple=true
                     MaximumSelectedOptions="1"
                     OptionText="@(p => p.MPK + ' ' + p.Description)"
                     @bind-SelectedOptions="@_selectedCostCenter"
@@ -47,10 +43,8 @@
                                     Disabled="@Disabled"
                     SelectValueOnTab="true"
                     AutoComplete="on"
-                    Items="@_glAccounts"
                     OnOptionsSearch="@OnGLAccountSearch"
                     Placeholder="Wybierz konto..."
-                    Multiple=true
                     MaximumSelectedOptions="1"
                     OptionText="@(p => p.AccountNumber + ' ' + p.Description)"
                     @bind-SelectedOptions="@_selectedGlAccount"
@@ -64,10 +58,8 @@
                                     Disabled="@Disabled"
                     SelectValueOnTab="true"
                     AutoComplete="on"
-                    Items="@_vatRates"
                     OnOptionsSearch="@OnVATRateSearch"
                     Placeholder="Wybierz stawkę VAT..."
-                    Multiple=true
                     MaximumSelectedOptions="1"
                     OptionText="@(p => p.Percentage.ToString() + ' ' + p.Name)"
                     @bind-SelectedOptions="@_selectedVatRate"

@@ -99,6 +99,9 @@ public class BusinessTravelFormVm : IFormVm
     public List<LocalTravel> LocalTravels { get; set; } = new();
     public Transit Transit { get; set; } = new();
     public List<Bill> Bills { get; set; } = new();
+
+    public BankTransferMapping? BTMappingAdvancePayment { get; set; } = new();
+    public BankTransferMapping? BTMappingPayout { get; set; } = new();
     public decimal AllowancePL { get; set; } = 0;
     public decimal AllowanceNotPL { get; set; } = 0;
     public decimal? SumAllowancePL { get; set; } = 0;
@@ -132,7 +135,11 @@ public class BusinessTravelFormVm : IFormVm
             return SumAllowancePL.GetValueOrDefault()
                  + AccomodationAllowanceSumPL.GetValueOrDefault()
                  + SumLocalTravelAllowancePL.GetValueOrDefault()
-                 + DeductionMealsPL.GetValueOrDefault();
+                 + DeductionMealsPL.GetValueOrDefault()
+                 + SumPrivateVehicleAllowance.GetValueOrDefault()
+                 + TotalBillsPL
+                 - AdvancePaymentAmount.GetValueOrDefault()
+                 ;
         }
     }
     public decimal TotalAllowanceNotPL
@@ -142,7 +149,16 @@ public class BusinessTravelFormVm : IFormVm
             return SumAllowanceNotPL.GetValueOrDefault()
                  + AccomodationAllowanceSumNotPL.GetValueOrDefault()
                  + SumLocalTravelAllowanceNotPL.GetValueOrDefault()
-                 + DeductionMealsNotPL.GetValueOrDefault();
+                 + DeductionMealsNotPL.GetValueOrDefault()
+                 + Transit.Total
+                 + TotalBillsNotPL;
+        }
+    }
+    public decimal TotalPayOut
+    {
+        get
+        {
+            return TotalAllowanceNotPL*CurrencyExchamngeRate + TotalAllowancePL;
         }
     }
 }
@@ -158,12 +174,14 @@ public class Stage()
     public DateTime? StartDate { get; set; } = DateTime.Now;
     public DateTime? EndDate { get; set; } = DateTime.Now;
     public decimal? Duration { get; set; } = 0;
-    public TimeSpan timeSpan { get; set; } = TimeSpan.Zero;
+    public TimeSpan TimeSpan { get; set; } = TimeSpan.Zero;
     public decimal? AllowanceOrigin { get; set; } = 0;
     public decimal? AllowanceOriginValue { get; set; } = 0;
     public decimal? AllowanceAbroad { get; set; } = 0;
     public decimal? AllowanceAbroadValue { get; set; } = 0;
+    public NbpCurrencyRateVm NbpCurrencyRateVm { get; set; }
     public bool Included { get; set; } = true;
+
 }
 public class Meals()
 {
@@ -231,12 +249,16 @@ public enum Statuses
     Rejestracja,
     AprobataL1,
     AprobataL2,
-    Kasa,
+    ZaliczkaKasa,
+    ZaliczkaKsiegowosc,
+    ZaliczkaKsiegowoscTL,
     Rozliczenie,
     Ksiegowosc,
+    KsiegowoscTL,
     AprobataL11,
     AprobataL12,
     KasaRozliczenie,
+    WyslaneDoRobota,
     Rozliczone,
     Zamkniete
 }
