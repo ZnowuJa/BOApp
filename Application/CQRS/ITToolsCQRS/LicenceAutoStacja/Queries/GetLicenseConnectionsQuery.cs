@@ -2,7 +2,7 @@ using Application.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace Application.CQRS.AutoStacjaCQRS.Queries;
+namespace Application.CQRS.ITToolsCQRS.LicenceAutoStacja.Queries;
 
 public class GetLicenseConnectionsQuery(string licenseName) : IRequest<string>
 {

@@ -1,10 +1,12 @@
 ﻿@page "/costcenters"
+@page "/mpk"
+
 @using Application.CQRS.AccountingCQRS.CostCenters.Queries
 @using Application.CQRS.AccountingCQRS.CostCenters.Commands
 @using Application.ViewModels.Accounting
 @using Microsoft.AspNetCore.Authorization
 
-@attribute [Authorize(Policy = "Technician")]
+@attribute [Authorize(Policy = "Accountant")]
 
 @inject IMediator _mediator
 @inject IDialogService _dialogService
@@ -14,7 +16,7 @@
 
 @if (costCenter == null)
 {
-    <FluentProgressRing>Loading...</FluentProgressRing>
+    <FluentProgressRing>Ładowanie...</FluentProgressRing>
 
 }
 else
@@ -53,16 +55,16 @@ else
 
     private async Task View(CostCenterVm item)
     {
-        await _dialogService.ShowInfoAsync(message: $"CostCenterVm id: {item.Id}, MPK: {item.MPK}, description: {item.Description}, text: {item.Text}");
+        await _dialogService.ShowInfoAsync(message: $"Id: {item.Id}, MPK: {item.MPK}, opis: {item.Description}, tekst: {item.Text}");
     }
 
     private async Task Delete(CostCenterVm item)
     {
         var dialog = await _dialogService.ShowConfirmationAsync(
-            $"You are about to delete CostCenter: {item.Text} \n Are you sure?",
-            "Yes",
-            "No",
-            "Confirm delete operation");
+            $"Czy na pewno chcesz usunąć MPK: {item.Text}?",
+            "Usuń",
+            "Anuluj",
+            "Potwierdź usunięcie");
         var result = await dialog.Result;
         deleteConfirm = result.Cancelled;
         ToastIntent intent;
@@ -71,13 +73,13 @@ else
         if (deleteConfirm)
         {
             intent = ToastIntent.Error;
-            message = "CostCenter has not been deleted!";
+            message = "Operacja anulowana";
         }
         else
         {
             var i = await _mediator.Send(new DeleteCostCenterCommand(item.Id));
             intent = ToastIntent.Success;
-            message = "CostCenter has been deleted!";
+            message = "MPK zostało usunięte!";
         }
 
         _toastService.ShowToast(intent, message, 3000);
@@ -94,7 +96,7 @@ else
             {
                 Height = "500px",
                 Width = "400px",
-                Title = item.Id > 0 ? "Update Cost Center..." : "Create New Cost Center",
+                Title = item.Id > 0 ? "Aktualizuj MPK" : "Dodanie nowego MPK",
                 PreventDismissOnOverlayClick = false,
                 PreventScroll = true,
             });
@@ -109,29 +111,29 @@ else
             {
                 resultId = await _mediator.Send(new UpdateCostCenterCommand(final));
                 intent = ToastIntent.Success;
-                message = "Cost Center has been updated!";
+                message = "MPK zostało zaktualizowane!";
             }
             else if (final.Id == 0)
             {
                 resultId = await _mediator.Send(new CreateCostCenterCommand(final));
                 intent = ToastIntent.Success;
-                message = "Cost Center has been created!";
+                message = "MPK zostało utworzone!";
             }
             else
             {
                 intent = ToastIntent.Warning;
-                message = "Something went really wrong!";
+                message = "Coś poszło źle!";
             }
         }
         else if (result.Cancelled)
         {
             intent = ToastIntent.Info;
-            message = "Operation Cancelled...";
+            message = "Operacja anulowana";
         }
         else
         {
             intent = ToastIntent.Error;
-            message = "Something went wrong!!!";
+            message = "Coś poszło źle!";
         }
 
         await Load();

@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using Application.Interfaces;
-using Domain.Entities.AutoStacja;
+using Domain.Entities.ITTools.LicenceAutoStacja;
 using Microsoft.EntityFrameworkCore;
-using Persistance.AutoStacja;
 
 namespace Persistance;
 

@@ -1,4 +1,4 @@
-@using Application.CQRS.AutoStacjaCQRS.Queries
+@using Application.CQRS.ITToolsCQRS.LicenceAutoStacja.Queries
 @using Application.ViewModels.AutoStacja
 
 @inject IMediator _mediator
@@ -75,8 +75,6 @@
                 Console.WriteLine($"Validation Error: {message}");
             }
         }
-
-        StateHasChanged();
     }
 
 }

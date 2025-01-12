@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Persistance.AutoStacja;
-
-namespace Domain.Entities.AutoStacja;
+﻿namespace Domain.Entities.ITTools.LicenceAutoStacja;
 
 public partial class MysystemPunkt
 {

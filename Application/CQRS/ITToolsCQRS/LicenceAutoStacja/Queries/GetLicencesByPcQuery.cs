@@ -5,7 +5,7 @@ using AutoMapper;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-namespace Application.CQRS.AutoStacjaCQRS.Queries;
+namespace Application.CQRS.ITToolsCQRS.LicenceAutoStacja.Queries;
 
 public class GetLicencesByPcQuery(string punktTelefon) : IRequest<string>
 {

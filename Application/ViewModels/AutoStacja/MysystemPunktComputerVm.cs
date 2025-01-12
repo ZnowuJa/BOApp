@@ -1,7 +1,7 @@
 ﻿using AutoMapper;
 using System.ComponentModel.DataAnnotations;
 using Application.Mappings;
-using Domain.Entities.AutoStacja;
+using Domain.Entities.ITTools.LicenceAutoStacja;
 
 namespace Application.ViewModels.AutoStacja;
 

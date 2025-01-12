@@ -129,6 +129,7 @@
   <ItemGroup>
     <Folder Include="Components\Pages\Accounting\Temp\NewFolder\" />
     <Folder Include="Components\Pages\Excluded\" />
+    <Folder Include="Components\Pages\ITTools\" />
     <Folder Include="Components\Pages\ITWarehouseAdmin\Sale\" />
     <Folder Include="Components\Pages\ITWarehouseAdmin\Scrapping\" />
     <Folder Include="Logs\" />
@@ -143,10 +144,27 @@
 
   <ItemGroup>
     <_ContentIncludedByDefault Remove="Components\Pages\KontrahenciTest.razor" />
+    <_ContentIncludedByDefault Remove="Components\Pages\LicenceAutoStacja\CheckAssigment_Component.razor" />
+    <_ContentIncludedByDefault Remove="Components\Pages\LicenceAutoStacja\CheckLicence_Component.razor" />
+    <_ContentIncludedByDefault Remove="Components\Pages\LicenceAutoStacja\LicenceAdd_Component.razor" />
+    <_ContentIncludedByDefault Remove="Components\Pages\LicenceAutoStacja\LicencjeAS_Page.razor" />
+    <_ContentIncludedByDefault Remove="Components\Pages\LicenceAutoStacja\LicencjeAutoStacja_Page.razor" />
+    <_ContentIncludedByDefault Remove="Components\Pages\LicenceAutoStacja\MultiLicence_Component.razor" />
+    <_ContentIncludedByDefault Remove="Components\Pages\LicenceAutoStacja\SetComputer_Component.razor" />
   </ItemGroup>
 
   <ItemGroup>
     <None Include="Components\Pages\Accounting\Temp\KontrahenciTest.razor" />
     <None Include="Components\Pages\ITWarehouseForUsers\ITWarehouseForUsers.razor" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="Components\Pages\ITTools\LicenceAutoStacja\CheckAssigment_Component.razor" />
+    <AdditionalFiles Include="Components\Pages\ITTools\LicenceAutoStacja\CheckLicence_Component.razor" />
+    <AdditionalFiles Include="Components\Pages\ITTools\LicenceAutoStacja\LicenceAdd_Component.razor" />
+    <AdditionalFiles Include="Components\Pages\ITTools\LicenceAutoStacja\LicencjeAS_Page.razor" />
+    <AdditionalFiles Include="Components\Pages\ITTools\LicenceAutoStacja\LicencjeAutoStacja_Page.razor" />
+    <AdditionalFiles Include="Components\Pages\ITTools\LicenceAutoStacja\MultiLicence_Component.razor" />
+    <AdditionalFiles Include="Components\Pages\ITTools\LicenceAutoStacja\SetComputer_Component.razor" />
   </ItemGroup>
 </Project>

@@ -12,14 +12,14 @@ namespace Application.ViewModels.Accounting
     {
         public int Id { get; set; }
 
-        [Required(ErrorMessage = "CountryCode is required.")]
-        [MinLength(2, ErrorMessage = "CountryCode must be at least 2 characters long.")]
-        [MaxLength(50, ErrorMessage = "CountryCode cannot exceed 50 characters.")]
+        [Required(ErrorMessage = "Kod państwa jest wymagany.")]
+        [MinLength(2, ErrorMessage = "Kod państwa musi mieć co najmniej 2 znaki.")]
+        [MaxLength(50, ErrorMessage = "Kod państwa nie może przekroczyć 50 znaków.")]
         public string CountryCode { get; set; }
 
-        [Required(ErrorMessage = "Name is required.")]
-        [MinLength(3, ErrorMessage = "Name must be at least 3 characters long.")]
-        [MaxLength(50, ErrorMessage = "Code cannot exceed 50 characters.")]
+        [Required(ErrorMessage = "Nazwa państwa jest wymagana.")]
+        [MinLength(3, ErrorMessage = "Nazwa państwa musi mieć co najmniej 3 znaki.")]
+        [MaxLength(50, ErrorMessage = "Nazwa państwa nie może przekroczyć 50 znaków.")]
         public string Name { get; set; }
 
         public bool IsEU { get; set; }
@@ -29,14 +29,6 @@ namespace Application.ViewModels.Accounting
         public string? CurrencyVmName { get; set; }
         public CurrencyVm? currencyVm { get; set; }
         public decimal Allowance { get; set; }
-        public decimal AllowanceFirstDay8H { get; set; }
-        public decimal AllowanceFirstDay12H { get; set; }
-        public decimal AllowanceNextDay8H { get; set; }
-        public decimal AllowanceNextDay12H { get; set; }
-        public decimal BreakfastReduction { get; set; }
-        public decimal LunchReduction { get; set; }
-        public decimal DinnerReduction { get; set; }
-        public decimal AccomodationAllowance { get; set; }
         public decimal TravelAllowance { get; set; }
         public decimal LocalTravelAllowance { get; set; }
         public decimal MaxHotelCost { get; set; } = 200m;

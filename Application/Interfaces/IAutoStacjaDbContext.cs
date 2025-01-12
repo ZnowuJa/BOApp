@@ -1,9 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Domain.Entities.AutoStacja;
+﻿using Domain.Entities.ITTools.LicenceAutoStacja;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Storage;
-using Domain.Entities.AutoStacja;
-using Persistance.AutoStacja;
 
 namespace Application.Interfaces
 

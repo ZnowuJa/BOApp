@@ -37,21 +37,13 @@ namespace Application.CQRS.AccountingCQRS.Countries.Queries
                 newItem.Id = item.Id;
                 newItem.CountryCode = item.CountryCode;
                 newItem.Name = item.Name;
-                newItem.Name = item.Name;
                 newItem.IsEU = item.IsEU;
                 newItem.IsPL = item.IsPL;
                 // newItem.CurrencyId = item.CurrencyId;
                 newItem.Allowance = item.Allowance;
-                newItem.AllowanceFirstDay8H = item.AllowanceFirstDay8H;
-                newItem.AllowanceFirstDay12H = item.AllowanceFirstDay12H;
-                newItem.AllowanceNextDay8H = item.AllowanceNextDay8H;
-                newItem.AllowanceNextDay12H = item.AllowanceNextDay12H;
-                newItem.BreakfastReduction = item.BreakfastReduction;
-                newItem.LunchReduction = item.LunchReduction;
-                newItem.DinnerReduction = item.DinnerReduction;
-                newItem.AccomodationAllowance = item.AccomodationAllowance;
                 newItem.TravelAllowance = item.TravelAllowance;
                 newItem.LocalTravelAllowance = item.LocalTravelAllowance;
+                newItem.MaxHotelCost = item.MaxHotelCost;
 
 
                 listItems.Add(newItem);
