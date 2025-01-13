@@ -86,14 +86,14 @@
         // var addId = $"addid-{context.Id}";
     }
     <FluentButton Id="@viewId" IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" Disabled="@viewDisabled" />
-    <FluentTooltip Anchor="@viewId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Left Delay=50>View Asset</FluentTooltip>
+    <FluentTooltip Anchor="@viewId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Left Delay=50>View form</FluentTooltip>
 
     <FluentButton Id="@editId" IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => Edit(context))" Disabled="@Utils.IsEditDisabled(context, _userContext)" />
         @*WARNING it is not tested if isEditDisabled works*@
-    <FluentTooltip Anchor="@editId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Edit Asset</FluentTooltip>
+        <FluentTooltip Anchor="@editId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Edit form</FluentTooltip>
 
     <FluentButton Id="@deleteId" IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" Disabled="@actionsDisabled" />
-    <FluentTooltip Anchor="@deleteId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Delete Asset</FluentTooltip>
+        <FluentTooltip Anchor="@deleteId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Delete form</FluentTooltip>
 
     @*             <FluentButton Id="@addId" IconEnd="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddToList(context))" Disabled="@actionsDisabled" />
     <FluentTooltip Anchor="@addId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50>Add Asset to update</FluentTooltip> *@
@@ -111,28 +111,6 @@
     public string role { get; set; }
 
     private IQueryable<DeferralPaymentFormVm> items { get; set; } = Enumerable.Empty<DeferralPaymentFormVm>().AsQueryable();
-
-    // private IQueryable<DeferralPaymentFormVm> filteredItems => items.Where(x =>
-    // filterColumns.All(column => string.IsNullOrWhiteSpace(column.Filter) ||
-    // column.Property(x).Contains(column.Filter, StringComparison.CurrentCultureIgnoreCase) ||
-    //     (column.IsDropdown && column.SelectedValues.Any() && column.SelectedValues.Contains(column.Property(x))) )).OrderByDescending(r => r.Number);
-
-    // private IQueryable<DeferralPaymentFormVm> filteredItems => items.Where(x =>
-    // filterColumns.All(column =>
-    //     string.IsNullOrWhiteSpace(column.Filter) ||
-    //     column.Property(x).Contains(column.Filter, StringComparison.CurrentCultureIgnoreCase) ||
-    //     (column.IsDropdown && column.SelectedValues.Any() && column.SelectedValues.Contains(column.Property(x).ToString()))
-    // )).OrderByDescending(r => r.Number);
-
-    // private IQueryable<DeferralPaymentFormVm> filteredItems => items.Where(x =>
-    // filterColumns.All(column =>
-    //     string.IsNullOrWhiteSpace(column.Filter) ||
-    //     (column.IsDropdown
-    //         ? column.SelectedValues.Any() && column.SelectedValues.Contains(column.Property(x).ToString())
-    //         : column.Property(x).Contains(column.Filter, StringComparison.CurrentCultureIgnoreCase))
-    // )
-    // ).OrderByDescending(r => r.Number);
-
 
     private DebounceDispatcher debounceDispatcher = new DebounceDispatcher();
     private PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
@@ -211,22 +189,6 @@
     }
 
     private void HandleClearFilter(ref string filter) => filter = string.IsNullOrWhiteSpace(filter) ? string.Empty : filter;
-    // private void OnSelectedOptionsChanged(ChangeEventArgs e, FilterColumn<DeferralPaymentFormVm> column)
-    // {
-    //     var selectedOptions = e.Value as IEnumerable<string>;
-    //     if (selectedOptions != null)
-    //     {
-    //         column.SelectedValues = selectedOptions.ToList();
-    //         StateHasChanged();
-    //     }
-    // }
-
-    // private void OnSelectedOptionsChanged(IEnumerable<string> selectedOptions, FilterColumn<DeferralPaymentFormVm> column)
-    // {
-    //     column.SelectedValues = selectedOptions.ToList();
-
-    //     StateHasChanged();
-    // }
 
     private async Task Edit(DeferralPaymentFormVm item = null)
     {
@@ -246,16 +208,13 @@
                         PreventDismissOnOverlayClick = false,
                         PreventScroll = true,
                     });
-        //     var result = await dialog.Result;
     }
     private async Task DownloadCsv()
     {
         var selectedItems = @Utils.ApplyFilters(items, filterColumns);
-
         IQueryable<DeferralPaymentExportModel> exportModels = selectedItems.ProjectTo<DeferralPaymentFormVm, DeferralPaymentExportModel>(_mapper);
-        // Assuming you have an IQueryable variable named 'records'
+        
         var csvContent = Utils.GenerateCsvPL(exportModels);
-
         var base64csv = Convert.ToBase64String(csvContent);
 
         string date = DateTime.Now.ToString("yyyyMMdd");

@@ -85,6 +85,8 @@
 
   <ItemGroup>
     <Folder Include="AAA_IDEAS\" />
+    <Folder Include="CQRS\AccountingCQRS\BusinessTrips\Commands\" />
+    <Folder Include="CQRS\AccountingCQRS\BusinessTrips\Queries\" />
     <Folder Include="CQRS\ITToolsCQRS\" />
     <Folder Include="ViewModels\ITWarehouse\" />
   </ItemGroup>

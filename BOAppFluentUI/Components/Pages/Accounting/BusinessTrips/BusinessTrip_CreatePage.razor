@@ -10,6 +10,7 @@
 @using Application.CQRS.General.Organisations.Queries
 @using Application.CQRS.ITWarehouseCQRS.Employees.Queries
 @using Application.Forms.Accounting
+@using Application.Forms.Accounting.BuisnessTravelSmallClasses
 @using Application.Forms.Accounting.Enums
 @using Application.ViewModels.Accounting
 @using Application.ViewModels.BusinessOperations
@@ -21,7 +22,6 @@
 @using Microsoft.Build.Construction
 @using Microsoft.CodeAnalysis.Elfie.Extensions
 @using Microsoft.FluentUI.AspNetCore.Components.Extensions
-
 
 @inject IConfiguration _configuration
 @inject IMediator _mediator
@@ -898,8 +898,6 @@
         <BankTransferMappingEditComponent BTItem="@formItem.BTMappingPayout" CostCenters="@_costCenters" GLAccounts="@_glAccounts"/>
     }
 
-
-
     <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
     Appearance="Appearance.Accent" OnClick="@SendForm" BackgroundColor="#509EDB" Style="width: 100px" Disabled="@DisableSendButton"> Wyślij</FluentButton>
     <FluentSpacer Width="@buttonSpacer" />
@@ -909,8 +907,6 @@
     <FluentSpacer Width="@buttonSpacer" />
     <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
     Appearance="Appearance.Accent" OnClick="@CancelForm" BackgroundColor="#808080" Color="#FFFFFF" Style="width: 100px"> Anuluj</FluentButton>
-
-
 
 </EditForm>
 <InputFile id="fileInput" OnChange="HandleFileUpload" accept=".png, .jpg, .pdf" style="display: none;" />
@@ -938,7 +934,7 @@
     #region General
     // private EditContext _editContext;
     private BusinessTravelFormVm formItem = new BusinessTravelFormVm();
-    private FormUserContext _userContext = new FormUserContext("BusinessTrip", "Technician");
+    private FormUserContext _userContext = new FormUserContext("Accountant", "Technician");
     private OrganisationRoleForFormVm approverL1 { get; set; }
     private OrganisationRoleForFormVm approverL2 { get; set; }
     private OrganisationRoleForFormVm approverL3 { get; set; }
@@ -1081,7 +1077,6 @@
     #endregion
     private bool test = false;
 
-
     protected override async Task OnInitializedAsync()
     {
         // _editContext = new EditContext(formItem);
@@ -1098,23 +1093,6 @@
         }
         Console.WriteLine(Id);
 
-        #region AssignBools
-        // stal1 = formItem.Status == "AprobataL1";
-        // stal2 = formItem.Status == "AprobataL2";
-        // stzk = formItem.Status == "ZaliczkaKasa";
-        // stzks = formItem.Status == "ZaliczkaKsiegowosc";
-        // stzkstl = formItem.Status == "ZaliczkaKsiegowoscTL";
-        // stroz = formItem.Status == "Rozliczenie";
-        // stks = formItem.Status == "Ksiegowosc";
-        // stkstl = formItem.Status == "KsiegowoscTL";
-        // stal11 = formItem.Status == "AprobataL11";
-        // stal12 = formItem.Status == "AprobataL12";
-        // strozk = formItem.Status == "KasaRozliczenie";
-        // stwys = formItem.Status == "WyslaneDoRobota";
-        // strozend = formItem.Status == "Rozliczone";
-        // stzam = formItem.Status == "Zamkniete";
-        #endregion
-        // formItem.BTMappingAdvancePayment = new BankTransferMapping();
         AssignStatusBool();
         if (stzam || strozend)
         {
