@@ -718,7 +718,7 @@
                     {
                         <tr class="fluent-row">
                             <td colspan="7"> <!-- Adjust colspan to match the number of columns -->
-                                <InvoiceMappingEditComponent Disabled="@IsInvoiceMappingDisabled" InvoiceMapping="@bill.InvoiceMappings.First()" />
+                                <InvoiceMappingEditComponent CostCenters="@_costCenters" GLAccounts="@_glAccounts" VatRates="@_vatRates" Locations="@_locations" Disabled="@IsInvoiceMappingDisabled" InvoiceMapping="@bill.InvoiceMappings.First()" />
                             </td>
                         </tr>
                     }
@@ -1017,6 +1017,7 @@
     IEnumerable<Location> _selectedLocation = Array.Empty<Location>();
     private IEnumerable<CostCenterVm> _costCenters { get; set; }
     private IEnumerable<GLAccountVm> _glAccounts { get; set; }
+    private IEnumerable<VATRateVm> _vatRates { get; set; }
 
     #endregion
     #region DestinationsObjectivesMeans
@@ -1089,6 +1090,8 @@
         Employees = await _mediator.Send(new GetAllEmployeesQuery());
         _costCenters = await _mediator.Send(new GetAllCostCenterIEnumQuery());
         _glAccounts = await _mediator.Send(new GetAllGLAccountIEnumQuery());
+        _locations = await _mediator.Send(new GetLocationsQuery());
+        _vatRates = await _mediator.Send(new GetAllVatRateIEnumQuery());
         if(Id != 0 ){
             //tutaj pobierz delegację z bazy danych
             //jeśli ID = 0 to jest po prostu new()
@@ -1530,8 +1533,8 @@
     }
     private async Task HandleStageDateTimeChanged(DateTime? value, Stage stage, string propertyName, int stageId)
     {
-        ConsoleLog("stage: " + stageId + " " + propertyName);
-        ConsoleLog("stage: " + stageId + " start" + stage.StartDate.ToString() + " koniec: " + stage.EndDate.ToString());
+        // ConsoleLog("stage: " + stageId + " " + propertyName);
+        // ConsoleLog("stage: " + stageId + " start" + stage.StartDate.ToString() + " koniec: " + stage.EndDate.ToString());
         if (propertyName == nameof(stage.StartDate))
         {
             stage.StartDate = value;
@@ -2038,7 +2041,7 @@
         await RecalculateLocalTravels();
         await RecalculateTransit();
         StateHasChanged();
-        ConsoleLog($"Country Currency {country.CountryCode}");
+        // ConsoleLog($"Country Currency {country.CountryCode}");
     }
     private async Task AddEmployee(EmployeeVm newEmployee)
     {
@@ -2737,7 +2740,7 @@
         font-family: Arial, sans-serif;
         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         border-radius: 8px;
-        overflow: hidden;
+        overflow: visible;
     }
 
         .table-container thead tr:first-child th {
@@ -2752,7 +2755,7 @@
             font-size: 14px;
             border: 1px solid #ddd;
             white-space: nowrap; /* Prevent line breaks */
-            overflow: hidden; /* Prevent content from spilling out */
+            overflow: visible; /* Prevent content from spilling out */
             text-overflow: ellipsis; /* Add "..." for overflowing text */
             align-items: center; /* Vertically center content */
             justify-content: space-between; /* Push text and icon to the edges */
@@ -2763,7 +2766,7 @@
             font-size: 14px;
             border: 1px solid #ddd;
             white-space: nowrap; /* Prevent line breaks */
-            overflow: hidden; /* Prevent content overflow */
+            overflow: visible;   
             text-overflow: ellipsis; /* Add "..." for overflowing text */
         }
 
