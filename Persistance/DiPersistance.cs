@@ -60,6 +60,15 @@ public static class DiPersistance
             return factory.CreateDbContext();
         });
 
+        // Register Discounts2AS
+        services.AddDbContextFactory<Discounts2AS>(options =>
+            options.UseSqlServer(configuration.GetConnectionString("Discounts2AS")));
+        services.AddScoped<IDiscounts2AS>(provider =>
+        {
+            var factory = provider.GetRequiredService<IDbContextFactory<Discounts2AS>>();
+            return factory.CreateDbContext();
+        });
+
 
         services.AddScoped<ITokenValidatedHandlerService, TokenValidatedHandlerService>();
 

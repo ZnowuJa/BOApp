@@ -3,6 +3,7 @@ using Domain.Entities.Administration;
 using Domain.Entities.BusinessOperations;
 using Domain.Entities.CoC;
 using Domain.Entities.Common;
+using Domain.Entities.ITTools.LicenceAutoStacja;
 using Domain.Entities.ITWarehouse;
 using Domain.Forms;
 using Domain.Forms.ITForms;

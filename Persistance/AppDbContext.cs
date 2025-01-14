@@ -7,6 +7,7 @@ using Domain.Entities.BusinessOperations;
 using Domain.Entities.CoC;
 using Domain.Entities.Common;
 using Domain.Entities.ITWarehouse;
+using Domain.Entities.ITTools.LicenceAutoStacja;
 using Domain.Forms;
 using Domain.Forms.ITForms;
 using Domain.WorkFlows;
@@ -15,6 +16,7 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Storage;
+using System.Reflection.Emit;
 
 namespace Persistance;
 public class AppDbContext : IdentityDbContext<AppUser>, IAppDbContext
@@ -96,6 +98,9 @@ public class AppDbContext : IdentityDbContext<AppUser>, IAppDbContext
             .HasMany(x => x.Groups)
             .WithMany(y => y.Instructions)
             .UsingEntity(e => e.ToTable("InstructionGroup"));
+        builder.Entity<SalonInfo>()
+            .ToView("v_SalonInfo")
+            .HasNoKey(); // Mapa do widoku w bazie danych
 
         builder.Entity<CompanyCarRegistrationNumber>()
             .ToView("v_CompanyCars")
