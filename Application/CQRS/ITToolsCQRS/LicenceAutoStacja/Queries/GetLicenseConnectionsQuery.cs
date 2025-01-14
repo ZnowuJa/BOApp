@@ -15,12 +15,7 @@ public class GetLicenseConnectionsQueryHandler(IAutoStacjaDbContext context) : I
     public async Task<string> Handle(GetLicenseConnectionsQuery request, CancellationToken cancellationToken)
     {
         var punkt = await _context.MysystemPunkts
-            .FirstOrDefaultAsync(p => p.Nazwa == request.LicenseName, cancellationToken);
-
-        if (punkt == null)
-        {
-            throw new Exception($"Brak licencji: {request.LicenseName}");
-        }
+            .FirstOrDefaultAsync(p => p.Nazwa == request.LicenseName, cancellationToken) ?? throw new Exception($"Brak licencji: {request.LicenseName}");
 
         var connections = await _context.MysystemPunktCons
             .Where(pc => pc.MysystemPunktInId == punkt.MysystemPunktId)

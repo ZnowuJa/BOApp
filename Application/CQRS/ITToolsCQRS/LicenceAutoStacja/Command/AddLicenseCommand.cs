@@ -41,12 +41,7 @@ public class AddLicenseCommandHandler(IAutoStacjaDbContext autoStacjaDbContext, 
         }
 
         var salonInfo = await _discounts2AS.SalonInfos
-            .FirstOrDefaultAsync(x => x.DealerNo == command.Dealer, cancellationToken);
-
-        if (salonInfo == null)
-        {
-            throw new Exception($"Dealer '{command.Dealer}' nie istnieje.");
-        }
+            .FirstOrDefaultAsync(x => x.DealerNo == command.Dealer, cancellationToken) ?? throw new Exception($"Dealer '{command.Dealer}' nie istnieje.");
 
         var newLicense = new MysystemPunkt()
         {
