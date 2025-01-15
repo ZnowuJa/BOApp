@@ -54,7 +54,7 @@
                                         InitialSortDirection="@column.InitialSortDirection">
                             <ColumnOptions>
                                 <div class="search-box">
-                                    <FluentSearch type="search" Autofocus="true" @bind-Value="column.Filter" @oninput="(args) => Utils.HandleFilterDebounced<Bnp55Vm>(column, args, debounceDispatcher, () => InvokeAsync(StateHasChanged))" Placeholder="@($"{column.Label.ToLower()}...")" />
+                                    <FluentSearch type="search" Autofocus="true" @bind-Value="column.Filter" Placeholder="@($"{column.Label.ToLower()}...")" />
                                 </div>
                             </ColumnOptions>
                         </PropertyColumn>
@@ -97,7 +97,7 @@
                                     InitialSortDirection="@column.InitialSortDirection">
                         <ColumnOptions>
                             <div class="search-box">
-                                <FluentSearch type="search" Autofocus="true" @bind-Value="column.Filter" @oninput="(args) => Utils.HandleFilterDebounced<Bnp20Vm>(column, args, debounceDispatcher, () => InvokeAsync(StateHasChanged))" Placeholder="@($"{column.Label.ToLower()}...")" />
+                                <FluentSearch type="search" Autofocus="true" @bind-Value="column.Filter" Placeholder="@($"{column.Label.ToLower()}...")" />
                             </div>
                         </ColumnOptions>
                     </PropertyColumn>
@@ -117,7 +117,7 @@
     private IQueryable<Bnp55Vm> FilteredItems55 => bnp55.Where(x =>
         filterColumns55.All(column => string.IsNullOrWhiteSpace(column.Filter) || column.Property(x).Contains(column.Filter, StringComparison.CurrentCultureIgnoreCase)));
 
-    private readonly DebounceDispatcher debounceDispatcher = new DebounceDispatcher();
+    //private readonly DebounceDispatcher debounceDispatcher = new DebounceDispatcher();
 
     readonly PaginationState pagination20 = new PaginationState { ItemsPerPage = 12 };
     readonly PaginationState pagination55 = new PaginationState { ItemsPerPage = 12 };
@@ -133,6 +133,14 @@
 
     string? activeid = "tab-1";
     FluentTab? changedto;
+
+    // public void HandleKeyPress<T>(KeyboardEventArgs args)
+    // {
+    //     if (args.Key == "Enter")
+    //     {
+    //         StateHasChanged();
+    //     }
+    // }
 
     private bool IsDateDisabled20(DateTime date)
     {
