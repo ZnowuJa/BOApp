@@ -7,6 +7,7 @@ using AutoMapper;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Application.ViewModels;
+using Domain.Entities.Accounting;
 
 namespace Application.CQRS.AccountingCQRS.Countries.Queries
 {
@@ -22,7 +23,7 @@ namespace Application.CQRS.AccountingCQRS.Countries.Queries
         {
             var listItems = new List<CountryVm>();
             var currencies = await _appDbContext.Currencies.ToListAsync(cancellationToken);
-            var countries = await _appDbContext.Countries
+            List<Country>? countries = await _appDbContext.Countries
                                                .Where(ct => ct.StatusId == 1)
                                                .ToListAsync(cancellationToken);
             foreach (var item in countries)

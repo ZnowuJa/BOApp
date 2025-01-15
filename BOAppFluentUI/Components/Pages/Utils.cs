@@ -80,6 +80,7 @@ public static class Utils
         FormUserContext userContext,
         IMediator mediator)
     {
+        
         var authenticationState = await authenticationStateProvider.GetAuthenticationStateAsync();
         userContext.User = authenticationState.User;
 

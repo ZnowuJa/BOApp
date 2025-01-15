@@ -17,12 +17,15 @@
 @using BOAppFluentUI.Components.Pages.Accounting.SharedComponents
 @using Application.ViewModels.General
 @using Microsoft.AspNetCore.Components
+@using Microsoft.FluentUI.AspNetCore.Components
 @using Microsoft.Build.Construction
 @using Microsoft.CodeAnalysis.Elfie.Extensions
 @using Microsoft.FluentUI.AspNetCore.Components.Extensions
 
+
 @inject IConfiguration _configuration
 @inject IMediator _mediator
+
 @inject IJSRuntime JS
 @inject ILogger<BusinessTravelFormVm> _logger
 @inject IToastService _toastService
@@ -37,26 +40,7 @@
     <ValidationSummary />
     @formItem.DestinationCountryCurrency;@formItem.CurrencyExchamngeRate;@formItem.CurrencyExchangeRateDate
     @* Header Table *@
-    @if (1 == 0)
-    {
-        <div class="form-section">
-            <table class="info-table">
-                <tr>
-                    <td><b>Numer:</b></td>
-                    <td>@formItem.Number</td>
-                    <td><b>Zgłoszone: </b></td>
-                    <td>@formItem.CreatedDate.ToString("yyyy-MM-dd")</td>
-                </tr>
-                <tr>
-                    <td><b>Organizacja:</b></td>
-                    <td>@_organisation.Name</td>
-                    <td><b>Zgłaszający:</b></td>
-                    <td>@formItem.EmployeeName</td>
-                </tr>
-            </table>
-        </div>
-    }
-
+    @*  <FluentSwitch Label="ShowBTItem" @bind-Value="@test"/> *@
     @* Employee *@
     <div class="form-section">
         <div>
@@ -79,11 +63,9 @@
             <FluentLabel Style="width: 80px"><b>Status: </b></FluentLabel>
         </div>
         <div>
-            @* <FluentTextField @bind-Value="@formItem.Status" *@
-            @*                  @bind-Value:after="@(HandleStatusChange)"/> *@
             <FluentCombobox Items="@_Statuses"
             @bind-Value="@formItem.Status"
-            @bind-Value:after="@(HandleStatusChange)"
+            @bind-Value:after="@HandleStatusChange"
             AllowFreeform="false"
             Placeholder="wskaż status"
             Width="150px"/>
@@ -190,10 +172,10 @@
                 Disabled="@IsDestinationDisabled"
                 AutoComplete="on"
                 OnOptionsSearch="@OnCompanyCarSearch"
-                Placeholder="Wybierz cel podrózy..."
+                Placeholder="..."
                 MaximumSelectedOptions="1"
                 @bind-SelectedOptions="@SelectedCompanyCar"
-                                    bind-SelectedOptions:after="@HandleCompanyCarChange"
+                bind-SelectedOptions:after="@HandleCompanyCarChange"
                 Width="200px" />
             </div>
         }
@@ -299,10 +281,8 @@
                     Disabled="@IsAdvancedPaymentDisabled"
                     SelectValueOnTab="true"
                     AutoComplete="on"
-                    Items="@_locations"
                     OnOptionsSearch="@OnLocationSearch"
                     Placeholder="wybierz lokalizację..."
-                    Multiple=true
                     MaximumSelectedOptions="1"
                     OptionText="@(p => p.SapNumber + ' ' + p.Name)"
                     @bind-SelectedOptions="@_selectedLocation"
@@ -325,9 +305,10 @@
             @formItem.BankAccountNumber
         }
     </div>
-    @if (formItem.Status == "Kasa" || formItem.Status == "Ksiegowosc")
+    @*Cashier Advance Payment*@
+    @if (stzk || stzks || stzkstl)
     {
-        <div class="new-form-section @(formItem.Status == "Kasa" ? "kasa" : "ksiegowosc")">
+        <div class="new-form-section @(stzk ? "kasa" : "ksiegowosc")">
             <div>
                 <FluentLabel><b>Wypłata zaliczki </b></FluentLabel>
             </div>
@@ -348,10 +329,14 @@
             </div>
 
         </div>
+        @if(stzks || stzkstl){
+            <BankTransferMappingEditComponent BTItem="@formItem.BTMappingAdvancePayment" CostCenters="@_costCenters" GLAccounts="@_glAccounts" />
+        }
     }
-    @if (formItem.Status == "KasaRozliczenie" || formItem.Status == "Rozliczone")
+    @*Cashier Reciept*@
+    @if (strozk || strozend)
     {
-        <div class="new-form-section @(formItem.Status == "KasaRozliczenie" ? "kasa" : "ksiegowosc")">
+        <div class="new-form-section @(strozk ? "kasa" : "ksiegowosc")">
 
             <div>
                 <FluentLabel><b>Rozliczenie zaliczki</b></FluentLabel>
@@ -380,17 +365,20 @@
     {
         <hr>
         @* List of stages - if country is not PL add Country Trip and then abroad trip and again country trip*@
-        <h4>Etapy: </h4>
-        <table>
+        <table class="table-container">
+            <caption class="table-caption">Etapy podróży słuzbowej <FluentIcon Id="StagesInfoId" Value="@(new Icons.Regular.Size16.Info())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" /> </caption>
             <thead>
-                <tr>
+                <tr class="table-header-left">
                     <th>Lp.</th>
                     <th>Kraj: </th>
                     <th>Od: </th>
                     <th>Do: </th>
                     <th>Diet: </th>
                     <th>TimeSpan: </th>
-                    <th>Razem: <FluentIcon Id = "AccomodationRateId" Value="@(new Icons.Regular.Size16.Info())" /></th>
+                    <th>Razem: 
+                    <FluentIcon Id="AccomodationRateId" Value="@(new Icons.Regular.Size16.Info())" Color = "Microsoft.FluentUI.AspNetCore.Components.Color.Fill" />
+                    
+                    </th>
                 </tr>
             </thead>
             <tbody>
@@ -417,7 +405,7 @@
                             @(stage.AllowanceOrigin + stage.AllowanceAbroad)
                         </td>
                         <td>
-                            @stage.timeSpan
+                            @stage.TimeSpan
                         </td>
                         <td>
                             @(stage.AllowanceOriginValue + stage.AllowanceAbroadValue) @(stage.CountryCurrency)
@@ -426,6 +414,7 @@
                 }
             </tbody>
         </table>
+        <FluentTooltip Anchor="StagesInfoId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50> Informacja o etapach podróży.</FluentTooltip>
         <FluentTooltip Anchor="AccomodationRateId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50> AccomodationRateId | Dieta nalezna za etap podróży.</FluentTooltip>
         @if (!string.IsNullOrEmpty(StagesDatesErrorMessage))
         {
@@ -442,18 +431,18 @@
     {
         <hr>
         @* List of Accommodations - added and removed as Stages*@
-        <h4>Noclegi: </h4>
-        <table>
+        <table class="table-container">
+            <caption class="table-caption">Noclegi: <FluentIcon Id="AccId" Value="@(new Icons.Regular.Size16.Info())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" /> </caption>
             <thead>
-                <tr>
+                <tr class="table-header-left">
                     <th>Etap</th>
                     <th>Państwo</th>
                     <th>Noclegi</th>
-                    <th>Rachunek <FluentIcon Id="AccInvId" Value="@(new Icons.Regular.Size16.Info())" /></th>
-                    <th>Ryczałt <FluentIcon Id = "AccMaxRateId" Value="@(new Icons.Regular.Size16.Info())" /></th>
-                    <th>Maks. stawka <FluentIcon Id="AccMaxCostId" Value="@(new Icons.Regular.Size16.Info())" /></th>
+                    <th>Rachunek <FluentIcon Id="AccInvId" Value="@(new Icons.Regular.Size16.Info())" Color = "Microsoft.FluentUI.AspNetCore.Components.Color.Fill" /></th>
+                    <th>Ryczałt <FluentIcon Id="AccMaxRateId" Value="@(new Icons.Regular.Size16.Info())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" /></th>
+                    <th>Maks. stawka <FluentIcon Id="AccMaxCostId" Value="@(new Icons.Regular.Size16.Info())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" /></th>
                     <th>Waluta</th>
-                    <th>Razem <FluentIcon Id = "AccTotalRateId" Value="@(new Icons.Regular.Size16.Info())" /></th>
+                    <th>Razem <FluentIcon Id="AccTotalRateId" Value="@(new Icons.Regular.Size16.Info())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" /></th>
                 </tr>
             </thead>
             <tbody>
@@ -500,25 +489,27 @@
                 }
             </tbody>
         </table>
-        <FluentTooltip Anchor="AccInvId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50> AccInvId | Zaznacz jeśli nocliegi były opłacone przez PIA lub masz rachunek (Rachunek za opłacony samodzielnie nocleg dodaj w sekcji "Pozostałe rachunki i bilety". Rachunki opłacone przez PIA należy wysłać poprzez <a href="https://phs.invoicetrack.com/" target="_blank" rel="noopener noreferrer"> InvoiceTrack </a>.</FluentTooltip>
-        <FluentTooltip Anchor="AccMaxRateId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50> AccMaxRateId | Wartość ryczałtu za nocleg.</FluentTooltip>
-        <FluentTooltip Anchor="AccTotalRateId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50> AccTotalRateId | Ryczałt do wypłaty dla pracownika lub zwrot poniesionych kosztów.</FluentTooltip>
+        <FluentTooltip Anchor="AccId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50>Informacja o noclegach </FluentTooltip>
+        <FluentTooltip Anchor="AccInvId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50>Zaznacz jeśli nocliegi były opłacone przez PIA lub masz rachunek. Rachunek za opłacony samodzielnie nocleg dodaj w sekcji "Pozostałe rachunki i bilety". Rachunki opłacone przez PIA należy wysłać poprzez InvoiceTrack </FluentTooltip>
+        <FluentTooltip Anchor="AccMaxRateId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50> Wartość ryczałtu za nocleg.</FluentTooltip>
+        <FluentTooltip Anchor="AccMaxCostId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50> Maksymalna stawka za Hotel.</FluentTooltip>
+        <FluentTooltip Anchor="AccTotalRateId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50> Ryczałt za nocleg do wypłaty dla pracownika lub zwrot poniesionych kosztów.</FluentTooltip>
 
     }
     @if (ShowMeals)
     {
 
         <hr>
-        <h4>Zapewnione posiłki: </h4>
-        <table>
-            <thead title="Posiłki zapewnione:">
-                <tr>
+        <table class="table-container">
+            <caption class="table-caption">Zapewnione posiłki: <FluentIcon Id="BillsInfoId" Value="@(new Icons.Regular.Size16.Info())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" /> </caption>
+            <thead>
+                <tr class="table-header-left">
                     <th>Etap</th>
                     <th>Państwo</th>
                     <th>Śniadania</th>
                     <th>Obiady</th>
-                    <th>Kolacje</th>
-                    <th>Razem <FluentIcon Id = "MealsTotalDeductionId" Value="@(new Icons.Regular.Size16.Info())" /></th>
+                    <th style="width = 120px;">Kolacje</th>
+                    <th>Razem <FluentIcon Id="MealsTotalDeductionId" Value="@(new Icons.Regular.Size16.Info())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" /></th>
                     <th>Waluta</th>
                     <th>Maks. dni</th>
                 </tr>
@@ -534,31 +525,32 @@
                             <td>@meal.CountryName</td>
                             <td>
 
-                                <div Style="max-width: 80px;">
+                                 <div Style="min-width: 100px;">
                                     <FluentNumberField Disabled="@((meal.Duration == 0) ? true : false)"
                                     Min="0"
                                     Max="@meal.Nights.ToString()"
                                     @bind-Value:get="@meal.CoveredBreakfasts"
                                     @bind-Value:set="(value => HandleMealChanged(meal, value, nameof(meal.CoveredBreakfasts)))"/>
-                                </div>
+                                    </div>
+                               
                             </td>
                             <td>
-                                <div Style="max-width: 80px;"> 
+                                <div Style="min-width: 100px;">
                                     <FluentNumberField Disabled="@((meal.Duration == 0) ? true : false)"
                                     Min="0"
                                     Max="@meal.Duration.ToString()"
                                     @bind-Value:get="@meal.CoveredDinners"
                                     @bind-Value:set="(value => HandleMealChanged(meal, value, nameof(meal.CoveredDinners)))"/>
-                                </div>
+                               </div>
                             </td>
                             <td>
-                                <div Style="max-width: 80px;">
+                               <div Style="min-width: 100px;">
                                     <FluentNumberField Disabled="@((meal.Duration == 0) ? true : false)"
                                     Min="0"
                                     Max="@meal.Duration.ToString()"
                                     @bind-Value:get="@meal.CoveredLunches"
                                     @bind-Value:set="(value => HandleMealChanged(meal, value, nameof(meal.CoveredLunches)))"/>
-                                </div>
+                               </div>
                             </td>
                             <td>@meal.Total</td>
                             <td>@meal.AllowanceRateCurrency</td>
@@ -569,14 +561,15 @@
                 }
             </tbody>
         </table>
+        <FluentTooltip Anchor="MealsToDeductionId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50> MealsToDeductionId | Proszę podać ilość zapewnionych posiłków na poszczególnych etapach podróży.</FluentTooltip>
         <FluentTooltip Anchor="MealsTotalDeductionId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50> MealsTotalDeductionId | Kwota do potrącenia z diety.</FluentTooltip>
     }
     @if (ShowLocalTravels)
     {
         <hr>
-        <h4>Ryczałt na pokrycie kosztów dojazdu środkami komunikacji</h4>
-        <table>
-            <thead >
+        <table class="table-container">
+             <caption class="table-caption">Ryczałt na pokrycie kosztów dojazdu środkami komunikacji <FluentIcon Id="LocTravId" Value="@(new Icons.Regular.Size16.Info())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" /> </caption>
+            <thead class="table-header-left">
                 <tr>
                     <th>Etap</th>
                     <th>Państwo</th>
@@ -615,30 +608,35 @@
                 }
             </tbody>
         </table>
+        <FluentTooltip Anchor="LocTravId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50> Wypełnij jeśli korzystałeś z komunikacji miejskiej w mieście docelowym i nie dysponujesz biletami lub rachunkami.</FluentTooltip>
     }
     @if (ShowTransits)
     {
         <hr>
-        <h4>Dojazd z dworca/lotniska do Hotelu: <FluentIcon Id = "TransitInfoId" Value="@(new Icons.Regular.Size16.Info())" /></h4> 
-        <FluentRadioGroup 
-        @bind-Value:get="formItem.Transit.Directions" 
-        @bind-Value:set="HandleTransitDirectionsChanged">
-            <FluentRadio Value="0">Mam rachunek/bilet w obie strony</FluentRadio>
-            <FluentRadio Value="1">Mam rachunek/bilet w jedną stronę</FluentRadio>
-            <FluentRadio Value="2">Nie mam rachunku/biletu w żadnym kierunku</FluentRadio>
-        </FluentRadioGroup>
-        <FluentLabel> <b>Razem: </b> @formItem.Transit.Total</FluentLabel>
-        <hr>
-        <FluentTooltip Anchor="TransitInfoId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50> TransitInfoId Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsu</FluentTooltip>
-        <br>
+        <table class="table-container">
+            <caption class="table-caption">Dojazd z dworca/lotniska do Hotelu <FluentIcon Id="TransitInfoId" Value="@(new Icons.Regular.Size16.Info())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" /> </caption>
+
+            <tbody>
+            <td colspan="3">
+                <FluentRadioGroup @bind-Value:get="formItem.Transit.Directions"
+                                  @bind-Value:set="HandleTransitDirectionsChanged">
+                    <FluentRadio Value="0">Mam rachunek/bilet w obie strony</FluentRadio>
+                    <FluentRadio Value="1">Mam rachunek/bilet w jedną stronę</FluentRadio>
+                    <FluentRadio Value="2">Nie mam rachunku/biletu w żadnym kierunku</FluentRadio>
+                </FluentRadioGroup>
+            </td>
+            </tbody>
+        </table>
+        <FluentTooltip Anchor="LocTravId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50> Wypełnij jeśli korzystałeś z komunikacji miejskiej w mieście docelowym i nie dysponujesz biletami lub rachunkami.</FluentTooltip>
+
     }
     @if (ShowBills)
     {
-        <table class="fluent-table" style="width: auto">
-            <caption class="fluent-caption">
-                Pozostałe rachunki i bilety <FluentIcon Id="BillsInfoId" Value="@(new Icons.Regular.Size16.Info())" />
+        <table class="table-container">
+            <caption class="table-caption">
+                Pozostałe rachunki i bilety <FluentIcon Id="BillsInfoId" Value="@(new Icons.Regular.Size16.Info())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" />
             </caption>
-            <thead class="fluent-thead">
+            <thead class="table-header-left">
                 <tr>
                     <th style="width: 50px;">Lp.</th>
                     <th style="width: 100px;">Kwota brutto</th>
@@ -651,8 +649,9 @@
             <tbody>
                 @foreach (var bill in formItem.Bills)
                 {
-                    var currencyVmNames = SelectedCountries
-                    .Select(country => country.CurrencyVmName)
+                    var currencyVmNames = formItem.Stages
+                    .Select(stage => stage.CountryCurrency)
+                    .Distinct()
                     .ToList();
 
                     <tr class="fluent-row">
@@ -719,7 +718,7 @@
                     {
                         <tr class="fluent-row">
                             <td colspan="7"> <!-- Adjust colspan to match the number of columns -->
-                                <InvoiceMappingEditComponent Disabled="@IsInvoiceMappingDisabled" InvoiceMapping="@bill.InvoiceMappings.First()" />
+                                <InvoiceMappingEditComponent CostCenters="@_costCenters" GLAccounts="@_glAccounts" VatRates="@_vatRates" Locations="@_locations" Disabled="@IsInvoiceMappingDisabled" InvoiceMapping="@bill.InvoiceMappings.First()" />
                             </td>
                         </tr>
                     }
@@ -734,152 +733,203 @@
     }
     @if (ShowSummary)
     {
-        <table title="SummaryRow1" class="fluent-table">
-            <caption class="fluent-caption">
-                Posumowanie:
-            </caption>
-            <thead class="fluent-thead">
-                <tr>
-                    <th style="width: 150px;">Dieta krajowa (PLN)</th>
-                    <th style="width: 150px;">Dieta @formItem.DestinationCountry.Name </th>
-                    <th style="width: 150px;">Suma należnych diet krajowych</th>
-                    <th style="width: 150px;">Suma należnych diet zagranicznych</th>
-                    <th style="width: 150px;">Potrącenie za posiłki krajowe</th>
-                    <th style="width: 150px;">Potrącenie za posiłki zagraniczne</th>
-                    <th style="width: 150px;">Suma - Ryczałt za nocleg krajowy</th>
-                    <th style="width: 150px;">Suma - Ryczałt za nocleg zagraniczny</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr class="fluent-row">
-                    <td>
-                        @formItem.AllowancePL PLN
-                    </td>
-                    <td>
-                        @(formItem.AllowanceNotPL != null ? ((decimal)formItem.AllowanceNotPL).ToString("0.00") : "0.00")
-                        @if (formItem.DestinationCountry.CurrencyVmName != "PLN")
-                        {
-                            var currency = $" {formItem.DestinationCountry.CurrencyVmName}";
-                            @currency
-                        }
-                    </td>
-                    <td>
-                        @formItem.SumAllowancePL PLN
-                    </td>
-                    <td>
-                        @(formItem.SumAllowanceNotPL != null ? ((decimal)formItem.SumAllowanceNotPL).ToString("0.00") : "0.00")
-                        @if (formItem.DestinationCountry.CurrencyVmName != "PLN")
-                        {
-                            var currency = $" {formItem.DestinationCountry.CurrencyVmName}";
-                            @currency
-                        }
-                    </td>
-                    <td>
-                        @formItem.DeductionMealsPL PLN
-                    </td>
-                    <td>
-                        @(formItem.DeductionMealsNotPL != null ? ((decimal)formItem.DeductionMealsNotPL).ToString("0.00") : "0.00")
-                        @if (formItem.DestinationCountry.CurrencyVmName != "PLN")
-                        {
-                            var currency = $" {formItem.DestinationCountry.CurrencyVmName}";
-                            @currency
-                        }
-                    </td>
-                    <td>
-                        @formItem.AccomodationAllowanceSumPL  PLN
-                    </td>
-                    <td>
-                        @(formItem.AccomodationAllowanceSumNotPL != null ? ((decimal)formItem.AccomodationAllowanceSumNotPL).ToString("0.00") : "0.00")
-                        @if (formItem.DestinationCountry.CurrencyVmName != "PLN")
-                        {
-                            var currency = $" {formItem.DestinationCountry.CurrencyVmName}";
-                            @currency
-                        }
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-        <table title="SummaryRow2" class="fluent-table">
-            <thead class="fluent-thead">
-                <tr>
-                    <th style="width: 150px;">Ryczałt na dojazdy lokalne krajowe</th>
-                    <th style="width: 150px;">Ryczałt na dojazdy lokalne zagranica</th>
-                    <th style="width: 150px;">Kilometrówka</th>
-                    <th style="width: 150px;">Przejazd z dworca do hotelu zagranicą </th>
-                    <th style="width: 150px;">Pobrane zaliczki</th>
-                    <th style="width: 150px;">Rachunki krajowe</th>
-                    <th style="width: 150px;">Rachunki zagraniczne</th>
-                    <th style="width: 150px;">puste</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr class="fluent-row">
-                    <td>
-                        @formItem.SumLocalTravelAllowancePL.ToString()  PLN
-                    </td>
-                    <td>
-                        @(formItem.SumLocalTravelAllowanceNotPL != null ? ((decimal)formItem.SumLocalTravelAllowanceNotPL).ToString("0.00") : "0.00")
-                        @if (formItem.DestinationCountry.CurrencyVmName != "PLN")
-                        {
-                            var currency = $" {formItem.DestinationCountry.CurrencyVmName}";
-                            @currency
-                        }
-                    </td>
-                    <td>
-                        @formItem.SumPrivateVehicleAllowance PLN 
-                    </td>
-                    <td>
-                        @(formItem.Transit.Total != null ? ((decimal)formItem.Transit.Total).ToString("0.00") : "0.00")
-                        @if (formItem.DestinationCountry.CurrencyVmName != "PLN")
-                        {
-                            var currency = $" {formItem.DestinationCountry.CurrencyVmName}";
-                            @currency
-                        }
-                    </td>
-                    <td>
-                        @formItem.AdvancePaymentAmount @formItem.AdvancePaymentCurrency
-                    </td>
-                    <td>
-                        @formItem.TotalBillsPL PLN
-                    </td>
-                    <td>
-                        @formItem.TotalBillsNotPL @formItem.DestinationCountryCurrency
-                    </td>
-                    <td>
-                        empty
-                    </td>
-                </tr>
-            </tbody>
-        </table>
-        var totalValueNotPL = (formItem.CurrencyExchamngeRate * formItem.TotalAllowanceNotPL).ToString("0.00");
-        var totalToPayout = (formItem.CurrencyExchamngeRate * formItem.TotalAllowanceNotPL + formItem.TotalAllowancePL - formItem.AdvancePaymentAmount.GetValueOrDefault() + formItem.TotalBillsPL + formItem.TotalBillsNotPL*formItem.CurrencyExchamngeRate).ToString("0.00");
-        <p><b>Suma delegacja krajowa:</b> @formItem.TotalAllowancePL PLN </p>
-        @if (formItem.DestinationCountryCurrency != "PLN")
-        {
-            <p>
-                <b>Suma delegacja @formItem.DestinationCountry.Name:</b> @formItem.TotalAllowanceNotPL.ToString("0.00")
-                @if (formItem.DestinationCountry.CurrencyVmName != "PLN")
-                {
-                    var currency = $" {formItem.DestinationCountry.CurrencyVmName}";
-                    <span>
-                        @currency
-                        | <b>Kurs @formItem.DestinationCountryCurrency z dnia @formItem.CurrencyExchangeRateDate:</b>
-                        @formItem.CurrencyExchamngeRate PLN | <b>Razem: </b>@totalValueNotPL.
-                    </span>
+        <div class="all-tables-wrapper">
+            <div class="tables-wrapper">
+                <!-- Left table -->
+                <div>
+                    <table class="table-container">
+                        <thead>
+                            <tr class="table-header-left">
+                                <th>Podsumowanie - dieta krajowa</th>
+                                <th>Wartość</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Dieta dzienna</td>
+                                <td>@formItem.AllowancePL PLN</td>
+                            </tr>
+                            <tr>
+                                <td>Należna dieta krajowa</td>
+                                <td>@formItem.SumAllowancePL PLN</td>
+                            </tr>
+                            <tr>
+                                <td>Potrącenie za posiłki</td>
+                                <td>@formItem.DeductionMealsPL PLN</td>
+                            </tr>
+                            <tr>
+                                <td>Ryczałt za nocleg</td>
+                                <td>@formItem.AccomodationAllowanceSumPL PLN</td>
+                            </tr>
+                            <tr>
+                                <td>Ryczałt dojazdy lokalne</td>
+                                <td>@formItem.SumLocalTravelAllowancePL.ToString() PLN</td>
+                            </tr>
+                            <tr>
+                                <td>Kilometrówka</td>
+                                <td>@formItem.SumPrivateVehicleAllowance PLN</td>
+                            </tr>
+                            <tr>
+                                <td>Rachunki suma</td>
+                                <td>@formItem.TotalBillsPL PLN</td>
+                            </tr>
+                            <tr>
+                                <td>Pobrana zaliczka</td>
+                                <td>@formItem.AdvancePaymentAmount @formItem.AdvancePaymentCurrency</td>
+                            </tr>
+                            <tr>
+                                <td>Razem w PLN</td>
+                                <td>@formItem.TotalAllowancePL PLN</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Right table -->
+                @if(formItem.Stages.Count > 1){
+                    var totalNotPLinPLN = (formItem.TotalAllowanceNotPL * formItem.CurrencyExchamngeRate).ToString("0.00");
+                    <div>
+                        <table class="table-container">
+                            <thead>
+                                <tr class="table-header-right">
+                                    <th>Podsumowanie - dieta zagraniczna</th>
+                                    <th>Wartość</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Dieta dzienna</td>
+                                    <td>
+                                        @(formItem.AllowanceNotPL != null ? ((decimal)formItem.AllowanceNotPL).ToString("0.00") : "0.00")
+                                        @if (formItem.DestinationCountry.CurrencyVmName != "PLN")
+                                        {
+                                            var currency = $" {formItem.DestinationCountry.CurrencyVmName}";
+                                            @currency
+                                        }
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Należna dieta zagraniczna</td>
+                                    <td>
+                                        @(formItem.SumAllowanceNotPL != null ? ((decimal)formItem.SumAllowanceNotPL).ToString("0.00") : "0.00")
+                                        @if (formItem.DestinationCountry.CurrencyVmName != "PLN")
+                                        {
+                                            var currency = $" {formItem.DestinationCountry.CurrencyVmName}";
+                                            @currency
+                                        }
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Potrącenie za posiłki</td>
+                                    <td>
+                                        @(formItem.DeductionMealsNotPL != null ? ((decimal)formItem.DeductionMealsNotPL).ToString("0.00") : "0.00")
+                                        @if (formItem.DestinationCountry.CurrencyVmName != "PLN")
+                                        {
+                                            var currency = $" {formItem.DestinationCountry.CurrencyVmName}";
+                                            @currency
+                                        }
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Ryczałt za nocleg</td>
+                                    <td>
+                                        @(formItem.AccomodationAllowanceSumNotPL != null ? ((decimal)formItem.AccomodationAllowanceSumNotPL).ToString("0.00") : "0.00")
+                                        @if (formItem.DestinationCountry.CurrencyVmName != "PLN")
+                                        {
+                                            var currency = $" {formItem.DestinationCountry.CurrencyVmName}";
+                                            @currency
+                                        }
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Ryczałt dojazdy lokalne</td>
+                                    <td>
+                                        @(formItem.SumLocalTravelAllowanceNotPL != null ? ((decimal)formItem.SumLocalTravelAllowanceNotPL).ToString("0.00") : "0.00")
+                                        @if (formItem.DestinationCountry.CurrencyVmName != "PLN")
+                                        {
+                                            var currency = $" {formItem.DestinationCountry.CurrencyVmName}";
+                                            @currency
+                                        }
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Tranzyt</td>
+                                    <td>
+                                        @(formItem.Transit.Total != null ? ((decimal)formItem.Transit.Total).ToString("0.00") : "0.00")
+                                        @if (formItem.DestinationCountry.CurrencyVmName != "PLN")
+                                        {
+                                            var currency = $" {formItem.DestinationCountry.CurrencyVmName}";
+                                            @currency
+                                        }
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Rachunki zagraniczne</td>
+                                    <td>@formItem.TotalBillsNotPL @formItem.DestinationCountryCurrency</td>
+                                </tr>
+                                <tr>
+                                    <td>Kurs waluty @formItem.DestinationCountryCurrency z dnia @formItem.CurrencyExchangeRateDate</td>
+                                    <td>
+                                        @formItem.CurrencyExchamngeRate.ToString("0.0000") PLN
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Razem w PLN</td>
+                                    <td>@totalNotPLinPLN PLN </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 }
-            </p>
-        }
+                <p></p>
 
-        <p><b>Razem do wypłaty:</b> @totalToPayout PLN </p>
-
-
-
-
+            </div>
+            <div class="third-table-wrapper">
+                <table class="table-container">
+                    <thead>
+                        <tr class="table-header-left">
+                            <th>Łącznie do wypłaty</th>
+                            <th>@formItem.TotalPayOut.ToString("0.00") PLN</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+        <BankTransferMappingEditComponent BTItem="@formItem.BTMappingPayout" CostCenters="@_costCenters" GLAccounts="@_glAccounts"/>
     }
+
+
+
+    <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
+    Appearance="Appearance.Accent" OnClick="@SendForm" BackgroundColor="#509EDB" Style="width: 100px" Disabled="@DisableSendButton"> Wyślij</FluentButton>
+    <FluentSpacer Width="@buttonSpacer" />
+
+    <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
+    Appearance="Appearance.Accent" OnClick="@ApproveForm" BackgroundColor="#1FC91F" Style="width: 100px" Disabled="@DisableApproveButton"> Zatwierdź</FluentButton>
+    <FluentSpacer Width="@buttonSpacer" />
+    <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
+    Appearance="Appearance.Accent" OnClick="@CancelForm" BackgroundColor="#808080" Color="#FFFFFF" Style="width: 100px"> Anuluj</FluentButton>
+
+
 
 </EditForm>
 <InputFile id="fileInput" OnChange="HandleFileUpload" accept=".png, .jpg, .pdf" style="display: none;" />
 @code {
+
+    private async Task SendForm(){
+
+    }
+    private async Task CancelForm()
+    {
+
+    }
+    private async Task ApproveForm()
+    {
+
+    }
+
+    private int buttonSpacer = 100;
+
 
     # region Declarations
 
@@ -894,13 +944,22 @@
     private OrganisationRoleForFormVm approverL3 { get; set; }
     private OrganisationRoleForFormVm approverL4 { get; set; }
     private OrganisationRoleForFormVm approverL5 { get; set; }
-    private bool al1 = false;
-    private bool al2 = false;
-    private bool al3 = false;
-    private bool al4 = false;
-    private bool al5 = false;
-    private bool ApproveButton = true;
-    private bool SendButton = true;
+    private bool stal1 = false;
+    private bool stal2 = false;
+    private bool stzk = false;
+    private bool stzks = false;
+    private bool stzkstl = false;
+    private bool stroz = false;
+    private bool stks = false;
+    private bool stkstl = false;
+    private bool stal11 = false;
+    private bool stal12 = false;
+    private bool strozk = false;
+    private bool stwys = false;
+    private bool strozend = false;
+    private bool stzam = false;
+    private bool DisableApproveButton = true;
+    private bool DisableSendButton = true;
     private OrganisationVm _organisation { get; set; }
     private WorkflowTemplateVm wf { get; set; }
     private string FormName = "BusinessTravelFormVm";
@@ -956,6 +1015,9 @@
     private CountryVm Origin { get; set; }
     private IEnumerable<Location> _locations { get; set; } = new List<Location>().AsQueryable();
     IEnumerable<Location> _selectedLocation = Array.Empty<Location>();
+    private IEnumerable<CostCenterVm> _costCenters { get; set; }
+    private IEnumerable<GLAccountVm> _glAccounts { get; set; }
+    private IEnumerable<VATRateVm> _vatRates { get; set; }
 
     #endregion
     #region DestinationsObjectivesMeans
@@ -1017,52 +1079,889 @@
                         );
     #endregion
     #endregion
+    private bool test = false;
+
 
     protected override async Task OnInitializedAsync()
     {
         // _editContext = new EditContext(formItem);
-        try
-        {
-            formItem.StartDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, DateTime.Now.Hour, DateTime.Now.Minute, 0);;
-            formItem.EndDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, DateTime.Now.Hour, DateTime.Now.Minute, 0).AddHours(1);
+        
+        await Utils.GetUserName(_authenticationStateProvider, _userContext, _mediator);
+        Employees = await _mediator.Send(new GetAllEmployeesQuery());
+        _costCenters = await _mediator.Send(new GetAllCostCenterIEnumQuery());
+        _glAccounts = await _mediator.Send(new GetAllGLAccountIEnumQuery());
+        _locations = await _mediator.Send(new GetLocationsQuery());
+        _vatRates = await _mediator.Send(new GetAllVatRateIEnumQuery());
+        if(Id != 0 ){
+            //tutaj pobierz delegację z bazy danych
+            //jeśli ID = 0 to jest po prostu new()
         }
-        catch (Exception ex)
+        Console.WriteLine(Id);
+
+        #region AssignBools
+        // stal1 = formItem.Status == "AprobataL1";
+        // stal2 = formItem.Status == "AprobataL2";
+        // stzk = formItem.Status == "ZaliczkaKasa";
+        // stzks = formItem.Status == "ZaliczkaKsiegowosc";
+        // stzkstl = formItem.Status == "ZaliczkaKsiegowoscTL";
+        // stroz = formItem.Status == "Rozliczenie";
+        // stks = formItem.Status == "Ksiegowosc";
+        // stkstl = formItem.Status == "KsiegowoscTL";
+        // stal11 = formItem.Status == "AprobataL11";
+        // stal12 = formItem.Status == "AprobataL12";
+        // strozk = formItem.Status == "KasaRozliczenie";
+        // stwys = formItem.Status == "WyslaneDoRobota";
+        // strozend = formItem.Status == "Rozliczone";
+        // stzam = formItem.Status == "Zamkniete";
+        #endregion
+        // formItem.BTMappingAdvancePayment = new BankTransferMapping();
+        AssignStatusBool();
+        if (stzam || strozend)
         {
-            _toastService.ShowError($"An error occurred during initialization: {ex.Message}");
+            DisableApproveButton = true;
+        }
+        #region
+        // Moved to setup method
+        // Countries = await _mediator.Send(new GetAllCountryQuery());
+        // SelectedCountries = new List<CountryVm> { Countries.FirstOrDefault(c => c.Name == "Polska") };
+        // SelectedCountry = SelectedCountries;
+        // Origin = SelectedCountries[0];
+        // NbpCurrencies = await _mediator.Send(new GetNbpCurrencyRatesByDateQuery(DateOnly.FromDateTime(DateTime.Today.AddDays(-1))));
+        // CompanyCarRegistrationNumbers = await _mediator.Send(new GetCompanyCarRegistrationNumbersQuery());
+
+        // Employees = await _mediator.Send(new GetAllEmployeesQuery());
+        // _locations = await _mediator.Send(new GetLocationsQuery());
+
+        // if (SelectedCountry != null && SelectedCountry.Any())
+        // {
+        //     await AddStage(SelectedCountry.First());
+        //     var firststage = formItem.Stages[0];
+        //     formItem.DestinationCountry = SelectedCountry.FirstOrDefault();
+        //     RecalculateStages(firststage.Id, nameof(firststage.EndDate));
+        //     RecalculateAccomodations();
+        //     RecalculateMeals();
+        // }
+        // else
+        // {
+        //     Handle the case where SelectedCountry is null or empty
+        // }
+
+        // if (formItem.Status == "Rejestracja")
+        // {
+        //     SetupFormRejestracja();
+        // }
+        #endregion
+        await SetupForm(formItem.Status);
+        // Console.WriteLine();
+    }
+
+    #region OnSearch
+    private void OnLocationSearch(OptionsSearchEventArgs<Location> e)
+    {
+        if (e.Text != null)
+        {
+            e.Items = _locations.Where(a => 
+                a.Name.Contains(e.Text, StringComparison.OrdinalIgnoreCase) || 
+                a.SapNumber.Contains(e.Text, StringComparison.OrdinalIgnoreCase)).ToList();
+        }
+    }
+    private void OnCountrySearch(OptionsSearchEventArgs<CountryVm> e)
+    {
+        if (e.Text != null)
+        {
+            e.Items = Countries.Where(a => a.Name.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
+        }
+    }
+    private void OnObjectiveSearch(OptionsSearchEventArgs<string> e)
+    {
+        if (e.Text != null)
+        {
+            e.Items = _objectives.Where(a => a.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
+        }
+    }
+    private void OnCompanyCarSearch(OptionsSearchEventArgs<string> e)
+    {
+        if (e.Text != null)
+        {
+            e.Items = CompanyCarRegistrationNumbers
+                .Where(a => a.RegistrationNumber.Contains(e.Text, StringComparison.OrdinalIgnoreCase))
+                .Select(a => a.RegistrationNumber) 
+                .ToList();
+        }
+    }
+    private void OnAssigneeSearch(OptionsSearchEventArgs<EmployeeVm> e)
+    {
+        if (e.Text != null)
+        {
+            e.Items = Employees.Where(a => a.LongName.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
+        }
+    }
+    #endregion OnSearch
+    #region OnChange
+    private void HandleStatusChange()
+    {
+        SetupForm(formItem.Status);
+    }
+    private void HandleBillChange(Bill bill, string curr){
+        bill.Currency = curr;
+    }
+    private void HandlePrivateVehicleMileageChanged(int value)
+    {
+        formItem.PrivateVehicleMilage = value;
+
+        if(formItem.PrivateVehicleEngineSize <= 900 ){
+            formItem.SumPrivateVehicleAllowance = formItem.PrivateVehicleMilage * Dictionary.MileageAllowance[900];
+        }
+        else if (formItem.PrivateVehicleEngineSize > 900){
+            formItem.SumPrivateVehicleAllowance = formItem.PrivateVehicleMilage * Dictionary.MileageAllowance[901];
         }
 
-        await Utils.GetUserName(_authenticationStateProvider, _userContext, _mediator);
+    }
+    private void HandlePrivateVehicleEngineSizeChanged(int value)
+    {
+
+        formItem.PrivateVehicleEngineSize = value;
+
+        if (formItem.PrivateVehicleEngineSize <= 900)
+        {
+            formItem.SumPrivateVehicleAllowance = formItem.PrivateVehicleMilage * Dictionary.MileageAllowance[900];
+        }
+        else if (formItem.PrivateVehicleEngineSize > 900)
+        {
+            formItem.SumPrivateVehicleAllowance = formItem.PrivateVehicleMilage * Dictionary.MileageAllowance[901];
+        }
+
+    }
+    private void HandleTransitDirectionsChanged(int value)
+    {
+        formItem.Transit.Directions = value;
+        formItem.Transit.Total = formItem.Transit.Directions switch
+        {
+            0 => 0,
+            1 => formItem.Transit.AllowanceRate,
+            2 => formItem.Transit.AllowanceRate * 2,
+            _ => formItem.Transit.Total
+        };
+    }
+    private void HandleLocationChange()
+    {
+        formItem.CashPoint = _selectedLocation.FirstOrDefault();
 
         Console.WriteLine();
-        Countries = await _mediator.Send(new GetAllCountryQuery());
-        SelectedCountries = new List<CountryVm> { Countries.FirstOrDefault(c => c.Name == "Polska") };
-        SelectedCountry = SelectedCountries;
-        Origin = SelectedCountries[0];
-        NbpCurrencies = await _mediator.Send(new GetNbpCurrencyRatesByDateQuery(DateOnly.FromDateTime(DateTime.Today.AddDays(-1))));
-        CompanyCarRegistrationNumbers = await _mediator.Send(new GetCompanyCarRegistrationNumbersQuery());
-
-        Employees = await _mediator.Send(new GetAllEmployeesQuery());
-        _locations = await _mediator.Send(new GetLocationsQuery());
-
-        if (SelectedCountry != null && SelectedCountry.Any())
+    }
+    private async Task HandleBillChanged(Bill bill, decimal v)
+    {
+        bill.Amount = v;
+    }
+    private async Task HandleLocalTravelChanged(LocalTravel l, int v)
+    {
+        l.Days = v;
+        RecalculateLocalTravels();
+    }
+    private async Task HandleMealChanged(Meals m, int v, string p)
+    {
+        var property = m.GetType().GetProperty(p);
+        if (property != null && property.CanWrite)
         {
-            await AddStage(SelectedCountry.First());
-            var firststage = formItem.Stages[0];
-            formItem.DestinationCountry = SelectedCountry.FirstOrDefault();
-            RecalculateStages(firststage.Id, nameof(firststage.EndDate));
-            RecalculateAccomodations();
-            RecalculateMeals();
+            property.SetValue(m, v);
+        }
+
+        RecalculateMeals();
+    }
+    private async Task HandleStageIncluded(Stage stage, bool value)
+    {
+        stage.Included = value;
+        formItem.Accommodations[stage.Id - 1].Included = value;
+        formItem.Meals[stage.Id - 1].Included = value;
+
+        RecalculateAccomodations();
+    }
+    private async Task HandleAccommodationInvoicesAmount(Accommodation accommodation, decimal? value)
+    {
+        accommodation.InvoicesAmount = accommodation.Total = value;
+    }
+    private async Task HandleAccommodationHasInvoices(Accommodation accommodation, bool value)
+    {
+        accommodation.InvoicesAmount = 0;
+        if (value)
+        {
+            accommodation.HasInvoices = value;
+            accommodation.InvoicesAmount = 0;
+            accommodation.Total = 0;
         }
         else
         {
-            // Handle the case where SelectedCountry is null or empty
+            accommodation.HasInvoices = value;
+            // accommodation.Total = accommodation.AllowanceRate * accommodation.Duration;
+        }
+        RecalculateAccomodations();
+    }
+    private async Task HandleCountryChange()
+    {
+        Console.WriteLine(SelectedCountry.Count());
+
+        if (SelectedCountry.FirstOrDefault() == null)
+        {
+
+        }
+        else
+        {
+            // formItem.Countries = SelectedCountry;
+            //
+            // formItem.Countries = SelectedEmpl.FirstOrDefault();
+            // Role.EmpId = SelectedEmpl.FirstOrDefault().EnovaEmpId;
         }
 
-        if (formItem.Status == "Rejestracja")
+        StateHasChanged();
+    }
+    private async Task HandleCountryAdd()
+    {
+        var newCountry = SelectedCountry.FirstOrDefault();
+        if (newCountry == null)
         {
-            SetupFormRejestracja();
+            newCountry = Countries.FirstOrDefault(c => c.Name == "Polska");
+            AbroadCurrencyExchangeRate = OriginExchangeRate;
         }
+        else
+        {
+            AbroadCurrencyExchangeRate = await _mediator.Send(new GetNbpCurrencyRateByDateAndCodeQuery(DateOnly.FromDateTime(DateTime.Today.AddDays(-1)), newCountry.CurrencyVmName));
+        }
+
+        formItem.DestinationCountry = newCountry;
+        formItem.DestinationCountryCurrency = newCountry.CurrencyVmName;
+
+        // Clear existing stages except the first one
+        if (formItem.Stages.Count > 1)
+        {
+            formItem.Stages.RemoveRange(1, formItem.Stages.Count - 1);
+            formItem.Accommodations.RemoveRange(1, formItem.Accommodations.Count - 1);
+            formItem.Meals.RemoveRange(1, formItem.Meals.Count - 1);
+            formItem.LocalTravels.RemoveRange(1, formItem.LocalTravels.Count - 1);
+        }
+
+        if (newCountry.Name != "Polska")
+        {
+            // Add the new country stage and the return to Polska stage
+            await AddStage(newCountry);
+            await AddStage(Origin);
+        }
+
+        //Assign currency to formItem
+        if (formItem.Stages.Count == 1)
+        {
+            formItem.CurrencyExchamngeRate = AbroadCurrencyExchangeRate.Mid;
+            formItem.CurrencyExchangeRateDate = AbroadCurrencyExchangeRate.RateDate;
+            formItem.DestinationCountryCurrency = AbroadCurrencyExchangeRate.Code;
+        }
+        else if (formItem.Stages.Count == 3)
+        {
+            AbroadCurrencyExchangeRate = await _mediator.Send(new GetNbpCurrencyRateByDateAndCodeQuery(DateOnly.FromDateTime(DateTime.Today.AddDays(-1)), formItem.Stages[1].CountryCurrency));
+            formItem.CurrencyExchamngeRate = AbroadCurrencyExchangeRate.Mid;
+            formItem.CurrencyExchangeRateDate = AbroadCurrencyExchangeRate.RateDate;
+            formItem.DestinationCountryCurrency = AbroadCurrencyExchangeRate.Code;
+        }
+
+        StateHasChanged();
+    }
+
+    private async Task HandleObjectiveChange()
+    {
+
+        Console.WriteLine(SelectedObjective.Count());
+
+        if (SelectedObjective.FirstOrDefault() == null)
+        {
+
+        }
+        else
+        {
+            formItem.Objective = SelectedObjective.ToString();
+        }
+
+        StateHasChanged();
+    }
+    private async Task HandleCompanyCarChange()
+    {
+
+        Console.WriteLine(SelectedCompanyCar.Count());
+
+        if (SelectedCompanyCar.FirstOrDefault() == null)
+        {
+
+        }
+        else
+        {
+            formItem.CompanyVehicleNumber = SelectedCompanyCar.ToString();
+        }
+
+        StateHasChanged();
+    }
+    private async Task HandleCityChange(string value)
+    {
         Console.WriteLine();
+        formItem.Destination = value;
+
+        StateHasChanged();
+    } // Currently not in use.
+    private async Task HandleAssigneeChange()
+    {
+        Console.WriteLine(SelectedEmpl.Count());
+
+        if (SelectedEmpl.FirstOrDefault() == null)
+        {
+
+        }
+        else
+        {
+            var emp = SelectedEmpl.FirstOrDefault();
+            formItem.EmployeeName = emp.LongName;
+            formItem.EnovaEmpId = emp.EnovaEmpId.ToString();
+            _organisation = await _mediator.Send(new GetOrganisationByEmpSapNumberQuery(emp.SapNumber));
+
+        }
+
+        StateHasChanged();
+    }
+    private async Task HandleConveyanceChange()
+    {
+        Console.WriteLine(SelectedConveyance.Count());
+
+        if (SelectedConveyance.FirstOrDefault() == "Samochód prywatny")
+        {
+            IsPrivateCar = true;
+            IsCompanyCar = false;
+            IsPublicTransport = false;
+            ShowTransits = false;
+        }
+        else if (SelectedConveyance.FirstOrDefault() == "Samochód służbowy")
+        {
+            IsPrivateCar = false;
+            IsCompanyCar = true;
+            IsPublicTransport = false;
+            ShowTransits = false;
+        }
+        else if (SelectedConveyance.FirstOrDefault() == "Transport publiczny")
+        {
+            IsPrivateCar = false;
+            IsCompanyCar = false;
+            IsPublicTransport = true;
+            ShowTransits = true;
+        }
+
+        StateHasChanged();
+    }
+    private async Task HandleConveyanceStringChange()
+    {
+        // Console.WriteLine(SelectedConveyanceTxt.Count());
+        if (SelectedConveyanceTxt == "Samochód prywatny")
+        {
+            Console.WriteLine(SelectedConveyanceTxt);
+            IsPrivateCar = true;
+            IsCompanyCar = false;
+            IsPublicTransport = false;
+            formItem.PrivateVehicle = true;
+            formItem.CompanyVehicle = false;
+        }
+        else if (SelectedConveyanceTxt == "Samochód służbowy")
+        {
+            Console.WriteLine(SelectedConveyanceTxt);
+            IsPrivateCar = false;
+            IsCompanyCar = true;
+            IsPublicTransport = false;
+            formItem.PrivateVehicle = false;
+            formItem.CompanyVehicle = true;
+            formItem.PublicTransport = false;
+            formItem.PublicTransportPaid = false;
+        }
+        else if (SelectedConveyanceTxt == "Transport publiczny")
+        {
+            Console.WriteLine(SelectedConveyanceTxt);
+            IsPrivateCar = false;
+            IsCompanyCar = false;
+            IsPublicTransport = true;
+            formItem.PrivateVehicle = false;
+            formItem.CompanyVehicle = false;
+            formItem.PublicTransport = true;
+            formItem.PublicTransportPaid = false;
+        }
+
+        if (stroz || stks || stkstl)
+        {
+            ShowTransits = true;
+        }
+
+        StateHasChanged();
+    }
+    private async Task HandlePublicTransportPaidChanged(bool value)
+    {
+        formItem.PublicTransportPaid = value;
+    }
+    private async Task HandleAdvancePaymentPaidChanged(bool value)
+    {
+        formItem.AdvancePayment = value;
+        StateHasChanged();
+    }
+    private async Task HandleDateTimeChanged(DateTime? dateTime, string p)
+    {
+        if (dateTime.HasValue)
+        {
+            // Set seconds to 0
+            dateTime = new DateTime(dateTime.Value.Year, dateTime.Value.Month, dateTime.Value.Day, dateTime.Value.Hour, dateTime.Value.Minute, 0);
+        }
+        if (p == "to")
+        {
+            formItem.EndDate = dateTime;
+            if (formItem.Stages.Any())
+            {
+                formItem.Stages.Last().EndDate = dateTime;
+            }
+        }
+        else if (p == "from")
+        {
+            formItem.StartDate = dateTime;
+            if (formItem.Stages.Any())
+            {
+                formItem.Stages.First().StartDate = dateTime;
+            }
+        }
+
+        RecalculateStages(0, "skip");
+        RecalculateAccomodations();
+        RecalculateMeals();
+        RecalculateLocalTravels();
+        ValidateDates();
+    }
+    private async Task HandleStageDateTimeChanged(DateTime? value, Stage stage, string propertyName, int stageId)
+    {
+        // ConsoleLog("stage: " + stageId + " " + propertyName);
+        // ConsoleLog("stage: " + stageId + " start" + stage.StartDate.ToString() + " koniec: " + stage.EndDate.ToString());
+        if (propertyName == nameof(stage.StartDate))
+        {
+            stage.StartDate = value;
+
+            if (formItem.Stages.FirstOrDefault() == stage && propertyName == nameof(stage.StartDate))
+            {
+                // Update formItem.EndDate to the EndDate of the last stage
+                formItem.StartDate = stage.StartDate;
+            }
+        }
+        else if (propertyName == nameof(stage.EndDate))
+        {
+            stage.EndDate = value;
+            if (formItem.Stages.LastOrDefault() == stage && propertyName == nameof(stage.EndDate))
+            {
+                // Update formItem.EndDate to the EndDate of the last stage
+                formItem.EndDate = stage.EndDate;
+            }
+
+        }
+
+        await RecalculateStages(stageId, propertyName);
+        await RecalculateAccomodations();
+        await RecalculateMeals();
+        await RecalculateLocalTravels();
+        await ValidateDates();
+        StateHasChanged();
+    }
+    private async Task RecalculateStages(int? stageId, string? propertyName)
+    {
+
+        if (!(stageId == 0 && propertyName == "skip"))
+        {
+            var updatedStageIndex = formItem.Stages.FindIndex(s => s.Id == stageId);
+            if (updatedStageIndex == -1) return;
+            var updatedStage = formItem.Stages[updatedStageIndex];
+            if (propertyName == nameof(updatedStage.EndDate) && updatedStage.EndDate.HasValue)
+            {
+                // Update the next stage's StartDate if it exists
+                if (updatedStageIndex + 1 < formItem.Stages.Count)
+                {
+                    var nextStage = formItem.Stages[updatedStageIndex + 1];
+
+                    // Set the next stage's StartDate to be one minute after the current EndDate
+                    nextStage.StartDate = updatedStage.EndDate.Value.AddMinutes(1);
+                }
+            }
+
+            if (propertyName == nameof(updatedStage.StartDate) && updatedStage.StartDate.HasValue)
+            {
+                // Update the previous stage's EndDate if it exists
+                if (updatedStageIndex > 0)
+                {
+                    var previousStage = formItem.Stages[updatedStageIndex - 1];
+
+                    // Set the previous stage's EndDate to be one minute before the current StartDate
+                    previousStage.EndDate = updatedStage.StartDate.Value.AddMinutes(-1);
+                }
+            }
+        }
+
+        // Recalculate the duration for all stages
+        formItem.SumAllowancePL = 0;
+        formItem.SumAllowanceNotPL = 0;
+        foreach (var stage in formItem.Stages)
+        {
+            if (stage.StartDate < stage.EndDate)
+            {
+                // Calculate duration and timespan
+                stage.Duration = Math.Round((decimal)(stage.EndDate.Value - stage.StartDate.Value).TotalDays, 2);
+                stage.TimeSpan = TimeSpan.FromHours(Math.Round((stage.EndDate.Value - stage.StartDate.Value).TotalHours));
+
+                // Reset Allowance values
+                stage.AllowanceOriginValue = 0;
+                stage.AllowanceAbroadValue = 0;
+                stage.AllowanceOrigin = 0;
+                stage.AllowanceAbroad = 0;
+
+                if (stage.CountryCode == "PL")
+                {
+                    formItem.AllowancePL = stage.CountryAllowance;
+                    // Calculate AllowanceOrigin factor and value
+                    if (stage.TimeSpan.TotalHours < 8)
+                    {
+                        stage.AllowanceOrigin = 0;
+                    }
+                    else if (stage.TimeSpan.TotalHours >= 8 && stage.TimeSpan.TotalHours < 12)
+                    {
+                        stage.AllowanceOrigin = 0.5m;
+                        stage.AllowanceOriginValue = stage.CountryAllowance / 2;
+                    }
+                    else if (stage.TimeSpan.TotalHours >= 12 && stage.TimeSpan.TotalHours <= 24)
+                    {
+                        stage.AllowanceOrigin = 1;
+                        stage.AllowanceOriginValue = stage.CountryAllowance;
+                    }
+
+                    if (stage.TimeSpan.TotalHours > 24)
+                    {
+                        // Calculate for additional full days
+                        var fullDays = (int)(stage.TimeSpan.TotalHours / 24);
+                        stage.AllowanceOrigin += fullDays;
+                        stage.AllowanceOriginValue += fullDays * stage.CountryAllowance;
+
+                        // Calculate for the remaining hours
+                        var remainingHours = stage.TimeSpan.TotalHours % 24;
+                        if (remainingHours < 8)
+                        {
+                            stage.AllowanceOrigin += 0.5m;
+                            stage.AllowanceOriginValue += stage.CountryAllowance / 2;
+                        }
+                        else
+                        {
+                            stage.AllowanceOrigin += 1;
+                            stage.AllowanceOriginValue += stage.CountryAllowance;
+                        }
+                    }
+
+                    formItem.SumAllowancePL += stage.AllowanceOriginValue;
+                }
+                else
+                {
+                    formItem.AllowanceNotPL = stage.CountryAllowance;
+                    // Calculate AllowanceAbroad factor and value
+                    if (stage.TimeSpan.TotalHours < 8)
+                    {
+                        stage.AllowanceAbroad = 0.33m;
+                        stage.AllowanceAbroadValue = Math.Round(stage.CountryAllowance / 3, 2);
+                    }
+                    else if (stage.TimeSpan.TotalHours >= 8 && stage.TimeSpan.TotalHours <= 12)
+                    {
+                        stage.AllowanceAbroad = 0.5m;
+                        stage.AllowanceAbroadValue = stage.CountryAllowance / 2;
+                    }
+                    else if (stage.TimeSpan.TotalHours >= 12 && stage.TimeSpan.TotalHours <= 24)
+                    {
+                        stage.AllowanceAbroad = 1;
+                        stage.AllowanceAbroadValue = stage.CountryAllowance;
+                    }
+
+                    if (stage.TimeSpan.TotalHours > 24)
+                    {
+                        // Calculate for additional full days
+                        var fullDays = (int)(stage.TimeSpan.TotalHours / 24);
+                        stage.AllowanceAbroad += fullDays;
+                        stage.AllowanceAbroadValue += fullDays * stage.CountryAllowance;
+
+                        // Calculate for the remaining hours
+                        var remainingHours = stage.TimeSpan.TotalHours % 24;
+                        if (remainingHours > 0 && remainingHours < 8)
+                        {
+                            stage.AllowanceAbroad += 0.33m;
+                            stage.AllowanceAbroadValue += Math.Round(stage.CountryAllowance / 3, 2);
+                        }
+                        else if (remainingHours >= 8 && remainingHours < 12)
+                        {
+                            stage.AllowanceAbroad += 0.5m;
+                            stage.AllowanceAbroadValue += stage.CountryAllowance / 2;
+                        }
+                        else if (remainingHours >= 12 && remainingHours <= 24)
+                        {
+                            stage.AllowanceAbroad += 1;
+                            stage.AllowanceAbroadValue += stage.CountryAllowance;
+                        }
+
+                    }
+
+                    formItem.SumAllowanceNotPL += stage.AllowanceAbroadValue;
+                }
+            }
+            else if (stage.StartDate >= stage.EndDate)
+            {
+                stage.TimeSpan = new TimeSpan();
+                stage.Duration = 0;
+                stage.AllowanceOrigin = 0;
+                stage.AllowanceOriginValue = 0;
+                stage.AllowanceAbroad = 0;
+                stage.AllowanceAbroadValue = 0;
+
+            }
+        }
+
+    }
+    private async Task RecalculateMeals()
+    {
+        formItem.DeductionMealsPL = 0;
+        formItem.DeductionMealsNotPL = 0;
+        foreach (var meal in formItem.Meals)
+        {
+            meal.Duration = 0;
+            var stage = formItem.Stages[meal.StageId - 1];
+            if (stage != null)
+            {
+                meal.Duration = (int)Math.Ceiling(stage.AllowanceOrigin.GetValueOrDefault() + stage.AllowanceAbroad.GetValueOrDefault());
+                meal.Included = (stage.AllowanceOriginValue + stage.AllowanceAbroadValue) == 0 ? false : stage.Included;
+                // meal.Total = (stage.AllowanceOrigin.GetValueOrDefault() + stage.AllowanceAbroad.GetValueOrDefault()) * meal.AllowanceRate;
+                meal.Total = 0;
+                if (meal.CountryCode != "PL")
+                {
+                    meal.Total -= (meal.CoveredBreakfasts * meal.AllowanceRate * 0.15m);
+                    meal.Total -= (meal.CoveredLunches * meal.AllowanceRate * 0.3m);
+                    meal.Total -= (meal.CoveredDinners * meal.AllowanceRate * 0.3m);
+                    formItem.DeductionMealsNotPL += meal.Total;
+                }
+                else
+                {
+                    meal.Total -= (meal.CoveredBreakfasts * meal.AllowanceRate / 4);
+                    meal.Total -= (meal.CoveredLunches * meal.AllowanceRate / 2);
+                    meal.Total -= (meal.CoveredDinners * meal.AllowanceRate / 4);
+                    formItem.DeductionMealsPL += meal.Total;
+                }
+
+                meal.Nights = CalculateNights(stage.StartDate.Value, stage.EndDate.Value);
+                // var num = meal.Total;
+                meal.Total = Math.Round(meal.Total, 2);
+            }
+
+            Console.WriteLine();
+        }
+
+        if (Math.Abs(formItem.DeductionMealsPL.GetValueOrDefault()) > Math.Abs(formItem.SumAllowancePL.GetValueOrDefault()))
+        {
+            formItem.DeductionMealsPL = -1 * formItem.SumAllowancePL;
+        }
+        if (Math.Abs(formItem.DeductionMealsNotPL.GetValueOrDefault()) > Math.Abs(formItem.SumAllowanceNotPL.GetValueOrDefault()))
+        {
+            formItem.DeductionMealsNotPL = -1 * formItem.SumAllowanceNotPL;
+        }
+
+    }
+    private async Task RecalculateAccomodations()
+    {
+        formItem.AccomodationAllowanceSumPL = 0;
+        formItem.AccomodationAllowanceSumNotPL = 0;
+        foreach (var accommodation in formItem.Accommodations)
+        {
+
+            var stage = formItem.Stages[accommodation.StageId - 1];
+            if (stage != null)
+            {
+                accommodation.Duration = stage.Duration;
+                accommodation.Included = stage.Included;
+                if (stage.StartDate.HasValue && stage.EndDate.HasValue)
+                {
+                    // Calculate the number of nights
+                    accommodation.Nights = CalculateNights(stage.StartDate.Value, stage.EndDate.Value);
+                }
+
+                if (accommodation.Included)
+                {
+                    if (!accommodation.HasInvoices)
+                    {
+                        if (accommodation.CountryCode == "PL")
+                        {
+                            accommodation.Total = accommodation.Nights.GetValueOrDefault() * accommodation.AllowanceRate;
+                            formItem.AccomodationAllowanceSumPL += accommodation.Total;
+                        }
+                        else
+                        {
+                            accommodation.Total = accommodation.Nights.GetValueOrDefault() * accommodation.AllowanceRate;
+                            formItem.AccomodationAllowanceSumNotPL += accommodation.Total;
+                        }
+
+                    }
+                }
+                else
+                {
+                    accommodation.Total = 0;
+                }
+
+            }
+        }
+    }
+    private async Task RecalculateLocalTravels()
+    {
+        formItem.SumLocalTravelAllowancePL = 0;
+        formItem.SumLocalTravelAllowanceNotPL = 0;
+
+
+        foreach (var localTravel in formItem.LocalTravels)
+        {
+            var stage = formItem.Stages[localTravel.StageId - 1];
+            localTravel.Duration = (int)Math.Ceiling(stage.AllowanceOrigin.GetValueOrDefault() + stage.AllowanceAbroad.GetValueOrDefault());
+            localTravel.Total = localTravel.Days * localTravel.AllowanceRate;
+
+        }
+        formItem.SumLocalTravelAllowancePL = formItem.LocalTravels.Where(lt => lt.CountryCode == "PL").Sum(lt => lt.Total);
+        formItem.SumLocalTravelAllowanceNotPL = formItem.LocalTravels.Where(lt => lt.CountryCode != "PL").Sum(lt => lt.Total);
+    }
+    private async Task RecalculateTransit()
+    {
+
+        if (formItem.Transit != null)
+        {
+            formItem.Transit.Total = formItem.Transit.Directions * formItem.Transit.AllowanceRate;
+        }
+    }
+    private int CalculateNights(DateTime startDate, DateTime endDate)
+    {
+        int nights = 0;
+
+        // Adjust the time range to the period we care about (9:00 PM to 7:00 AM)
+        TimeSpan nightStart = new TimeSpan(21, 0, 0); // 9:00 PM
+        TimeSpan nightEnd = new TimeSpan(7, 0, 0); // 7:00 AM
+
+        DateTime currentStart = startDate;
+        DateTime currentEnd = endDate;
+
+        // Loop through each day in the range
+        while (currentStart.Date <= currentEnd.Date)
+        {
+            DateTime nightStartTime = currentStart.Date.Add(nightStart);
+            DateTime nightEndTime = currentStart.Date.AddDays(1).Add(nightEnd);
+
+            // Determine overlap between the stage time and the night period
+            DateTime overlapStart = nightStartTime > currentStart ? nightStartTime : currentStart;
+            DateTime overlapEnd = nightEndTime < currentEnd ? nightEndTime : currentEnd;
+
+            if (overlapStart < overlapEnd)
+            {
+                // Calculate the duration of overlap
+                TimeSpan overlapDuration = overlapEnd - overlapStart;
+
+                // Count continuous 6-hour periods
+                nights += (int)(overlapDuration.TotalHours / 6);
+            }
+
+            // Move to the next day
+            currentStart = currentStart.AddDays(1).Date;
+        }
+
+        return nights;
+    }
+    private async Task ValidateDates()
+    {
+        // Check if the overall start date is before the end date
+        if (formItem.StartDate > formItem.EndDate)
+        {
+            DateTimeValidationMessage = "Start date must be before or equal to end date.";
+        }
+        else
+        {
+            DateTimeValidationMessage = string.Empty;
+        }
+        var invalidStage = formItem.Stages
+            .Select((stage, index) => new { stage, index })
+            .FirstOrDefault(x =>
+                x.stage.StartDate > x.stage.EndDate ||
+                (x.index < formItem.Stages.Count - 1 && x.stage.EndDate > formItem.Stages[x.index + 1].StartDate) ||
+                (x.index > 0 && x.stage.StartDate < formItem.Stages[x.index - 1].EndDate));
+
+        var errorMessages = new List<string>();
+
+        for (int i = 0; i < formItem.Stages.Count; i++)
+        {
+            var stage = formItem.Stages[i];
+
+            if (stage.StartDate > stage.EndDate)
+            {
+                errorMessages.Add($"Etap {stage.Id}: Data początkowa musi być wcześniejsza niż końcowa");
+            }
+
+            if (i < formItem.Stages.Count - 1 && stage.EndDate > formItem.Stages[i + 1].StartDate)
+            {
+                errorMessages.Add($"Data końcowa Etapu {stage.Id} musi być wcześniejsza niż data początkowa Etapu {formItem.Stages[i + 1].Id}.");
+            }
+
+            if (i > 0 && stage.StartDate < formItem.Stages[i - 1].EndDate)
+            {
+                errorMessages.Add($"Data początkowa Etapu {stage.Id} musi być późniejsza niż data końcowa Etapu {formItem.Stages[i - 1].Id}.");
+            }
+        }
+
+        if (errorMessages.Any())
+        {
+            StagesDatesErrorMessages = errorMessages;
+            StagesDatesErrorMessage = string.Join("<br>", errorMessages);
+        }
+        else
+        {
+            // Clear the error message if all dates are valid
+            StagesDatesErrorMessages = new();
+            StagesDatesErrorMessage = string.Empty;
+        }
+        // Check intermediate dates within stages using LINQ
+        // var invalidStage = formItem.Stages
+        //     .Select((stage, index) => new { stage, index })
+        //     .FirstOrDefault(x =>
+        //         x.stage.StartDate > x.stage.EndDate ||
+        //         (x.index < formItem.Stages.Count - 1 && x.stage.EndDate >= formItem.Stages[x.index + 1].StartDate));
+        //
+        // if (invalidStage != null)
+        // {
+        //     if (invalidStage.stage.StartDate > invalidStage.stage.EndDate)
+        //     {
+        //         StagesDatesErrorMessage = $"Stage {invalidStage.stage.Id}: Start date must be before or equal to end date.";
+        //     }
+        //     else if (invalidStage.stage.EndDate > invalidStage.stage.StartDate)
+        //     {
+        //         StagesDatesErrorMessage = $"Stage {invalidStage.stage.Id}: End date must be before the start date of the next stage.";
+        //     }
+        // }
+        // else
+        // {
+        //     // Clear the error message if all dates are valid
+        //     StagesDatesErrorMessage = string.Empty;
+        // }
+        Console.WriteLine();
+    }
+
+    #endregion OnChange
+    #region Actions
+    private void AssignStatusBool(){
+        stal1 = formItem.Status == "AprobataL1";
+        stal2 = formItem.Status == "AprobataL2";
+        stzk = formItem.Status == "ZaliczkaKasa";
+        stzks = formItem.Status == "ZaliczkaKsiegowosc";
+        stzkstl = formItem.Status == "ZaliczkaKsiegowoscTL";
+        stroz = formItem.Status == "Rozliczenie";
+        stks = formItem.Status == "Ksiegowosc";
+        stkstl = formItem.Status == "KsiegowoscTL";
+        stal11 = formItem.Status == "AprobataL11";
+        stal12 = formItem.Status == "AprobataL12";
+        strozk = formItem.Status == "KasaRozliczenie";
+        stwys = formItem.Status == "WyslaneDoRobota";
+        strozend = formItem.Status == "Rozliczone";
+        stzam = formItem.Status == "Zamkniete";
     }
     private async Task AddStage(CountryVm country)
     {
@@ -1072,80 +1971,67 @@
 
         var duration = (formItem.EndDate.Value - formItem.StartDate.Value).TotalDays;
         var firstStage = new Stage()
-        {
-            Id = formItem.Stages.Count() + 1,
-            CountryCode = country.CountryCode,
-            CountryName = country.Name,
-            CountryAllowance = country.Allowance,
-            CountryCurrency = country.CurrencyVmName,
-            StartDate = formItem.StartDate,
-            EndDate = formItem.EndDate,
-            Duration = Math.Round((decimal)duration, 2)
-        };
+                {
+                    Id = formItem.Stages.Count() + 1,
+                    CountryCode = country.CountryCode,
+                    CountryName = country.Name,
+                    CountryAllowance = country.Allowance,
+                    CountryCurrency = country.CurrencyVmName,
+                    StartDate = formItem.StartDate,
+                    EndDate = formItem.EndDate,
+                    Duration = Math.Round((decimal)duration, 2),
+                    NbpCurrencyRateVm = AbroadCurrencyExchangeRate
+                };
         formItem.Stages.Add(firstStage);
         ValidateDates();
 
         var firstAccomodation = new Accommodation()
-        {
-
-            StageId = firstStage.Id,
-            CountryCode = country.CountryCode,
-            CountryName = country.Name,
-            Duration = firstStage.Duration,
-            AllowanceRate = country.IsPL ? country.Allowance * 1.5m : country.MaxHotelCost / 4, //Ryczałt za nocleg
-            AllowanceRateCurrency = country.CurrencyVmName,
-            MaxHotelCost = country.MaxHotelCost,
-            HasInvoices = true,
-            InvoicesAmount = 0,
-            Total = 0
-        };
-        // var firstAccomodation = new Accommodation()
-        //     {
-
-        //         StageId = firstStage.Id,
-        //         CountryCode = country.CountryCode,
-        //         CountryName = country.Name,
-        //         Duration = firstStage.Duration,
-        //         AllowanceRate = country.AccomodationAllowance,
-        //         AllowanceRateCurrency = country.CurrencyVmName,
-        //         HasInvoices = false,
-        //         InvoicesAmount = 0,
-        //         Total = country.AccomodationAllowance * firstStage.Duration
-        //     };
+                {
+                    StageId = firstStage.Id,
+                    CountryCode = country.CountryCode,
+                    CountryName = country.Name,
+                    Duration = firstStage.Duration,
+                    AllowanceRate = country.IsPL ? Math.Round(country.Allowance * 1.5m, 2) : Math.Round(country.MaxHotelCost / 4m, 2), //Ryczałt za nocleg
+                    AllowanceRateCurrency = country.CurrencyVmName,
+                    MaxHotelCost = country.MaxHotelCost,
+                    HasInvoices = true,
+                    InvoicesAmount = 0,
+                    Total = 0
+                };
         formItem.Accommodations.Add(firstAccomodation);
 
         var firstMeal = new Meals()
-        {
-            StageId = firstStage.Id,
-            CountryCode = country.CountryCode,
-            CountryName = country.Name,
-            AllowanceRate = country.Allowance,
-            AllowanceRateCurrency = country.CurrencyVmName,
-            Duration = (int)Math.Ceiling(firstStage.AllowanceOrigin.GetValueOrDefault() + firstStage.AllowanceAbroad.GetValueOrDefault())
-        };
+                {
+                    StageId = firstStage.Id,
+                    CountryCode = country.CountryCode,
+                    CountryName = country.Name,
+                    AllowanceRate = country.Allowance,
+                    AllowanceRateCurrency = country.CurrencyVmName,
+                    Duration = (int)Math.Ceiling(firstStage.AllowanceOrigin.GetValueOrDefault() + firstStage.AllowanceAbroad.GetValueOrDefault())
+                };
         formItem.Meals.Add(firstMeal);
 
         var firstLocalTravel = new LocalTravel()
-        {
-            StageId = firstStage.Id,
-            CountryCode = country.CountryCode,
-            CountryName = country.Name,
-            AllowanceRate = country.LocalTravelAllowance,
-            AllowanceRateCurrency = country.CurrencyVmName,
-            Duration = (int)Math.Ceiling(firstStage.AllowanceOrigin.GetValueOrDefault() + firstStage.AllowanceAbroad.GetValueOrDefault())
-        };
+                {
+                    StageId = firstStage.Id,
+                    CountryCode = country.CountryCode,
+                    CountryName = country.Name,
+                    AllowanceRate = country.LocalTravelAllowance,
+                    AllowanceRateCurrency = country.CurrencyVmName,
+                    Duration = (int)Math.Ceiling(firstStage.AllowanceOrigin.GetValueOrDefault() + firstStage.AllowanceAbroad.GetValueOrDefault())
+                };
         formItem.LocalTravels.Add(firstLocalTravel);
 
         if (firstStage.CountryCode != "PL")
         {
             formItem.Transit = new Transit()
-            {
-                StageId = firstStage.Id,
-                CountryCode = country.CountryCode,
-                CountryName = country.Name,
-                AllowanceRate = country.TravelAllowance,
-                AllowanceRateCurrency = country.CurrencyVmName,
-            };
+                    {
+                        StageId = firstStage.Id,
+                        CountryCode = country.CountryCode,
+                        CountryName = country.Name,
+                        AllowanceRate = country.TravelAllowance,
+                        AllowanceRateCurrency = country.CurrencyVmName,
+                    };
             await RecalculateTransit();
         }
 
@@ -1155,914 +2041,94 @@
         await RecalculateLocalTravels();
         await RecalculateTransit();
         StateHasChanged();
-        ConsoleLog($"Country Currency");
+        // ConsoleLog($"Country Currency {country.CountryCode}");
     }
-
-    #region OnSearch
-        private void OnLocationSearch(OptionsSearchEventArgs<Location> e)
-        {
-            if (e.Text != null)
-            {
-                e.Items = _locations.Where(a => 
-                    a.Name.Contains(e.Text, StringComparison.OrdinalIgnoreCase) || 
-                    a.SapNumber.Contains(e.Text, StringComparison.OrdinalIgnoreCase)).ToList();
-            }
-        }
-        private void OnCountrySearch(OptionsSearchEventArgs<CountryVm> e)
-        {
-            if (e.Text != null)
-            {
-                e.Items = Countries.Where(a => a.Name.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
-            }
-        }
-        private void OnObjectiveSearch(OptionsSearchEventArgs<string> e)
-        {
-            if (e.Text != null)
-            {
-                e.Items = _objectives.Where(a => a.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
-            }
-        }
-        private void OnCompanyCarSearch(OptionsSearchEventArgs<string> e)
-        {
-            if (e.Text != null)
-            {
-                e.Items = CompanyCarRegistrationNumbers
-                    .Where(a => a.RegistrationNumber.Contains(e.Text, StringComparison.OrdinalIgnoreCase))
-                    .Select(a => a.RegistrationNumber) 
-                    .ToList();
-            }
-        }
-        private void OnAssigneeSearch(OptionsSearchEventArgs<EmployeeVm> e)
-        {
-            if (e.Text != null)
-            {
-                e.Items = Employees.Where(a => a.LongName.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
-            }
-        }
-    #endregion OnSearch
-    #region OnChange
-        private void HandleStatusChange()
-        {
-            SetupForm(formItem.Status);
-        }
-        private void HandleBillChange(Bill bill, string curr){
-            bill.Currency = curr;
-        }
-        private void HandlePrivateVehicleMileageChanged(int value)
-        {
-            formItem.PrivateVehicleMilage = value;
-
-            if(formItem.PrivateVehicleEngineSize <= 900 ){
-                formItem.SumPrivateVehicleAllowance = formItem.PrivateVehicleMilage * Dictionary.MileageAllowance[900];
-            }
-            else if (formItem.PrivateVehicleEngineSize > 900){
-            formItem.SumPrivateVehicleAllowance = formItem.PrivateVehicleMilage * Dictionary.MileageAllowance[901];
-            }
-                
-        }
-        private void HandlePrivateVehicleEngineSizeChanged(int value)
-        {
-
-            formItem.PrivateVehicleEngineSize = value;
-
-            if (formItem.PrivateVehicleEngineSize <= 900)
-            {
-                formItem.SumPrivateVehicleAllowance = formItem.PrivateVehicleMilage * Dictionary.MileageAllowance[900];
-            }
-            else if (formItem.PrivateVehicleEngineSize > 900)
-            {
-                formItem.SumPrivateVehicleAllowance = formItem.PrivateVehicleMilage * Dictionary.MileageAllowance[901];
-            }
-
-        }
-        private void HandleTransitDirectionsChanged(int value)
-        {
-            formItem.Transit.Directions = value;
-            formItem.Transit.Total = formItem.Transit.Directions switch
-            {
-                0 => 0,
-                1 => formItem.Transit.AllowanceRate,
-                2 => formItem.Transit.AllowanceRate * 2,
-                _ => formItem.Transit.Total
-            };
-        }
-        private void HandleLocationChange()
-        {
-            formItem.CashPoint = _selectedLocation.FirstOrDefault();
-
-            Console.WriteLine();
-        }
-        private async Task HandleBillChanged(Bill bill, decimal v)
-        {
-            bill.Amount = v;
-        }
-        private async Task HandleLocalTravelChanged(LocalTravel l, int v)
-        {
-            l.Days = v;
-            RecalculateLocalTravels();
-        }
-        private async Task HandleMealChanged(Meals m, int v, string p)
-        {
-            var property = m.GetType().GetProperty(p);
-            if (property != null && property.CanWrite)
-            {
-                property.SetValue(m, v);
-            }
-
-            RecalculateMeals();
-        }
-        private async Task HandleStageIncluded(Stage stage, bool value)
-        {
-            stage.Included = value;
-            formItem.Accommodations[stage.Id - 1].Included = value;
-            formItem.Meals[stage.Id - 1].Included = value;
-
-            RecalculateAccomodations();
-        }
-        private async Task HandleAccommodationInvoicesAmount(Accommodation accommodation, decimal? value)
-        {
-            accommodation.InvoicesAmount = accommodation.Total = value;
-        }
-        private async Task HandleAccommodationHasInvoices(Accommodation accommodation, bool value)
-        {
-            accommodation.InvoicesAmount = 0;
-            if (value)
-            {
-                accommodation.HasInvoices = value;
-                accommodation.InvoicesAmount = 0;
-                accommodation.Total = 0;
-            }
-            else
-            {
-                accommodation.HasInvoices = value;
-                // accommodation.Total = accommodation.AllowanceRate * accommodation.Duration;
-            }
-            RecalculateAccomodations();
-        }
-        private async Task HandleCountryChange()
-        {
-            Console.WriteLine(SelectedCountry.Count());
-
-            if (SelectedCountry.FirstOrDefault() == null)
-            {
-
-            }
-            else
-            {
-                // formItem.Countries = SelectedCountry;
-                //
-                // formItem.Countries = SelectedEmpl.FirstOrDefault();
-                // Role.EmpId = SelectedEmpl.FirstOrDefault().EnovaEmpId;
-            }
-
-            StateHasChanged();
-        }
-        private async Task HandleCountryAdd()
-        {
-            var newCountry = SelectedCountry.FirstOrDefault();
-            // AbroadCurrencyExchangeRate = await _mediator.Send(new GetNbpCurrencyRateByDateAndCodeQuery(DateOnly.FromDateTime(DateTime.Today.AddDays(-1)), newCountry.CurrencyVmName));
-            if (newCountry == null)
-            {
-                newCountry = Countries.FirstOrDefault(c => c.Name == "Polska");
-                AbroadCurrencyExchangeRate = OriginExchangeRate;
-            } else {
-                AbroadCurrencyExchangeRate = await _mediator.Send(new GetNbpCurrencyRateByDateAndCodeQuery(DateOnly.FromDateTime(DateTime.Today.AddDays(-1)), newCountry.CurrencyVmName));
-            }
-
-            formItem.DestinationCountry = newCountry;
-            formItem.DestinationCountryCurrency = newCountry.CurrencyVmName;
-            // Console.WriteLine(SelectedCountry.Count());1
-            if (newCountry != null)
-            {
-                // Check if the new country is already in the list
-                if (!SelectedCountries.Any(c => c.Name == newCountry.Name))
-                {
-                    if (SelectedCountries.Count < 2)
-                    {
-                        // Initially add the first country
-                        SelectedCountries.Add(newCountry);
-                        AddStage(newCountry);
-                        AddStage(Origin);
-                        formItem.CurrencyExchamngeRate = AbroadCurrencyExchangeRate.Mid;
-                        formItem.CurrencyExchangeRateDate = AbroadCurrencyExchangeRate.RateDate;
-                        formItem.DestinationCountryCurrency = AbroadCurrencyExchangeRate.Code;
-
-
-                    }
-                    else
-                    {
-                        // Update the second country
-                        SelectedCountries[1] = newCountry;
-                        formItem.Stages[1].CountryCode = newCountry.CountryCode;
-                        formItem.Stages[1].CountryName = newCountry.Name;
-                    }
-                }
-                else if (SelectedCountries.Count >= 2 && SelectedCountries[1].Name != newCountry.Name)
-                {
-                    if (formItem.Stages.Count > 2)
-                    {
-                        var originStage = formItem.Stages[2]; // Get the stage at index 2
-                        formItem.Stages.Remove(originStage); // Remove it
-                        var originAccomodation = formItem.Accommodations[2];
-                        formItem.Accommodations.Remove(originAccomodation);
-                        var originMeal = formItem.Meals[2];
-                        formItem.Meals.Remove(originMeal);
-                        var originLocalTravel = formItem.LocalTravels[2];
-                        formItem.LocalTravels.Remove(originLocalTravel);
-                    }
-
-                    // Update the second country if it's different from the current second country
-                    SelectedCountries.Remove(SelectedCountries[1]);
-                    var stageToRemove = formItem.Stages[1];
-                    formItem.Stages.Remove(stageToRemove);
-                    var accomodationToRemove = formItem.Accommodations[1];
-                    formItem.Accommodations.Remove(accomodationToRemove);
-                    var mealToRemove = formItem.Meals[1];
-                    formItem.Meals.Remove(mealToRemove);
-                    var localTravelToRemove = formItem.LocalTravels[1];
-                    formItem.LocalTravels.Remove(localTravelToRemove);
-                    formItem.CurrencyExchamngeRate = OriginExchangeRate.Mid;
-                    formItem.CurrencyExchangeRateDate = OriginExchangeRate.RateDate;
-                    formItem.DestinationCountryCurrency = OriginExchangeRate.Code;
-                    ValidateDates();
-                }
-            }
-
-            StateHasChanged();
-        } 
-
-    
-        private async Task HandleObjectiveChange()
-        {
-            
-            Console.WriteLine(SelectedObjective.Count());
-            
-            if (SelectedObjective.FirstOrDefault() == null)
-            {
-
-            }
-            else
-            {
-                formItem.Objective = SelectedObjective.ToString();
-            }
-
-            StateHasChanged();
-        }
-        private async Task HandleCompanyCarChange()
-        {
-
-        Console.WriteLine(SelectedCompanyCar.Count());
-
-            if (SelectedCompanyCar.FirstOrDefault() == null)
-            {
-
-            }
-            else
-            {
-                formItem.CompanyVehicleNumber = SelectedCompanyCar.ToString();
-            }
-
-            StateHasChanged();
-        }
-        private async Task HandleCityChange(string value)
-        {
-            Console.WriteLine();
-            formItem.Destination = value;
-
-            StateHasChanged();
-        } // Currently not in use.
-        private async Task HandleAssigneeChange()
-        {
-            Console.WriteLine(SelectedEmpl.Count());
-
-            if (SelectedEmpl.FirstOrDefault() == null)
-            {
-
-            }
-            else
-            {
-                var emp = SelectedEmpl.FirstOrDefault();
-                formItem.EmployeeName = emp.LongName;
-                formItem.EnovaEmpId = emp.EnovaEmpId.ToString();
-                _organisation = await _mediator.Send(new GetOrganisationByEmpSapNumberQuery(emp.SapNumber));
-
-            }
-
-            StateHasChanged();
-        }
-        private async Task HandleConveyanceChange()
-        {
-            Console.WriteLine(SelectedConveyance.Count());
-
-            if (SelectedConveyance.FirstOrDefault() == "Samochód prywatny")
-            {
-                IsPrivateCar = true;
-                IsCompanyCar = false;
-                IsPublicTransport = false;
-                ShowTransits = false;
-            }
-            else if (SelectedConveyance.FirstOrDefault() == "Samochód służbowy")
-            {
-                IsPrivateCar = false;
-                IsCompanyCar = true;
-                IsPublicTransport = false;
-                ShowTransits = false;
-            }
-            else if (SelectedConveyance.FirstOrDefault() == "Transport publiczny")
-            {
-                IsPrivateCar = false;
-                IsCompanyCar = false;
-                IsPublicTransport = true;
-                ShowTransits = true;
-            }
-
-            StateHasChanged();
-        }
-        private async Task HandleConveyanceStringChange()
-        {
-            // Console.WriteLine(SelectedConveyanceTxt.Count());
-            if (SelectedConveyanceTxt == "Samochód prywatny")
-            {
-                Console.WriteLine(SelectedConveyanceTxt);
-                IsPrivateCar = true;
-                IsCompanyCar = false;
-                IsPublicTransport = false;
-                formItem.PrivateVehicle = true;
-                formItem.CompanyVehicle = false;
-            }
-            else if (SelectedConveyanceTxt == "Samochód służbowy")
-            {
-                Console.WriteLine(SelectedConveyanceTxt);
-                IsPrivateCar = false;
-                IsCompanyCar = true;
-                IsPublicTransport = false;
-                formItem.PrivateVehicle = false;
-                formItem.CompanyVehicle = true;
-                formItem.PublicTransport = false;
-                formItem.PublicTransportPaid = false;
-            }
-            else if (SelectedConveyanceTxt == "Transport publiczny")
-            {
-                Console.WriteLine(SelectedConveyanceTxt);
-                IsPrivateCar = false;
-                IsCompanyCar = false;
-                IsPublicTransport = true;
-                formItem.PrivateVehicle = false;
-                formItem.CompanyVehicle = false;
-                formItem.PublicTransport = true;
-                formItem.PublicTransportPaid = false;
-            }
-
-            if (formItem.Status == "Rozliczenie" || formItem.Status == "Ksiegowosc")
-            {
-                ShowTransits = true;
-            }
-
-            StateHasChanged();
-        }
-        private async Task HandlePublicTransportPaidChanged(bool value)
-        {
-            formItem.PublicTransportPaid = value;
-        }
-        private async Task HandleAdvancePaymentPaidChanged(bool value)
-        {
-            formItem.AdvancePayment = value;
-            StateHasChanged();
-        }
-        private async Task HandleDateTimeChanged(DateTime? dateTime, string p)
-        {
-            if (dateTime.HasValue)
-            {
-                // Set seconds to 0
-                dateTime = new DateTime(dateTime.Value.Year, dateTime.Value.Month, dateTime.Value.Day, dateTime.Value.Hour, dateTime.Value.Minute, 0);
-            }
-            if (p == "to")
-            {
-                formItem.EndDate = dateTime;
-                if (formItem.Stages.Any())
-                {
-                    formItem.Stages.Last().EndDate = dateTime;
-                }
-            }
-            else if (p == "from")
-            {
-                formItem.StartDate = dateTime;
-                if (formItem.Stages.Any())
-                {
-                    formItem.Stages.First().StartDate = dateTime;
-                }
-            }
-
-            RecalculateStages(0, "skip");
-            RecalculateAccomodations();
-            RecalculateMeals();
-            RecalculateLocalTravels();
-            ValidateDates();
-        }
-        private async Task HandleStageDateTimeChanged(DateTime? value, Stage stage, string propertyName, int stageId)
-        {
-            ConsoleLog("stage: " + stageId + " " + propertyName);
-            ConsoleLog("stage: " + stageId + " start" + stage.StartDate.ToString() + " koniec: " + stage.EndDate.ToString());
-            if (propertyName == nameof(stage.StartDate))
-            {
-                stage.StartDate = value;
-                
-                if (formItem.Stages.FirstOrDefault() == stage && propertyName == nameof(stage.StartDate))
-                {
-                    // Update formItem.EndDate to the EndDate of the last stage
-                    formItem.StartDate = stage.StartDate;
-                }
-            }
-            else if (propertyName == nameof(stage.EndDate))
-            {
-                stage.EndDate = value;
-                if (formItem.Stages.LastOrDefault() == stage && propertyName == nameof(stage.EndDate))
-                {
-                    // Update formItem.EndDate to the EndDate of the last stage
-                    formItem.EndDate = stage.EndDate;
-                }
-
-            }
-
-            await RecalculateStages(stageId, propertyName);
-            await RecalculateAccomodations();
-            await RecalculateMeals();
-            await RecalculateLocalTravels();
-            await ValidateDates();
-            StateHasChanged();
-        }
-        private async Task RecalculateStages(int? stageId, string? propertyName)
-        {
-
-            if (!(stageId == 0 && propertyName == "skip"))
-            {
-                var updatedStageIndex = formItem.Stages.FindIndex(s => s.Id == stageId);
-                if (updatedStageIndex == -1) return;
-                var updatedStage = formItem.Stages[updatedStageIndex];
-                if (propertyName == nameof(updatedStage.EndDate) && updatedStage.EndDate.HasValue)
-                {
-                    // Update the next stage's StartDate if it exists
-                    if (updatedStageIndex + 1 < formItem.Stages.Count)
-                    {
-                        var nextStage = formItem.Stages[updatedStageIndex + 1];
-
-                        // Set the next stage's StartDate to be one minute after the current EndDate
-                        nextStage.StartDate = updatedStage.EndDate.Value.AddMinutes(1);
-                    }
-                }
-
-                if (propertyName == nameof(updatedStage.StartDate) && updatedStage.StartDate.HasValue)
-                {
-                    // Update the previous stage's EndDate if it exists
-                    if (updatedStageIndex > 0)
-                    {
-                        var previousStage = formItem.Stages[updatedStageIndex - 1];
-
-                        // Set the previous stage's EndDate to be one minute before the current StartDate
-                        previousStage.EndDate = updatedStage.StartDate.Value.AddMinutes(-1);
-                    }
-                }
-            }
-
-            // Recalculate the duration for all stages
-            formItem.SumAllowancePL = 0;
-            formItem.SumAllowanceNotPL = 0;
-            foreach (var stage in formItem.Stages)
-            {
-                if (stage.StartDate < stage.EndDate)
-                {
-                    // Calculate duration and timespan
-                    stage.Duration = Math.Round((decimal)(stage.EndDate.Value - stage.StartDate.Value).TotalDays, 2);
-                    stage.timeSpan = TimeSpan.FromHours(Math.Round((stage.EndDate.Value - stage.StartDate.Value).TotalHours));
-
-                    // Reset Allowance values
-                    stage.AllowanceOriginValue = 0;
-                    stage.AllowanceAbroadValue = 0;
-                    stage.AllowanceOrigin = 0;
-                    stage.AllowanceAbroad = 0;
-                    
-                    if (stage.CountryCode == "PL")
-                    {
-                        formItem.AllowancePL = stage.CountryAllowance;
-                        // Calculate AllowanceOrigin factor and value
-                        if (stage.timeSpan.TotalHours < 8)
-                        {
-                            stage.AllowanceOrigin = 0;
-                        }
-                        else if (stage.timeSpan.TotalHours >= 8 && stage.timeSpan.TotalHours < 12)
-                        {
-                            stage.AllowanceOrigin = 0.5m;
-                            stage.AllowanceOriginValue = stage.CountryAllowance / 2;
-                        }
-                        else if (stage.timeSpan.TotalHours >= 12 && stage.timeSpan.TotalHours <= 24)
-                        {
-                            stage.AllowanceOrigin = 1;
-                            stage.AllowanceOriginValue = stage.CountryAllowance;
-                        }
-
-                        if (stage.timeSpan.TotalHours > 24)
-                        {
-                            // Calculate for additional full days
-                            var fullDays = (int)(stage.timeSpan.TotalHours / 24);
-                            stage.AllowanceOrigin += fullDays;
-                            stage.AllowanceOriginValue += fullDays * stage.CountryAllowance;
-
-                            // Calculate for the remaining hours
-                            var remainingHours = stage.timeSpan.TotalHours % 24;
-                            if (remainingHours < 8)
-                            {
-                                stage.AllowanceOrigin += 0.5m;
-                                stage.AllowanceOriginValue += stage.CountryAllowance / 2;
-                            }
-                            else
-                            {
-                                stage.AllowanceOrigin += 1;
-                                stage.AllowanceOriginValue += stage.CountryAllowance;
-                            }
-                        }
-
-                        formItem.SumAllowancePL += stage.AllowanceOriginValue;
-                    }
-                    else
-                    {
-                        formItem.AllowanceNotPL = stage.CountryAllowance;
-                        // Calculate AllowanceAbroad factor and value
-                        if (stage.timeSpan.TotalHours < 8)
-                        {
-                            stage.AllowanceAbroad = 0.33m;
-                            stage.AllowanceAbroadValue = Math.Round(stage.CountryAllowance / 3, 2);
-                        }
-                        else if (stage.timeSpan.TotalHours >= 8 && stage.timeSpan.TotalHours <= 12)
-                        {
-                            stage.AllowanceAbroad = 0.5m;
-                            stage.AllowanceAbroadValue = stage.CountryAllowance / 2;
-                        }
-                        else if (stage.timeSpan.TotalHours >= 12 && stage.timeSpan.TotalHours <= 24)
-                        {
-                            stage.AllowanceAbroad = 1;
-                            stage.AllowanceAbroadValue = stage.CountryAllowance;
-                        }
-
-                        if (stage.timeSpan.TotalHours > 24)
-                        {
-                            // Calculate for additional full days
-                            var fullDays = (int)(stage.timeSpan.TotalHours / 24);
-                            stage.AllowanceAbroad += fullDays;
-                            stage.AllowanceAbroadValue += fullDays * stage.CountryAllowance;
-
-                            // Calculate for the remaining hours
-                            var remainingHours = stage.timeSpan.TotalHours % 24;
-                            if (remainingHours > 0 && remainingHours < 8)
-                            {
-                                stage.AllowanceAbroad += 0.33m;
-                                stage.AllowanceAbroadValue += Math.Round(stage.CountryAllowance / 3, 2);
-                            }
-                            else if (remainingHours >= 8 && remainingHours < 12)
-                            {
-                                stage.AllowanceAbroad += 0.5m;
-                                stage.AllowanceAbroadValue += stage.CountryAllowance / 2;
-                            }
-                            else if (remainingHours >= 12 && remainingHours <= 24)
-                            {
-                                stage.AllowanceAbroad += 1;
-                                stage.AllowanceAbroadValue += stage.CountryAllowance;
-                            }
-
-                        }
-
-                        formItem.SumAllowanceNotPL += stage.AllowanceAbroadValue;
-                    }
-                }
-                else if (stage.StartDate >= stage.EndDate)
-                {
-                    stage.timeSpan = new TimeSpan();
-                    stage.Duration = 0;
-                    stage.AllowanceOrigin = 0;
-                    stage.AllowanceOriginValue = 0;
-                    stage.AllowanceAbroad = 0;
-                    stage.AllowanceAbroadValue = 0;
-                    
-                }
-            }
-
-        }
-        private async Task RecalculateMeals()
-        {
-            formItem.DeductionMealsPL = 0;
-            formItem.DeductionMealsNotPL = 0;
-            foreach (var meal in formItem.Meals)
-            {
-                meal.Duration = 0;
-                var stage = formItem.Stages[meal.StageId - 1];
-                if (stage != null)
-                {
-                    meal.Duration = (int)Math.Ceiling(stage.AllowanceOrigin.GetValueOrDefault() + stage.AllowanceAbroad.GetValueOrDefault());
-                    meal.Included = (stage.AllowanceOriginValue + stage.AllowanceAbroadValue) == 0 ? false : stage.Included;
-                    // meal.Total = (stage.AllowanceOrigin.GetValueOrDefault() + stage.AllowanceAbroad.GetValueOrDefault()) * meal.AllowanceRate;
-                    meal.Total = 0;
-                    if (meal.CountryCode != "PL")
-                    {
-                        meal.Total -= (meal.CoveredBreakfasts * meal.AllowanceRate * 0.15m);
-                        meal.Total -= (meal.CoveredLunches * meal.AllowanceRate * 0.3m);
-                        meal.Total -= (meal.CoveredDinners * meal.AllowanceRate * 0.3m);
-                        formItem.DeductionMealsNotPL += meal.Total;
-                    }
-                    else
-                    {
-                        meal.Total -= (meal.CoveredBreakfasts * meal.AllowanceRate / 4);
-                        meal.Total -= (meal.CoveredLunches * meal.AllowanceRate / 2);
-                        meal.Total -= (meal.CoveredDinners * meal.AllowanceRate / 4);
-                        formItem.DeductionMealsPL += meal.Total;
-                    }
-
-                    meal.Nights = CalculateNights(stage.StartDate.Value, stage.EndDate.Value);
-                    // var num = meal.Total;
-                    meal.Total = Math.Round(meal.Total, 2);
-                }
-
-                Console.WriteLine();
-            }
-
-            if (Math.Abs(formItem.DeductionMealsPL.GetValueOrDefault()) > Math.Abs(formItem.SumAllowancePL.GetValueOrDefault()))
-            {
-                formItem.DeductionMealsPL = -1 * formItem.SumAllowancePL;
-            }
-            if (Math.Abs(formItem.DeductionMealsNotPL.GetValueOrDefault()) > Math.Abs(formItem.SumAllowanceNotPL.GetValueOrDefault()))
-            {
-                formItem.DeductionMealsNotPL = -1 * formItem.SumAllowanceNotPL;
-            }
-            
-        }
-        private async Task RecalculateAccomodations()
-        {
-            formItem.AccomodationAllowanceSumPL = 0;
-            formItem.AccomodationAllowanceSumNotPL = 0;
-            foreach (var accommodation in formItem.Accommodations)
-            {
-
-                var stage = formItem.Stages[accommodation.StageId - 1];
-                if (stage != null)
-                {
-                    accommodation.Duration = stage.Duration;
-                    accommodation.Included = stage.Included;
-                    if (stage.StartDate.HasValue && stage.EndDate.HasValue)
-                    {
-                        // Calculate the number of nights
-                        accommodation.Nights = CalculateNights(stage.StartDate.Value, stage.EndDate.Value);
-                    }
-
-                    if (accommodation.Included)
-                    {
-                        if (!accommodation.HasInvoices)
-                        {
-                            if (accommodation.CountryCode == "PL")
-                            {
-                                accommodation.Total = accommodation.Nights.GetValueOrDefault() * accommodation.AllowanceRate;
-                                formItem.AccomodationAllowanceSumPL += accommodation.Total;
-                            }
-                            else
-                            {
-                                accommodation.Total = accommodation.Nights.GetValueOrDefault() * accommodation.AllowanceRate / 4;
-                                formItem.AccomodationAllowanceSumNotPL += accommodation.Total;
-                            }
-                            
-                        }
-                    }
-                    else
-                    {
-                        accommodation.Total = 0;
-                    }
-
-                }
-            }
-        }
-        private async Task RecalculateLocalTravels()
-        {
-            formItem.SumLocalTravelAllowancePL = 0;
-            formItem.SumLocalTravelAllowanceNotPL = 0;
-
-
-            foreach (var localTravel in formItem.LocalTravels)
-            {
-                var stage = formItem.Stages[localTravel.StageId - 1];
-                localTravel.Duration = (int)Math.Ceiling(stage.AllowanceOrigin.GetValueOrDefault() + stage.AllowanceAbroad.GetValueOrDefault());
-                localTravel.Total = localTravel.Days * localTravel.AllowanceRate;
-
-            }
-            formItem.SumLocalTravelAllowancePL = formItem.LocalTravels.Where(lt => lt.CountryCode == "PL").Sum(lt => lt.Total);
-            formItem.SumLocalTravelAllowanceNotPL = formItem.LocalTravels.Where(lt => lt.CountryCode != "PL").Sum(lt => lt.Total);
-        }
-        private async Task RecalculateTransit()
-        {
-
-            if (formItem.Transit != null)
-            {
-                formItem.Transit.Total = formItem.Transit.Directions * formItem.Transit.AllowanceRate;
-            }
-        }
-        private int CalculateNights(DateTime startDate, DateTime endDate)
-        {
-            int nights = 0;
-
-            // Adjust the time range to the period we care about (9:00 PM to 7:00 AM)
-            TimeSpan nightStart = new TimeSpan(21, 0, 0); // 9:00 PM
-            TimeSpan nightEnd = new TimeSpan(7, 0, 0); // 7:00 AM
-
-            DateTime currentStart = startDate;
-            DateTime currentEnd = endDate;
-
-            // Loop through each day in the range
-            while (currentStart.Date <= currentEnd.Date)
-            {
-                DateTime nightStartTime = currentStart.Date.Add(nightStart);
-                DateTime nightEndTime = currentStart.Date.AddDays(1).Add(nightEnd);
-
-                // Determine overlap between the stage time and the night period
-                DateTime overlapStart = nightStartTime > currentStart ? nightStartTime : currentStart;
-                DateTime overlapEnd = nightEndTime < currentEnd ? nightEndTime : currentEnd;
-
-                if (overlapStart < overlapEnd)
-                {
-                    // Calculate the duration of overlap
-                    TimeSpan overlapDuration = overlapEnd - overlapStart;
-
-                    // Count continuous 6-hour periods
-                    nights += (int)(overlapDuration.TotalHours / 6);
-                }
-
-                // Move to the next day
-                currentStart = currentStart.AddDays(1).Date;
-            }
-
-            return nights;
-        }
-        private async Task ValidateDates()
-        {
-            // Check if the overall start date is before the end date
-            if (formItem.StartDate > formItem.EndDate)
-            {
-                DateTimeValidationMessage = "Start date must be before or equal to end date.";
-            }
-            else
-            {
-                DateTimeValidationMessage = string.Empty;
-            }
-            var invalidStage = formItem.Stages
-                .Select((stage, index) => new { stage, index })
-                .FirstOrDefault(x =>
-                    x.stage.StartDate > x.stage.EndDate ||
-                    (x.index < formItem.Stages.Count - 1 && x.stage.EndDate > formItem.Stages[x.index + 1].StartDate) ||
-                    (x.index > 0 && x.stage.StartDate < formItem.Stages[x.index - 1].EndDate));
-
-            var errorMessages = new List<string>();
-
-            for (int i = 0; i < formItem.Stages.Count; i++)
-            {
-                var stage = formItem.Stages[i];
-
-                if (stage.StartDate > stage.EndDate)
-                {
-                    errorMessages.Add($"Etap {stage.Id}: Data początkowa musi być wcześniejsza niż końcowa");
-                }
-
-                if (i < formItem.Stages.Count - 1 && stage.EndDate > formItem.Stages[i + 1].StartDate)
-                {
-                    errorMessages.Add($"Data końcowa Etapu {stage.Id} musi być wcześniejsza niż data początkowa Etapu {formItem.Stages[i + 1].Id}.");
-                }
-
-                if (i > 0 && stage.StartDate < formItem.Stages[i - 1].EndDate)
-                {
-                    errorMessages.Add($"Data początkowa Etapu {stage.Id} musi być późniejsza niż data końcowa Etapu {formItem.Stages[i - 1].Id}.");
-                }
-            }
-
-            if (errorMessages.Any())
-            {
-                StagesDatesErrorMessages = errorMessages;
-                StagesDatesErrorMessage = string.Join("<br>", errorMessages);
-            }
-            else
-            {
-                // Clear the error message if all dates are valid
-                StagesDatesErrorMessages = new();
-                StagesDatesErrorMessage = string.Empty;
-            }
-            // Check intermediate dates within stages using LINQ
-            // var invalidStage = formItem.Stages
-            //     .Select((stage, index) => new { stage, index })
-            //     .FirstOrDefault(x =>
-            //         x.stage.StartDate > x.stage.EndDate ||
-            //         (x.index < formItem.Stages.Count - 1 && x.stage.EndDate >= formItem.Stages[x.index + 1].StartDate));
-            //
-            // if (invalidStage != null)
-            // {
-            //     if (invalidStage.stage.StartDate > invalidStage.stage.EndDate)
-            //     {
-            //         StagesDatesErrorMessage = $"Stage {invalidStage.stage.Id}: Start date must be before or equal to end date.";
-            //     }
-            //     else if (invalidStage.stage.EndDate > invalidStage.stage.StartDate)
-            //     {
-            //         StagesDatesErrorMessage = $"Stage {invalidStage.stage.Id}: End date must be before the start date of the next stage.";
-            //     }
-            // }
-            // else
-            // {
-            //     // Clear the error message if all dates are valid
-            //     StagesDatesErrorMessage = string.Empty;
-            // }
-            Console.WriteLine();
-        }
-
-    #endregion OnChange
-    #region Actions
-
-        private async Task AddEmployee(EmployeeVm newEmployee)
-        {
-            var employeesList = new List<EmployeeVm>();
-
-            employeesList.Add(newEmployee);
-
-            SelectedEmpl = employeesList;
-        }
-        private async Task RemoveBill(Bill bill)
-        {
-            RemoveFileFromBill(bill);
-            formItem.Bills.Remove(bill);
-        }
-        private async Task AddBill()
-        {
-            formItem.Bills.Add(new Bill()
+    private async Task AddEmployee(EmployeeVm newEmployee)
+    {
+        var employeesList = new List<EmployeeVm>();
+
+        employeesList.Add(newEmployee);
+
+        SelectedEmpl = employeesList;
+    }
+    private async Task RemoveBill(Bill bill)
+    {
+        RemoveFileFromBill(bill);
+        formItem.Bills.Remove(bill);
+    }
+    private async Task AddBill()
+    {
+        formItem.Bills.Add(new Bill()
             {
                 Id = formItem.Bills.Count() + 1,
                 InvoiceMappings = new List<InvoiceMapping>
                 {
                     new InvoiceMapping()
                 }
-                    
-            });
-        }
-        private async Task ViewAttachment(string url)
-        {
-            // Navigate to the URL in a new tab
 
-            string url2 = _navigationManager.BaseUri + url;
-            await JS.InvokeVoidAsync("open", url, "_blank");
-        }
-        private async Task ConsoleLog(string logMessage)
-        {
-            await JS.InvokeVoidAsync("logMessage", logMessage);
-        }
-        
+            });
+    }
+    private async Task ViewAttachment(string url)
+    {
+        // Navigate to the URL in a new tab
+
+        string url2 = _navigationManager.BaseUri + url;
+        await JS.InvokeVoidAsync("open", url, "_blank");
+    }
+    private async Task ConsoleLog(string logMessage)
+    {
+        await JS.InvokeVoidAsync("logMessage", logMessage);
+    }
     #endregion
     #region FilesManagement
 
-        private async Task HandleFileUpload(InputFileChangeEventArgs e)
+    private async Task HandleFileUpload(InputFileChangeEventArgs e)
+    {
+        if (CurrentBillForUpload != null)
         {
-            if (CurrentBillForUpload != null)
+            var uploadedFile = e.File;
+            if (uploadedFile != null)
             {
-                var uploadedFile = e.File;
-                if (uploadedFile != null)
-                {
-                    CurrentBillForUpload.FilePath = await FileUtils.UploadFile(uploadedFile, CurrentBillForUpload.Id.ToString(), Environment.WebRootPath);
-                    CurrentBillForUpload.OriginalFileName = uploadedFile.Name;
-                    CurrentBillForUpload.AttUrl = FileUtils.GenerateUrl(CurrentBillForUpload.FilePath, Environment.WebRootPath);
-                }
+                CurrentBillForUpload.FilePath = await FileUtils.UploadFile(uploadedFile, CurrentBillForUpload.Id.ToString(), Environment.WebRootPath);
+                CurrentBillForUpload.OriginalFileName = uploadedFile.Name;
+                CurrentBillForUpload.AttUrl = FileUtils.GenerateUrl(CurrentBillForUpload.FilePath, Environment.WebRootPath);
             }
         }
-        private void RemoveFileFromBill(Bill bill)
+    }
+    private void RemoveFileFromBill(Bill bill)
+    {
+        FileUtils.RemoveFile(bill.FilePath);
+        bill.FilePath = null;
+        bill.OriginalFileName = null;
+        bill.AttUrl = null;
+    }
+    private void UploadFileForBill(Bill bill)
+    {
+        CurrentBillForUpload = bill;
+        JS.InvokeVoidAsync("triggerFileUpload");
+    }
+    private void SaveBillFiles()
+    {
+        foreach (var bill in formItem.Bills)
         {
-            FileUtils.RemoveFile(bill.FilePath);
-            bill.FilePath = null;
-            bill.OriginalFileName = null;
-            bill.AttUrl = null;
-        }
-        private void UploadFileForBill(Bill bill)
-        {
-            CurrentBillForUpload = bill;
-            JS.InvokeVoidAsync("triggerFileUpload");
-        }
-        private void SaveBillFiles()
-        {
-            foreach (var bill in formItem.Bills)
+            if (!string.IsNullOrEmpty(bill.FilePath))
             {
-                if (!string.IsNullOrEmpty(bill.FilePath))
-                {
-                    var newFilePath = Path.Combine(
-                        Environment.WebRootPath,
-                        "BusinessTravels",
-                        formItem.CreatedDate.ToString("yyyy"),
-                        formItem.CreatedDate.ToString("yyyyMM"),
-                        formItem.CreatedDate.ToString("yyyyMMdd"),
-                        $"{Guid.NewGuid()}_{bill.Id}{Path.GetExtension(bill.FilePath)}");
+                var newFilePath = Path.Combine(
+                    Environment.WebRootPath,
+                    "BusinessTravels",
+                    formItem.CreatedDate.ToString("yyyy"),
+                    formItem.CreatedDate.ToString("yyyyMM"),
+                    formItem.CreatedDate.ToString("yyyyMMdd"),
+                    $"{Guid.NewGuid()}_{bill.Id}{Path.GetExtension(bill.FilePath)}");
 
-                    FileUtils.MoveFile(bill.FilePath, newFilePath);
-                    bill.FilePath = newFilePath;
+                FileUtils.MoveFile(bill.FilePath, newFilePath);
+                bill.FilePath = newFilePath;
 
-                    // Update the public-facing URL for the file.
-                    bill.AttUrl = FileUtils.GenerateUrl(newFilePath, Environment.WebRootPath);
-                }
+                // Update the public-facing URL for the file.
+                bill.AttUrl = FileUtils.GenerateUrl(newFilePath, Environment.WebRootPath);
             }
         }
+    }
 
     #endregion
     #region SetupForm
@@ -2080,34 +2146,140 @@
         EnterInvoiceMapping = false;
         StateHasChanged();
     }
+    private void DisableForm()
+    {
+        stal1 = false;
+        stal2 = false;
+        stzk = false;
+        stzks = false;
+        stzkstl = false;
+        stroz = false;
+        stks = false;
+        stkstl = false;
+        stal11 = false;
+        stal12 = false;
+        strozk = false;
+        stwys = false;
+        strozend = false;
+        stzam = false;
+        StateHasChanged();
+    }
+    private void EnableForm()
+    {
+        stal1 = true;
+        stal2 = true;
+        stzk = true;
+        stzks = true;
+        stzkstl = true;
+        stroz = true;
+        stks = true;
+        stkstl = true;
+        stal11 = true;
+        stal12 = true;
+        strozk = true;
+        stwys = true;
+        strozend = true;
+        stzam = true;
+        StateHasChanged();
+    }
     private async Task SetupForm(string status)
     {
+        AssignStatusBool();
         _organisation = await _mediator.Send(new GetOrganisationByEmpSapNumberQuery(_userContext.Employee.SapNumber));
+
         ResetForm();
-        
-        await ConsoleLog($"Selected status: {formItem.Status} \n ShowAccomodations = {ShowAccomodations.ToString()} \n ShowMeals = {ShowMeals.ToString()} \n  ShowStages = {ShowStages.ToString()} \n  ShowLocalTravels = {ShowLocalTravels.ToString()} \n  ShowTransits = {ShowTransits.ToString()} \n  ShowCashier = {ShowCashier.ToString()} \n  ShowBills = {ShowBills.ToString()} \n  ShowSummary = {ShowSummary.ToString()} \n  EnterInvoiceMapping = {EnterInvoiceMapping.ToString()}");
-        
-        if (status == "Rejestracja") SetupFormRejestracja();
-        else if (status.StartsWith("AprobataL") ) SetupFormAprobata(status);
-        else if (status == "Kasa") SetupFormKasa();
-        else if (status == "Rozliczenie") SetupFormRozliczenie();
-        else if (status == "Ksiegowosc") SetupFormKsiegowosc();
-        else if (status == "Rozliczone") SetupFormRozliczone();
-        else if (status == "KasaRozliczenie") SetupFormKasaRozliczenie();
-        else if (status == "Zamkniete") SetupFormZamkniete();
+        // DisableForm();
+
+        #region GoToStatus
+        if (status == "Rejestracja") await SetupFormRejestracja();
+        else if (stal1 || stal2 || stal11 || stal12) await SetupFormAprobata(status); //po etapie al11 i al12 zrobic sprawdzenie czy kasa czy przelew i wysl
+        else if (stzk) await SetupFormKasa();
+        else if (stzks) await SetupFormZaliczkaKsiegowosc(); //zrobić SetupFormZaliczkaKsiegowosc
+        else if (stzkstl) await SetupFormZaliczkaKsiegowoscTL(); //zrobić SetupFormZaliczkaKsiegowoscTL
+        else if (stroz) await SetupFormRozliczenie();
+        else if (stks) await SetupFormKsiegowosc(); //zrobić SetupFormKsiegowosc - komponentustawień mpk
+        else if (stkstl) await SetupFormKsiegowoscTL(); //zrobić SetupFormKsiegowoscTL
+        else if (strozk) await SetupFormKasaRozliczenie();
+        else if (stwys) await SetupFormWyslaneDoRobota(); //zrobić SetupFormWyslaneDoRobota
+        else if (strozend) await SetupFormRozliczone();        
+        else if (stzam) await SetupFormZamkniete();
+        #endregion
+
         StateHasChanged();
-        await ConsoleLog($"Selected status: {formItem.Status} \n ShowAccomodations = {ShowAccomodations.ToString()} \n ShowMeals = {ShowMeals.ToString()} \n  ShowStages = {ShowStages.ToString()} \n  ShowLocalTravels = {ShowLocalTravels.ToString()} \n  ShowTransits = {ShowTransits.ToString()} \n  ShowCashier = {ShowCashier.ToString()} \n  ShowBills = {ShowBills.ToString()} \n  ShowSummary = {ShowSummary.ToString()} \n  EnterInvoiceMapping = {EnterInvoiceMapping.ToString()}");
+    }
+
+    private async Task SetupFormZaliczkaKsiegowosc(){
 
     }
+    private async Task SetupFormZaliczkaKsiegowoscTL()
+    {
+
+    }
+    private async Task SetupFormKsiegowoscTL()
+    {
+        Title = "Podróż służbowa - Księgowość";
+        ShowAccomodations = true;
+        ShowMeals = true;
+        ShowStages = true;
+        ShowLocalTravels = true;
+        ShowTransits = formItem.Stages.Count > 1;
+        ShowCashier = true;
+        ShowBills = true;
+        ShowSummary = true;
+        EnterInvoiceMapping = true;
+
+        IsAdvancedPaymentDisabled = true;
+        IsDateTimeDisabled = false;
+        IsDestinationDisabled = true;
+        IsEmployeeDisabled = true;
+        IsBillsDisabled = true;
+        IsInvoiceMappingDisabled = false;
+
+        IsTransportationDisabled = true;
+        IsMileageDisabled = true;
+        IsCashPayoutNumberDisabled = true;
+
+    }
+    private async Task SetupFormWyslaneDoRobota()
+    {
+
+    }
+
+
     private async Task SetupFormRejestracja()
     {
+        #region MovedFromOnInit
+        Countries = await _mediator.Send(new GetAllCountryQuery());
+        SelectedCountries = new List<CountryVm> { Countries.FirstOrDefault(c => c.Name == "Polska") };
+        SelectedCountry = SelectedCountries;
+        Origin = SelectedCountries[0];
+        NbpCurrencies = await _mediator.Send(new GetNbpCurrencyRatesByDateQuery(DateOnly.FromDateTime(DateTime.Today.AddDays(-1))));
+        CompanyCarRegistrationNumbers = await _mediator.Send(new GetCompanyCarRegistrationNumbersQuery());
+
+        _locations = await _mediator.Send(new GetLocationsQuery());
+
+        if (SelectedCountry != null && SelectedCountry.Any())
+        {
+            await AddStage(SelectedCountry.First());
+            var firststage = formItem.Stages[0];
+            formItem.DestinationCountry = SelectedCountry.FirstOrDefault();
+            RecalculateStages(firststage.Id, nameof(firststage.EndDate));
+            RecalculateAccomodations();
+            RecalculateMeals();
+        }
+        else
+        {
+            // Handle the case where SelectedCountry is null or empty
+        }
+        #endregion
+
         Title = "Podróż służbowa - Rejestracja";
         await AddEmployee(_userContext.Employee);
         formItem.EmployeeName = _userContext.LongName;
         formItem.EnovaEmpId = _userContext.EnovaEmpId;
         _organisation = await _mediator.Send(new GetOrganisationByEmpSapNumberQuery(_userContext.Employee.SapNumber));
         formItem.OrganisationSapNumber = _organisation.SapNumber;
-        
+
         ShowAccomodations = false;
         ShowMeals = false;
         ShowStages = false;
@@ -2117,7 +2289,7 @@
         ShowBills = false;
         ShowSummary = false;
         EnterInvoiceMapping = false;
-        
+
         IsAdvancedPaymentDisabled = false;
         IsDateTimeDisabled = false;
         IsDestinationDisabled = false; //wyłącza możliwość zmiany celu podróży
@@ -2127,7 +2299,7 @@
         IsTransportationDisabled = false;
         IsMileageDisabled = false;
         IsCashPayoutNumberDisabled = true;
-        
+
         StateHasChanged();
     }
     private async Task SetupFormKasa()
@@ -2142,13 +2314,13 @@
         ShowBills = false;
         ShowSummary = false;
         EnterInvoiceMapping = false;
-        
+
         IsAdvancedPaymentDisabled = true;
         IsDateTimeDisabled = true;
         IsDestinationDisabled = true;
         IsEmployeeDisabled = true;
         IsInvoiceMappingDisabled = true;
-        
+
         IsTransportationDisabled = true;
         IsMileageDisabled = true;
         IsCashPayoutNumberDisabled = false;
@@ -2168,7 +2340,7 @@
         ShowBills = true;
         ShowSummary = true;
         EnterInvoiceMapping = true;
-        
+
         IsAdvancedPaymentDisabled = false; //w produkcji zmienić na true
         IsDateTimeDisabled = false;
         IsDestinationDisabled = false; //w produkcji zmienić na true
@@ -2196,18 +2368,18 @@
         ShowBills = true;
         ShowSummary = true;
         EnterInvoiceMapping = true;
-        
+
         IsAdvancedPaymentDisabled = true;
         IsDateTimeDisabled = false;
         IsDestinationDisabled = true;
         IsEmployeeDisabled = true;
         IsBillsDisabled = true;
         IsInvoiceMappingDisabled = false;
-        
+
         IsTransportationDisabled = true;
         IsMileageDisabled = true;
         IsCashPayoutNumberDisabled = true;
-      
+
     }
     private async Task SetupFormKasaRozliczenie()
     {
@@ -2221,20 +2393,20 @@
         ShowBills = false;
         ShowSummary = false;
         EnterInvoiceMapping = false;
-        
+
         IsAdvancedPaymentDisabled = true;
         IsDateTimeDisabled = true;
         IsDestinationDisabled = true;
         IsEmployeeDisabled = true;
         IsInvoiceMappingDisabled = true;
-        
+
         IsTransportationDisabled = true;
         IsMileageDisabled = true;
         IsCashPayoutNumberDisabled = true;
-        
+
         formItem.ReceiptCashier = _userContext.Employee;
         formItem.ReceiptCashierEmpId = _userContext.EnovaEmpId;
-        
+
     }
     private async Task SetupFormRozliczone()
     {
@@ -2248,18 +2420,18 @@
         ShowBills = false;
         ShowSummary = false;
         EnterInvoiceMapping = false;
-        
+
         IsAdvancedPaymentDisabled = true;
         IsDateTimeDisabled = true;
         IsDestinationDisabled = true;
         IsEmployeeDisabled = true;
         IsBillsDisabled = true;
         IsInvoiceMappingDisabled = true;
-        
+
         IsTransportationDisabled = true;
         IsMileageDisabled = true;
         IsCashPayoutNumberDisabled = true;
-        
+
     }
     private async Task SetupFormZamkniete()
     {
@@ -2273,13 +2445,13 @@
         ShowBills = false;
         ShowSummary = false;
         EnterInvoiceMapping = false;
-        
+
         IsAdvancedPaymentDisabled = true;
         IsDateTimeDisabled = true;
         IsDestinationDisabled = true;
         IsEmployeeDisabled = true;
         IsBillsDisabled = true;
-        
+
         IsTransportationDisabled = true;
         IsMileageDisabled = true;
         IsCashPayoutNumberDisabled = true;
@@ -2297,7 +2469,7 @@
             ShowCashier = false;
             ShowBills = false;
             ShowSummary = false;
-            
+
         } else if (status == "AprobataL2")
         {
             ShowAccomodations = false;
@@ -2308,7 +2480,7 @@
             ShowCashier = false;
             ShowBills = false;
             ShowSummary = false;
-            
+
         } else if (status == "AprobataL11")
         {
             ShowAccomodations = false;
@@ -2319,7 +2491,7 @@
             ShowCashier = false;
             ShowBills = true;
             ShowSummary = true;
-           
+
         } else if (status == "AprobataL12")
         {
             ShowAccomodations = false;
@@ -2330,8 +2502,8 @@
             ShowCashier = false;
             ShowBills = true;
             ShowSummary = true;
-            
-            
+
+
         }
         EnterInvoiceMapping = false;
         IsAdvancedPaymentDisabled = true;
@@ -2340,19 +2512,22 @@
         IsEmployeeDisabled = true;
         IsBillsDisabled = true;
         IsInvoiceMappingDisabled = true;
-        
+
         IsTransportationDisabled = true;
         IsMileageDisabled = true;
         IsCashPayoutNumberDisabled = true;
     }
-    
+
     private bool IsCashPayoutEnabled() //pole do wpisania numeru KW
     {
-        return formItem.Status == "Kasa";
+        // return formItem.Status == "Kasa";
+        return stzk;
     }
     private bool IsCashReceiptEnabled() //pole do wpisania numeru KW
     {
-        return formItem.Status == "KasaRozliczenie";
+        // return formItem.Status == "KasaRozliczenie";
+        return strozk;
+
     }
     #endregion
     private void HandleValidSubmit(EditContext arg)
@@ -2535,6 +2710,87 @@
         margin-right: 5px;
     }
 </style>
+
+<style>
+    .all-tables-wrapper {
+        display: flex;
+        flex-direction: column; /* Arrange the tables vertically */
+        justify-content: flex-start;
+        align-items: flex-start; /* Center everything horizontally */
+        gap: 20px; /* Add spacing between the groups */
+    }
+
+    .tables-wrapper {
+        display: flex;
+        justify-content: flex-start; /* Dynamically adjust based on content width */
+        gap: 20px; /* Space between the left and right tables */
+    }
+
+    .third-table-wrapper {
+        display: flex;
+        justify-content: flex-start; /* Center the third table */
+        width: 100%;
+    }
+
+    .table-container {
+        width: 100%;
+        max-width: 500px; /* Restrict table width */
+        border-collapse: separate;
+        border-spacing: 0;
+        font-family: Arial, sans-serif;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        overflow: visible;
+    }
+
+        .table-container thead tr:first-child th {
+            color: white;
+            font-weight: bold;
+            text-align: center;
+            padding: 8px;
+        }
+
+        .table-container th {
+            padding: 8px;
+            font-size: 14px;
+            border: 1px solid #ddd;
+            white-space: nowrap; /* Prevent line breaks */
+            overflow: visible; /* Prevent content from spilling out */
+            text-overflow: ellipsis; /* Add "..." for overflowing text */
+            align-items: center; /* Vertically center content */
+            justify-content: space-between; /* Push text and icon to the edges */
+        }
+
+        .table-container td {
+            padding: 8px;
+            font-size: 14px;
+            border: 1px solid #ddd;
+            white-space: nowrap; /* Prevent line breaks */
+            overflow: visible;   
+            text-overflow: ellipsis; /* Add "..." for overflowing text */
+        }
+
+    .table-header-left {
+        background-color: var(--accent-fill-rest);
+    }
+
+    .table-header-right {
+        background-color: color-mix(in srgb, white 40%, var(--accent-fill-rest) 60%);
+    }
+
+    .table-caption {
+        caption-side: top; /* Place caption above the table */
+        background-color: var(--accent-fill-rest); /* Match header background */
+        color: white; /* Match header text color */
+        font-weight: bold; /* Make it bold */
+        text-align: left; /* Center the text */
+        padding: 8px; /* Add padding for spacing */
+        border: 1px solid #ddd; /* Optional: Match table border */
+        border-bottom: none; /* Remove bottom border for seamless look with the table */
+}
+
+</style>
+
 <script>
     function triggerFileUpload() {
         document.getElementById("fileInput").click();

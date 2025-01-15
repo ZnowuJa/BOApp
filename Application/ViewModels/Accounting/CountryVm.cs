@@ -31,7 +31,7 @@ namespace Application.ViewModels.Accounting
         public decimal Allowance { get; set; }
         public decimal TravelAllowance { get; set; }
         public decimal LocalTravelAllowance { get; set; }
-        public decimal MaxHotelCost { get; set; }
+        public decimal MaxHotelCost { get; set; } = 200m;
 
         public void Mapping(Profile profile)
         {

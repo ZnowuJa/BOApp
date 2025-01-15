@@ -13,10 +13,8 @@
                                     Disabled="@Disabled"
                     SelectValueOnTab="true"
                     AutoComplete="on"
-                    Items="@_locations"
                     OnOptionsSearch="@OnLocationSearch"
                     Placeholder="Wybierz lokalizację..."
-                    Multiple=true
                     MaximumSelectedOptions="1"
                     OptionText="@(p => p.SapNumber + ' ' + p.Name)"
                     @bind-SelectedOptions="@_selectedLocation"
@@ -30,10 +28,8 @@
                                     Disabled="@Disabled"
                     SelectValueOnTab="true"
                     AutoComplete="on"
-                    Items="@_costCenters"
                     OnOptionsSearch="@OnCostCenterSearch"
                     Placeholder="Wybierz MPK..."
-                    Multiple=true
                     MaximumSelectedOptions="1"
                     OptionText="@(p => p.MPK + ' ' + p.Description)"
                     @bind-SelectedOptions="@_selectedCostCenter"
@@ -47,10 +43,8 @@
                                     Disabled="@Disabled"
                     SelectValueOnTab="true"
                     AutoComplete="on"
-                    Items="@_glAccounts"
                     OnOptionsSearch="@OnGLAccountSearch"
                     Placeholder="Wybierz konto..."
-                    Multiple=true
                     MaximumSelectedOptions="1"
                     OptionText="@(p => p.AccountNumber + ' ' + p.Description)"
                     @bind-SelectedOptions="@_selectedGlAccount"
@@ -64,10 +58,8 @@
                                     Disabled="@Disabled"
                     SelectValueOnTab="true"
                     AutoComplete="on"
-                    Items="@_vatRates"
                     OnOptionsSearch="@OnVATRateSearch"
                     Placeholder="Wybierz stawkę VAT..."
-                    Multiple=true
                     MaximumSelectedOptions="1"
                     OptionText="@(p => p.Percentage.ToString() + ' ' + p.Name)"
                     @bind-SelectedOptions="@_selectedVatRate"
@@ -83,10 +75,10 @@
 @code {
     [Parameter] public InvoiceMapping InvoiceMapping { get; set; }
     [Parameter] public bool Disabled { get; set; } = false;
-    private IEnumerable<Location> _locations { get; set; }
-    private IEnumerable<CostCenterVm> _costCenters { get; set; }
-    private IEnumerable<GLAccountVm> _glAccounts { get; set; }
-    private IEnumerable<VATRateVm> _vatRates { get; set; }
+    [Parameter] public IEnumerable<Location> Locations { get; set; }
+    [Parameter] public IEnumerable<CostCenterVm> CostCenters { get; set; }
+    [Parameter] public IEnumerable<GLAccountVm> GLAccounts { get; set; }
+    [Parameter] public IEnumerable<VATRateVm> VatRates { get; set; }
     IEnumerable<Location> _selectedLocation = Array.Empty<Location>();
     IEnumerable<CostCenterVm> _selectedCostCenter = Array.Empty<CostCenterVm>();
     IEnumerable<GLAccountVm> _selectedGlAccount = Array.Empty<GLAccountVm>();
@@ -94,10 +86,10 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _locations = await _mediator.Send(new GetLocationsQuery());
-        _costCenters = await _mediator.Send(new GetAllCostCenterIEnumQuery());
-        _glAccounts = await _mediator.Send(new GetAllGLAccountIEnumQuery());
-        _vatRates = await _mediator.Send(new GetAllVatRateIEnumQuery());
+        Locations = await _mediator.Send(new GetLocationsQuery());
+        CostCenters = await _mediator.Send(new GetAllCostCenterIEnumQuery());
+        GLAccounts = await _mediator.Send(new GetAllGLAccountIEnumQuery());
+        VatRates = await _mediator.Send(new GetAllVatRateIEnumQuery());
 
     }
 
@@ -127,22 +119,22 @@
     }
     private void OnLocationSearch(OptionsSearchEventArgs<Location> e)
     {
-        e.Items = _locations.Where(g => g.Name.Contains(e.Text, StringComparison.OrdinalIgnoreCase)
+        e.Items = Locations.Where(g => g.Name.Contains(e.Text, StringComparison.OrdinalIgnoreCase)
         || g.SapNumber.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
     }
     private void OnCostCenterSearch(OptionsSearchEventArgs<CostCenterVm> e)
     {
-        e.Items = _costCenters.Where(g => g.MPK.Contains(e.Text, StringComparison.OrdinalIgnoreCase)
+        e.Items = CostCenters.Where(g => g.MPK.Contains(e.Text, StringComparison.OrdinalIgnoreCase)
         || g.Description.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
     }
     private void OnGLAccountSearch(OptionsSearchEventArgs<GLAccountVm> e)
     {
-        e.Items = _glAccounts.Where(g => g.AccountNumber.Contains(e.Text, StringComparison.OrdinalIgnoreCase)
+        e.Items = GLAccounts.Where(g => g.AccountNumber.Contains(e.Text, StringComparison.OrdinalIgnoreCase)
         || g.Description.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
     }
     private void OnVATRateSearch(OptionsSearchEventArgs<VATRateVm> e)
     {
-        e.Items = _vatRates.Where(g => g.Name.Contains(e.Text, StringComparison.OrdinalIgnoreCase)
+        e.Items = VatRates.Where(g => g.Name.Contains(e.Text, StringComparison.OrdinalIgnoreCase)
         || g.Percentage.ToString().Contains(e.Text, StringComparison.OrdinalIgnoreCase));
     }
 }

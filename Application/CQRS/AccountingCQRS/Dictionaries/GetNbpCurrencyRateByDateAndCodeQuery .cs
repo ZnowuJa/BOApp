@@ -35,9 +35,9 @@ namespace Application.CQRS.AccountingCQRS.Dictionaries
 
         public async Task<NbpCurrencyRateVm> Handle(GetNbpCurrencyRateByDateAndCodeQuery request, CancellationToken cancellationToken)
         {
-            // Filter the records based on RateDate and Code
             var result = await _context.NbpCurrencyRates
-                .Where(c => c.RateDate == request.RateDate && c.Code == request.Code) // Filter by RateDate and Code
+                .Where(c => c.Code == request.Code && c.RateDate <= request.RateDate) // Match Code and ensure RateDate is <= request.RateDate
+                .OrderByDescending(c => c.RateDate) // Get the most recent RateDate
                 .Select(c => new NbpCurrencyRateVm(
                     c.Id,
                     c.Currency,
@@ -45,7 +45,18 @@ namespace Application.CQRS.AccountingCQRS.Dictionaries
                     c.Mid,
                     c.RateDate
                 ))
-                .FirstOrDefaultAsync(cancellationToken); // Fetch single result or null if not found
+                .FirstOrDefaultAsync(cancellationToken);
+            // Filter the records based on RateDate and Code
+            //var result = await _context.NbpCurrencyRates
+            //    .Where(c => c.RateDate == request.RateDate && c.Code == request.Code) // Filter by RateDate and Code
+            //    .Select(c => new NbpCurrencyRateVm(
+            //        c.Id,
+            //        c.Currency,
+            //        c.Code,
+            //        c.Mid,
+            //        c.RateDate
+            //    ))
+            //    .FirstOrDefaultAsync(cancellationToken); // Fetch single result or null if not found
 
             return result;
         }
