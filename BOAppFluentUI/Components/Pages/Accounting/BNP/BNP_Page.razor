@@ -39,7 +39,7 @@
         }
         else
         {
-            <FluentDataGrid Items="@FilteredItems55"
+            <FluentDataGrid Items="FilteredItems55"
                             Pagination="@pagination55"
                             ResizableColumns="true"
                             Style="height: auto; overflow:auto;"
@@ -48,9 +48,25 @@
 
                 @foreach (var column in filterColumns55.Where(c => c.IsVisible))
                 {
-                    if (column.Property != null)
+                    if (column.IsDropdown)
                     {
-                        <PropertyColumn TGridItem="Bnp55Vm" TProp="string" Property="@(GetPropertyExpression55(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label" Filtered="!string.IsNullOrWhiteSpace(column.Filter)" Width="@column.Width" IsDefaultSortColumn="@column.IsDefaultSortColumn"
+                        <PropertyColumn TGridItem="Bnp55Vm" TProp="string" Property="@(Utils.GetPropertyExpression<Bnp55Vm>(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label" Filtered="column.SelectedValues.Any()">
+                            <ColumnOptions>
+                                <FluentSelect TOption="string"
+                                              Items="@(column.DropdownValues)"
+                                              Multiple="true"
+                                              SelectedOptionsChanged="@(e => Utils.OnSelectedOptionsChanged<Bnp55Vm>(e, column))">
+                                    @foreach (var value in column.DropdownValues)
+                                    {
+                                        <FluentOption Value="@value">@value</FluentOption>
+                                    }
+                                </FluentSelect>
+                            </ColumnOptions>
+                        </PropertyColumn>
+                    }
+                    else
+                    {
+                        <PropertyColumn TGridItem="Bnp55Vm" TProp="string" Property="@(Utils.GetPropertyExpression<Bnp55Vm>(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label" Filtered="!string.IsNullOrWhiteSpace(column.Filter)" Width="@column.Width" IsDefaultSortColumn="@column.IsDefaultSortColumn"
                                         InitialSortDirection="@column.InitialSortDirection">
                             <ColumnOptions>
                                 <div class="search-box">
@@ -93,7 +109,7 @@
 
                 @foreach (var column in filterColumns.Where(c => c.IsVisible))
                 {
-                    <PropertyColumn TGridItem="Bnp20Vm" TProp="string" Property="@(GetPropertyExpression(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label" Filtered="!string.IsNullOrWhiteSpace(column.Filter)" Width="@column.Width" IsDefaultSortColumn="@column.IsDefaultSortColumn"
+                    <PropertyColumn TGridItem="Bnp20Vm" TProp="string"  Property="@(Utils.GetPropertyExpression<Bnp20Vm>(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label" Filtered="!string.IsNullOrWhiteSpace(column.Filter)" Width="@column.Width" IsDefaultSortColumn="@column.IsDefaultSortColumn"
                                     InitialSortDirection="@column.InitialSortDirection">
                         <ColumnOptions>
                             <div class="search-box">
@@ -133,14 +149,6 @@
 
     string? activeid = "tab-1";
     FluentTab? changedto;
-
-    // public void HandleKeyPress<T>(KeyboardEventArgs args)
-    // {
-    //     if (args.Key == "Enter")
-    //     {
-    //         StateHasChanged();
-    //     }
-    // }
 
     private bool IsDateDisabled20(DateTime date)
     {
@@ -190,15 +198,37 @@
         new FilterColumn<Bnp55Vm> {FirstRow = true, Label = "Cdtdbtind", Property = c => c.Cdtdbtind, IsVisible = true, Width= "100px"},
     };
 
-    private static Expression<Func<Bnp20Vm, string>> GetPropertyExpression(Func<Bnp20Vm, string> propertyFunc)
-    {
-        return x => propertyFunc(x);
-    }
+    // private async Task RefreshDropdownValuesAsync()
+    // {
+    //     foreach (var column in filterColumns55.Where(c => c.IsDropdown))
+    //     {
+    //         switch (column.Label)
+    //         {
+    //             case "Państwo":
+    //                 column.DropdownValues = bnp55
+    //                     .Where(r => !string.IsNullOrEmpty(r.Panstwo))
+    //                     .Select(r => r.Panstwo)
+    //                     .Distinct()
+    //                     .OrderBy(p => p)
+    //                     .ToList();
+    //                 break;
 
-    private static Expression<Func<Bnp55Vm, string>> GetPropertyExpression55(Func<Bnp55Vm, string> propertyFunc)
-    {
-        return x => propertyFunc(x);
-    }
+    //             default:
+    //                 column.DropdownValues = new List<string>();
+    //                 break;
+    //         }
+    //     }
+    // }
+
+    // private static Expression<Func<Bnp20Vm, string>> GetPropertyExpression(Func<Bnp20Vm, string> propertyFunc)
+    // {
+    //     return x => propertyFunc(x);
+    // }
+
+    // private static Expression<Func<Bnp55Vm, string>> GetPropertyExpression55(Func<Bnp55Vm, string> propertyFunc)
+    // {
+    //     return x => propertyFunc(x);
+    // }
 
     private void HandleClear()
     {
@@ -243,6 +273,7 @@
     protected override async Task OnInitializedAsync()
     {
         await Load();
+        //await RefreshDropdownValuesAsync();
     }
 
     private async Task Load()
