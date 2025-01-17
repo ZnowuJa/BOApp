@@ -1,15 +1,25 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
+
+using Application.AdHocJobs;
+using Application.Forms.Accounting.BuisnessTravelSmallClasses;
+using Application.Forms.IT;
 using Application.Interfaces;
+using Application.Mappings;
 using Application.ValidationAttributes;
 using Application.ViewModels.Accounting;
 using Application.ViewModels.General;
+
+using AutoMapper;
+
 using Domain.Entities.ITWarehouse;
+using Domain.Forms.Accounting;
+using Domain.Forms.ITForms;
 
 namespace Application.Forms.Accounting;
-
-public class BusinessTravelFormVm : IFormVm
+public class BusinessTravelFormVm : IMapFrom<ITSaleForm>, IFormAccounting
 {
     # region FromTemplate
     // Properties from FormTemplate
@@ -21,7 +31,7 @@ public class BusinessTravelFormVm : IFormVm
     public string NumberPrefix { get; set; } = "DEL";
     public string Status { get; set; } = "Rejestracja";
     public string? Number { get; set; } = "brak numeru";
-    public List<string> Statuses { get; set; } = new();
+    //public List<string> Statuses { get; set; } = new();
     public int WorkflowTemplateId { get; set; } = 5;
     # endregion
     public DateTime? StartDate { get; set; } = DateTime.Now;
@@ -53,24 +63,28 @@ public class BusinessTravelFormVm : IFormVm
         public string EnovaEmpId { get; set; } = string.Empty;
         public List<Approval>? Approvals { get; set; } = new();
         public List<OrganisationRoleForFormVm> Level1Approvers { get; set; } = new(); // przełożony wniosek
-        public List<OrganisationRoleForFormVm> Level2Approvers { get; set; } = new(); // przełożony rozliczenie
-        public List<OrganisationRoleForFormVm> Level3Approvers { get; set; } = new(); // dyrektor salonu
+        public List<OrganisationRoleForFormVm> Level2Approvers { get; set; } = new(); // To już nie będzie potrzebne na druga aprobatę przelewu.
+        public List<OrganisationRoleForFormVm> Level3Approvers { get; set; } = new(); // Kasa
         public List<OrganisationRoleForFormVm> Level4Approvers { get; set; } = new(); // Księgowość
         public List<OrganisationRoleForFormVm> Level5Approvers { get; set; } = new(); // Księgowość TeamLeader
+        public List<OrganisationRoleForFormVm> Level6Approvers { get; set; } = new(); //drugi przełożony na przelew wychodzący i nie tylko
         public string LVL1_EnovaEmpId { get; set; } = string.Empty;
-        public string LVL1_EmployeeName { get; set; } = string.Empty;
-        public string LVL2_EnovaEmpId { get; set; } = string.Empty;
-        public string LVL2_EmployeeName { get; set; } = string.Empty;
-        public string LVL3_EnovaEmpId { get; set; } = string.Empty;
-        public string LVL3_EmployeeName { get; set; } = string.Empty;
-        public string LVL4_EnovaEmpId { get; set; } = string.Empty;
-        public string LVL4_EmployeeName { get; set; } = string.Empty;
-        public string LVL5_EnovaEmpId { get; set; } = string.Empty;
-        public string LVL5_EmployeeName { get; set; } = string.Empty;
+        public string LVL1_EmployeeName { get; set; } = string.Empty; // manager of user
+    public string LVL2_EnovaEmpId { get; set; } = string.Empty;
+        public string LVL2_EmployeeName { get; set; } = string.Empty; // some kind of Director
+    public string LVL3_EnovaEmpId { get; set; } = string.Empty;
+        public string LVL3_EmployeeName { get; set; } = string.Empty; // Cashier
+    public string LVL4_EnovaEmpId { get; set; } = string.Empty;
+        public string LVL4_EmployeeName { get; set; } = string.Empty; // Accountants
+    public string LVL5_EnovaEmpId { get; set; } = string.Empty;
+        public string LVL5_EmployeeName { get; set; } = string.Empty; // Accountants TLs
+    public string LVL6_EnovaEmpId { get; set; } = string.Empty;
+        public string LVL6_EmployeeName { get; set; } = string.Empty;
+        public string? RejectReason { get; set; } = string.Empty;
 
     #endregion
     #region AdvancePayment
-        public bool AdvancePayment { get; set; } = false;
+    public bool AdvancePayment { get; set; } = false;
         public decimal? AdvancePaymentAmount { get; set; } = 0;
         public string? AdvancePaymentCurrency { get; set; } = "PLN";
         public bool? AdvancePaymentCash {get;set;} = false;
@@ -88,11 +102,11 @@ public class BusinessTravelFormVm : IFormVm
     // do delegacji zagranicznej to min. 25% diety należnej wg kraju przeznaczenia i wg ilości naliczonej diety czyli czasu na jaki pracownik wypełnia delegację
     #endregion
     public DateTime CreatedDate { get; set; } = DateTime.Now;
-    public List<FormFileVm> Files { get; set; } = new();
-    public List<string> ConveyanceTypes { get; set; } = new()
-    {
-        "Samochód służbowy", "Samochód prywatny", "Transport publiczny"
-    };
+    //public List<FormFileVm> Files { get; set; } = new();
+    //public List<string> ConveyanceTypes { get; set; } = new()
+    //{
+    //    "Samochód służbowy", "Samochód prywatny", "Transport publiczny"
+    //};
     public List<Stage> Stages { get; set; } = new();
     public List<Accommodation> Accommodations { get; set; } = new();
     public List<Meals> Meals { get; set; } = new();
@@ -161,114 +175,68 @@ public class BusinessTravelFormVm : IFormVm
             return TotalAllowanceNotPL*CurrencyExchamngeRate + TotalAllowancePL;
         }
     }
-}
 
 
-public class Stage()
-{
-    public int Id { get; set; }
-    public string CountryCode { get; set; } = string.Empty;
-    public string CountryName { get; set; } = string.Empty;
-    public decimal CountryAllowance { get; set; } = 0;
-    public string CountryCurrency { get; set; } = string.Empty;
-    public DateTime? StartDate { get; set; } = DateTime.Now;
-    public DateTime? EndDate { get; set; } = DateTime.Now;
-    public decimal? Duration { get; set; } = 0;
-    public TimeSpan TimeSpan { get; set; } = TimeSpan.Zero;
-    public decimal? AllowanceOrigin { get; set; } = 0;
-    public decimal? AllowanceOriginValue { get; set; } = 0;
-    public decimal? AllowanceAbroad { get; set; } = 0;
-    public decimal? AllowanceAbroadValue { get; set; } = 0;
-    public NbpCurrencyRateVm NbpCurrencyRateVm { get; set; }
-    public bool Included { get; set; } = true;
+
+    public void Mapping(Profile profile)
+    {
+        profile.CreateMap<BusinessTravelForm, BusinessTravelFormVm>()
+            .ForMember(dest => dest.FormFiles, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<FormFileVm>>(src.FormFiles)))
+            //.ForMember(dest => dest.Statuses, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<string>>(src.Statuses)))
+            .ForMember(dest => dest.Countries, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<CountryVm>>(src.Countries)))
+            .ForMember(dest => dest.DestinationCountry, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<CountryVm>(src.DestinationCountry)))
+            .ForMember(dest => dest.Approvals, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<Approval>>(src.Approvals)))
+            .ForMember(dest => dest.Level1Approvers, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<OrganisationRoleForFormVm>>(src.Level1Approvers)))
+            .ForMember(dest => dest.Level2Approvers, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<OrganisationRoleForFormVm>>(src.Level2Approvers)))
+            .ForMember(dest => dest.Level3Approvers, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<OrganisationRoleForFormVm>>(src.Level3Approvers)))
+            .ForMember(dest => dest.Level4Approvers, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<OrganisationRoleForFormVm>>(src.Level4Approvers)))
+            .ForMember(dest => dest.Level5Approvers, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<OrganisationRoleForFormVm>>(src.Level5Approvers)))
+            .ForMember(dest => dest.Level6Approvers, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<OrganisationRoleForFormVm>>(src.Level6Approvers)))
+            .ForMember(dest => dest.PayoutCashier, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<EmployeeVm>(src.PayoutCashierEmpId)))
+            .ForMember(dest => dest.ReceiptCashier, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<EmployeeVm>(src.ReceiptCashierEmpId)))
+            //.ForMember(dest => dest.Files, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<FormFileVm>>(src.Files)))
+            //.ForMember(dest => dest.ConveyanceTypes, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<string>>(src.ConveyanceTypes)))
+            .ForMember(dest => dest.Stages, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<Stage>>(src.Stages)))
+            .ForMember(dest => dest.Accommodations, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<Accommodation>>(src.Accommodations)))
+            .ForMember(dest => dest.Meals, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<Meals>>(src.Meals)))
+            .ForMember(dest => dest.LocalTravels, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<LocalTravel>>(src.LocalTravels)))
+            .ForMember(dest => dest.Transit, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<Transit>(src.Transit)))
+            .ForMember(dest => dest.Bills, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<Bill>>(src.Bills)))
+            .ForMember(dest => dest.BTMappingAdvancePayment, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<BankTransferMapping>(src.BTMappingAdvancePayment)))
+            .ForMember(dest => dest.BTMappingPayout, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<BankTransferMapping>(src.BTMappingPayout)))
+            .ForMember(dest => dest.CashPoint, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<Location>(src.CashPoint)));
+
+        profile.CreateMap<BusinessTravelFormVm, BusinessTravelForm>()
+            .ForMember(dest => dest.FormFiles, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.FormFiles)))
+            //.ForMember(dest => dest.Statuses, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.Statuses)))
+            .ForMember(dest => dest.Countries, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.Countries)))
+            .ForMember(dest => dest.DestinationCountry, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.DestinationCountry)))
+            .ForMember(dest => dest.Approvals, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.Approvals)))
+            .ForMember(dest => dest.Level1Approvers, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.Level1Approvers)))
+            .ForMember(dest => dest.Level2Approvers, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.Level2Approvers)))
+            .ForMember(dest => dest.Level3Approvers, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.Level3Approvers)))
+            .ForMember(dest => dest.Level4Approvers, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.Level4Approvers)))
+            .ForMember(dest => dest.Level5Approvers, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.Level5Approvers)))
+            .ForMember(dest => dest.Level6Approvers, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.Level6Approvers)))
+            .ForMember(dest => dest.PayoutCashierEmpId, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.PayoutCashier)))
+            .ForMember(dest => dest.ReceiptCashierEmpId, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.ReceiptCashier)))
+            //.ForMember(dest => dest.Files, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.Files)))
+            //.ForMember(dest => dest.ConveyanceTypes, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.ConveyanceTypes)))
+            .ForMember(dest => dest.Stages, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.Stages)))
+            .ForMember(dest => dest.Accommodations, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.Accommodations)))
+            .ForMember(dest => dest.Meals, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.Meals)))
+            .ForMember(dest => dest.LocalTravels, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.LocalTravels)))
+            .ForMember(dest => dest.Transit, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.Transit)))
+            .ForMember(dest => dest.Bills, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.Bills)))
+            .ForMember(dest => dest.BTMappingAdvancePayment, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.BTMappingAdvancePayment)))
+            .ForMember(dest => dest.BTMappingPayout, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.BTMappingPayout)))
+            .ForMember(dest => dest.CashPoint, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.CashPoint)));
+    }
 
 }
-public class Meals()
-{
-    public int StageId { get; set; }
-    public string CountryCode { get; set; } = string.Empty;
-    public string CountryName { get; set; } = string.Empty;
-    public decimal AllowanceRate { get; set; } = 0;
-    public string AllowanceRateCurrency { get; set; }
-    public int Duration { get; set; } = 0;
-    public decimal? BreakfastReduction { get; set; } = 0;
-    public decimal? LunchReduction { get; set; } = 0;
-    public decimal? DinnerReduction { get; set; } = 0;
-    public int CoveredBreakfasts { get; set; } = 0;
-    public int CoveredLunches { get; set; } = 0;
-    public int CoveredDinners { get; set; } = 0;
-    public int Nights { get; set; } = 0;
-    public decimal Total { get; set; } = 0;
-    public bool Included { get; set; } = true;
-    
-}
-public class Accommodation()
-{
-    public int StageId { get; set; }
-    public string CountryCode { get; set; } = string.Empty;
-    public string CountryName { get; set; } = string.Empty;
-    public decimal? Duration { get; set; } = 0;
-    public decimal MaxHotelCost { get; set; } = 500;
-    public decimal AllowanceRate { get; set; } = 0;
-    public string AllowanceRateCurrency { get; set; }
-    public bool HasInvoices { get; set; } = false;
-    public decimal? InvoicesAmount { get; set; } = 0;
-    public int? Nights { get; set; } = 0;
-    public decimal? Total { get; set; } = 0;
-    public bool Included { get; set; } = true;
 
-}
-public class LocalTravel()
-{
-    //required local travels in stay city (trams, buses, taxis)
-    public int StageId { get; set; }
-    public string CountryCode { get; set; } = string.Empty;
-    public string CountryName { get; set; } = string.Empty;
-    public decimal AllowanceRate { get; set; } = 0;
-    public string AllowanceRateCurrency { get; set; }
-    public int Days { get; set; } = 0;
-    public int Duration { get; set; } = 0;
-    public decimal Total { get; set; } = 0;
-    public bool Included { get; set; } = true;
-    
-}
-public class Transit()
-{
-    //transit from public transport station to Accomodation place (
-    public int StageId { get; set; }
-    public string CountryCode { get; set; } = string.Empty;
-    public string CountryName { get; set; } = string.Empty;
-    public decimal AllowanceRate { get; set; } = 0;
-    public string AllowanceRateCurrency { get; set; }
-    public int Directions { get; set; } = 0; // 0-none, 1-one way, 2-both ways
-    public decimal Total { get; set; } = 0;
-    public bool Included { get; set; } = false;
-}
-public enum Statuses
-{
-    Rejestracja,
-    AprobataL1,
-    AprobataL2,
-    ZaliczkaKasa,
-    ZaliczkaKsiegowosc,
-    ZaliczkaKsiegowoscTL,
-    Rozliczenie,
-    Ksiegowosc,
-    KsiegowoscTL,
-    AprobataL11,
-    AprobataL12,
-    KasaRozliczenie,
-    WyslaneDoRobota,
-    Rozliczone,
-    Zamkniete
-}
-public class PrivateCar()
-{
-    public bool IsSelected { get; set; } = false;
-    public string PlateNumber { get; set; } = string.Empty;
-    public int EngineSize { get; set; } = 0;
-    public int Mileage { get; set; } = 0;
-}
+#region Validations
+
 public class PolishVehicleRegistrationAttribute : ValidationAttribute
 {
     private const string Pattern = @"^[A-Z]{1,2,3}[A-Z0-9]{4,5}$|^[A-Z]{2}[0-9]{5}$|^[A-Z]{2}[0-9]{4}[A-Z]{1}$|^[A-Z]{2,3}\s?[0-9]{5}$";
@@ -301,3 +269,5 @@ public class CountryNotEmptyValidationAttribute : ValidationAttribute
         return ValidationResult.Success;
     }
 }
+#endregion
+

@@ -77,7 +77,7 @@ else
     private List<FilterColumn<GroupCoCVm>> filterColumns = new List<FilterColumn<GroupCoCVm>>
     {
         new FilterColumn<GroupCoCVm> { FirstRow = true, Label = "ID", Property = c => c.Id.ToString(), IsVisible = true, Width = "80px" },
-        new FilterColumn<GroupCoCVm> { FirstRow = true, Label = "Group Name", Property = c => c.GroupName, IsVisible = true, Width = "1FR" },
+        new FilterColumn<GroupCoCVm> { FirstRow = true, Label = "Group Title", Property = c => c.GroupName, IsVisible = true, Width = "1FR" },
         new FilterColumn<GroupCoCVm> { FirstRow = true, Label = "Positions", Property = c => c.Positions.Count.ToString(), IsVisible = true, Width = "100px" }
     };
 

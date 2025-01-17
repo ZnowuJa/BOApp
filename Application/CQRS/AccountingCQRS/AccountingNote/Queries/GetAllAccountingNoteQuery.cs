@@ -36,13 +36,13 @@ namespace Application.CQRS.AccountingCQRS.AccountingNote.Queries
                 //var newItem = new CountryVm();
 
                 //newItem.CurrencyVmId = currency?.Id ?? 0;
-                //newItem.CurrencyVmName = currency?.Name ?? string.Empty;
+                //newItem.CurrencyVmName = currency?.Title ?? string.Empty;
                 //newItem.currencyVm = _mapper.Map<CurrencyVm>(currency);
 
                 //newItem.Id = item.Id;
                 //newItem.CountryCode = item.CountryCode;
-                //newItem.Name = item.Name;
-                //newItem.Name = item.Name;
+                //newItem.Title = item.Title;
+                //newItem.Title = item.Title;
                 //newItem.IsEU = item.IsEU;
                 //newItem.IsPL = item.IsPL;
                 //// newItem.CurrencyId = item.CurrencyId;

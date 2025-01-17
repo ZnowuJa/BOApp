@@ -12,6 +12,29 @@ public static class AppUtils
     {
         return dictionary == null || dictionary.Count == 0 ? string.Empty : JsonSerializer.Serialize(dictionary);
     }
+    public static T SafeDeserialize<T>(string jsonString)
+    {
+        try
+        {
+            return JsonSerializer.Deserialize<T>(jsonString);
+        }
+        catch (JsonException)
+        {
+            return default;
+        }
+    }
+
+    public static string SafeSerialize<T>(T obj)
+    {
+        try
+        {
+            return JsonSerializer.Serialize(obj);
+        }
+        catch (JsonException)
+        {
+            return string.Empty;
+        }
+    }
     public static List<Dictionary<string, string>> DeSerializeStringDictionary(string json)
     {
         return string.IsNullOrEmpty(json) ? new List<Dictionary<string, string>>() : JsonSerializer.Deserialize<List<Dictionary<string, string>>>(json);

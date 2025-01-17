@@ -5,7 +5,6 @@ public class OrganisationRoleForFormVm
     public int EmpId { get; set; } = 0;
     public string LongName { get; set; } = string.Empty;
 
-
     public OrganisationRoleForFormVm()
     {
         

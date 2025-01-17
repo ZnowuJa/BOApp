@@ -58,7 +58,7 @@ public class UpdateOrganisationCommandHandler : IRequestHandler<UpdateOrganisati
 //existingOrganisation = _mapper.Map<Organisation>(request.Item);
 
 
-//existingOrganisation.Name = request.Item.Name;
+//existingOrganisation.Title = request.Item.Title;
 //existingOrganisation.Make = request.Item.Make;
 //existingOrganisation.Description = request.Item.Description;
 //existingOrganisation.SapNumber = request.Item.SapNumber;

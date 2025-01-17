@@ -33,7 +33,7 @@ public class CreateOrganisationCommandHandler : IRequestHandler<CreateOrganisati
     {
         //var organisation = new Organisation
         //{
-        //    Name = request.Item.Name,
+        //    Title = request.Item.Title,
         //    Make = request.Item.Make,
         //    Description = request.Item.Description,
         //    SapNumber = request.Item.SapNumber,

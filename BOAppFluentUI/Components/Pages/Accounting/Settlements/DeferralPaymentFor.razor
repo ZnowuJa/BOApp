@@ -171,20 +171,18 @@ else
 
         itemEmployeesList = await _mediator.Send(new GetAllEmployeesQuery());
         _organisation = await _mediator.Send(new GetOrganisationByEmpSapNumberQuery(_userContext.Employee.SapNumber));
-        // _userContext.Employee.DeptNumber;
+
         formItem.Approvals = new List<Approval>();
         Approval approval = new Approval()
         {
             Status = formItem.Status,
-            EnovaEmpId = emp.EnovaEmpId.ToString(),
+                EnovaEmpId = emp.EnovaEmpId.ToString(), // to i Longname można wziąć z FormUserContext i zliwkidować GetUsername z tej klasy, bo FormUserContext jest a Utils.GetUserName
             LongName = emp.LongName,
             Date = DateTime.Now,
             IsApproved = true
         };
         formItem.Approvals.Add(approval);
         formItem.WorkflowTemplateId = wf.Id;
-        // if ()
-        // var wf = await _mediator.Send(new GetWorkflow;
 
         string deptNumber = _userContext.Employee.DeptNumber;
 
@@ -277,17 +275,6 @@ else
         var defaultApproverL2 = formItem.Level2Approvers.First(p => p.IsDefault == true);
         formItem.LVL2_EnovaEmpId = defaultApproverL2.EmpId.ToString();
         formItem.LVL2_EmployeeName = defaultApproverL2.LongName;
-
-   
-
-            // var defaultApproverL1 = formItem.Level1Approvers.First(p => p.IsDefault == true);
-
-            // formItem.LVL1_EnovaEmpId = defaultApproverL1.EmpId.ToString();
-            // formItem.LVL1_EmployeeName = defaultApproverL1.LongName;
-
-            // var defaultApproverL2 = formItem.Level2Approvers.First(p => p.IsDefault == true);
-            // formItem.LVL2_EnovaEmpId = defaultApproverL2.EmpId.ToString();
-            // formItem.LVL2_EmployeeName = defaultApproverL2.LongName;
         
     }
 

@@ -361,6 +361,33 @@ namespace Persistance.Migrations
                     b.ToTable("GLAccounts");
                 });
 
+            modelBuilder.Entity("Domain.Entities.Accounting.NbpCurrencyRate", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("Mid")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateOnly>("RateDate")
+                        .HasColumnType("date")
+                        .HasColumnName("Rate_date");
+
+                    b.HasKey("Id");
+
+                    b.ToTable((string)null);
+
+                    b.ToView("v_NBPExchangeRates", (string)null);
+                });
+
             modelBuilder.Entity("Domain.Entities.Accounting.VATRate", b =>
                 {
                     b.Property<int>("Id")
@@ -427,6 +454,19 @@ namespace Persistance.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("BackgroundJobs");
+                });
+
+            modelBuilder.Entity("Domain.Entities.BusinessOperations.CompanyCarRegistrationNumber", b =>
+                {
+                    b.Property<string>("RegistrationNumber")
+                        .HasColumnType("nvarchar(450)")
+                        .HasColumnName("registration_number");
+
+                    b.HasKey("RegistrationNumber");
+
+                    b.ToTable((string)null);
+
+                    b.ToView("v_CompanyCars", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.CoC.GroupCoC", b =>
@@ -1718,6 +1758,341 @@ namespace Persistance.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Warehouses");
+                });
+
+            modelBuilder.Entity("Domain.Forms.Accounting.BusinessTravelForm", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Accommodations")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("AccomodationAllowanceSumNotPL")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<decimal?>("AccomodationAllowanceSumPL")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<bool>("AdvancePayment")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal?>("AdvancePaymentAmount")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<decimal?>("AdvancePaymentCash")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<string>("AdvancePaymentCurrency")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateOnly?>("AdvancePaymentDate")
+                        .HasColumnType("date");
+
+                    b.Property<decimal>("AllowanceNotPL")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<decimal>("AllowancePL")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<string>("Approvals")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("BTMappingAdvancePayment")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("BTMappingPayout")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("BankAccountNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Bills")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CashPayoutNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CashPoint")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CashReceiptNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("CompanyVehicle")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("CompanyVehicleNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ConveyanceTypes")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Countries")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("Created")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("CurrencyExchamngeRate")
+                        .HasColumnType("decimal(10,4)");
+
+                    b.Property<DateOnly>("CurrencyExchangeRateDate")
+                        .HasColumnType("date");
+
+                    b.Property<decimal?>("DeductionMealsNotPL")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<decimal?>("DeductionMealsPL")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Destination")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DestinationCountry")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DestinationCountryCurrency")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EmployeeName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("EnovaEmpId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FolderName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FormFiles")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("Inactivated")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("InactivatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LVL1_EmployeeName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LVL1_EnovaEmpId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LVL2_EmployeeName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LVL2_EnovaEmpId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LVL3_EmployeeName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LVL3_EnovaEmpId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LVL4_EmployeeName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LVL4_EnovaEmpId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LVL5_EmployeeName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LVL5_EnovaEmpId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LVL6_EmployeeName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LVL6_EnovaEmpId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Level1Approvers")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Level2Approvers")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Level3Approvers")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Level4Approvers")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Level5Approvers")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Level6Approvers")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LocalTravels")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Meals")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("Modified")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Number")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NumberPrefix")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Objective")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("OperationArea")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("OrganisationSapNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PayoutCashierEmpId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("PrivateVehicle")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("PrivateVehicleEngineSize")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PrivateVehicleMilage")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PrivateVehicleNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("PublicTransport")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("PublicTransportPaid")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("ReceiptCashierEmpId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RejectReason")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Stages")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Status")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("StatusId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Statuses")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("SumAllowanceNotPL")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<decimal?>("SumAllowancePL")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<decimal?>("SumLocalTravelAllowanceNotPL")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<decimal?>("SumLocalTravelAllowancePL")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<decimal?>("SumPrivateVehicleAllowance")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("TotalAllowanceNotPL")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<decimal>("TotalAllowancePL")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<decimal>("TotalBillsNotPL")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<decimal>("TotalBillsPL")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<decimal>("TotalPayOut")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<string>("Transit")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("WorkflowTemplateId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("BusinessTravels");
                 });
 
             modelBuilder.Entity("Domain.Forms.DeferralPaymentForm", b =>
