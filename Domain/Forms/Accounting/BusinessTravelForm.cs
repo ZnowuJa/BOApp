@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+
+using Domain.Common;
 using Domain.Entities.Accounting;
 using Domain.Entities.Common;
 
@@ -12,18 +14,16 @@ using Domain.Forms.ITForms;
 
 namespace Domain.Forms.Accounting
 {
-    public class BusinessTravelForm 
+    public class BusinessTravelForm : FormTemplate
     {
+        public BusinessTravelForm() : base("Delegacja", "Formularz do rozliczania Delegacji pracowniczych.", "BusinessTravels", "DEL", "Accounting", "Rejestracja", 5)
+        {
+            Statuses = GetDefaultStatuses();
+        }
+        
         public int Id { get; set; } = 0;
-        public string Name { get; set; } = "Delegacja";
-        public string Description { get; set; } = "Formularz do rozliczania Delegacji pracowniczych.";
-        public string FolderName { get; set; } = "BusinessTravels";
         public string FormFiles { get; set; } = string.Empty;
-        public string NumberPrefix { get; set; } = "DEL";
-        public string Status { get; set; } = "Rejestracja";
         public string? Number { get; set; } = "brak numeru";
-        //public string Statuses { get; set; } = string.Empty;
-        public int WorkflowTemplateId { get; set; } = 5;
         public DateTime? StartDate { get; set; } = DateTime.Now;
         public DateTime? EndDate { get; set; } = DateTime.Now;
         public string? Destination { get; set; } = string.Empty;
@@ -52,6 +52,7 @@ namespace Domain.Forms.Accounting
         public string Level3Approvers { get; set; } = string.Empty; // dyrektor salonu
         public string Level4Approvers { get; set; } = string.Empty; // Księgowość
         public string Level5Approvers { get; set; } = string.Empty; // Księgowość TeamLeader
+        public string Level6Approvers { get; set; } = string.Empty; // Księgowość TeamLeader
         public string LVL1_EnovaEmpId { get; set; } = string.Empty;
         public string LVL1_EmployeeName { get; set; } = string.Empty;
         public string LVL2_EnovaEmpId { get; set; } = string.Empty;
@@ -62,6 +63,9 @@ namespace Domain.Forms.Accounting
         public string LVL4_EmployeeName { get; set; } = string.Empty;
         public string LVL5_EnovaEmpId { get; set; } = string.Empty;
         public string LVL5_EmployeeName { get; set; } = string.Empty;
+        public string LVL6_EnovaEmpId { get; set; } = string.Empty;
+        public string LVL6_EmployeeName { get; set; } = string.Empty;
+        public string RejectReason { get; set; } = string.Empty;
         #endregion
 
         #region AdvancePayment
@@ -109,6 +113,14 @@ namespace Domain.Forms.Accounting
         public decimal TotalAllowancePL { get; set; } = 0;
         public decimal TotalAllowanceNotPL { get; set; } = 0;
         public decimal TotalPayOut { get; set; } = 0;
+
+        public static List<string> GetDefaultStatuses()
+        {
+            return new List<string>
+            {
+                "Rejestracja", "AprobataL1", "AprobataL2", "ZaliczkaKasa", "ZaliczkaKsiegowosc", "ZaliczkaKsiegowoscTL", "Rozliczenie", "Ksiegowosc", "KsiegowoscTL", "AprobataL11", "AprobataL12", "KasaRozliczenie", "WyslaneDoRobota", "Rozliczone", "Zamkniete"
+            };
+        }
 
     }
 

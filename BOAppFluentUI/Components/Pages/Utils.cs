@@ -125,6 +125,7 @@ public static class Utils
     public static bool IsEditDisabled<T>(T context, FormUserContext _userContext) where T : IFormVm
     {
         var roles = _userContext.Employee.Roles.ToList();
+        string typeName = typeof(T).Name;
         if (_userContext.Employee.Roles.Contains(_userContext.AdminRole))
         {
             _userContext.isFormAdmin = true;
@@ -147,6 +148,41 @@ public static class Utils
         }
 
         return true; 
+    }
+
+    public static bool IsAccEditDisabled<T>(T context, FormUserContext _userContext) where T : IFormAccounting
+    {
+        var roles = _userContext.Employee.Roles.ToList();
+        string typeName = typeof(T).Name;
+        if (_userContext.Employee.Roles.Contains(_userContext.AdminRole))
+        {
+            _userContext.isFormAdmin = true;
+            return false;
+        }
+
+        if (context.Status == "Rejestracja")
+        {
+            var test = context.EnovaEmpId == _userContext.EnovaEmpId.ToString();
+            Console.WriteLine(test);
+            return !(context.EnovaEmpId == _userContext.EnovaEmpId.ToString());
+        }
+
+        if (context.Status == "AprobataL1")
+        {
+            var test = context.LVL1_EnovaEmpId == _userContext.EnovaEmpId;
+            Console.WriteLine(test);
+            return !(context.LVL1_EnovaEmpId == _userContext.EnovaEmpId);
+        }
+
+        if (context.Status == "AprobataL2")
+        {
+            var test = context.Level2Approvers.Any(approver => approver.EmpId.ToString() == _userContext.EnovaEmpId);
+            Console.WriteLine(test);
+            return !(context.Level2Approvers.Any(approver => approver.EmpId.ToString() == _userContext.EnovaEmpId));
+
+        }
+
+        return true;
     }
     public static void HandleChangeApprover<T>(ChangeEventArgs e, IQueryable<EmployeeVm> itemEmployeesList, T formItem, string approverLevel) where T : IFormVm
     {
@@ -224,7 +260,7 @@ public static class Utils
             logger.LogInformation(fileInfo.ToString());
         }
         
-        // fileInfo = await fileService.UploadTemporaryFileAsync(file.Stream, file.Name, sessionId);
+        // fileInfo = await fileService.UploadTemporaryFileAsync(file.Stream, file.Title, sessionId);
         var resultFile = new FormFileVm
         {
             TmpPath = fileInfo["TmpPath"],

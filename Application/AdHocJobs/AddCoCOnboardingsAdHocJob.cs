@@ -62,7 +62,7 @@ public class AddCoCOnboardingsAdHocJob
                     Console.WriteLine($"instStats: {instStats.Count()}");
                 }
 
-                //Console.WriteLine($"Organisation: {_organisation.Name}");
+                //Console.WriteLine($"Organisation: {_organisation.Title}");
                 var onboarding = new OnboardingFormVm()
                 {
                     //WorkflowTemplateId = 2,

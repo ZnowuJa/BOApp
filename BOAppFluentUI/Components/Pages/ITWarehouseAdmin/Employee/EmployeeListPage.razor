@@ -110,7 +110,7 @@ else
     private List<FilterColumn<EmployeeVm>> filterColumns = new List<FilterColumn<EmployeeVm>>
     {
         new FilterColumn<EmployeeVm> { FirstRow = true, Label = "EmpId", Property = c => c.EnovaEmpId.ToString(), IsVisible = true },
-        new FilterColumn<EmployeeVm> { FirstRow = true, Label = "Name", Property = c => c.LongName ?? string.Empty, IsVisible = true },
+        new FilterColumn<EmployeeVm> { FirstRow = true, Label = "Title", Property = c => c.LongName ?? string.Empty, IsVisible = true },
         new FilterColumn<EmployeeVm> { FirstRow = true, Label = "Email", Property = c => c.Email ?? string.Empty, IsVisible = false },
         new FilterColumn<EmployeeVm> { FirstRow = true, Label = "Manager", Property = c => c.Manager.LongName ?? string.Empty, IsVisible = true },
         new FilterColumn<EmployeeVm> { FirstRow = true, Label = "Position", Property = c => c.Position ?? string.Empty, IsVisible = true },

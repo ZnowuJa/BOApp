@@ -8,21 +8,21 @@ namespace Application.Forms.Accounting.Enums
 {
     public enum Statuses
     {
-        Rejestracja,
-        AprobataL1,
-        AprobataL2,
-        ZaliczkaKasa,
-        ZaliczkaKsiegowosc,
-        ZaliczkaKsiegowoscTL,
-        Rozliczenie,
-        Ksiegowosc,
-        KsiegowoscTL,
-        AprobataL11,
-        AprobataL12,
-        KasaRozliczenie,
-        WyslaneDoRobota,
-        Rozliczone,
-        Zamkniete
+        Rejestracja, //user or just employee
+        AprobataL1, // manager of user
+        AprobataL2, // some kind of Director
+        ZaliczkaKasa, // Cashier
+        ZaliczkaKsiegowosc, // Accountants
+        ZaliczkaKsiegowoscTL, // Accountants TLs
+        Rozliczenie, // user or just employee
+        Ksiegowosc, // Accountants
+        KsiegowoscTL, // Accountants TLs
+        AprobataL11, // manager of user
+        AprobataL12, // some kind of Director
+        KasaRozliczenie, // Cashier
+        WyslaneDoRobota, // BOT
+        Rozliczone, // Read Every One
+        Zamkniete // Probably not necessary
     }
 }
 

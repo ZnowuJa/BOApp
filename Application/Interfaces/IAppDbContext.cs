@@ -5,6 +5,7 @@ using Domain.Entities.CoC;
 using Domain.Entities.Common;
 using Domain.Entities.ITWarehouse;
 using Domain.Forms;
+using Domain.Forms.Accounting;
 using Domain.Forms.ITForms;
 using Domain.WorkFlows;
 
@@ -55,6 +56,7 @@ public interface IAppDbContext
     DbSet<AccountingNoteForm> AccountingNotes { get; set; }
     DbSet<CompanyCarRegistrationNumber> CompanyCarRegistrationNumbers { get; set; }
     DbSet<NbpCurrencyRate> NbpCurrencyRates { get; set; }
+    DbSet<BusinessTravelForm> BusinessTravels { get; set; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default);

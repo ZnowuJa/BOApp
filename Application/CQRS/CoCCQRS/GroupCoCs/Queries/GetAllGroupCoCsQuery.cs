@@ -32,7 +32,7 @@ public class GetAllGroupCoCsQueryHandler : IRequestHandler<GetAllGroupCoCsQuery,
         //    {
         //        Id = g.Id,
         //        GroupName = g.GroupName,
-        //        Positions = g.Positions.Select(p => new PositionVm(p.Id, p.Name)).ToList()
+        //        Positions = g.Positions.Select(p => new PositionVm(p.Id, p.Title)).ToList()
         //    })
         //    .ToListAsync(cancellationToken);
 

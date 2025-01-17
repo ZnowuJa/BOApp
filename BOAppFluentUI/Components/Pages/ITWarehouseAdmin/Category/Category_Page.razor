@@ -146,13 +146,13 @@ else
     //         ctVm = (CategoryVm)result.Data;
     //         if (ctVm.Id > 0)
     //         {
-    //             i = await _mediator.Send(new UpdateCategoryCommand(ctVm.Id, ctVm.Name, ctVm.Prefix, ctVm.CategoryTypeVm));
+    //             i = await _mediator.Send(new UpdateCategoryCommand(ctVm.Id, ctVm.Title, ctVm.Prefix, ctVm.CategoryTypeVm));
     //             intent = ToastIntent.Success;
     //             message = "Category has been updated!";
     //         }
     //         else if (ctVm.Id == 0)
     //         {
-    //             i = await _mediator.Send(new CreateCategoryCommand(ctVm.Name, ctVm.Prefix, ctVm.CategoryTypeVm));
+    //             i = await _mediator.Send(new CreateCategoryCommand(ctVm.Title, ctVm.Prefix, ctVm.CategoryTypeVm));
     //             intent = ToastIntent.Success;
     //             message = "Category has been Created!";
     //         }

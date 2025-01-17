@@ -2,15 +2,16 @@
 @using Application.CQRS.AccountingCQRS.GLAccounts.Queries
 @using Application.CQRS.AccountingCQRS.VATRates.Queries
 @using Application.CQRS.General.Organisations.Queries
+@using Application.Forms.Accounting.Enums
 @using Application.ViewModels.Accounting
 @using Application.ViewModels.General
-
-<table class="table-container">
+<div class = "tableBT-wrapper" >
+<table class="tableBT-container">
     <thead>
-        <tr class="table-header-left">
+        <tr class="tableBT-header-left">
             <th style="width: 150px;">Data księgowania</th>
             <th style="width: 150px;">Data waluta</th>
-            <th style="width: 100px;">Formularz SAP</th>
+            <th style="width: 150px;">Formularz SAP</th>
             <th style="width: 150px;">MPK</th>
             <th style="width: 150px;">KontoGL</th>
         </tr>
@@ -70,23 +71,102 @@
         </tr>
     </tbody>
 </table>
-
+<table class="tableBT-container">
+    <thead>
+        <tr class="tableBT-header-left">
+            <th style="width: 150px;">Wprowadzone do SAP</th>
+            <th style="width: 150px;">Sprawdzone</th>
+            <th style="width: 150px;">Numer dokumentu SAP</th>
+            <th style="width: 150px;">Klucz patności SAP</th>
+            <th style="width: 150px;">Komentarz</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+                <td style="text-align: center;">
+                <FluentSwitch @bind-Value="@BTItem.InSAP" Style="width: 150px;" />
+            </td>
+                <td style="text-align: center;">
+                <FluentSwitch @bind-Value="@BTItem.TLChecked" Style="width: 150px;" />
+            </td>
+            <td>
+                    <FluentTextField @bind-Value="@BTItem.SapDocNumber" Style="width: 150px;" Required="_accountant" />
+            </td>
+            <td>
+                    <FluentTextField @bind-Value="@BTItem.SapPaymentKey" Style="width: 150px;" Required="_accountant" />
+            </td>
+            <td>
+                <FluentTextField @bind-Value="@BTItem.Comment" Style="width: 150px;" />
+            </td>
+        </tr>
+    </tbody>
+</table>
+    <table class="tableBT-container" style="width = 500px">
+    <thead>
+            <tr class="tableBT-header-left">
+                <th style="width = 200px">Księgowa </th>
+                <th style="width = 125px">Data </th>
+                <th style="width = 200px">TeamLeader </th>
+                <th style="width = 125px">Data </th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+                <FluentTextField @bind-Value="@BTItem.AccountantName"  />
+            </td>
+            <td>
+                <FluentTextField @bind-Value="@_accountantTime"  />
+            </td>
+            <td>
+                <FluentTextField @bind-Value="@BTItem.AccountantTLName"  />
+            </td>
+            <td>
+                <FluentTextField @bind-Value="@_accountantTLTime"  />
+            </td>
+        </tr>
+    </tbody>
+</table>
+</div>
 
 @code {
     [Parameter] public BankTransferMapping BTItem { get; set; }
     [Parameter] public bool Disabled { get; set; } = false;
     [Parameter] public IEnumerable<CostCenterVm> CostCenters { get; set; }
     [Parameter] public IEnumerable<GLAccountVm> GLAccounts { get; set; }
+    [Parameter] public string FormStatus { get; set; } = string.Empty;
+    [Parameter] public FormUserContext UserContext { get; set; }
+
     IEnumerable<CostCenterVm> _selectedCostCenter = Array.Empty<CostCenterVm>();
     IEnumerable<GLAccountVm> _selectedGlAccount = Array.Empty<GLAccountVm>();
     private IQueryable<string> _sapformtypes = Enum.GetValues(typeof(SapFormType))
     .Cast<SapFormType>().Select(c => c.ToString()).AsQueryable();
     IEnumerable<string> _selectedSapFormType = Array.Empty<string>();
+    private bool _accountant = false;
+    private bool _accountantTL = false;
+    private string _accountantTime { get; set; } = string.Empty;
+    private string _accountantTLTime { get; set; } = string.Empty;
+
 
     protected override async Task OnInitializedAsync()
     {
-        // CostCenters = await _mediator.Send(new GetAllCostCenterIEnumQuery());
-        // GLAccounts = await _mediator.Send(new GetAllGLAccountIEnumQuery());
+        if (FormStatus == "ZaliczkaKsiegowosc" || FormStatus == "Ksiegowosc")
+        {
+            _accountant = true;
+            BTItem.AccountantEmpId = int.Parse(UserContext.EnovaEmpId);
+            BTItem.AccountantName = UserContext.LongName;
+            BTItem.AccountantTime = DateTime.Now;
+            _accountantTime = BTItem.AccountantTime.HasValue ? BTItem.AccountantTime.Value.ToString() : string.Empty;
+        }
+        if (FormStatus == "ZaliczkaKsiegowoscTL" || FormStatus == "KsiegowoscTL")
+        {
+            _accountant = true;
+            _accountantTL = true;
+            BTItem.AccountantTLEmpId = int.Parse(UserContext.EnovaEmpId);
+            BTItem.AccountantTLName = UserContext.LongName;
+            BTItem.AccountantTLTime = DateTime.Now;
+            _accountantTLTime = BTItem.AccountantTLTime.HasValue ? BTItem.AccountantTLTime.Value.ToString() : string.Empty;
+        }
 
     }
 

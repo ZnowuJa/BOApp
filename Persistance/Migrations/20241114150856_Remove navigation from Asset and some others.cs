@@ -181,7 +181,7 @@ namespace Persistance.Migrations
 //        Id = table.Column<int>(type: "int", nullable: false)
 //            .Annotation("SqlServer:Identity", "1, 1"),
 //        Code = table.Column<string>(type: "nvarchar(max)", nullable: false),
-//        Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+//        Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
 //        IsEU = table.Column<bool>(type: "bit", nullable: false),
 //        StatusId = table.Column<int>(type: "int", nullable: true),
 //        InactivatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -215,7 +215,7 @@ namespace Persistance.Migrations
 //    {
 //        Id = table.Column<int>(type: "int", nullable: false)
 //            .Annotation("SqlServer:Identity", "1, 1"),
-//        Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+//        Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
 //        Percentage = table.Column<double>(type: "float", nullable: false),
 //        Information = table.Column<string>(type: "nvarchar(max)", nullable: false),
 //        Order = table.Column<int>(type: "int", nullable: false),

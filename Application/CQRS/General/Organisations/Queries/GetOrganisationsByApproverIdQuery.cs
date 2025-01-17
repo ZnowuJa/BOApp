@@ -20,7 +20,7 @@ public class GetOrganisationsByApproverIdQuery : IRequest<IQueryable<Organisatio
 
 //
 //
-// Name of this query is a bit misleading
+// Title of this query is a bit misleading
 // it looks like it searches for Org by EmpId but 
 // it searches Org where EmpId is in any Role
 //
@@ -77,7 +77,7 @@ public class GetOrganisationsByApproverIdQueryHandler : IRequestHandler<GetOrgan
     //    return new OrganisationVm
     //    {
     //        Id = organisation.Id,
-    //        Name = organisation.Name,
+    //        Title = organisation.Title,
     //        Make = organisation.Make,
     //        Description = organisation.Description,
     //        SapNumber = organisation.SapNumber,

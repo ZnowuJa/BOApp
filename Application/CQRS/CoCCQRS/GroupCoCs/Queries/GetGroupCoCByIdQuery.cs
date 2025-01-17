@@ -41,7 +41,7 @@ public class GetGroupCoCByIdQueryHandler : IRequestHandler<GetGroupCoCByIdQuery,
         //var poss = Group.Positions
         //    .Select(pos => new Position
         //    {
-        //        Name = pos.Name,
+        //        Title = pos.Title,
         //        Cat = pos.Cat
         //    })
         //    .ToList();
@@ -52,7 +52,7 @@ public class GetGroupCoCByIdQueryHandler : IRequestHandler<GetGroupCoCByIdQuery,
         //    Id = group.Id,
         //    GroupName = group.GroupName,
         //    Positions = poss
-        //    //Positions = Group.Positions.Select(p => new PositionVm(p.Id, p.Name)).ToList()
+        //    //Positions = Group.Positions.Select(p => new PositionVm(p.Id, p.Title)).ToList()
         //};
         return result;
     }

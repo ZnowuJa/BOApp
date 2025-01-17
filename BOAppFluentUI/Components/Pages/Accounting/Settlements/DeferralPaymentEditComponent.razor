@@ -352,37 +352,6 @@
         // GoBack();
     }
 
-    // private async Task GetUserName()
-    // {
-    //     var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-    //     user = authenticationState.User;
-    //     var claimType = "name"; // or use ClaimTypes.Title
-    //     var claimTypeAID = "http://schemas.microsoft.com/identity/claims/objectidentifier";
-
-    //     var usernameClaim = user.Claims.FirstOrDefault(c => c.Type == claimType);
-    //     if (usernameClaim != null)
-    //     {
-    //         username = usernameClaim.Value;
-    //     }
-    //     else
-    //     {
-    //         username = "unknown";
-    //         // Console.WriteLine($"No claim of type {claimType} found.");
-    //     }
-
-    //     var aidClaim = user.Claims.FirstOrDefault(c => c.Type == claimTypeAID);
-    //     if (aidClaim != null)
-    //     {
-    //         Guid aidGuid;
-    //         Guid.TryParse(aidClaim.Value, out aidGuid);
-    //         emp = await _mediator.Send(new GetEmployeeByAIDQuery(aidGuid));
-    //     }
-    //     else
-    //     {
-    //         emp = new EmployeeVm();
-    //         // Console.WriteLine($"No claim of type {claimTypeAID} found.");
-    //     }
-    // }
     private async Task GetAllowedPersons(DeferralPaymentFormVm form)
     {
 

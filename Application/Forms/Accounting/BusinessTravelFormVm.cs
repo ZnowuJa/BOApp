@@ -19,7 +19,7 @@ using Domain.Forms.Accounting;
 using Domain.Forms.ITForms;
 
 namespace Application.Forms.Accounting;
-public class BusinessTravelFormVm : IMapFrom<ITSaleForm>, IFormVm
+public class BusinessTravelFormVm : IMapFrom<ITSaleForm>, IFormAccounting
 {
     # region FromTemplate
     // Properties from FormTemplate
@@ -63,24 +63,28 @@ public class BusinessTravelFormVm : IMapFrom<ITSaleForm>, IFormVm
         public string EnovaEmpId { get; set; } = string.Empty;
         public List<Approval>? Approvals { get; set; } = new();
         public List<OrganisationRoleForFormVm> Level1Approvers { get; set; } = new(); // przełożony wniosek
-        public List<OrganisationRoleForFormVm> Level2Approvers { get; set; } = new(); // przełożony rozliczenie
-        public List<OrganisationRoleForFormVm> Level3Approvers { get; set; } = new(); // dyrektor salonu
+        public List<OrganisationRoleForFormVm> Level2Approvers { get; set; } = new(); // To już nie będzie potrzebne na druga aprobatę przelewu.
+        public List<OrganisationRoleForFormVm> Level3Approvers { get; set; } = new(); // Kasa
         public List<OrganisationRoleForFormVm> Level4Approvers { get; set; } = new(); // Księgowość
         public List<OrganisationRoleForFormVm> Level5Approvers { get; set; } = new(); // Księgowość TeamLeader
+        public List<OrganisationRoleForFormVm> Level6Approvers { get; set; } = new(); //drugi przełożony na przelew wychodzący i nie tylko
         public string LVL1_EnovaEmpId { get; set; } = string.Empty;
-        public string LVL1_EmployeeName { get; set; } = string.Empty;
-        public string LVL2_EnovaEmpId { get; set; } = string.Empty;
-        public string LVL2_EmployeeName { get; set; } = string.Empty;
-        public string LVL3_EnovaEmpId { get; set; } = string.Empty;
-        public string LVL3_EmployeeName { get; set; } = string.Empty;
-        public string LVL4_EnovaEmpId { get; set; } = string.Empty;
-        public string LVL4_EmployeeName { get; set; } = string.Empty;
-        public string LVL5_EnovaEmpId { get; set; } = string.Empty;
-        public string LVL5_EmployeeName { get; set; } = string.Empty;
+        public string LVL1_EmployeeName { get; set; } = string.Empty; // manager of user
+    public string LVL2_EnovaEmpId { get; set; } = string.Empty;
+        public string LVL2_EmployeeName { get; set; } = string.Empty; // some kind of Director
+    public string LVL3_EnovaEmpId { get; set; } = string.Empty;
+        public string LVL3_EmployeeName { get; set; } = string.Empty; // Cashier
+    public string LVL4_EnovaEmpId { get; set; } = string.Empty;
+        public string LVL4_EmployeeName { get; set; } = string.Empty; // Accountants
+    public string LVL5_EnovaEmpId { get; set; } = string.Empty;
+        public string LVL5_EmployeeName { get; set; } = string.Empty; // Accountants TLs
+    public string LVL6_EnovaEmpId { get; set; } = string.Empty;
+        public string LVL6_EmployeeName { get; set; } = string.Empty;
+        public string? RejectReason { get; set; } = string.Empty;
 
     #endregion
     #region AdvancePayment
-        public bool AdvancePayment { get; set; } = false;
+    public bool AdvancePayment { get; set; } = false;
         public decimal? AdvancePaymentAmount { get; set; } = 0;
         public string? AdvancePaymentCurrency { get; set; } = "PLN";
         public bool? AdvancePaymentCash {get;set;} = false;
@@ -187,6 +191,7 @@ public class BusinessTravelFormVm : IMapFrom<ITSaleForm>, IFormVm
             .ForMember(dest => dest.Level3Approvers, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<OrganisationRoleForFormVm>>(src.Level3Approvers)))
             .ForMember(dest => dest.Level4Approvers, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<OrganisationRoleForFormVm>>(src.Level4Approvers)))
             .ForMember(dest => dest.Level5Approvers, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<OrganisationRoleForFormVm>>(src.Level5Approvers)))
+            .ForMember(dest => dest.Level6Approvers, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<OrganisationRoleForFormVm>>(src.Level6Approvers)))
             .ForMember(dest => dest.PayoutCashier, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<EmployeeVm>(src.PayoutCashierEmpId)))
             .ForMember(dest => dest.ReceiptCashier, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<EmployeeVm>(src.ReceiptCashierEmpId)))
             //.ForMember(dest => dest.Files, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<FormFileVm>>(src.Files)))
@@ -212,6 +217,7 @@ public class BusinessTravelFormVm : IMapFrom<ITSaleForm>, IFormVm
             .ForMember(dest => dest.Level3Approvers, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.Level3Approvers)))
             .ForMember(dest => dest.Level4Approvers, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.Level4Approvers)))
             .ForMember(dest => dest.Level5Approvers, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.Level5Approvers)))
+            .ForMember(dest => dest.Level6Approvers, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.Level6Approvers)))
             .ForMember(dest => dest.PayoutCashierEmpId, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.PayoutCashier)))
             .ForMember(dest => dest.ReceiptCashierEmpId, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.ReceiptCashier)))
             //.ForMember(dest => dest.Files, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.Files)))
@@ -227,7 +233,6 @@ public class BusinessTravelFormVm : IMapFrom<ITSaleForm>, IFormVm
             .ForMember(dest => dest.CashPoint, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.CashPoint)));
     }
 
-    
 }
 
 #region Validations

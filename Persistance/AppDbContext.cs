@@ -8,6 +8,7 @@ using Domain.Entities.CoC;
 using Domain.Entities.Common;
 using Domain.Entities.ITWarehouse;
 using Domain.Forms;
+using Domain.Forms.Accounting;
 using Domain.Forms.ITForms;
 using Domain.WorkFlows;
 
@@ -63,11 +64,34 @@ public class AppDbContext : IdentityDbContext<AppUser>, IAppDbContext
     public DbSet<AccountingNoteForm> AccountingNotes { get; set; }
     public DbSet<CompanyCarRegistrationNumber> CompanyCarRegistrationNumbers { get ; set; }
     public DbSet<NbpCurrencyRate> NbpCurrencyRates {  get; set; }
+    public DbSet<BusinessTravelForm> BusinessTravels { get; set; }
 
 
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
+        builder.Entity<BusinessTravelForm>(e =>
+        {
+            e.Property(e => e.AdvancePaymentAmount).HasColumnType("decimal(10,2)");
+            e.Property(e => e.AdvancePaymentCash).HasColumnType("decimal(10,2)");
+            e.Property(e => e.CurrencyExchamngeRate).HasColumnType("decimal(10,4)");
+            e.Property(e => e.AllowancePL).HasColumnType("decimal(10,2)");
+            e.Property(e => e.AllowanceNotPL).HasColumnType("decimal(10,2)");
+            e.Property(e => e.SumAllowancePL).HasColumnType("decimal(10,2)");
+            e.Property(e => e.SumAllowanceNotPL).HasColumnType("decimal(10,2)");
+            e.Property(e => e.DeductionMealsPL).HasColumnType("decimal(10,2)");
+            e.Property(e => e.DeductionMealsNotPL).HasColumnType("decimal(10,2)");
+            e.Property(e => e.AccomodationAllowanceSumPL).HasColumnType("decimal(10,2)");
+            e.Property(e => e.AccomodationAllowanceSumNotPL).HasColumnType("decimal(10,2)");
+            e.Property(e => e.SumLocalTravelAllowancePL).HasColumnType("decimal(10,2)");
+            e.Property(e => e.SumLocalTravelAllowanceNotPL).HasColumnType("decimal(10,2)");
+            e.Property(e => e.SumPrivateVehicleAllowance).HasColumnType("decimal(10,2)");
+            e.Property(e => e.TotalBillsPL).HasColumnType("decimal(10,2)");
+            e.Property(e => e.TotalBillsNotPL).HasColumnType("decimal(10,2)");
+            e.Property(e => e.TotalAllowancePL).HasColumnType("decimal(10,2)");
+            e.Property(e => e.TotalAllowanceNotPL).HasColumnType("decimal(10,2)");
+            e.Property(e => e.TotalPayOut).HasColumnType("decimal(10,2)");
+        });
         builder.Entity<Invoice>(e =>
         {
             e.Property(e => e.TotalNet).HasColumnType("decimal(10,2)");

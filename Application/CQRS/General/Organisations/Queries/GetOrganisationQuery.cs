@@ -47,7 +47,7 @@ public class GetOrganisationQueryHandler : IRequestHandler<GetOrganisationQuery,
     //    return new OrganisationVm
     //    {
     //        Id = organisation.Id,
-    //        Name = organisation.Name,
+    //        Title = organisation.Title,
     //        Make = organisation.Make,
     //        Description = organisation.Description,
     //        SapNumber = organisation.SapNumber,

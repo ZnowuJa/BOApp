@@ -96,7 +96,7 @@ public class TokenValidatedHandlerService : ITokenValidatedHandlerService
             await _userManager.UpdateAsync(appUser);
         }
         empl.IdentityUserName = appUser.UserName;
-        //empl.Type = await _appDbContext.EmployeeTypes.Where(t => t.Name == "User").FirstOrDefaultAsync();
+        //empl.Type = await _appDbContext.EmployeeTypes.Where(t => t.Title == "User").FirstOrDefaultAsync();
         if (empl.IsManager)
         {
             await _userManager.AddToRoleAsync(appUser, "Manager");

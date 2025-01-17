@@ -1,6 +1,11 @@
 ﻿@page "/create-business-travel/{id:int}"
+@page "/nowadelegacja/{id:int}"
+@page "/delegacja/{id:int}"
 
 @using System.Globalization
+@using Blazored.FluentValidation
+@using Application.CQRS.AccountingCQRS.BusinessTravels.Commands
+@using Application.CQRS.AccountingCQRS.BusinessTravels.Queries
 @using Application.CQRS.AccountingCQRS.CostCenters.Queries
 @using Application.CQRS.AccountingCQRS.Countries.Queries
 @using Application.CQRS.AccountingCQRS.Dictionaries
@@ -17,903 +22,969 @@
 @using BOAppFluentUI.Components.Pages
 @using BOAppFluentUI.Components.Pages.Accounting.SharedComponents
 @using Application.ViewModels.General
+@using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components
 @using Microsoft.FluentUI.AspNetCore.Components
 @using Microsoft.Build.Construction
 @using Microsoft.CodeAnalysis.Elfie.Extensions
 @using Microsoft.FluentUI.AspNetCore.Components.Extensions
 
+@attribute [Authorize(Policy = "User")]
+
 @inject IConfiguration _configuration
 @inject IMediator _mediator
-
 @inject IJSRuntime JS
 @inject ILogger<BusinessTravelFormVm> _logger
 @inject IToastService _toastService
 @inject AuthenticationStateProvider _authenticationStateProvider
 @inject NavigationManager _navigationManager
 @inject IWebHostEnvironment Environment
+@inject IValidator<BusinessTravelFormVm> Validator
 
 <h3>@Title</h3>
 
-<EditForm Model="formItem"  OnValidSubmit="HandleValidSubmit">
-    <DataAnnotationsValidator />
-    <ValidationSummary />
-    @formItem.DestinationCountryCurrency;@formItem.CurrencyExchamngeRate;@formItem.CurrencyExchangeRateDate
-    @* Header Table *@
-    @*  <FluentSwitch Label="ShowBTItem" @bind-Value="@test"/> *@
-    @* Employee *@
-    <div class="form-section">
-        <div>
-            <FluentLabel Style="width: 100px"><b>Pracownik: </b></FluentLabel>
-        </div>
-        <div>
-            <FluentAutocomplete TOption="EmployeeVm"
-            Disabled="@IsEmployeeDisabled"
-            Class="bold-label"
-            AutoComplete="on"
-            OnOptionsSearch="@OnAssigneeSearch"
-            Placeholder="Select assignee..."
-            MaximumSelectedOptions="1"
-            OptionText="@(p => p.LongName + ' ' + p.Position)"
-            @bind-SelectedOptions="@SelectedEmpl"
-            @bind-SelectedOptions:after="@HandleAssigneeChange"
-            Width="200px"/>
-        </div>
-        <div>
-            <FluentLabel Style="width: 80px"><b>Status: </b></FluentLabel>
-        </div>
-        <div>
-            <FluentCombobox Items="@_Statuses"
-            @bind-Value="@formItem.Status"
-            @bind-Value:after="@HandleStatusChange"
-            AllowFreeform="false"
-            Placeholder="wskaż status"
-            Width="150px"/>
-        </div>
-    </div>
-    @* Destination and Objective *@
-    <div class="form-section">
-        <div>
-            <FluentLabel Style="width: 100px"><b>Kraj docelowy:</b> </FluentLabel>
-        </div>
-        <div>
-            <FluentAutocomplete TOption="CountryVm"
-            Disabled="@IsDestinationDisabled"
-            AutoComplete="on"
-            OnOptionsSearch="@OnCountrySearch"
-            Placeholder="Wybierz kraj docelowy..."
-            MaximumSelectedOptions="1"
-            OptionText="@(p => p.Name)"
-            @bind-SelectedOptions="@SelectedCountry"
-            @bind-SelectedOptions:after="HandleCountryAdd"
-            Width="200px"/>
-            <ValidationMessage For="@(() => formItem.DestinationCountry)" class="validation-error"/>
-        </div>
-        <div>
-            <FluentLabel Style="width: 80px"><b>Miasto:</b></FluentLabel>
-        </div>
-        <div>
-            <FluentCombobox Items="@_cities"
-            Disabled="@IsDestinationDisabled"
-            @bind-Value="formItem.Destination"
-            AllowFreeform="true"
-            Placeholder="Wybierz lub wprowadź..."
-            Width="200"/>
-        </div>
-        <div class = "form-group">
-            <div>
-                <FluentLabel Style="width: 100px"><b >Cel podrózy:</b> </FluentLabel>
-            </div>
-            <div>
-                <FluentAutocomplete TOption="string"
-                Disabled="@IsDestinationDisabled"
-                AutoComplete="on"
-                OnOptionsSearch="@OnObjectiveSearch"
-                Placeholder="Wybierz cel podrózy..."
-                MaximumSelectedOptions="1"
-                @bind-SelectedOptions="@SelectedObjective"
-                bind-SelectedOptions:after="@HandleObjectiveChange"
-                Width="200px"/>
-            </div>
-        </div>
-    </div>
-    @* Dates *@
-    <div class="form-section">
-        <div>
-            <FluentLabel Style="width: 100px;"><b>Początek: </b></FluentLabel>
-        </div>
-        <div>
-            <DateTimePickerComponent
-            DateTimeValue="@formItem.StartDate"
-            Disabled="@IsDateTimeDisabled"
-            DateTimeValueChanged="@(e => HandleDateTimeChanged(e, "from"))"
-            />
-        </div>
-        <div class = "form-group">
-            <div>
-                <FluentLabel Style="width: 80px;"><b>Koniec: </b></FluentLabel>
-            </div>
-            <div>
-                <DateTimePickerComponent
-                DateTimeValue="@formItem.EndDate"
-                Disabled="@IsDateTimeDisabled"
-                DateTimeValueChanged="@(e => HandleDateTimeChanged(e, "to"))"/>
-            </div>
-        </div>
-        @if (!string.IsNullOrEmpty(DateTimeValidationMessage))
-        {
-            <div class="validation-error">
-                <p style="color:red;">@DateTimeValidationMessage</p></div>
-        }
+@if (showForm)
+{
 
-    </div>
-    @* Transportation *@
-    <div class="form-section">
-        <div>
-            <FluentLabel Style="width: 100px"><b>Transport: </b></FluentLabel>
-        </div>
-        <div>
-            <FluentSelect TOption="string"
-            Disabled="@IsTransportationDisabled"
-            Items="@Conveyances"
-            Placeholder="wybierz środek lokomocji"
-            Multiple="false"
-            @bind-Value="@SelectedConveyanceTxt"
-            @bind-Value:after="HandleConveyanceStringChange"
-            Width = "200px"
-            />
-        </div>
-        @if (IsCompanyCar)
-        {   <div Style="max-width: 175px">
-                <FluentLabel ><b>Numer rejestracyjny:</b></FluentLabel>
+
+    <EditForm Model="formItem" OnValidSubmit="HandleValidSubmit">
+        <FluentValidationValidator @ref="_fluentValidator" />
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+        @formItem.DestinationCountryCurrency;@formItem.CurrencyExchamngeRate;@formItem.CurrencyExchangeRateDate
+
+        @* Header Table *@
+        @*  <FluentSwitch Label="ShowBTItem" @bind-Value="@test"/> *@
+        @* Employee *@
+        <div class="form-section">
+            <div>
+                <FluentLabel Style="width: 100px"><b>Pracownik: </b></FluentLabel>
             </div>
-            <div Style="width: 125px;">
-                <FluentAutocomplete TOption="string"
-                Disabled="@IsDestinationDisabled"
+            <div>
+                <FluentAutocomplete TOption="EmployeeVm"
+                Disabled="@editControlDisabled"
+                Class="bold-label"
                 AutoComplete="on"
-                OnOptionsSearch="@OnCompanyCarSearch"
-                Placeholder="..."
+                OnOptionsSearch="@OnAssigneeSearch"
+                Placeholder="Select assignee..."
                 MaximumSelectedOptions="1"
-                @bind-SelectedOptions="@SelectedCompanyCar"
-                bind-SelectedOptions:after="@HandleCompanyCarChange"
+                OptionText="@(p => p.LongName + ' ' + p.Position)"
+                @bind-SelectedOptions="@SelectedEmpl"
+                @bind-SelectedOptions:after="@HandleAssigneeChange"
                 Width="200px" />
             </div>
-        }
-        @if (IsPrivateCar)
-        {
-            <div Style="max-width: 175px">
-                <FluentLabel Style="width: auto;"><b>Numer rejestracyjny:</b></FluentLabel>
-            </div>
-            <div Style="width: 100px">
-                <FluentTextField
-                Disabled="@IsTransportationDisabled"
-                @bind-Value:get="@formItem.PrivateVehicleNumber"
-                @bind-Value:set="@(value => formItem.PrivateVehicleNumber = value)"
-                />
-            </div>
-            <div class = "form-group">
-
-                <FluentLabel Style="max-width: 175px; width: auto;"><b>Pojemność silnika: </b></FluentLabel>
-
-                <div Style="width: 100px">
-                    <FluentNumberField
-                    Disabled="@IsTransportationDisabled"
-                    @bind-Value:get="@formItem.PrivateVehicleEngineSize"
-                    @bind-Value:set="@(value => HandlePrivateVehicleEngineSizeChanged(value))"
-
-                    />
-                </div>
-            </div>
-            <div class = "form-group">
-                <div Style="width: 150px;">
-                    <FluentLabel Style="width: auto;"><b>Planowany przebieg: </b></FluentLabel>
-                </div>
-                <div Style="width: 100px">
-                    <FluentNumberField
-                    Disabled="@IsMileageDisabled"
-                    @bind-Value:get="@formItem.PrivateVehicleMilage"
-                    @bind-Value:set="@(value => HandlePrivateVehicleMileageChanged(value))"
-                    /> <div>km </div>
-                </div>
-            </div>
-        }
-        @if (IsPublicTransport)
-        {
             <div>
-                <FluentSwitch Id = "publictransportId"
-                Label="Opłacone przez firmę: "
-                Disabled="@IsTransportationDisabled"
-                @bind-Value:get="@formItem.PublicTransportPaid"
-                @bind-Value:set="@HandlePublicTransportPaidChanged"/>
+                <FluentLabel Style="width: 80px"><b>Status: </b></FluentLabel>
             </div>
-            <FluentTooltip Anchor="publictransportId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsu</FluentTooltip>
-        }
-    </div>
-    <ValidationMessage For="@(() => formItem.CompanyVehicleNumber)" class="validation-error"/>
-    <ValidationMessage For="@(() => formItem.PrivateVehicleNumber)" class="validation-error"/>
-    @* Advance Payment *@
-    <div class="form-section">
-        <div>
-            <FluentLabel><b>Zaliczka: </b></FluentLabel>
+            <div>
+                <FluentCombobox Disabled="@editControlDisabled"
+                Items="@_Statuses"
+                @bind-Value="@formItem.Status"
+                @bind-Value:after="@HandleStatusChange"
+                AllowFreeform="false"
+                Placeholder="wskaż status"
+                Width="150px" />
+            </div>
         </div>
-        <div>
-            <FluentSwitch   Disabled="@IsAdvancedPaymentDisabled"
-            @bind-Value:get="@formItem.AdvancePayment"
-            @bind-Value:set="@HandleAdvancePaymentPaidChanged"/>
-        </div>
-
-        @if (formItem.AdvancePayment)
-        {
+        @* Destination and Objective *@
+        <div class="form-section">
             <div>
-                <FluentLabel><b>Kwota: </b></FluentLabel>
+                <FluentLabel Style="width: 100px"><b>Kraj docelowy:</b> </FluentLabel>
             </div>
             <div>
-                <FluentNumberField
-                Disabled="@IsAdvancedPaymentDisabled"
-                @bind-Value:get="@formItem.AdvancePaymentAmount"
-                @bind-Value:set="@(value => formItem.AdvancePaymentAmount = value)"
-                Style="width: 100px"/> PLN
+                <FluentAutocomplete TOption="CountryVm"
+                Disabled="@editControlDisabled"
+                AutoComplete="on"
+                OnOptionsSearch="@OnCountrySearch"
+                Placeholder="Wybierz kraj docelowy..."
+                MaximumSelectedOptions="1"
+                OptionText="@(p => p.Name)"
+                @bind-SelectedOptions="@SelectedCountry"
+                @bind-SelectedOptions:after="HandleCountryAdd"
+                Width="200px" />
+                <ValidationMessage For="@(() => formItem.DestinationCountry)" class="validation-error" />
             </div>
-
-            @if (AdvancePaymentMethodsInt != null)
-            {
+            <div>
+                <FluentLabel Style="width: 80px"><b>Miasto:</b></FluentLabel>
+            </div>
+            <div>
+                <FluentCombobox Items="@_cities"
+                Disabled="@editControlDisabled"
+                @bind-Value="formItem.Destination"
+                AllowFreeform="true"
+                Placeholder="Wybierz lub wprowadź..."
+                Width="200" />
+            </div>
+            <div class="form-group">
                 <div>
-                    <FluentLabel><b>Wypłata: </b></FluentLabel>
+                    <FluentLabel Style="width: 100px"><b>Cel podrózy:</b> </FluentLabel>
                 </div>
                 <div>
-                    <FluentSelect
-                    Disabled="@IsAdvancedPaymentDisabled"
-                    Items=@AdvancePaymentMethodsInt
-                    TOption="Option<int>"
-                    OptionText="@(a => a.Text)"
-                    OptionValue="@(a => a.Value.ToString())"
-                    OptionSelected="@(a => a.Selected)"
-                    @bind-Value="@AdvancePaymentCashString"
-                    Width = "150px"
-                    />
-                </div>
-            }
-
-            @if (!formItem.AdvancePaymentCash.GetValueOrDefault())
-            {
-                <div>
-                    <FluentAutocomplete TOption="Location"
-                    Disabled="@IsAdvancedPaymentDisabled"
-                    SelectValueOnTab="true"
+                    <FluentAutocomplete TOption="string"
+                    Disabled="@editControlDisabled"
                     AutoComplete="on"
-                    OnOptionsSearch="@OnLocationSearch"
-                    Placeholder="wybierz lokalizację..."
+                    OnOptionsSearch="@OnObjectiveSearch"
+                    Placeholder="Wybierz cel podrózy..."
                     MaximumSelectedOptions="1"
-                    OptionText="@(p => p.SapNumber + ' ' + p.Name)"
-                    @bind-SelectedOptions="@_selectedLocation"
-                    @bind-SelectedOptions:after="@HandleLocationChange"
-                    Width="180px" />
+                    @bind-SelectedOptions="@SelectedObjective"
+                    bind-SelectedOptions:after="@HandleObjectiveChange"
+                    Width="200px" />
                 </div>
+            </div>
+        </div>
+        @* Dates *@
+        <div class="form-section">
+            <div>
+                <FluentLabel Style="width: 100px;"><b>Początek: </b></FluentLabel>
+            </div>
+            <div>
+                <DateTimePickerComponent DateTimeValue="@formItem.StartDate"
+                Disabled="@IsDateTimeDisabled"
+                DateTimeValueChanged="@(e => HandleDateTimeChanged(e, "from"))" />
+            </div>
+            <div class="form-group">
+                <div>
+                    <FluentLabel Style="width: 80px;"><b>Koniec: </b></FluentLabel>
+                </div>
+                <div>
+                    <DateTimePickerComponent DateTimeValue="@formItem.EndDate"
+                    Disabled="@IsDateTimeDisabled"
+                    DateTimeValueChanged="@(e => HandleDateTimeChanged(e, "to"))" />
+                </div>
+            </div>
 
+            <ValidationMessage For="@(() => formItem.StartDate)" />
+
+        </div>
+        @* Transportation *@
+        <div class="form-section">
+            <div>
+                <FluentLabel Style="width: 100px"><b>Transport: </b></FluentLabel>
+            </div>
+            <div>
+                <FluentSelect TOption="string"
+                Disabled="@editControlDisabled"
+                Items="@Conveyances"
+                Placeholder="wybierz środek lokomocji"
+                Multiple="false"
+                @bind-Value="@SelectedConveyanceTxt"
+                @bind-Value:after="HandleConveyanceStringChange"
+                Width="200px" />
+            </div>
+            @if (IsCompanyCar)
+            {
+                <div Style="max-width: 175px">
+                    <FluentLabel><b>Numer rejestracyjny:</b></FluentLabel>
+                </div>
+                <div Style="width: 125px;">
+                    <FluentAutocomplete TOption="string"
+                    Disabled="@editControlDisabled"
+                    AutoComplete="on"
+                    OnOptionsSearch="@OnCompanyCarSearch"
+                    Placeholder="..."
+                    MaximumSelectedOptions="1"
+                    @bind-SelectedOptions="@SelectedCompanyCar"
+                    bind-SelectedOptions:after="@HandleCompanyCarChange"
+                    Width="200px" />
+                </div>
             }
-            else if (formItem.AdvancePaymentCash.GetValueOrDefault())
+            @if (IsPrivateCar)
+            {
+                <div Style="max-width: 175px">
+                    <FluentLabel Style="width: auto;"><b>Numer rejestracyjny:</b></FluentLabel>
+                </div>
+                <div Style="width: 100px">
+                    <FluentTextField Disabled="@editControlDisabled"
+                    @bind-Value:get="@formItem.PrivateVehicleNumber"
+                    @bind-Value:set="@(value => formItem.PrivateVehicleNumber = value)" />
+                </div>
+                <div class="form-group">
+
+                    <FluentLabel Style="max-width: 175px; width: auto;"><b>Pojemność silnika: </b></FluentLabel>
+
+                    <div Style="width: 100px">
+                        <FluentNumberField Disabled="@editControlDisabled"
+                        @bind-Value:get="@formItem.PrivateVehicleEngineSize"
+                        @bind-Value:set="@(value => HandlePrivateVehicleEngineSizeChanged(value))" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div Style="width: 150px;">
+                        <FluentLabel Style="width: auto;"><b>Planowany przebieg: </b></FluentLabel>
+                    </div>
+                    <div Style="width: 100px">
+                        <FluentNumberField Disabled="@editControlDisabled"
+                        @bind-Value:get="@formItem.PrivateVehicleMilage"
+                        @bind-Value:set="@(value => HandlePrivateVehicleMileageChanged(value))" /> <div>km </div>
+                    </div>
+                </div>
+            }
+            @if (IsPublicTransport)
             {
                 <div>
-                    <FluentLabel><b>Podaj numer konta: </b></FluentLabel>
+                    <FluentSwitch Id="publictransportId"
+                    Label="Opłacone przez firmę: "
+                    Disabled="@editControlDisabled"
+                    @bind-Value:get="@formItem.PublicTransportPaid"
+                    @bind-Value:set="@HandlePublicTransportPaidChanged" />
+                </div>
+                <FluentTooltip Anchor="publictransportId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsu</FluentTooltip>
+            }
+        </div>
+        <ValidationMessage For="@(() => formItem.CompanyVehicleNumber)" class="validation-error" />
+        <ValidationMessage For="@(() => formItem.PrivateVehicleNumber)" class="validation-error" />
+        @* Advance Payment *@
+        <div class="form-section">
+            <div>
+                <FluentLabel><b>Zaliczka: </b></FluentLabel>
+            </div>
+            <div>
+                <FluentSwitch Disabled="@editControlDisabled"
+                @bind-Value:get="@formItem.AdvancePayment"
+                @bind-Value:set="@HandleAdvancePaymentPaidChanged" />
+            </div>
+
+            @if (formItem.AdvancePayment)
+            {
+                <div>
+                    <FluentLabel><b>Kwota: </b></FluentLabel>
                 </div>
                 <div>
-                    <FluentTextField
-                    Disabled="@IsAdvancedPaymentDisabled"
-                    @bind-Value="@formItem.BankAccountNumber"/>
+                    <FluentNumberField Disabled="@editControlDisabled"
+                    @bind-Value:get="@formItem.AdvancePaymentAmount"
+                    @bind-Value:set="@(value => formItem.AdvancePaymentAmount = value)"
+                    Style="width: 100px" /> PLN
                 </div>
-            }
-            @formItem.BankAccountNumber
-        }
-    </div>
-    @*Cashier Advance Payment*@
-    @if (stzk || stzks || stzkstl)
-    {
-        <div class="new-form-section @(stzk ? "kasa" : "ksiegowosc")">
-            <div>
-                <FluentLabel><b>Wypłata zaliczki </b></FluentLabel>
-            </div>
-            <div>
-                <FluentLabel><b>Kasjerka: </b></FluentLabel>
-            </div>
-            <div>
-                <FluentTextField
-                Disabled="true"
-                @bind-Value="@formItem.PayoutCashier.LongName"/>
-            </div>
 
-            <div Style="width: 150px">
-                <FluentTextField Label="KW: "
-                Disabled="@(!IsCashPayoutEnabled())"
-                @bind-Value="@formItem.CashPayoutNumber"
-                Style="width: auto;"/>
-            </div>
-
-        </div>
-        @if(stzks || stzkstl){
-            <BankTransferMappingEditComponent BTItem="@formItem.BTMappingAdvancePayment" CostCenters="@_costCenters" GLAccounts="@_glAccounts" />
-        }
-    }
-    @*Cashier Reciept*@
-    @if (strozk || strozend)
-    {
-        <div class="new-form-section @(strozk ? "kasa" : "ksiegowosc")">
-
-            <div>
-                <FluentLabel><b>Rozliczenie zaliczki</b></FluentLabel>
-            </div>
-            <div>
-                <FluentLabel><b>Kasjerka: </b></FluentLabel>
-            </div>
-            <div>
-                <FluentTextField
-                Disabled="true"
-                @bind-Value="@formItem.ReceiptCashier.LongName"/>
-            </div>
-
-            <div Style="width: 150px">
-                <FluentTextField Label="KW: "
-                Disabled="@(!IsCashReceiptEnabled())"
-                @bind-Value="@formItem.CashReceiptNumber"
-                Style="width: auto;"/>
-            </div>
-
-        </div>
-    }
-
-    <hr>
-    @if (ShowStages)
-    {
-        <hr>
-        @* List of stages - if country is not PL add Country Trip and then abroad trip and again country trip*@
-        <table class="table-container">
-            <caption class="table-caption">Etapy podróży słuzbowej <FluentIcon Id="StagesInfoId" Value="@(new Icons.Regular.Size16.Info())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" /> </caption>
-            <thead>
-                <tr class="table-header-left">
-                    <th>Lp.</th>
-                    <th>Kraj: </th>
-                    <th>Od: </th>
-                    <th>Do: </th>
-                    <th>Diet: </th>
-                    <th>TimeSpan: </th>
-                    <th>Razem: 
-                    <FluentIcon Id="AccomodationRateId" Value="@(new Icons.Regular.Size16.Info())" Color = "Microsoft.FluentUI.AspNetCore.Components.Color.Fill" />
-                    
-                    </th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var stage in formItem.Stages)
+                @if (AdvancePaymentMethodsInt != null)
                 {
-                    <tr>
-                        <td>@stage.Id</td>
-                        <td>
-                            <div>
-                                @stage.CountryName
-                            </div>
-                        </td>
-                        <td style="background-color: #f0f8ff; padding: 5px;" class="od-column">
-                            <DateTimePickerComponent Label=""
-                            DateTimeValue="@stage.StartDate"
-                            DateTimeValueChanged="@(value => HandleStageDateTimeChanged(value, stage, nameof(stage.StartDate), stage.Id))" />
-                        </td>
-                        <td style="background-color: #ffe4e1; padding: 5px;" class="do-column">
-                            <DateTimePickerComponent Label=""
-                            DateTimeValue="@stage.EndDate"
-                            DateTimeValueChanged="@(value => HandleStageDateTimeChanged(value, stage, nameof(stage.EndDate), stage.Id))" />
-                        </td>
-                        <td>
-                            @(stage.AllowanceOrigin + stage.AllowanceAbroad)
-                        </td>
-                        <td>
-                            @stage.TimeSpan
-                        </td>
-                        <td>
-                            @(stage.AllowanceOriginValue + stage.AllowanceAbroadValue) @(stage.CountryCurrency)
-                        </td>
-                    </tr>
+                    <div>
+                        <FluentLabel><b>Wypłata: </b></FluentLabel>
+                    </div>
+                    <div>
+                        <FluentSelect Disabled="@editControlDisabled"
+                        Items=@AdvancePaymentMethodsInt
+                        TOption="Option<int>"
+                        OptionText="@(a => a.Text)"
+                        OptionValue="@(a => a.Value.ToString())"
+                        OptionSelected="@(a => a.Selected)"
+                        @bind-Value="@AdvancePaymentCashString"
+                        Width="150px" />
+                    </div>
                 }
-            </tbody>
-        </table>
-        <FluentTooltip Anchor="StagesInfoId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50> Informacja o etapach podróży.</FluentTooltip>
-        <FluentTooltip Anchor="AccomodationRateId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50> AccomodationRateId | Dieta nalezna za etap podróży.</FluentTooltip>
-        @if (!string.IsNullOrEmpty(StagesDatesErrorMessage))
+
+                @if (!formItem.AdvancePaymentCash.GetValueOrDefault())
+                {
+                    <div>
+                        <FluentAutocomplete TOption="Location"
+                        Disabled="@editControlDisabled"
+                        SelectValueOnTab="true"
+                        AutoComplete="on"
+                        OnOptionsSearch="@OnLocationSearch"
+                        Placeholder="wybierz lokalizację..."
+                        MaximumSelectedOptions="1"
+                        OptionText="@(p => p.SapNumber + ' ' + p.Name)"
+                        @bind-SelectedOptions="@_selectedLocation"
+                        @bind-SelectedOptions:after="@HandleLocationChange"
+                        Width="180px" />
+                    </div>
+
+                }
+                else if (formItem.AdvancePaymentCash.GetValueOrDefault())
+                {
+                    if (formItem.Status == "Rejestracja")
+                    {
+                        <div>
+                            <FluentLabel><b>Podaj numer konta: </b></FluentLabel>
+                        </div>
+                        <div>
+                            <FluentTextField Disabled="@editControlDisabled"
+                            @bind-Value="@formItem.BankAccountNumber" />
+                        </div>
+                    }
+                    else
+                    {
+                        <div>
+                            <FluentLabel><b>Numer konta: </b></FluentLabel>
+                        </div>
+                        <div>
+                            @formItem.BankAccountNumber
+                        </div>
+                    }
+
+                }
+            }
+        </div>
+        @*Cashier Advance Payment*@
+        @if (stzk || stzks || stzkstl)
         {
-            foreach (var error in StagesDatesErrorMessages)
-            {
-                <div class="validation-error">
-                    <p style="color:red;">@error</p></div>
-            }
 
-            <div class="validation-error"><p style="color:red;" @markup:html="StagesDatesErrorMessage"></p></div>
-        }
-    }
-    @if (ShowAccomodations)
-    {
-        <hr>
-        @* List of Accommodations - added and removed as Stages*@
-        <table class="table-container">
-            <caption class="table-caption">Noclegi: <FluentIcon Id="AccId" Value="@(new Icons.Regular.Size16.Info())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" /> </caption>
-            <thead>
-                <tr class="table-header-left">
-                    <th>Etap</th>
-                    <th>Państwo</th>
-                    <th>Noclegi</th>
-                    <th>Rachunek <FluentIcon Id="AccInvId" Value="@(new Icons.Regular.Size16.Info())" Color = "Microsoft.FluentUI.AspNetCore.Components.Color.Fill" /></th>
-                    <th>Ryczałt <FluentIcon Id="AccMaxRateId" Value="@(new Icons.Regular.Size16.Info())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" /></th>
-                    <th>Maks. stawka <FluentIcon Id="AccMaxCostId" Value="@(new Icons.Regular.Size16.Info())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" /></th>
-                    <th>Waluta</th>
-                    <th>Razem <FluentIcon Id="AccTotalRateId" Value="@(new Icons.Regular.Size16.Info())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" /></th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var accommodation in formItem.Accommodations)
-                { @if (accommodation.Nights > 0)
-                    {
-                        <tr>
-                            <td style="text-align: center;">@accommodation.StageId</td>
-                            <td style="text-align: center;">@accommodation.CountryName</td>
-                            <td style="text-align: center;">@accommodation.Nights</td>
-                            <td style="text-align: center;">
-                                <div>
-                                    <FluentSwitch @bind-Value:get="@accommodation.HasInvoices"
-                                    @bind-Value:set="@(value => HandleAccommodationHasInvoices(accommodation, value))" />
-                                </div>
-                            </td>
-                            <td>
-                                <div style="text-align: center;">
-                                    <span style="@(accommodation.HasInvoices ? "color: gray;" : "")">
-                                        @accommodation.AllowanceRate
-                                    </span>
-                                </div>
-
-                            </td>
-                            <td>
-                                <div style="text-align: center;">
-                                    <span style="@(accommodation.HasInvoices ? "" : "color: gray;")">
-                                        @accommodation.MaxHotelCost
-                                    </span>
-                                </div>
-
-                            </td>
-                            <td style="text-align: center;" >
-                                <span style="@(accommodation.HasInvoices ? "color: gray;" : "")">
-                                    @accommodation.AllowanceRateCurrency
-                                </span>
-                            </td>
-                            <td>
-                                @accommodation.Total
-                            </td>
-                        </tr>
-                    }
-
-                }
-            </tbody>
-        </table>
-        <FluentTooltip Anchor="AccId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50>Informacja o noclegach </FluentTooltip>
-        <FluentTooltip Anchor="AccInvId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50>Zaznacz jeśli nocliegi były opłacone przez PIA lub masz rachunek. Rachunek za opłacony samodzielnie nocleg dodaj w sekcji "Pozostałe rachunki i bilety". Rachunki opłacone przez PIA należy wysłać poprzez InvoiceTrack </FluentTooltip>
-        <FluentTooltip Anchor="AccMaxRateId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50> Wartość ryczałtu za nocleg.</FluentTooltip>
-        <FluentTooltip Anchor="AccMaxCostId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50> Maksymalna stawka za Hotel.</FluentTooltip>
-        <FluentTooltip Anchor="AccTotalRateId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50> Ryczałt za nocleg do wypłaty dla pracownika lub zwrot poniesionych kosztów.</FluentTooltip>
-
-    }
-    @if (ShowMeals)
-    {
-
-        <hr>
-        <table class="table-container">
-            <caption class="table-caption">Zapewnione posiłki: <FluentIcon Id="BillsInfoId" Value="@(new Icons.Regular.Size16.Info())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" /> </caption>
-            <thead>
-                <tr class="table-header-left">
-                    <th>Etap</th>
-                    <th>Państwo</th>
-                    <th>Śniadania</th>
-                    <th>Obiady</th>
-                    <th style="width = 120px;">Kolacje</th>
-                    <th>Razem <FluentIcon Id="MealsTotalDeductionId" Value="@(new Icons.Regular.Size16.Info())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" /></th>
-                    <th>Waluta</th>
-                    <th>Maks. dni</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var meal in formItem.Meals)
-                {
-                    @if (meal.Duration > 0)
-                    {
-                        <tr>
-
-                            <td>@meal.StageId</td>
-                            <td>@meal.CountryName</td>
-                            <td>
-
-                                 <div Style="min-width: 100px;">
-                                    <FluentNumberField Disabled="@((meal.Duration == 0) ? true : false)"
-                                    Min="0"
-                                    Max="@meal.Nights.ToString()"
-                                    @bind-Value:get="@meal.CoveredBreakfasts"
-                                    @bind-Value:set="(value => HandleMealChanged(meal, value, nameof(meal.CoveredBreakfasts)))"/>
-                                    </div>
-                               
-                            </td>
-                            <td>
-                                <div Style="min-width: 100px;">
-                                    <FluentNumberField Disabled="@((meal.Duration == 0) ? true : false)"
-                                    Min="0"
-                                    Max="@meal.Duration.ToString()"
-                                    @bind-Value:get="@meal.CoveredDinners"
-                                    @bind-Value:set="(value => HandleMealChanged(meal, value, nameof(meal.CoveredDinners)))"/>
-                               </div>
-                            </td>
-                            <td>
-                               <div Style="min-width: 100px;">
-                                    <FluentNumberField Disabled="@((meal.Duration == 0) ? true : false)"
-                                    Min="0"
-                                    Max="@meal.Duration.ToString()"
-                                    @bind-Value:get="@meal.CoveredLunches"
-                                    @bind-Value:set="(value => HandleMealChanged(meal, value, nameof(meal.CoveredLunches)))"/>
-                               </div>
-                            </td>
-                            <td>@meal.Total</td>
-                            <td>@meal.AllowanceRateCurrency</td>
-                            <td>@meal.Duration</td>
-                        </tr>
-                    }
-
-                }
-            </tbody>
-        </table>
-        <FluentTooltip Anchor="MealsToDeductionId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50> MealsToDeductionId | Proszę podać ilość zapewnionych posiłków na poszczególnych etapach podróży.</FluentTooltip>
-        <FluentTooltip Anchor="MealsTotalDeductionId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50> MealsTotalDeductionId | Kwota do potrącenia z diety.</FluentTooltip>
-    }
-    @if (ShowLocalTravels)
-    {
-        <hr>
-        <table class="table-container">
-             <caption class="table-caption">Ryczałt na pokrycie kosztów dojazdu środkami komunikacji <FluentIcon Id="LocTravId" Value="@(new Icons.Regular.Size16.Info())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" /> </caption>
-            <thead class="table-header-left">
-                <tr>
-                    <th>Etap</th>
-                    <th>Państwo</th>
-                    <th>Dni</th>
-                    <th>Ryczałt</th>
-                    <th>Razem</th>
-                    <th>Maks dni</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var localTravel in formItem.LocalTravels)
-                {
-                    @if (localTravel.Duration > 0)
-                    {
-                        <tr>
-
-                            <td>@localTravel.StageId</td>
-                            <td>@localTravel.CountryName</td>
-                            <td>
-                                <div Style="max-width: 80px;">
-                                    <FluentNumberField Disabled="@((localTravel.Duration == 0) ? true : false)"
-                                    Min="0"
-                                    Max="@localTravel.Duration.ToString()"
-                                    @bind-Value:get="@localTravel.Days"
-                                    @bind-Value:set="(value => HandleLocalTravelChanged(localTravel, value))"/>
-                                </div>
-                            </td>
-                            <td>
-                                @localTravel.AllowanceRate
-                            </td>
-                            <td>@localTravel.Total @localTravel.AllowanceRateCurrency</td>
-
-                            <td>@localTravel.Duration</td>
-                        </tr>
-                    }
-                }
-            </tbody>
-        </table>
-        <FluentTooltip Anchor="LocTravId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50> Wypełnij jeśli korzystałeś z komunikacji miejskiej w mieście docelowym i nie dysponujesz biletami lub rachunkami.</FluentTooltip>
-    }
-    @if (ShowTransits)
-    {
-        <hr>
-        <table class="table-container">
-            <caption class="table-caption">Dojazd z dworca/lotniska do Hotelu <FluentIcon Id="TransitInfoId" Value="@(new Icons.Regular.Size16.Info())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" /> </caption>
-
-            <tbody>
-            <td colspan="3">
-                <FluentRadioGroup @bind-Value:get="formItem.Transit.Directions"
-                                  @bind-Value:set="HandleTransitDirectionsChanged">
-                    <FluentRadio Value="0">Mam rachunek/bilet w obie strony</FluentRadio>
-                    <FluentRadio Value="1">Mam rachunek/bilet w jedną stronę</FluentRadio>
-                    <FluentRadio Value="2">Nie mam rachunku/biletu w żadnym kierunku</FluentRadio>
-                </FluentRadioGroup>
-            </td>
-            </tbody>
-        </table>
-        <FluentTooltip Anchor="LocTravId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50> Wypełnij jeśli korzystałeś z komunikacji miejskiej w mieście docelowym i nie dysponujesz biletami lub rachunkami.</FluentTooltip>
-
-    }
-    @if (ShowBills)
-    {
-        <table class="table-container">
-            <caption class="table-caption">
-                Pozostałe rachunki i bilety <FluentIcon Id="BillsInfoId" Value="@(new Icons.Regular.Size16.Info())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" />
-            </caption>
-            <thead class="table-header-left">
-                <tr>
-                    <th style="width: 50px;">Lp.</th>
-                    <th style="width: 100px;">Kwota brutto</th>
-                    <th style="width: 80px;">Waluta</th>
-                    <th style="width: 125px;">Uzasadnienie</th>
-                    <th style="width: 80px;">Załącznik</th>
-                    <th style="width: 30px;">Akcje</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var bill in formItem.Bills)
-                {
-                    var currencyVmNames = formItem.Stages
-                    .Select(stage => stage.CountryCurrency)
-                    .Distinct()
-                    .ToList();
-
-                    <tr class="fluent-row">
-                        <td>@bill.Id</td>
-                        <td>
-                            <FluentNumberField 
-                            Disabled="@IsBillsDisabled"
-                            Min="0"
-                            @bind-Value:get="@bill.Amount"
-                            @bind-Value:set="(value => HandleBillChanged(bill, value))"
-                            width="100px"
-                            />
-                        </td>
-                        <td>
-                            <FluentSelect TOption="string" 
-                            Items="currencyVmNames" 
-                            @bind-Value:get="@bill.Currency"
-                            @bind-Value:set="@(value => HandleBillChange(bill, value))"
-                            Width="80px"
-                            />
-
-                        </td>
-                        <td>
-                            <FluentCombobox
-                            Disabled="@IsBillsDisabled"
-                            Items="@_billReasons"
-                            @bind-Value="@bill.Reason"
-                            AllowFreeform="false"
-                            Placeholder="Wybierz lub wprowadź..."
-                            Width="125px"
-                            />
-                        </td>
-                        <td>
-                            <div>
-                                @{ var attbillId = $"attbillId-{bill.Id}"; }
-                                <FluentButton Id="@attbillId" Disabled="@IsBillsDisabled" IconEnd="@(new Icons.Filled.Size20.Attach())" OnClick="@(() => UploadFileForBill(bill))"/>
-                                @if (bill.FilePath is not null)
-                                {
-                                    <FluentTooltip Anchor="@attbillId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50>Wymień załącznik</FluentTooltip>
-                                    var billId = $"billId-{bill.Id}"; 
-                                    <FluentButton Id="@billId" Disabled="@IsBillsDisabled" IconEnd="@(new Icons.Regular.Size20.DeleteOff())" OnClick="@(() => RemoveFileFromBill(bill))"/>
-                                    <FluentTooltip Anchor="@billId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50>Usuń załącznik</FluentTooltip> 
-                                    var billViewId = $"billViewId-{bill.Id}"; 
-                                    <FluentButton Id="@billViewId" Disabled="@IsBillsDisabled" IconEnd="@(new Icons.Filled.Size20.ArrowDownload())" OnClick="@(() => ViewAttachment(bill.AttUrl))"/>
-                                    <FluentTooltip Anchor="@billViewId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50>Pobierz/Otwórz załącznik</FluentTooltip>
-                                } else {
-                                    <FluentTooltip Anchor="@attbillId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50>Dodaj załącznik</FluentTooltip>
-
-                                }
-
-                            </div>
-                        </td>
-                        <td>
-                            @{
-                                var billRemId = $"billRemId-{bill.Id}";
-                            }
-                            <div>
-                                <FluentButton Id="@billRemId" Disabled="@IsBillsDisabled" IconEnd="@(new Icons.Filled.Size20.Delete())" OnClick="@(() => RemoveBill(bill))"/>
-                                <FluentTooltip Anchor="@billRemId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50>Usuń rachunek/bilet</FluentTooltip>
-                            </div>
-                        </td>
-                    </tr>
-                    @if (EnterInvoiceMapping)
-                    {
-                        <tr class="fluent-row">
-                            <td colspan="7"> <!-- Adjust colspan to match the number of columns -->
-                                <InvoiceMappingEditComponent CostCenters="@_costCenters" GLAccounts="@_glAccounts" VatRates="@_vatRates" Locations="@_locations" Disabled="@IsInvoiceMappingDisabled" InvoiceMapping="@bill.InvoiceMappings.First()" />
-                            </td>
-                        </tr>
-                    }
-                }
-            </tbody>
-        </table>
-        <FluentButton Id="addBill" IconEnd="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddBill())" />
-        <FluentTooltip Anchor="addBill" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50>Dodaj rachunek lub bilet</FluentTooltip>
-        <FluentTooltip Anchor="BillsInfoId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50> BillsInfoId | Tu dodaj rachunki które zostały opłacone samodzielnie.</FluentTooltip>
-        <hr>
-
-    }
-    @if (ShowSummary)
-    {
-        <div class="all-tables-wrapper">
-            <div class="tables-wrapper">
-                <!-- Left table -->
+            <div class="new-form-section @(stzk ? "kasa" : "ksiegowosc")" style="background-color: var(--accent-fill-rest)">
                 <div>
-                    <table class="table-container">
-                        <thead>
-                            <tr class="table-header-left">
-                                <th>Podsumowanie - dieta krajowa</th>
-                                <th>Wartość</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>Dieta dzienna</td>
-                                <td>@formItem.AllowancePL PLN</td>
-                            </tr>
-                            <tr>
-                                <td>Należna dieta krajowa</td>
-                                <td>@formItem.SumAllowancePL PLN</td>
-                            </tr>
-                            <tr>
-                                <td>Potrącenie za posiłki</td>
-                                <td>@formItem.DeductionMealsPL PLN</td>
-                            </tr>
-                            <tr>
-                                <td>Ryczałt za nocleg</td>
-                                <td>@formItem.AccomodationAllowanceSumPL PLN</td>
-                            </tr>
-                            <tr>
-                                <td>Ryczałt dojazdy lokalne</td>
-                                <td>@formItem.SumLocalTravelAllowancePL.ToString() PLN</td>
-                            </tr>
-                            <tr>
-                                <td>Kilometrówka</td>
-                                <td>@formItem.SumPrivateVehicleAllowance PLN</td>
-                            </tr>
-                            <tr>
-                                <td>Rachunki suma</td>
-                                <td>@formItem.TotalBillsPL PLN</td>
-                            </tr>
-                            <tr>
-                                <td>Pobrana zaliczka</td>
-                                <td>@formItem.AdvancePaymentAmount @formItem.AdvancePaymentCurrency</td>
-                            </tr>
-                            <tr>
-                                <td>Razem w PLN</td>
-                                <td>@formItem.TotalAllowancePL PLN</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <FluentLabel><b>Wypłata zaliczki </b></FluentLabel>
+                </div>
+                <div>
+                    <FluentLabel><b>Kasjerka: </b></FluentLabel>
+                </div>
+                <div>
+                    <FluentTextField Disabled="true"
+                    @bind-Value="@formItem.PayoutCashier.LongName" />
                 </div>
 
-                <!-- Right table -->
-                @if(formItem.Stages.Count > 1){
-                    var totalNotPLinPLN = (formItem.TotalAllowanceNotPL * formItem.CurrencyExchamngeRate).ToString("0.00");
+                <div Style="width: 150px">
+                    <FluentTextField Label="KW: "
+                    Disabled="@(!IsCashPayoutEnabled())"
+                    @bind-Value="@formItem.CashPayoutNumber"
+                    Style="width: auto;" />
+                </div>
+
+            </div>
+            @if (stzks || stzkstl)
+            {
+                <BankTransferMappingEditComponent BTItem="@formItem.BTMappingAdvancePayment" CostCenters="@_costCenters" GLAccounts="@_glAccounts" FormStatus="@formItem.Status" UserContext="@_userContext" />
+            }
+        }
+        @*Cashier Reciept*@
+        @if (strozk || strozend)
+        {
+            <div class="new-form-section @(strozk ? "kasa" : "ksiegowosc")">
+
+                <div>
+                    <FluentLabel><b>Rozliczenie zaliczki</b></FluentLabel>
+                </div>
+                <div>
+                    <FluentLabel><b>Kasjerka: </b></FluentLabel>
+                </div>
+                <div>
+                    <FluentTextField Disabled="true"
+                    @bind-Value="@formItem.ReceiptCashier.LongName" />
+                </div>
+
+                <div Style="width: 150px">
+                    <FluentTextField Label="KW: "
+                    Disabled="@(!IsCashReceiptEnabled())"
+                    @bind-Value="@formItem.CashReceiptNumber"
+                    Style="width: auto;" />
+                </div>
+
+            </div>
+        }
+
+        <hr>
+        @if (ShowStages)
+        {
+            <hr>
+            @* List of stages - if country is not PL add Country Trip and then abroad trip and again country trip*@
+            <table class="table-container">
+                <caption class="table-caption">Etapy podróży słuzbowej <FluentIcon Id="StagesInfoId" Value="@(new Icons.Regular.Size16.Info())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" /> </caption>
+                <thead>
+                    <tr class="table-header-left">
+                        <th>Lp.</th>
+                        <th>Kraj: </th>
+                        <th>Od: </th>
+                        <th>Do: </th>
+                        <th>Diet: </th>
+                        <th>TimeSpan: </th>
+                        <th>
+                            Razem:
+                            <FluentIcon Id="AccomodationRateId" Value="@(new Icons.Regular.Size16.Info())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" />
+
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var stage in formItem.Stages)
+                    {
+                        <tr>
+                            <td>@stage.Id</td>
+                            <td>
+                                <div>
+                                    @stage.CountryName
+                                </div>
+                            </td>
+                            <td style="background-color: #f0f8ff; padding: 5px;" class="od-column">
+                                <DateTimePickerComponent Label=""
+                                DateTimeValue="@stage.StartDate"
+                                DateTimeValueChanged="@(value => HandleStageDateTimeChanged(value, stage, nameof(stage.StartDate), stage.Id))" />
+                            </td>
+                            <td style="background-color: #ffe4e1; padding: 5px;" class="do-column">
+                                <DateTimePickerComponent Label=""
+                                DateTimeValue="@stage.EndDate"
+                                DateTimeValueChanged="@(value => HandleStageDateTimeChanged(value, stage, nameof(stage.EndDate), stage.Id))" />
+                            </td>
+                            <td>
+                                @(stage.AllowanceOrigin + stage.AllowanceAbroad)
+                            </td>
+                            <td>
+                                @stage.TimeSpan
+                            </td>
+                            <td>
+                                @(stage.AllowanceOriginValue + stage.AllowanceAbroadValue) @(stage.CountryCurrency)
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            <FluentTooltip Anchor="StagesInfoId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50> Informacja o etapach podróży.</FluentTooltip>
+            <FluentTooltip Anchor="AccomodationRateId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50> AccomodationRateId | Dieta nalezna za etap podróży.</FluentTooltip>
+            @if (!string.IsNullOrEmpty(StagesDatesErrorMessage))
+            {
+                foreach (var error in StagesDatesErrorMessages)
+                {
+                    <div class="validation-error">
+                        <p style="color:red;">@error</p>
+                    </div>
+                }
+
+                <div class="validation-error"><p style="color:red;" @markup:html="StagesDatesErrorMessage"></p></div>
+            }
+        }
+        @if (ShowAccomodations)
+        {
+            <hr>
+            @* List of Accommodations - added and removed as Stages*@
+            <table class="table-container">
+                <caption class="table-caption">Noclegi: <FluentIcon Id="AccId" Value="@(new Icons.Regular.Size16.Info())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" /> </caption>
+                <thead>
+                    <tr class="table-header-left">
+                        <th>Etap</th>
+                        <th>Państwo</th>
+                        <th>Noclegi</th>
+                        <th>Rachunek <FluentIcon Id="AccInvId" Value="@(new Icons.Regular.Size16.Info())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" /></th>
+                        <th>Ryczałt <FluentIcon Id="AccMaxRateId" Value="@(new Icons.Regular.Size16.Info())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" /></th>
+                        <th>Maks. stawka <FluentIcon Id="AccMaxCostId" Value="@(new Icons.Regular.Size16.Info())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" /></th>
+                        <th>Waluta</th>
+                        <th>Razem <FluentIcon Id="AccTotalRateId" Value="@(new Icons.Regular.Size16.Info())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" /></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var accommodation in formItem.Accommodations)
+                    { @if (accommodation.Nights > 0)
+                        {
+                            <tr>
+                                <td style="text-align: center;">@accommodation.StageId</td>
+                                <td style="text-align: center;">@accommodation.CountryName</td>
+                                <td style="text-align: center;">@accommodation.Nights</td>
+                                <td style="text-align: center;">
+                                    <div>
+                                        <FluentSwitch @bind-Value:get="@accommodation.HasInvoices"
+                                        @bind-Value:set="@(value => HandleAccommodationHasInvoices(accommodation, value))" />
+                                    </div>
+                                </td>
+                                <td>
+                                    <div style="text-align: center;">
+                                        <span style="@(accommodation.HasInvoices ? "color: gray;" : "")">
+                                            @accommodation.AllowanceRate
+                                        </span>
+                                    </div>
+
+                                </td>
+                                <td>
+                                    <div style="text-align: center;">
+                                        <span style="@(accommodation.HasInvoices ? "" : "color: gray;")">
+                                            @accommodation.MaxHotelCost
+                                        </span>
+                                    </div>
+
+                                </td>
+                                <td style="text-align: center;">
+                                    <span style="@(accommodation.HasInvoices ? "color: gray;" : "")">
+                                        @accommodation.AllowanceRateCurrency
+                                    </span>
+                                </td>
+                                <td>
+                                    @accommodation.Total
+                                </td>
+                            </tr>
+                        }
+
+                    }
+                </tbody>
+            </table>
+            <FluentTooltip Anchor="AccId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50>Informacja o noclegach </FluentTooltip>
+            <FluentTooltip Anchor="AccInvId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50>Zaznacz jeśli nocliegi były opłacone przez PIA lub masz rachunek. Rachunek za opłacony samodzielnie nocleg dodaj w sekcji "Pozostałe rachunki i bilety". Rachunki opłacone przez PIA należy wysłać poprzez InvoiceTrack </FluentTooltip>
+            <FluentTooltip Anchor="AccMaxRateId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50> Wartość ryczałtu za nocleg.</FluentTooltip>
+            <FluentTooltip Anchor="AccMaxCostId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50> Maksymalna stawka za Hotel.</FluentTooltip>
+            <FluentTooltip Anchor="AccTotalRateId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50> Ryczałt za nocleg do wypłaty dla pracownika lub zwrot poniesionych kosztów.</FluentTooltip>
+
+        }
+        @if (ShowMeals)
+        {
+
+            <hr>
+            <table class="table-container">
+                <caption class="table-caption">Zapewnione posiłki: <FluentIcon Id="BillsInfoId" Value="@(new Icons.Regular.Size16.Info())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" /> </caption>
+                <thead>
+                    <tr class="table-header-left">
+                        <th>Etap</th>
+                        <th>Państwo</th>
+                        <th>Śniadania</th>
+                        <th>Obiady</th>
+                        <th> Kolacje</th>
+                        <th>
+                            Potrącenie <FluentIcon Id="MealsTotalDeductionId" Value="@(new Icons.Regular.Size16.Info())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" />
+                        </th>
+                        <th>Waluta</th>
+                        <th>Maks. dni</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var meal in formItem.Meals)
+                    {
+                        @if (meal.Duration > 0)
+                        {
+                            <tr>
+
+                                <td>@meal.StageId</td>
+                                <td>@meal.CountryName</td>
+                                <td>
+
+                                    <div Style="min-width: 100px;">
+                                        <FluentNumberField Disabled="@((meal.Duration == 0) ? true : false)"
+                                        Min="0"
+                                        Max="@meal.Nights.ToString()"
+                                        @bind-Value:get="@meal.CoveredBreakfasts"
+                                        @bind-Value:set="(value => HandleMealChanged(meal, value, nameof(meal.CoveredBreakfasts)))" />
+                                    </div>
+
+                                </td>
+                                <td>
+                                    <div Style="min-width: 100px;">
+                                        <FluentNumberField Disabled="@((meal.Duration == 0) ? true : false)"
+                                        Min="0"
+                                        Max="@meal.Duration.ToString()"
+                                        @bind-Value:get="@meal.CoveredDinners"
+                                        @bind-Value:set="(value => HandleMealChanged(meal, value, nameof(meal.CoveredDinners)))" />
+                                    </div>
+                                </td>
+                                <td>
+                                    <div Style="min-width: 100px;">
+                                        <FluentNumberField Disabled="@((meal.Duration == 0) ? true : false)"
+                                        Min="0"
+                                        Max="@meal.Duration.ToString()"
+                                        @bind-Value:get="@meal.CoveredLunches"
+                                        @bind-Value:set="(value => HandleMealChanged(meal, value, nameof(meal.CoveredLunches)))" />
+                                    </div>
+                                </td>
+                                <td>@meal.Total</td>
+                                <td>@meal.AllowanceRateCurrency</td>
+                                <td>@meal.Duration</td>
+                            </tr>
+                        }
+
+                    }
+                </tbody>
+            </table>
+            <FluentTooltip Anchor="MealsToDeductionId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50> MealsToDeductionId | Proszę podać ilość zapewnionych posiłków na poszczególnych etapach podróży.</FluentTooltip>
+            <FluentTooltip Anchor="MealsTotalDeductionId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50> MealsTotalDeductionId | Kwota do potrącenia z diety.</FluentTooltip>
+        }
+        @if (ShowLocalTravels)
+        {
+            <hr>
+            <table class="table-container">
+                <caption class="table-caption">Ryczałt na pokrycie kosztów dojazdu środkami komunikacji <FluentIcon Id="LocTravId" Value="@(new Icons.Regular.Size16.Info())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" /> </caption>
+                <thead class="table-header-left">
+                    <tr>
+                        <th>Etap</th>
+                        <th>Państwo</th>
+                        <th>Dni</th>
+                        <th>Ryczałt</th>
+                        <th>Razem</th>
+                        <th>Maks dni</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var localTravel in formItem.LocalTravels)
+                    {
+                        @if (localTravel.Duration > 0)
+                        {
+                            <tr>
+
+                                <td>@localTravel.StageId</td>
+                                <td>@localTravel.CountryName</td>
+                                <td>
+                                    <div Style="max-width: 80px;">
+                                        <FluentNumberField Disabled="@((localTravel.Duration == 0) ? true : false)"
+                                        Min="0"
+                                        Max="@localTravel.Duration.ToString()"
+                                        @bind-Value:get="@localTravel.Days"
+                                        @bind-Value:set="(value => HandleLocalTravelChanged(localTravel, value))" />
+                                    </div>
+                                </td>
+                                <td>
+                                    @localTravel.AllowanceRate
+                                </td>
+                                <td>@localTravel.Total @localTravel.AllowanceRateCurrency</td>
+
+                                <td>@localTravel.Duration</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+            <FluentTooltip Anchor="LocTravId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50> Wypełnij jeśli korzystałeś z komunikacji miejskiej w mieście docelowym i nie dysponujesz biletami lub rachunkami.</FluentTooltip>
+        }
+        @if (ShowTransits)
+        {
+            <hr>
+            <table class="table-container">
+                <caption class="table-caption">Dojazd z dworca/lotniska do Hotelu <FluentIcon Id="TransitInfoId" Value="@(new Icons.Regular.Size16.Info())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" /> </caption>
+
+                <tbody>
+                    <td colspan="3">
+                        <FluentRadioGroup @bind-Value:get="formItem.Transit.Directions"
+                        @bind-Value:set="HandleTransitDirectionsChanged">
+                            <FluentRadio Value="0">Mam rachunek/bilet w obie strony</FluentRadio>
+                            <FluentRadio Value="1">Mam rachunek/bilet w jedną stronę</FluentRadio>
+                            <FluentRadio Value="2">Nie mam rachunku/biletu w żadnym kierunku</FluentRadio>
+                        </FluentRadioGroup>
+                    </td>
+                </tbody>
+            </table>
+            <FluentTooltip Anchor="LocTravId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50> Wypełnij jeśli korzystałeś z komunikacji miejskiej w mieście docelowym i nie dysponujesz biletami lub rachunkami.</FluentTooltip>
+
+        }
+        @if (ShowBills)
+        {
+            <table class="table-container">
+                <caption class="table-caption">
+                    Pozostałe rachunki i bilety <FluentIcon Id="BillsInfoId" Value="@(new Icons.Regular.Size16.Info())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" />
+                </caption>
+                <thead class="table-header-left">
+                    <tr>
+                        <th style="width: 50px;">Lp.</th>
+                        <th style="width: 100px;">Kwota brutto</th>
+                        <th style="width: 80px;">Waluta</th>
+                        <th style="width: 125px;">Uzasadnienie</th>
+                        <th style="width: 80px;">Załącznik</th>
+                        <th style="width: 30px;">Akcje</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var bill in formItem.Bills)
+                    {
+                        var currencyVmNames = formItem.Stages
+                        .Select(stage => stage.CountryCurrency)
+                        .Distinct()
+                        .ToList();
+
+                        <tr class="fluent-row">
+                            <td>@bill.Id</td>
+                            <td>
+                                <FluentNumberField Disabled="@IsBillsDisabled"
+                                Min="0"
+                                @bind-Value:get="@bill.Amount"
+                                @bind-Value:set="(value => HandleBillChanged(bill, value))"
+                                width="100px" />
+                            </td>
+                            <td>
+                                <FluentSelect TOption="string"
+                                Items="currencyVmNames"
+                                @bind-Value:get="@bill.Currency"
+                                @bind-Value:set="@(value => HandleBillChange(bill, value))"
+                                Width="80px" />
+
+                            </td>
+                            <td>
+                                <FluentCombobox Disabled="@IsBillsDisabled"
+                                Items="@_billReasons"
+                                @bind-Value="@bill.Reason"
+                                AllowFreeform="false"
+                                Placeholder="Wybierz lub wprowadź..."
+                                Width="125px" />
+                            </td>
+                            <td>
+                                <div>
+                                    @{
+                                        var attbillId = $"attbillId-{bill.Id}";
+                                    }
+                                    <FluentButton Id="@attbillId" Disabled="@IsBillsDisabled" IconEnd="@(new Icons.Filled.Size20.Attach())" OnClick="@(() => UploadFileForBill(bill))" />
+                                    @if (bill.FilePath is not null)
+                                    {
+                                        <FluentTooltip Anchor="@attbillId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50>Wymień załącznik</FluentTooltip>
+                                        var billId = $"billId-{bill.Id}";
+                                        <FluentButton Id="@billId" Disabled="@IsBillsDisabled" IconEnd="@(new Icons.Regular.Size20.DeleteOff())" OnClick="@(() => RemoveFileFromBill(bill))" />
+                                        <FluentTooltip Anchor="@billId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50>Usuń załącznik</FluentTooltip>
+                                        var billViewId = $"billViewId-{bill.Id}";
+                                        <FluentButton Id="@billViewId" Disabled="@IsBillsDisabled" IconEnd="@(new Icons.Filled.Size20.ArrowDownload())" OnClick="@(() => ViewAttachment(bill.AttUrl))" />
+                                        <FluentTooltip Anchor="@billViewId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50>Pobierz/Otwórz załącznik</FluentTooltip>
+                                    }
+                                    else
+                                    {
+                                        <FluentTooltip Anchor="@attbillId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50>Dodaj załącznik</FluentTooltip>
+
+                                    }
+
+                                </div>
+                            </td>
+                            <td>
+                                @{
+                                    var billRemId = $"billRemId-{bill.Id}";
+                                }
+                                <div>
+                                    <FluentButton Id="@billRemId" Disabled="@IsBillsDisabled" IconEnd="@(new Icons.Filled.Size20.Delete())" OnClick="@(() => RemoveBill(bill))" />
+                                    <FluentTooltip Anchor="@billRemId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50>Usuń rachunek/bilet</FluentTooltip>
+                                </div>
+                            </td>
+                        </tr>
+                        @if (EnterInvoiceMapping)
+                        {
+                            <tr class="fluent-row">
+                                <td colspan="7">
+                                    <!-- Adjust colspan to match the number of columns -->
+                                    <InvoiceMappingEditComponent CostCenters="@_costCenters" GLAccounts="@_glAccounts" VatRates="@_vatRates" Locations="@_locations" Disabled="@IsInvoiceMappingDisabled" InvoiceMapping="@bill.InvoiceMappings.First()" />
+                                </td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+            <FluentButton Id="addBill" IconEnd="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddBill())" />
+            <FluentTooltip Anchor="addBill" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50>Dodaj rachunek lub bilet</FluentTooltip>
+            <FluentTooltip Anchor="BillsInfoId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50> BillsInfoId | Tu dodaj rachunki które zostały opłacone samodzielnie.</FluentTooltip>
+            <hr>
+
+        }
+        @if (ShowSummary)
+        {
+            <div class="all-tables-wrapper">
+                <div class="tables-wrapper">
+                    <!-- Left table -->
                     <div>
                         <table class="table-container">
                             <thead>
-                                <tr class="table-header-right">
-                                    <th>Podsumowanie - dieta zagraniczna</th>
+                                <tr class="table-header-left">
+                                    <th>Podsumowanie - dieta krajowa</th>
                                     <th>Wartość</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
                                     <td>Dieta dzienna</td>
-                                    <td>
-                                        @(formItem.AllowanceNotPL != null ? ((decimal)formItem.AllowanceNotPL).ToString("0.00") : "0.00")
-                                        @if (formItem.DestinationCountry.CurrencyVmName != "PLN")
-                                        {
-                                            var currency = $" {formItem.DestinationCountry.CurrencyVmName}";
-                                            @currency
-                                        }
-                                    </td>
+                                    <td>@formItem.AllowancePL PLN</td>
                                 </tr>
                                 <tr>
-                                    <td>Należna dieta zagraniczna</td>
-                                    <td>
-                                        @(formItem.SumAllowanceNotPL != null ? ((decimal)formItem.SumAllowanceNotPL).ToString("0.00") : "0.00")
-                                        @if (formItem.DestinationCountry.CurrencyVmName != "PLN")
-                                        {
-                                            var currency = $" {formItem.DestinationCountry.CurrencyVmName}";
-                                            @currency
-                                        }
-                                    </td>
+                                    <td>Należna dieta krajowa</td>
+                                    <td>@formItem.SumAllowancePL PLN</td>
                                 </tr>
                                 <tr>
                                     <td>Potrącenie za posiłki</td>
-                                    <td>
-                                        @(formItem.DeductionMealsNotPL != null ? ((decimal)formItem.DeductionMealsNotPL).ToString("0.00") : "0.00")
-                                        @if (formItem.DestinationCountry.CurrencyVmName != "PLN")
-                                        {
-                                            var currency = $" {formItem.DestinationCountry.CurrencyVmName}";
-                                            @currency
-                                        }
-                                    </td>
+                                    <td>@formItem.DeductionMealsPL PLN</td>
                                 </tr>
                                 <tr>
                                     <td>Ryczałt za nocleg</td>
-                                    <td>
-                                        @(formItem.AccomodationAllowanceSumNotPL != null ? ((decimal)formItem.AccomodationAllowanceSumNotPL).ToString("0.00") : "0.00")
-                                        @if (formItem.DestinationCountry.CurrencyVmName != "PLN")
-                                        {
-                                            var currency = $" {formItem.DestinationCountry.CurrencyVmName}";
-                                            @currency
-                                        }
-                                    </td>
+                                    <td>@formItem.AccomodationAllowanceSumPL PLN</td>
                                 </tr>
                                 <tr>
                                     <td>Ryczałt dojazdy lokalne</td>
-                                    <td>
-                                        @(formItem.SumLocalTravelAllowanceNotPL != null ? ((decimal)formItem.SumLocalTravelAllowanceNotPL).ToString("0.00") : "0.00")
-                                        @if (formItem.DestinationCountry.CurrencyVmName != "PLN")
-                                        {
-                                            var currency = $" {formItem.DestinationCountry.CurrencyVmName}";
-                                            @currency
-                                        }
-                                    </td>
+                                    <td>@formItem.SumLocalTravelAllowancePL.ToString() PLN</td>
                                 </tr>
                                 <tr>
-                                    <td>Tranzyt</td>
-                                    <td>
-                                        @(formItem.Transit.Total != null ? ((decimal)formItem.Transit.Total).ToString("0.00") : "0.00")
-                                        @if (formItem.DestinationCountry.CurrencyVmName != "PLN")
-                                        {
-                                            var currency = $" {formItem.DestinationCountry.CurrencyVmName}";
-                                            @currency
-                                        }
-                                    </td>
+                                    <td>Kilometrówka</td>
+                                    <td>@formItem.SumPrivateVehicleAllowance PLN</td>
                                 </tr>
                                 <tr>
-                                    <td>Rachunki zagraniczne</td>
-                                    <td>@formItem.TotalBillsNotPL @formItem.DestinationCountryCurrency</td>
+                                    <td>Rachunki suma</td>
+                                    <td>@formItem.TotalBillsPL PLN</td>
                                 </tr>
                                 <tr>
-                                    <td>Kurs waluty @formItem.DestinationCountryCurrency z dnia @formItem.CurrencyExchangeRateDate</td>
-                                    <td>
-                                        @formItem.CurrencyExchamngeRate.ToString("0.0000") PLN
-                                    </td>
+                                    <td>Pobrana zaliczka</td>
+                                    <td>@formItem.AdvancePaymentAmount @formItem.AdvancePaymentCurrency</td>
                                 </tr>
                                 <tr>
                                     <td>Razem w PLN</td>
-                                    <td>@totalNotPLinPLN PLN </td>
+                                    <td>@formItem.TotalAllowancePL PLN</td>
                                 </tr>
                             </tbody>
                         </table>
                     </div>
-                }
+
+                    <!-- Right table -->
+                    @if (formItem.Stages.Count > 1)
+                    {
+                        var totalNotPLinPLN = (formItem.TotalAllowanceNotPL * formItem.CurrencyExchamngeRate).ToString("0.00");
+                        <div>
+                            <table class="table-container">
+                                <thead>
+                                    <tr class="table-header-right">
+                                        <th>Podsumowanie - dieta zagraniczna</th>
+                                        <th>Wartość</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Dieta dzienna</td>
+                                        <td>
+                                            @(formItem.AllowanceNotPL != null ? ((decimal)formItem.AllowanceNotPL).ToString("0.00") : "0.00")
+                                            @if (formItem.DestinationCountry.CurrencyVmName != "PLN")
+                                            {
+                                                var currency = $" {formItem.DestinationCountry.CurrencyVmName}";
+                                                @currency
+                                            }
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Należna dieta zagraniczna</td>
+                                        <td>
+                                            @(formItem.SumAllowanceNotPL != null ? ((decimal)formItem.SumAllowanceNotPL).ToString("0.00") : "0.00")
+                                            @if (formItem.DestinationCountry.CurrencyVmName != "PLN")
+                                            {
+                                                var currency = $" {formItem.DestinationCountry.CurrencyVmName}";
+                                                @currency
+                                            }
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Potrącenie za posiłki</td>
+                                        <td>
+                                            @(formItem.DeductionMealsNotPL != null ? ((decimal)formItem.DeductionMealsNotPL).ToString("0.00") : "0.00")
+                                            @if (formItem.DestinationCountry.CurrencyVmName != "PLN")
+                                            {
+                                                var currency = $" {formItem.DestinationCountry.CurrencyVmName}";
+                                                @currency
+                                            }
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Ryczałt za nocleg</td>
+                                        <td>
+                                            @(formItem.AccomodationAllowanceSumNotPL != null ? ((decimal)formItem.AccomodationAllowanceSumNotPL).ToString("0.00") : "0.00")
+                                            @if (formItem.DestinationCountry.CurrencyVmName != "PLN")
+                                            {
+                                                var currency = $" {formItem.DestinationCountry.CurrencyVmName}";
+                                                @currency
+                                            }
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Ryczałt dojazdy lokalne</td>
+                                        <td>
+                                            @(formItem.SumLocalTravelAllowanceNotPL != null ? ((decimal)formItem.SumLocalTravelAllowanceNotPL).ToString("0.00") : "0.00")
+                                            @if (formItem.DestinationCountry.CurrencyVmName != "PLN")
+                                            {
+                                                var currency = $" {formItem.DestinationCountry.CurrencyVmName}";
+                                                @currency
+                                            }
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Tranzyt</td>
+                                        <td>
+                                            @(formItem.Transit.Total != null ? ((decimal)formItem.Transit.Total).ToString("0.00") : "0.00")
+                                            @if (formItem.DestinationCountry.CurrencyVmName != "PLN")
+                                            {
+                                                var currency = $" {formItem.DestinationCountry.CurrencyVmName}";
+                                                @currency
+                                            }
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Rachunki zagraniczne</td>
+                                        <td>@formItem.TotalBillsNotPL @formItem.DestinationCountryCurrency</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Kurs waluty @formItem.DestinationCountryCurrency z dnia @formItem.CurrencyExchangeRateDate</td>
+                                        <td>
+                                            @formItem.CurrencyExchamngeRate.ToString("0.0000") PLN
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Razem w PLN</td>
+                                        <td>@totalNotPLinPLN PLN </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    <p></p>
+
+                </div>
+                <div class="third-table-wrapper">
+                    <table class="table-container">
+                        <thead>
+                            <tr class="table-header-left">
+                                <th>Łącznie do wypłaty</th>
+                                <th>@formItem.TotalPayOut.ToString("0.00") PLN</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+            </div>
+            <BankTransferMappingEditComponent BTItem="@formItem.BTMappingPayout" CostCenters="@_costCenters" GLAccounts="@_glAccounts" />
+        }
+
+        <div>
+            <h5>Aprobujący:</h5>
+            @if (formItem.Status == "Rejestracja")
+            {
                 <p></p>
+                <FluentSelect TOption="OrganisationRoleForFormVm"
+                Id="AL1Id"
+                Autofocus="true"
+                Items="@formItem.Level1Approvers"
+                Multiple="false"
+                OptionValue="@(p => p.EmpId.ToString())"
+                OptionText="@(p => p.LongName)"
+                OptionSelected="@(p => p.IsDefault)"
+                @bind-SelectedOption="@approverL1"
+                Height="200px"
+                @onchange="HandleChangeApproverL1" />
 
-            </div>
-            <div class="third-table-wrapper">
-                <table class="table-container">
-                    <thead>
-                        <tr class="table-header-left">
-                            <th>Łącznie do wypłaty</th>
-                            <th>@formItem.TotalPayOut.ToString("0.00") PLN</th>
-                        </tr>
-                    </thead>
-                </table>
-            </div>
+            }
+            else if (formItem.Status == "AprobataL2")
+            {
+                <p></p>
+                <FluentSelect TOption="OrganisationRoleForFormVm"
+                Id="AL1Id"
+                Autofocus="true"
+                Items="@formItem.Level2Approvers"
+                Multiple="false"
+                OptionValue="@(p => p.EmpId.ToString())"
+                OptionText="@(p => p.LongName)"
+                OptionSelected="@(p => p.IsDefault)"
+                @bind-SelectedOption="@approverL1"
+                Height="200px"
+                @onchange="HandleChangeApproverL2" />
+            }
+
         </div>
-        <BankTransferMappingEditComponent BTItem="@formItem.BTMappingPayout" CostCenters="@_costCenters" GLAccounts="@_glAccounts"/>
-    }
 
-    <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
-    Appearance="Appearance.Accent" OnClick="@SendForm" BackgroundColor="#509EDB" Style="width: 100px" Disabled="@DisableSendButton"> Wyślij</FluentButton>
-    <FluentSpacer Width="@buttonSpacer" />
 
-    <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
-    Appearance="Appearance.Accent" OnClick="@ApproveForm" BackgroundColor="#1FC91F" Style="width: 100px" Disabled="@DisableApproveButton"> Zatwierdź</FluentButton>
-    <FluentSpacer Width="@buttonSpacer" />
-    <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
-    Appearance="Appearance.Accent" OnClick="@CancelForm" BackgroundColor="#808080" Color="#FFFFFF" Style="width: 100px"> Anuluj</FluentButton>
+        <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
+        Appearance="Appearance.Accent" OnClick="@SendForm" BackgroundColor="#509EDB" Style="width: 100px" Disabled="@DisableSendButton"> Wyślij</FluentButton>
+        <FluentSpacer Width="@buttonSpacer" />
 
-</EditForm>
-<InputFile id="fileInput" OnChange="HandleFileUpload" accept=".png, .jpg, .pdf" style="display: none;" />
+        <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
+        Appearance="Appearance.Accent" OnClick="@ApproveForm" BackgroundColor="#1FC91F" Style="width: 100px" Disabled="@DisableApproveButton"> Zatwierdź</FluentButton>
+        <FluentSpacer Width="@buttonSpacer" />
+
+        <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
+        Appearance="Appearance.Accent" OnClick="@CancelForm" BackgroundColor="#808080" Color="#FFFFFF" Style="width: 100px"> Anuluj</FluentButton>
+
+    </EditForm>
+    <InputFile id="fileInput" OnChange="HandleFileUpload" accept=".png, .jpg, .pdf" style="display: none;" />
+
+}
+else
+{
+    <div class="new-form-section">
+        <FluentLabel><b>Brak uprawnień do wyświetlenia formularza!</b></FluentLabel>
+    </div>
+}
 @code {
 
-    private async Task SendForm(){
+    private async Task SendForm()
+    {
+        if (true)
+        {
+            //DOROBIĆ WALIDACJĘ FORMULARZA
+        }
+        else
+        {
 
+        }
+
+        await _mediator.Send(new CreateBusinessTripCommand(formItem));
     }
     private async Task CancelForm()
     {
@@ -924,10 +995,23 @@
 
     }
 
+    private async Task HandleChangeApproverL1(ChangeEventArgs e)
+    {
+        var tempEmp = _employees.First(p => p.EnovaEmpId == int.Parse(e.Value.ToString()));
+        formItem.LVL1_EnovaEmpId = tempEmp.EnovaEmpId.ToString();
+        formItem.LVL1_EmployeeName = tempEmp.LongName;
+    }
+    private async Task HandleChangeApproverL2(ChangeEventArgs e)
+    {
+        var tempEmp = _employees.First(p => p.EnovaEmpId == int.Parse(e.Value.ToString()));
+        formItem.LVL2_EnovaEmpId = tempEmp.EnovaEmpId.ToString();
+        formItem.LVL2_EmployeeName = tempEmp.LongName;
+    }
+
     private int buttonSpacer = 100;
 
 
-    # region Declarations
+    #region Declarations
 
     [Parameter] public int Id { get; set; }
 
@@ -963,7 +1047,7 @@
 
     private string Title { get; set; } = string.Empty;
 
-    private IQueryable<EmployeeVm> Employees { get; set; }
+    private IQueryable<EmployeeVm> _employees { get; set; }
     private IEnumerable<EmployeeVm> SelectedEmpl { get; set; }
     private IQueryable<string> _Statuses = Enum.GetValues(typeof(Statuses))
         .Cast<Statuses>().Select(c => c.ToString()).AsQueryable();
@@ -1063,7 +1147,7 @@
 
     #endregion
     #region Dictionaries
-    private IQueryable<NbpCurrencyRateVm> NbpCurrencies { get; set; } 
+    private IQueryable<NbpCurrencyRateVm> NbpCurrencies { get; set; }
     private IEnumerable<CompanyCarRegistrationNumberVm> CompanyCarRegistrationNumbers { get; set; }
     private NbpCurrencyRateVm AbroadCurrencyExchangeRate { get; set; }
     private NbpCurrencyRateVm OriginExchangeRate { get; set; } = new NbpCurrencyRateVm(
@@ -1076,21 +1160,33 @@
     #endregion
     #endregion
     private bool test = false;
+    private List<string> allowedEmp { get; set; } = new List<string>();
+    private List<string> allowedEditor { get; set; } = new List<string>();
+    private bool showForm { get; set; }
+    private bool editControlDisabled = false;
+    private bool canChangeApprover = false;
+    private bool ApproveButton = false;
+
+    private FluentValidationValidator? _fluentValidator;
+    // private bool SendButton = true;
 
     protected override async Task OnInitializedAsync()
     {
         // _editContext = new EditContext(formItem);
-        
+        if (Id != 0)
+        {
+            formItem = await _mediator.Send(new GetBusinessTripByIdQuery(Id));
+        }
+
         await Utils.GetUserName(_authenticationStateProvider, _userContext, _mediator);
-        Employees = await _mediator.Send(new GetAllEmployeesQuery());
+        await GetAllowedPersons();
+        _employees = await _mediator.Send(new GetAllEmployeesQuery());
         _costCenters = await _mediator.Send(new GetAllCostCenterIEnumQuery());
         _glAccounts = await _mediator.Send(new GetAllGLAccountIEnumQuery());
         _locations = await _mediator.Send(new GetLocationsQuery());
         _vatRates = await _mediator.Send(new GetAllVatRateIEnumQuery());
-        if(Id != 0 ){
-            //tutaj pobierz delegację z bazy danych
-            //jeśli ID = 0 to jest po prostu new()
-        }
+        _organisation = await _mediator.Send(new GetOrganisationByEmpSapNumberQuery(_userContext.Employee.SapNumber));
+
         Console.WriteLine(Id);
 
         AssignStatusBool();
@@ -1101,7 +1197,7 @@
         #region
         // Moved to setup method
         // Countries = await _mediator.Send(new GetAllCountryQuery());
-        // SelectedCountries = new List<CountryVm> { Countries.FirstOrDefault(c => c.Name == "Polska") };
+        // SelectedCountries = new List<CountryVm> { Countries.FirstOrDefault(c => c.Title == "Polska") };
         // SelectedCountry = SelectedCountries;
         // Origin = SelectedCountries[0];
         // NbpCurrencies = await _mediator.Send(new GetNbpCurrencyRatesByDateQuery(DateOnly.FromDateTime(DateTime.Today.AddDays(-1))));
@@ -1129,6 +1225,17 @@
         //     SetupFormRejestracja();
         // }
         #endregion
+
+        Approval approval = new Approval()
+            {
+                Status = formItem.Status,
+                EnovaEmpId = _userContext.EnovaEmpId,
+                LongName = _userContext.LongName,
+                Date = DateTime.Now,
+                IsApproved = true
+            };
+        formItem.Approvals.Add(approval);
+
         await SetupForm(formItem.Status);
         // Console.WriteLine();
     }
@@ -1138,8 +1245,8 @@
     {
         if (e.Text != null)
         {
-            e.Items = _locations.Where(a => 
-                a.Name.Contains(e.Text, StringComparison.OrdinalIgnoreCase) || 
+            e.Items = _locations.Where(a =>
+                a.Name.Contains(e.Text, StringComparison.OrdinalIgnoreCase) ||
                 a.SapNumber.Contains(e.Text, StringComparison.OrdinalIgnoreCase)).ToList();
         }
     }
@@ -1163,7 +1270,7 @@
         {
             e.Items = CompanyCarRegistrationNumbers
                 .Where(a => a.RegistrationNumber.Contains(e.Text, StringComparison.OrdinalIgnoreCase))
-                .Select(a => a.RegistrationNumber) 
+                .Select(a => a.RegistrationNumber)
                 .ToList();
         }
     }
@@ -1171,7 +1278,7 @@
     {
         if (e.Text != null)
         {
-            e.Items = Employees.Where(a => a.LongName.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
+            e.Items = _employees.Where(a => a.LongName.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
         }
     }
     #endregion OnSearch
@@ -1180,17 +1287,20 @@
     {
         SetupForm(formItem.Status);
     }
-    private void HandleBillChange(Bill bill, string curr){
+    private void HandleBillChange(Bill bill, string curr)
+    {
         bill.Currency = curr;
     }
     private void HandlePrivateVehicleMileageChanged(int value)
     {
         formItem.PrivateVehicleMilage = value;
 
-        if(formItem.PrivateVehicleEngineSize <= 900 ){
+        if (formItem.PrivateVehicleEngineSize <= 900)
+        {
             formItem.SumPrivateVehicleAllowance = formItem.PrivateVehicleMilage * Dictionary.MileageAllowance[900];
         }
-        else if (formItem.PrivateVehicleEngineSize > 900){
+        else if (formItem.PrivateVehicleEngineSize > 900)
+        {
             formItem.SumPrivateVehicleAllowance = formItem.PrivateVehicleMilage * Dictionary.MileageAllowance[901];
         }
 
@@ -1395,7 +1505,8 @@
             formItem.EmployeeName = emp.LongName;
             formItem.EnovaEmpId = emp.EnovaEmpId.ToString();
             _organisation = await _mediator.Send(new GetOrganisationByEmpSapNumberQuery(emp.SapNumber));
-
+            formItem.OrganisationSapNumber = _organisation.SapNumber;
+            AssignAllApprovers(emp);
         }
 
         StateHasChanged();
@@ -1925,7 +2036,59 @@
 
     #endregion OnChange
     #region Actions
-    private void AssignStatusBool(){
+    private async Task AssignAllApprovers(EmployeeVm emp)
+    {
+        approverL1 = new()
+            {
+                IsDefault = true,
+                EmpId = emp.ManagerId,
+                LongName = emp.Manager.LongName
+            };
+        formItem.Level1Approvers.Clear();
+        formItem.Level1Approvers.Add(approverL1);
+        formItem.LVL1_EnovaEmpId = emp.ManagerId.ToString();
+        formItem.LVL1_EmployeeName = emp.Manager.LongName;
+        // Drugi przełożony co może nie być potrzebne
+        formItem.Level3Approvers = SetApprovers(_organisation.Role_Cashiers);
+        // Kasjerki
+        formItem.Level3Approvers = SetApprovers(_organisation.Role_Cashiers);
+        // Księgowe
+        formItem.Level4Approvers = SetApprovers(_organisation.Role_Accountants);
+        formItem.Level5Approvers = SetApprovers(_organisation.Role_AccountantsTeamLeader);
+
+    }
+    private async Task GetAllowedPersons()
+    {
+        if (formItem.Status == "Rejestracja")
+        {
+            allowedEmp.Add(_userContext.EnovaEmpId);
+            allowedEditor.Add(_userContext.EnovaEmpId);
+        }
+        if (formItem.Status == "AprobataL1" || formItem.Status == "AprobataL2")
+        {
+            allowedEmp.Add(formItem.EnovaEmpId);
+            allowedEmp.Add(formItem.LVL1_EnovaEmpId); //this is manager of requestor
+            allowedEmp.AddRange(formItem.Level2Approvers.Select(l => l.EmpId.ToString()));//this is Settlement Department
+            allowedEditor.AddRange(formItem.Level2Approvers.Select(l => l.EmpId.ToString()));
+        }
+        else
+        {
+            allowedEmp.Add(formItem.EnovaEmpId);
+            allowedEmp.AddRange(formItem.Level2Approvers.Select(l => l.EmpId.ToString()));
+        }
+
+        showForm = allowedEmp.Contains(_userContext.EnovaEmpId);
+        editControlDisabled = !allowedEditor.Contains(_userContext.EnovaEmpId);
+
+    }
+    private List<OrganisationRoleForFormVm> SetApprovers(List<OrganisationRoleVm> rolesIn)
+    {
+        return rolesIn
+            .Select(role => new OrganisationRoleForFormVm(role))
+            .ToList();
+    }
+    private void AssignStatusBool()
+    {
         stal1 = formItem.Status == "AprobataL1";
         stal2 = formItem.Status == "AprobataL2";
         stzk = formItem.Status == "ZaliczkaKasa";
@@ -1943,73 +2106,74 @@
     }
     private async Task AddStage(CountryVm country)
     {
+
         AbroadCurrencyExchangeRate = await _mediator.Send(new GetNbpCurrencyRateByDateAndCodeQuery(DateOnly.FromDateTime(DateTime.Today.AddDays(-1)), country.CurrencyVmName));
         if (AbroadCurrencyExchangeRate == null) AbroadCurrencyExchangeRate = OriginExchangeRate;
 
 
         var duration = (formItem.EndDate.Value - formItem.StartDate.Value).TotalDays;
         var firstStage = new Stage()
-                {
-                    Id = formItem.Stages.Count() + 1,
-                    CountryCode = country.CountryCode,
-                    CountryName = country.Name,
-                    CountryAllowance = country.Allowance,
-                    CountryCurrency = country.CurrencyVmName,
-                    StartDate = formItem.StartDate,
-                    EndDate = formItem.EndDate,
-                    Duration = Math.Round((decimal)duration, 2),
-                    NbpCurrencyRateVm = AbroadCurrencyExchangeRate
-                };
+            {
+                Id = formItem.Stages.Count() + 1,
+                CountryCode = country.CountryCode,
+                CountryName = country.Name,
+                CountryAllowance = country.Allowance,
+                CountryCurrency = country.CurrencyVmName,
+                StartDate = formItem.StartDate,
+                EndDate = formItem.EndDate,
+                Duration = Math.Round((decimal)duration, 2),
+                NbpCurrencyRateVm = AbroadCurrencyExchangeRate
+            };
         formItem.Stages.Add(firstStage);
         ValidateDates();
 
         var firstAccomodation = new Accommodation()
-                {
-                    StageId = firstStage.Id,
-                    CountryCode = country.CountryCode,
-                    CountryName = country.Name,
-                    Duration = firstStage.Duration,
-                    AllowanceRate = country.IsPL ? Math.Round(country.Allowance * 1.5m, 2) : Math.Round(country.MaxHotelCost / 4m, 2), //Ryczałt za nocleg
-                    AllowanceRateCurrency = country.CurrencyVmName,
-                    MaxHotelCost = country.MaxHotelCost,
-                    HasInvoices = true,
-                    InvoicesAmount = 0,
-                    Total = 0
-                };
+            {
+                StageId = firstStage.Id,
+                CountryCode = country.CountryCode,
+                CountryName = country.Name,
+                Duration = firstStage.Duration,
+                AllowanceRate = country.IsPL ? Math.Round(country.Allowance * 1.5m, 2) : Math.Round(country.MaxHotelCost / 4m, 2), //Ryczałt za nocleg
+                AllowanceRateCurrency = country.CurrencyVmName,
+                MaxHotelCost = country.MaxHotelCost,
+                HasInvoices = true,
+                InvoicesAmount = 0,
+                Total = 0
+            };
         formItem.Accommodations.Add(firstAccomodation);
 
         var firstMeal = new Meals()
-                {
-                    StageId = firstStage.Id,
-                    CountryCode = country.CountryCode,
-                    CountryName = country.Name,
-                    AllowanceRate = country.Allowance,
-                    AllowanceRateCurrency = country.CurrencyVmName,
-                    Duration = (int)Math.Ceiling(firstStage.AllowanceOrigin.GetValueOrDefault() + firstStage.AllowanceAbroad.GetValueOrDefault())
-                };
+            {
+                StageId = firstStage.Id,
+                CountryCode = country.CountryCode,
+                CountryName = country.Name,
+                AllowanceRate = country.Allowance,
+                AllowanceRateCurrency = country.CurrencyVmName,
+                Duration = (int)Math.Ceiling(firstStage.AllowanceOrigin.GetValueOrDefault() + firstStage.AllowanceAbroad.GetValueOrDefault())
+            };
         formItem.Meals.Add(firstMeal);
 
         var firstLocalTravel = new LocalTravel()
-                {
-                    StageId = firstStage.Id,
-                    CountryCode = country.CountryCode,
-                    CountryName = country.Name,
-                    AllowanceRate = country.LocalTravelAllowance,
-                    AllowanceRateCurrency = country.CurrencyVmName,
-                    Duration = (int)Math.Ceiling(firstStage.AllowanceOrigin.GetValueOrDefault() + firstStage.AllowanceAbroad.GetValueOrDefault())
-                };
+            {
+                StageId = firstStage.Id,
+                CountryCode = country.CountryCode,
+                CountryName = country.Name,
+                AllowanceRate = country.LocalTravelAllowance,
+                AllowanceRateCurrency = country.CurrencyVmName,
+                Duration = (int)Math.Ceiling(firstStage.AllowanceOrigin.GetValueOrDefault() + firstStage.AllowanceAbroad.GetValueOrDefault())
+            };
         formItem.LocalTravels.Add(firstLocalTravel);
 
         if (firstStage.CountryCode != "PL")
         {
             formItem.Transit = new Transit()
-                    {
-                        StageId = firstStage.Id,
-                        CountryCode = country.CountryCode,
-                        CountryName = country.Name,
-                        AllowanceRate = country.TravelAllowance,
-                        AllowanceRateCurrency = country.CurrencyVmName,
-                    };
+                {
+                    StageId = firstStage.Id,
+                    CountryCode = country.CountryCode,
+                    CountryName = country.Name,
+                    AllowanceRate = country.TravelAllowance,
+                    AllowanceRateCurrency = country.CurrencyVmName,
+                };
             await RecalculateTransit();
         }
 
@@ -2163,8 +2327,6 @@
     private async Task SetupForm(string status)
     {
         AssignStatusBool();
-        _organisation = await _mediator.Send(new GetOrganisationByEmpSapNumberQuery(_userContext.Employee.SapNumber));
-
         ResetForm();
         // DisableForm();
 
@@ -2179,14 +2341,16 @@
         else if (stkstl) await SetupFormKsiegowoscTL(); //zrobić SetupFormKsiegowoscTL
         else if (strozk) await SetupFormKasaRozliczenie();
         else if (stwys) await SetupFormWyslaneDoRobota(); //zrobić SetupFormWyslaneDoRobota
-        else if (strozend) await SetupFormRozliczone();        
+        else if (strozend) await SetupFormRozliczone();
         else if (stzam) await SetupFormZamkniete();
         #endregion
-
+        if (Id != 0) DisableSendButton = true;
+        editControlDisabled = false;
         StateHasChanged();
     }
 
-    private async Task SetupFormZaliczkaKsiegowosc(){
+    private async Task SetupFormZaliczkaKsiegowosc()
+    {
 
     }
     private async Task SetupFormZaliczkaKsiegowoscTL()
@@ -2223,9 +2387,10 @@
 
     }
 
-
     private async Task SetupFormRejestracja()
     {
+        await AssignAllApprovers(_userContext.Employee);
+
         #region MovedFromOnInit
         Countries = await _mediator.Send(new GetAllCountryQuery());
         SelectedCountries = new List<CountryVm> { Countries.FirstOrDefault(c => c.Name == "Polska") };
@@ -2234,28 +2399,29 @@
         NbpCurrencies = await _mediator.Send(new GetNbpCurrencyRatesByDateQuery(DateOnly.FromDateTime(DateTime.Today.AddDays(-1))));
         CompanyCarRegistrationNumbers = await _mediator.Send(new GetCompanyCarRegistrationNumbersQuery());
 
-        _locations = await _mediator.Send(new GetLocationsQuery());
-
-        if (SelectedCountry != null && SelectedCountry.Any())
-        {
-            await AddStage(SelectedCountry.First());
-            var firststage = formItem.Stages[0];
-            formItem.DestinationCountry = SelectedCountry.FirstOrDefault();
-            RecalculateStages(firststage.Id, nameof(firststage.EndDate));
-            RecalculateAccomodations();
-            RecalculateMeals();
+        // _locations = await _mediator.Send(new GetLocationsQuery());
+        if(formItem.Stages.Count == 1 ){
+            if (SelectedCountry != null && SelectedCountry.Any())
+            {
+                await AddStage(SelectedCountry.First());
+                var firststage = formItem.Stages[0];
+                formItem.DestinationCountry = SelectedCountry.FirstOrDefault();
+                RecalculateStages(firststage.Id, nameof(firststage.EndDate));
+                RecalculateAccomodations();
+                RecalculateMeals();
+            }
+            else
+            {
+                // Handle the case where SelectedCountry is null or empty
+            }
         }
-        else
-        {
-            // Handle the case where SelectedCountry is null or empty
-        }
+        
         #endregion
 
         Title = "Podróż służbowa - Rejestracja";
         await AddEmployee(_userContext.Employee);
         formItem.EmployeeName = _userContext.LongName;
         formItem.EnovaEmpId = _userContext.EnovaEmpId;
-        _organisation = await _mediator.Send(new GetOrganisationByEmpSapNumberQuery(_userContext.Employee.SapNumber));
         formItem.OrganisationSapNumber = _organisation.SapNumber;
 
         ShowAccomodations = false;
@@ -2277,7 +2443,7 @@
         IsTransportationDisabled = false;
         IsMileageDisabled = false;
         IsCashPayoutNumberDisabled = true;
-
+        DisableSendButton = false;
         StateHasChanged();
     }
     private async Task SetupFormKasa()
@@ -2448,7 +2614,8 @@
             ShowBills = false;
             ShowSummary = false;
 
-        } else if (status == "AprobataL2")
+        }
+        else if (status == "AprobataL2")
         {
             ShowAccomodations = false;
             ShowMeals = false;
@@ -2459,7 +2626,8 @@
             ShowBills = false;
             ShowSummary = false;
 
-        } else if (status == "AprobataL11")
+        }
+        else if (status == "AprobataL11")
         {
             ShowAccomodations = false;
             ShowMeals = false;
@@ -2470,7 +2638,8 @@
             ShowBills = true;
             ShowSummary = true;
 
-        } else if (status == "AprobataL12")
+        }
+        else if (status == "AprobataL12")
         {
             ShowAccomodations = false;
             ShowMeals = false;
@@ -2509,26 +2678,33 @@
     }
     #endregion
     private void HandleValidSubmit(EditContext arg)
-        {
-            throw new NotImplementedException();
-        }
+    {
+        throw new NotImplementedException();
+    }
 
 }
 
 <style>
+    valid.disabled.outline {
+        color: black !important; /* Change font color to black */
+    }
+
     div {
         /*flex-shrink: 0; /* Prevent shrinking of elements */
     }
+
     .flex-container {
         display: flex; /* Enables horizontal alignment */
         align-items: center; /* Vertically centers items */
         gap: 10px; /* Adds space between elements */
         flex-wrap: wrap; /* Wraps to the next line if there's not enough space */
     }
-    .flex-container > * {
-        flex-shrink: 0; /* Prevents items from shrinking */
-        margin: 0; /* Optional: Resets any margin */
-    }
+
+        .flex-container > * {
+            flex-shrink: 0; /* Prevents items from shrinking */
+            margin: 0; /* Optional: Resets any margin */
+        }
+
     .form-group {
         display: flex;
         align-items: center; /* Align label and control vertically */
@@ -2536,17 +2712,20 @@
         flex-wrap: nowrap; /* Ensure label and control stay on the same line */
         flex: 1 1 auto; /* Allow the group to resize */
     }
+
     .form-section {
         display: flex;
         flex-wrap: wrap; /* Allows wrapping if content overflows */
         gap: 15px; /* Spacing between child divs */
         margin-bottom: 15px;
     }
-    .form-section > div {
-        display: flex;
-        align-items: center; /* Vertically centers content within each div */
-        gap: 10px; /* Spacing between elements inside the div */
-    }
+
+        .form-section > div {
+            display: flex;
+            align-items: center; /* Vertically centers content within each div */
+            gap: 10px; /* Spacing between elements inside the div */
+        }
+
     .new-form-sectionbbb {
         display: flex;
         flex-wrap: wrap; /* Allows wrapping if content overflows */
@@ -2558,6 +2737,7 @@
         margin: 10px 0; /* Space outside the div */
         align-items: center; /* Vertically center content */
     }
+
     .new-form-section {
         display: flex; /* Enable horizontal alignment */
         flex-wrap: nowrap; /* Prevent wrapping to the next line */
@@ -2572,90 +2752,108 @@
         width: fit-content;
     }
 
-    /* Child divs inside the form section */
-    .new-form-section > div {
-        display: flex;
-        align-items: center; /* Center content within the div */
-    }
+        /* Child divs inside the form section */
+        .new-form-section > div {
+            display: flex;
+            align-items: center; /* Center content within the div */
+        }
 
-    /* Background color for "Kasa" status */
-    .new-form-section.kasa {
-        background-color: #a2b3d4;
-        border-color: #a2b3d4; /* Matching blue border */
-    }
+        /* Background color for "Kasa" status */
+        .new-form-section.kasa {
+            background-color: #a2b3d4;
+            border-color: #a2b3d4; /* Matching blue border */
+        }
 
-    /* Background color for "Ksiegowosc" status */
-    .new-form-section.ksiegowosc {
-        background-color: #d3d3d3    ;
-        border-color: #d3d3d3; /* Matching grey border */
-    }
-    
+        /* Background color for "Ksiegowosc" status */
+        .new-form-section.ksiegowosc {
+            background-color: #d3d3d3;
+            border-color: #d3d3d3; /* Matching grey border */
+        }
+
     .fluent-grid-item {
         flex-shrink: 0; /* Prevents shrinking of elements */
     }
+
     .autocomplete-container {
         display: flex;
         align-items: center;
         gap: 10px; /* Adjust spacing as needed */
     }
-    .autocomplete-container .fluent-autocomplete {
-        display: flex;
-        flex-direction: row; /* Forces label and control to align horizontally */
-        align-items: center;
-    }
+
+        .autocomplete-container .fluent-autocomplete {
+            display: flex;
+            flex-direction: row; /* Forces label and control to align horizontally */
+            align-items: center;
+        }
+
     table {
         border-collapse: collapse; /* Optional: For a cleaner look */
         /*width: 750px; /* Optional: Adjust to fit your container */
     }
+
     th, td {
         padding: 5px; /* Adds padding inside each cell */
         text-align: center; /* Optional: Align text to the left */
     }
-    td:first-child, th:first-child {
-        padding-left: 0; /* Removes padding on the left of the first cell */
-    }
+
+        td:first-child, th:first-child {
+            padding-left: 0; /* Removes padding on the left of the first cell */
+        }
+
     tr:first-child .od-column {
         border-top-left-radius: 10px;
     }
+
     tr:first-child .do-column {
         border-top-right-radius: 10px;
     }
+
     tr:last-child .od-column {
         border-bottom-left-radius: 10px;
     }
+
     tr:last-child .do-column {
         border-bottom-right-radius: 10px;
     }
+
     .info-table {
         width: 650px;
         margin-bottom: 10px;
     }
-    .info-table td {
-        padding: 10px;
-    }
+
+        .info-table td {
+            padding: 10px;
+        }
+
     .fluent-grid {
         display: flex;
         gap: 10px; /* Adjust the gap as needed */
     }
+
     .fluent-grid-item {
         display: flex;
         flex-direction: row;
         gap: 10px; /* Adjust the gap between date and time pickers */
     }
+
     .custom-grid-item {
         width: 150px;
     }
+
     .bold-label {
         font-weight: bold;
     }
+
     .validation-error {
         color: red;
         margin-bottom: 10px;
     }
+
     .fluent-table {
         border-collapse: collapse;
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
+
     .fluent-caption {
         caption-side: top;
         text-align: left;
@@ -2665,28 +2863,32 @@
         background-color: dimgrey;
         color: white;
     }
+
     .fluent-thead {
         background-color: lightgrey;
         color: dimgray;
     }
-    .fluent-thead th {
-        padding: 5px;
-        text-align: left;
-        
-    }
+
+        .fluent-thead th {
+            padding: 5px;
+            text-align: left;
+        }
+
     .fluent-row {
-        
     }
-    .fluent-row td {
-        padding: 5px;
-    }
-    .fluent-row div {
-        display: flex;
-        align-items: center;
-    }
-    .fluent-row div FluentButton {
-        margin-right: 5px;
-    }
+
+        .fluent-row td {
+            padding: 5px;
+        }
+
+        .fluent-row div {
+            display: flex;
+            align-items: center;
+        }
+
+            .fluent-row div FluentButton {
+                margin-right: 5px;
+            }
 </style>
 
 <style>
@@ -2744,7 +2946,7 @@
             font-size: 14px;
             border: 1px solid #ddd;
             white-space: nowrap; /* Prevent line breaks */
-            overflow: visible;   
+            overflow: visible;
             text-overflow: ellipsis; /* Add "..." for overflowing text */
         }
 
@@ -2765,10 +2967,65 @@
         padding: 8px; /* Add padding for spacing */
         border: 1px solid #ddd; /* Optional: Match table border */
         border-bottom: none; /* Remove bottom border for seamless look with the table */
-}
+    }
+
 
 </style>
+<style>
+    .tableBT-wrapper {
+        display: table;
+        width: 100%;
+    }
 
+    .tableBT-container {
+        width: 100%;
+        max-width: 500px;
+        border-collapse: collapse; /* Ensure no space between tables */
+        font-family: Arial, sans-serif;
+    }
+
+        .tableBT-container thead tr:first-child th {
+            color: white;
+            font-weight: bold;
+            text-align: center;
+            padding: 8px;
+        }
+
+        .tableBT-container th, .tableBT-container td {
+            padding: 8px;
+            font-size: 14px;
+            border: 1px solid #ddd;
+            white-space: nowrap; /* Prevent line breaks */
+            overflow: hidden; /* Prevent content from spilling out */
+            text-overflow: ellipsis; /* Add "..." for overflowing text */
+            align-items: center; /* Vertically center content */
+            justify-content: space-between; /* Push text and icon to the edges */
+        }
+
+    .tableBT-header-left {
+        background-color: var(--accent-fill-rest);
+    }
+
+    .tableBT-container td {
+        border-top: none; /* Remove border between tables */
+    }
+
+    .tableBT-fullwidth {
+        width: 100%; /* Allow the table to stretch within the parent container */
+        max-width: 500px; /* Match the max-width of the first two tables */
+        margin: 0 auto; /* Center the table horizontally within the parent */
+        table-layout: auto; /* Allow columns to adjust based on content */
+    }
+
+        .tableBT-fullwidth th,
+        .tableBT-fullwidth td {
+            white-space: nowrap; /* Keep content in a single line */
+            overflow: hidden; /* Prevent content overflow */
+            text-overflow: ellipsis; /* Truncate with "..." if content exceeds width */
+            padding: 8px; /* Standard padding */
+            text-align: center; /* Center-align text */
+        }
+</style>
 <script>
     function triggerFileUpload() {
         document.getElementById("fileInput").click();

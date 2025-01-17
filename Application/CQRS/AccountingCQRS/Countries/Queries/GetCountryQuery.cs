@@ -25,7 +25,7 @@ namespace Application.CQRS.AccountingCQRS.Countries.Queries
                                              .FirstOrDefaultAsync(cancellationToken);
             var countryVm = _mapper.Map<CountryVm>(country);
             //var currency = currencies.FirstOrDefault(p => p.Id == countryVm.CurrencyId);
-            //countryVm.CurrencyVmName = currency?.Name ?? string.Empty;
+            //countryVm.CurrencyVmName = currency?.Title ?? string.Empty;
 
             return countryVm;
         }

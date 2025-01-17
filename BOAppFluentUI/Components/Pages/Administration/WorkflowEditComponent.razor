@@ -226,7 +226,7 @@
     {
         Assembly assembly = Assembly.Load("Application");
         var classes = assembly.GetTypes()
-        // .Where(t => t.IsClass && t.Name.EndsWith("FormVm"))
+        // .Where(t => t.IsClass && t.Title.EndsWith("FormVm"))
         .Where(t => t.IsClass && typeof(IFormVm).IsAssignableFrom(t))
         .Select(t => t.Name)
         .ToList();

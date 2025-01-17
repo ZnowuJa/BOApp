@@ -122,7 +122,7 @@
 
     private void OnPositionSearch(OptionsSearchEventArgs<PositionVm> e)
     {
-        // e.Items = itemPositions.Where(g => g.Name.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
+        // e.Items = itemPositions.Where(g => g.Title.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
         var addedPositionIds = Content.Positions.Select(p => p.Id).ToHashSet();
         e.Items = itemPositions
             .Where(p => !addedPositionIds.Contains(p.Id) && p.Name.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
