@@ -4,7 +4,9 @@
 @attribute [Authorize(Policy = "Technician")]
 
 <h3>Licencje AutoStacja</h3>
-<FluentTabs @bind-ActiveTabId="@activeid" OnTabChange="HandleOnTabChange">
+<FluentTabs @bind-ActiveTabId="@activeid" 
+            OnTabChange="HandleOnTabChange"
+            Size="TabSize.Medium">
     <FluentTab Label="Nowa licencja" Icon="@(new Icons.Regular.Size24.AddCircle())" Id="tab-1">
         <LicenceAdd_Component/>
     </FluentTab>

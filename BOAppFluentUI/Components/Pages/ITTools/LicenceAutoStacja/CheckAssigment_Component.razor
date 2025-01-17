@@ -13,12 +13,15 @@
         <FluentButton Appearance="Appearance.Accent" OnClick="@SaveAsync">Sprawdź przypisanie</FluentButton>
     </div>
 </EditForm>
+<hr />
+@if (!string.IsNullOrEmpty(LicenceName))
+{
+    <div>
+        <p>Komputer: <b>@Content.PunktTelefon</b></p>
+        <p>Ma przypisaną licencję: <b>@LicenceName</b></p>
+    </div>
+}
 
-<div>
-    <hr />
-    <p>Komputer: <b>@Content.PunktTelefon</b></p>
-    <p>Ma przypisaną licencję: <b>@LicenceName</b></p>
-</div>
 
 @code {
     private MysystemPunktVm Content { get; set; } = new MysystemPunktVm();

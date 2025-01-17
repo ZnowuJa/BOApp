@@ -7,11 +7,12 @@
 <h3>Nowa licencja</h3>
 
 <EditForm EditContext="_context">
-    <DataAnnotationsValidator/>
+    <DataAnnotationsValidator />
     <FluentTextField @bind-Value="Content.Nazwa" Label="Nazwa licencji"></FluentTextField>
     <FluentValidationMessage For="@(() => Content.Nazwa)" />
     <FluentTextField @bind-Value="Content.PunktTelefon" Label="Nazwa komputera"></FluentTextField>
     <FluentValidationMessage For="@(() => Content.PunktTelefon)" />
+    <hr />
     <FluentRadioGroup TValue="string" Required="true" @bind-Value="SelectedSalonId" name="Salons" Orientation="Orientation.Vertical">
         @foreach (var salon in Salons)
         {
@@ -35,7 +36,7 @@
     {
         _context = new EditContext(Content);
     }
-    
+
     private List<Salon> Salons { get; set; } = new List<Salon>
     {
         new Salon { Name = "Bentley Katowice", Id = "997" },
@@ -74,7 +75,7 @@
     private async Task SaveAsync()
     {
         Console.WriteLine("SaveAsync starts...");
-        
+
         try
         {
             // Znajdź wybrany salon
@@ -92,7 +93,7 @@
 
             // Ustawienie wiadomości sukcesu
             Message = $"Dodano licencję {Content.Nazwa} dla salonu {selectedSalon.Name} i komputera {Content.PunktTelefon}.";
-            await ShowDialogAsync(Message , isError: false);
+            await ShowDialogAsync(Message, isError: false);
         }
         catch (Exception ex)
         {
@@ -101,7 +102,7 @@
             Message = $"Błąd: {ex.Message}";
         }
     }
-    
+
     private async Task ShowDialogAsync(string message, bool isError)
     {
         var dialog = isError
@@ -110,7 +111,7 @@
 
         var result = await dialog.Result;
     }
-    
+
     private class Salon
     {
         public string Name { get; set; }

@@ -10,7 +10,7 @@
     <FluentTextField @bind-Value="Content.Nazwa" Label="Nazwa licencji"></FluentTextField>
     <FluentValidationMessage For="@(() => Content.Nazwa)"/>
     <div>
-        <label>Virtual Names Dealers:</label>
+        <hr/>
         <FluentStack Orientation="Orientation.Vertical">
         @foreach (var salon in Salons)
         {
