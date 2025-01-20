@@ -60,6 +60,7 @@ public class AppDbContext : IdentityDbContext<AppUser>, IAppDbContext
     public DbSet<ITScrappingForm> ITScrappingForms { get; set; }
     public DbSet<ITSaleForm> ITSaleForms { get; set; }
     public DbSet<AccountingNoteForm> AccountingNotes { get; set; }
+    public DbSet<ManagerDeputy> ManagerDeputies { get; set; }
 
 
 
@@ -105,6 +106,10 @@ public class AppDbContext : IdentityDbContext<AppUser>, IAppDbContext
         //    .WithOne(a => a.SaleForm)
         //    .HasForeignKey(a => a.SaleFormId)
         //    .IsRequired(false);
+
+        builder.Entity<ManagerDeputy>()
+        .HasIndex(m => m.ManagerId)
+        .IsUnique();
 
         base.OnModelCreating(builder);
 

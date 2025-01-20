@@ -1,0 +1,41 @@
+﻿@page "/managerdeputy"
+@using Microsoft.AspNetCore.Authorization
+@using Application.ViewModels.General
+
+@attribute [Authorize(Policy = "Accountant")]
+
+<h3>ManagerDeputyPage</h3>
+
+@if (items == null)
+{
+    <FluentProgressRing>Ładownie...</FluentProgressRing>
+}
+else
+{
+    
+}
+
+@code {
+    private IQueryable<ManagerDeputyVm> items;
+    private IQueryable<ManagerDeputyVm> filtredItems => items.Where(x =>
+    filterColumns.All(column => string.IsNullOrWhiteSpace(column.Filter) ||
+    column.Property(x).Contains(column.Filter, StringComparison.CurrentCultureIgnoreCase)));
+
+    PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
+
+    private List<FilterColumn<ManagerDeputyVm>> filterColumns = new List<FilterColumn<ManagerDeputyVm>>
+    {
+        new FilterColumn<ManagerDeputyVm> { FirstRow = true, Label = "Id", Property = c => c.Id.ToString(), IsVisible = true, Width = "200px" },
+        new FilterColumn<ManagerDeputyVm> { FirstRow = true, Label = "LongName", Property = c => c.LongName, IsVisible = true, Width = "200px" },
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Load();
+    }
+
+    private async Task Load()
+    {
+        items = null;
+    }
+}

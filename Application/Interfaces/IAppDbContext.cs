@@ -52,6 +52,7 @@ public interface IAppDbContext
     DbSet<GLAccount> GLAccounts { get; set; }
     DbSet<VATRate> VATRates { get; set; }
     DbSet<AccountingNoteForm> AccountingNotes { get; set; }
+    DbSet<ManagerDeputy> ManagerDeputies { get; set; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default);
