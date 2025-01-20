@@ -1,4 +1,8 @@
-﻿using System;
+﻿using Application.ViewModels.Accounting;
+using AutoMapper;
+using Domain.Entities.Administration;
+using Domain.Entities.BNP;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,5 +19,10 @@ namespace Application.ViewModels.General
         public string LongName { get; set; }
 
         public List<OrganisationRoleVm>? Deputies { get; set; } = new();
+
+        public void Mapping(Profile profile)
+        {
+            profile.CreateMap<ManagerDeputy, ManagerDeputyVm>().ReverseMap();
+        }
     }
 }

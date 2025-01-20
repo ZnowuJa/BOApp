@@ -85,7 +85,7 @@
 
   <ItemGroup>
     <Folder Include="AAA_IDEAS\" />
-    <Folder Include="CQRS\General\ManagerDeputy\" />
+    <Folder Include="CQRS\General\ManagerDeputies\Commands\" />
     <Folder Include="CQRS\ITToolsCQRS\" />
     <Folder Include="ViewModels\ITWarehouse\" />
   </ItemGroup>
