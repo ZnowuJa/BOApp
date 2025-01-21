@@ -20,7 +20,7 @@ namespace Application.ViewModels.General
 
         public List<OrganisationRoleVm>? Deputies { get; set; } = new();
 
-        public void Mapping(Profile profile)
+        public static void Mapping(Profile profile)
         {
             profile.CreateMap<ManagerDeputy, ManagerDeputyVm>().ReverseMap();
         }

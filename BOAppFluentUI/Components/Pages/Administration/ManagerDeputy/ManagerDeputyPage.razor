@@ -1,10 +1,20 @@
 ﻿@page "/managerdeputy"
+@using Application.CQRS.General.ManagerDeputies.Commands
 @using Microsoft.AspNetCore.Authorization
 @using Application.ViewModels.General
 
+@inject IMediator _mediator
+
 @attribute [Authorize(Policy = "Accountant")]
 
+
 <h3>ManagerDeputyPage</h3>
+
+<h3>Synchronize Managers</h3>
+
+<button @onclick="SyncManagers">Synchronize</button>
+
+<p>@statusMessage</p>
 
 @if (items == null)
 {
@@ -26,7 +36,9 @@ else
     private List<FilterColumn<ManagerDeputyVm>> filterColumns = new List<FilterColumn<ManagerDeputyVm>>
     {
         new FilterColumn<ManagerDeputyVm> { FirstRow = true, Label = "Id", Property = c => c.Id.ToString(), IsVisible = true, Width = "200px" },
+        new FilterColumn<ManagerDeputyVm> { FirstRow = true, Label = "ManagerId", Property = c => c.ManagerId.ToString(), IsVisible = true, Width = "200px" },
         new FilterColumn<ManagerDeputyVm> { FirstRow = true, Label = "LongName", Property = c => c.LongName, IsVisible = true, Width = "200px" },
+        //new FilterColumn<ManagerDeputyVm> { FirstRow = true, Label = "Deputies", Property = c => c.Deputies, IsVisible = true, Width = "200px" },
     };
 
     protected override async Task OnInitializedAsync()
@@ -37,5 +49,19 @@ else
     private async Task Load()
     {
         items = null;
+    }
+
+    private string statusMessage = "";
+
+    private async Task SyncManagers()
+    {
+        try
+        {
+            statusMessage = await _mediator.Send(new SyncManagersCommand());
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"Error: {ex.Message}";
+        }
     }
 }
