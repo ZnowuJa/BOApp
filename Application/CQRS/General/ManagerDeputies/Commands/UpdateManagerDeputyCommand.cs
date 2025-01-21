@@ -4,6 +4,7 @@ using Application.ViewModels.General;
 using AutoMapper;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 
 namespace Application.CQRS.General.ManagerDeputies.Commands
 {
@@ -27,8 +28,8 @@ public class UpdateManagerDeputyCommandHandler(IAppDbContext appDbContext, IMapp
         var res = await _appDbContext.SaveChangesAsync(cancellationToken);
         return existingManagerDeputy.Id;
     }
-/*    private string SerializeRoles(List<OrganisationRoleVm> roles)
+    private string SerializeRoles(List<OrganisationRoleVm> roles)
     {
         return roles == null || roles.Count == 0 ? string.Empty : JsonSerializer.Serialize(roles);
-    }*/
+    }
 }

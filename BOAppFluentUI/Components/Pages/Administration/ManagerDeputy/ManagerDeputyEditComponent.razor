@@ -1,5 +1,110 @@
-﻿<h3>ManagerDeputyEditComponent</h3>
+﻿@* Manager Deputy Edit Component *@
+@using Application.CQRS.General.ManagerDeputies.Queries
+@using Application.ViewModels.General
+
+@inject IMediator _mediator
+@implements IDialogContentComponent<ManagerDeputyVm>
+
+<!-- Header -->
+<FluentDialogHeader ShowDismiss="true">
+    <FluentStack VerticalAlignment="VerticalAlignment.Center">
+        <FluentIcon Value="@(new Icons.Regular.Size24.WindowApps())" />
+        <FluentLabel Typo="Typography.PaneHeader">
+            @Dialog.Instance.Parameters.Title
+        </FluentLabel>
+    </FluentStack>
+</FluentDialogHeader>
+
+<!-- Body -->
+<FluentDialogBody Style="overflow-y: auto; overflow-x: auto;">
+    <EditForm EditContext="_editContext">
+        @* <FluentValidationValidator @ref="_fluentValidator" /> *@
+        <DataAnnotationsValidator />
+
+        <div class="card">
+            <FluentTextField Id="LongName" @bind-Value="@Content.LongName" Disabled="true" Placeholder="Enter LongName">LongName:</FluentTextField>
+            <FluentValidationMessage For="@(() => Content.LongName)" />
+        </div>
+        <div class="card">
+            <FluentAutocomplete TOption="ManagerDeputyVm"
+                                AutoComplete="off"
+                                Autofocus="true"
+                                Label="Select Deputies"
+                                Width="450px"
+                                MaxAutoHeight="200px"
+                                Placeholder="Search deputies"
+                                OnOptionsSearch="@OnSearchLongNameAsync"
+                                OptionText="@(item => item.LongName)"
+                                @bind-SelectedOptions="@SelectedManagerDeputies" />
+            <p>
+                <b>Selected Deputies:</b> @(String.Join(", ", SelectedManagerDeputies.Select(i => i.LongName)))
+            </p>
+        </div>
+
+    </EditForm>
+</FluentDialogBody>
+
+<!-- Footer -->
+<FluentDialogFooter>
+    <FluentButton Appearance="Appearance.Accent" OnClick="@SaveAsync">Save</FluentButton>
+    <FluentButton Appearance="Appearance.Neutral" OnClick="@CancelAsync">Cancel</FluentButton>
+</FluentDialogFooter>
 
 @code {
+    [Parameter] public ManagerDeputyVm Content { get; set; } = default!;
+    [CascadingParameter] public FluentDialog Dialog { get; set; } = default!;
 
+    private EditContext _editContext;
+    private List<ManagerDeputyVm> AllManagerDeputies = new();
+
+    IEnumerable<ManagerDeputyVm> SelectedManagerDeputies = Array.Empty<ManagerDeputyVm>();
+    //private List<ManagerDeputyVm> SelectedManagerDeputies = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _editContext = new EditContext(Content);
+        AllManagerDeputies = await LoadManagerDeputiesAsync();
+
+    }
+
+    private async Task<List<ManagerDeputyVm>> LoadManagerDeputiesAsync()
+    {
+        var itemsy = await _mediator.Send(new GetAllManagerDeputiesQuery());
+        return itemsy.ToList();
+    }
+
+    private async Task OnSearchLongNameAsync(OptionsSearchEventArgs<ManagerDeputyVm> e)
+    {
+        e.Items = AllManagerDeputies
+            .Where(i => i.LongName.Contains(e.Text, StringComparison.OrdinalIgnoreCase))
+            .OrderBy(i => i.LongName)
+            .ToList();
+    }
+
+    private async Task SaveAsync()
+    {
+        if (!_editContext.Validate())
+        {
+            Console.WriteLine("Validation failed.");
+            return;
+        }
+
+        Content.Deputies = SelectedManagerDeputies
+            .Select(d => new OrganisationRoleVm { EmpId = d.ManagerId})
+            .ToList();
+
+        try
+        {
+            await Dialog.CloseAsync(Content);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error closing dialog: {ex.Message}");
+        }
+    }
+
+    private async Task CancelAsync()
+    {
+        await Dialog.CancelAsync();
+    }
 }

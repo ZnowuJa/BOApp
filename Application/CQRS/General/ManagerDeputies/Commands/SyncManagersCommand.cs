@@ -4,7 +4,6 @@ using Domain.Entities.Administration;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-
 namespace Application.CQRS.General.ManagerDeputies.Commands
 {
     public class SyncManagersCommand : IRequest<string>

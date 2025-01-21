@@ -1,16 +1,11 @@
-﻿using Application.ViewModels.Accounting;
+﻿using Application.Mappings;
 using AutoMapper;
 using Domain.Entities.Administration;
-using Domain.Entities.BNP;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Text.Json;
 
 namespace Application.ViewModels.General
 {
-    public class ManagerDeputyVm
+    public class ManagerDeputyVm : IMapFrom<ManagerDeputy>
     {
         public int Id { get; set; }
 
@@ -22,7 +17,21 @@ namespace Application.ViewModels.General
 
         public static void Mapping(Profile profile)
         {
-            profile.CreateMap<ManagerDeputy, ManagerDeputyVm>().ReverseMap();
+            profile.CreateMap<ManagerDeputy, ManagerDeputyVm>()
+        .ForMember(dest => dest.Deputies, opt => opt.MapFrom(src => DeserializeRoles(src.Deputies)));
+
+            profile.CreateMap<ManagerDeputyVm, ManagerDeputy>()
+                .ForMember(dest => dest.Deputies, opt => opt.MapFrom(src => SerializeRoles(src.Deputies)));
+        }
+
+        private static string SerializeRoles(List<OrganisationRoleVm> roles)
+        { 
+            return roles == null || roles.Count == 0 ? "[]" : JsonSerializer.Serialize(roles);
+        }
+
+        private static List<OrganisationRoleVm> DeserializeRoles(string json)
+        {
+            return string.IsNullOrEmpty(json) ? new List<OrganisationRoleVm>() : JsonSerializer.Deserialize<List<OrganisationRoleVm>>(json);
         }
     }
 }
