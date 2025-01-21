@@ -12,8 +12,8 @@ using Persistance;
 namespace Persistance.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20241031133458_New Roles in Organisations")]
-    partial class NewRolesinOrganisations
+    [Migration("20250119233526_MileageReport2")]
+    partial class MileageReport2
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -105,6 +105,328 @@ namespace Persistance.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("Domain.Entities.Accounting.AccountingNoteForm", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("AmountPaid")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("AmountRemaining")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Attachment")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("Created")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DG")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DamageNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Dealer")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DealerName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Exported")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("FolderName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("Inactivated")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("InactivatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Insurer")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("MPK")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("Modified")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NoteContent")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NoteNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NotesOrPayments")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Number")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NumberPrefix")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("OperationArea")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("OrderNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("PaymentDeadline")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PaymentMethod")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Registration")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ServiceAdvisor")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Status")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("StatusId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Statuses")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("VIN")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("WorkflowTemplateId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AccountingNotes");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Accounting.CostCenter", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("Inactivated")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("InactivatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("MPK")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("StatusId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("CostCenters");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Accounting.Country", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("Allowance")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("CountryCode")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("CurrencyId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("Inactivated")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("InactivatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsEU")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsPL")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal>("LocalTravelAllowance")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("MaxHotelCost")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("StatusId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("TravelAllowance")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Countries");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Accounting.GLAccount", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AccountNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("Inactivated")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("InactivatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("StatusId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("GLAccounts");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Accounting.NbpCurrencyRate", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("Mid")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateOnly>("RateDate")
+                        .HasColumnType("date")
+                        .HasColumnName("Rate_date");
+
+                    b.HasKey("Id");
+
+                    b.ToTable((string)null);
+
+                    b.ToView("v_NBPExchangeRates", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Entities.Accounting.VATRate", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("Inactivated")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("InactivatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Information")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("int");
+
+                    b.Property<double>("Percentage")
+                        .HasColumnType("float");
+
+                    b.Property<int?>("StatusId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("VATRates");
+                });
+
             modelBuilder.Entity("Domain.Entities.Administration.BackgroundJob", b =>
                 {
                     b.Property<int>("Id")
@@ -135,6 +457,19 @@ namespace Persistance.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("BackgroundJobs");
+                });
+
+            modelBuilder.Entity("Domain.Entities.BusinessOperations.CompanyCarRegistrationNumber", b =>
+                {
+                    b.Property<string>("RegistrationNumber")
+                        .HasColumnType("nvarchar(450)")
+                        .HasColumnName("registration_number");
+
+                    b.HasKey("RegistrationNumber");
+
+                    b.ToTable((string)null);
+
+                    b.ToView("v_CompanyCars", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.CoC.GroupCoC", b =>
@@ -223,7 +558,7 @@ namespace Persistance.Migrations
                     b.Property<string>("InactivatedBy")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Title")
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -248,6 +583,12 @@ namespace Persistance.Migrations
                     b.Property<bool>("Deleted")
                         .HasColumnType("bit");
 
+                    b.Property<string>("DstFileName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DstPath")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("FolderName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -256,27 +597,23 @@ namespace Persistance.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("FormId")
+                    b.Property<int?>("FormId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("ITSaleFormId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("ITScrappingFormId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("OnboardingFormId")
-                        .HasColumnType("int");
+                    b.Property<string>("FormPurpose")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Order")
                         .HasColumnType("int");
 
-                    b.Property<string>("Prefix")
+                    b.Property<string>("OriginalFileName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("TestFormId")
-                        .HasColumnType("int");
+                    b.Property<string>("Prefix")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("TmpFileExtension")
                         .IsRequired()
@@ -291,14 +628,6 @@ namespace Persistance.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ITSaleFormId");
-
-                    b.HasIndex("ITScrappingFormId");
-
-                    b.HasIndex("OnboardingFormId");
-
-                    b.HasIndex("TestFormId");
 
                     b.ToTable("FormFiles");
                 });
@@ -325,7 +654,7 @@ namespace Persistance.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Title")
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -362,6 +691,14 @@ namespace Persistance.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Role_HRSpecialists")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Role_ITAssetManager")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Role_ITManager")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -503,10 +840,6 @@ namespace Persistance.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("SaleFormId");
-
-                    b.HasIndex("ScrappingFormId");
-
                     b.ToTable("Assets");
                 });
 
@@ -643,7 +976,7 @@ namespace Persistance.Migrations
                     b.Property<int>("LeadingZeros")
                         .HasColumnType("int");
 
-                    b.Property<string>("Title")
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -675,7 +1008,7 @@ namespace Persistance.Migrations
                     b.Property<string>("InactivatedBy")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Title")
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -730,7 +1063,6 @@ namespace Persistance.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("DealerSAPNumber")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("FullName")
@@ -749,7 +1081,7 @@ namespace Persistance.Migrations
                     b.Property<string>("ModifiedBy")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Title")
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -789,7 +1121,7 @@ namespace Persistance.Migrations
                     b.Property<string>("InactivatedBy")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Title")
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -815,7 +1147,7 @@ namespace Persistance.Migrations
                     b.Property<string>("InactivatedBy")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Title")
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -1088,7 +1420,7 @@ namespace Persistance.Migrations
                     b.Property<string>("InactivatedBy")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Title")
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -1191,7 +1523,7 @@ namespace Persistance.Migrations
                     b.Property<string>("ModifiedBy")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Title")
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -1288,7 +1620,7 @@ namespace Persistance.Migrations
                     b.Property<string>("ModifiedBy")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Title")
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -1334,7 +1666,7 @@ namespace Persistance.Migrations
                     b.Property<string>("InactivatedBy")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Title")
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -1360,7 +1692,7 @@ namespace Persistance.Migrations
                     b.Property<string>("InactivatedBy")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Title")
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -1390,7 +1722,7 @@ namespace Persistance.Migrations
                     b.Property<string>("InactivatedBy")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Title")
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -1416,7 +1748,7 @@ namespace Persistance.Migrations
                     b.Property<string>("InactivatedBy")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Title")
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -1429,6 +1761,342 @@ namespace Persistance.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Warehouses");
+                });
+
+            modelBuilder.Entity("Domain.Forms.Accounting.BusinessTravelForm", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Accommodations")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("AccomodationAllowanceSumNotPL")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<decimal?>("AccomodationAllowanceSumPL")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<bool>("AdvancePayment")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal?>("AdvancePaymentAmount")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<decimal?>("AdvancePaymentCash")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<string>("AdvancePaymentCurrency")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateOnly?>("AdvancePaymentDate")
+                        .HasColumnType("date");
+
+                    b.Property<decimal>("AllowanceNotPL")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<decimal>("AllowancePL")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<string>("Approvals")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("BTMappingAdvancePayment")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("BTMappingPayout")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("BankAccountNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Bills")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CashPayoutNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CashPoint")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CashReceiptNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("CompanyVehicle")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("CompanyVehicleNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ConveyanceTypes")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Countries")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("Created")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("CurrencyExchamngeRate")
+                        .HasColumnType("decimal(10,4)");
+
+                    b.Property<DateOnly>("CurrencyExchangeRateDate")
+                        .HasColumnType("date");
+
+                    b.Property<decimal?>("DeductionMealsNotPL")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<decimal?>("DeductionMealsPL")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Destination")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DestinationCountry")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DestinationCountryCurrency")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EmployeeName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("EnovaEmpId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FolderName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FormFiles")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("Inactivated")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("InactivatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LVL1_EmployeeName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LVL1_EnovaEmpId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LVL2_EmployeeName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LVL2_EnovaEmpId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LVL3_EmployeeName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LVL3_EnovaEmpId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LVL4_EmployeeName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LVL4_EnovaEmpId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LVL5_EmployeeName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LVL5_EnovaEmpId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LVL6_EmployeeName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LVL6_EnovaEmpId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Level1Approvers")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Level2Approvers")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Level3Approvers")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Level4Approvers")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Level5Approvers")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Level6Approvers")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LocalTravels")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Meals")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("MileageRegister")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("Modified")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Number")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NumberPrefix")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Objective")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("OperationArea")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("OrganisationSapNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PayoutCashierEmpId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("PrivateVehicle")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("PrivateVehicleMilage")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("PublicTransport")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("PublicTransportPaid")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("ReceiptCashierEmpId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RejectReason")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Stages")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Status")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("StatusId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Statuses")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("SumAllowanceNotPL")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<decimal?>("SumAllowancePL")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<decimal?>("SumLocalTravelAllowanceNotPL")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<decimal?>("SumLocalTravelAllowancePL")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<decimal?>("SumPrivateVehicleAllowance")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("TotalAllowanceNotPL")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<decimal>("TotalAllowancePL")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<decimal>("TotalBillsNotPL")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<decimal>("TotalBillsPL")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<decimal>("TotalPayOut")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<string>("Transit")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Transportation")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("WorkflowTemplateId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("BusinessTravels");
                 });
 
             modelBuilder.Entity("Domain.Forms.DeferralPaymentForm", b =>
@@ -1547,7 +2215,7 @@ namespace Persistance.Migrations
                     b.Property<int?>("StatusId")
                         .HasColumnType("int");
 
-                    b.Property<string>("BusinessTravelStatuses")
+                    b.Property<string>("Statuses")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -1588,8 +2256,15 @@ namespace Persistance.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("CompanyId")
+                    b.Property<string>("AssetIds")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("CompanyId")
                         .HasColumnType("int");
+
+                    b.Property<string>("CompanyName")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("Created")
                         .HasColumnType("datetime2");
@@ -1601,10 +2276,17 @@ namespace Persistance.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("EmployeeId")
+                    b.Property<int?>("EmployeeId")
                         .HasColumnType("int");
 
+                    b.Property<string>("EmployeeName")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("FolderName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FormFiles")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("Inactivated")
@@ -1669,7 +2351,7 @@ namespace Persistance.Migrations
                     b.Property<int?>("StatusId")
                         .HasColumnType("int");
 
-                    b.Property<string>("BusinessTravelStatuses")
+                    b.Property<string>("Statuses")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -1681,10 +2363,6 @@ namespace Persistance.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("CompanyId");
-
-                    b.HasIndex("EmployeeId");
 
                     b.ToTable("ITSaleForms");
                 });
@@ -1701,6 +2379,9 @@ namespace Persistance.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Assets")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("CompanyId")
                         .HasColumnType("int");
 
@@ -1779,7 +2460,7 @@ namespace Persistance.Migrations
                     b.Property<int?>("StatusId")
                         .HasColumnType("int");
 
-                    b.Property<string>("BusinessTravelStatuses")
+                    b.Property<string>("Statuses")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -1791,8 +2472,6 @@ namespace Persistance.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("CompanyId");
 
                     b.ToTable("ITScrappingForms");
                 });
@@ -1904,7 +2583,7 @@ namespace Persistance.Migrations
                     b.Property<int?>("StatusId")
                         .HasColumnType("int");
 
-                    b.Property<string>("BusinessTravelStatuses")
+                    b.Property<string>("Statuses")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -2022,7 +2701,7 @@ namespace Persistance.Migrations
                     b.Property<int?>("StatusId")
                         .HasColumnType("int");
 
-                    b.Property<string>("BusinessTravelStatuses")
+                    b.Property<string>("Statuses")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -2079,7 +2758,7 @@ namespace Persistance.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Title")
+                    b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -2112,7 +2791,7 @@ namespace Persistance.Migrations
                         .IsConcurrencyToken()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Title")
+                    b.Property<string>("Name")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
@@ -2225,13 +2904,13 @@ namespace Persistance.Migrations
                     b.Property<string>("LoginProvider")
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("Title")
+                    b.Property<string>("Name")
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Value")
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("UserId", "LoginProvider", "Title");
+                    b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
@@ -2243,40 +2922,6 @@ namespace Persistance.Migrations
                         .HasForeignKey("GroupCoCId");
 
                     b.Navigation("GroupCoC");
-                });
-
-            modelBuilder.Entity("Domain.Entities.Common.FormFile", b =>
-                {
-                    b.HasOne("Domain.Forms.ITForms.ITSaleForm", null)
-                        .WithMany("FormFiles")
-                        .HasForeignKey("ITSaleFormId");
-
-                    b.HasOne("Domain.Forms.ITForms.ITScrappingForm", null)
-                        .WithMany("FormFiles")
-                        .HasForeignKey("ITScrappingFormId");
-
-                    b.HasOne("Domain.Forms.OnboardingForm", null)
-                        .WithMany("FormFiles")
-                        .HasForeignKey("OnboardingFormId");
-
-                    b.HasOne("Domain.Forms.TestForm", null)
-                        .WithMany("FormFiles")
-                        .HasForeignKey("TestFormId");
-                });
-
-            modelBuilder.Entity("Domain.Entities.ITWarehouse.Asset", b =>
-                {
-                    b.HasOne("Domain.Forms.ITForms.ITSaleForm", "SaleForm")
-                        .WithMany("Assets")
-                        .HasForeignKey("SaleFormId");
-
-                    b.HasOne("Domain.Forms.ITForms.ITScrappingForm", "ScrappingForm")
-                        .WithMany("Assets")
-                        .HasForeignKey("ScrappingFormId");
-
-                    b.Navigation("SaleForm");
-
-                    b.Navigation("ScrappingForm");
                 });
 
             modelBuilder.Entity("Domain.Entities.ITWarehouse.Asset_Note", b =>
@@ -2346,36 +2991,6 @@ namespace Persistance.Migrations
                     b.Navigation("Category");
 
                     b.Navigation("Vendor");
-                });
-
-            modelBuilder.Entity("Domain.Forms.ITForms.ITSaleForm", b =>
-                {
-                    b.HasOne("Domain.Entities.ITWarehouse.Company", "Company")
-                        .WithMany()
-                        .HasForeignKey("CompanyId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Entities.ITWarehouse.Employee", "Employee")
-                        .WithMany()
-                        .HasForeignKey("EmployeeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Company");
-
-                    b.Navigation("Employee");
-                });
-
-            modelBuilder.Entity("Domain.Forms.ITForms.ITScrappingForm", b =>
-                {
-                    b.HasOne("Domain.Entities.ITWarehouse.Company", "Company")
-                        .WithMany()
-                        .HasForeignKey("CompanyId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Company");
                 });
 
             modelBuilder.Entity("Domain.WorkFlows.WorkflowStep", b =>
@@ -2458,30 +3073,6 @@ namespace Persistance.Migrations
             modelBuilder.Entity("Domain.Entities.CoC.GroupCoC", b =>
                 {
                     b.Navigation("Positions");
-                });
-
-            modelBuilder.Entity("Domain.Forms.ITForms.ITSaleForm", b =>
-                {
-                    b.Navigation("Assets");
-
-                    b.Navigation("FormFiles");
-                });
-
-            modelBuilder.Entity("Domain.Forms.ITForms.ITScrappingForm", b =>
-                {
-                    b.Navigation("Assets");
-
-                    b.Navigation("FormFiles");
-                });
-
-            modelBuilder.Entity("Domain.Forms.OnboardingForm", b =>
-                {
-                    b.Navigation("FormFiles");
-                });
-
-            modelBuilder.Entity("Domain.Forms.TestForm", b =>
-                {
-                    b.Navigation("FormFiles");
                 });
 
             modelBuilder.Entity("Domain.WorkFlows.WorkflowTemplate", b =>

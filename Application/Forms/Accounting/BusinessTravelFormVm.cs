@@ -19,7 +19,7 @@ using Domain.Forms.Accounting;
 using Domain.Forms.ITForms;
 
 namespace Application.Forms.Accounting;
-public class BusinessTravelFormVm : IMapFrom<ITSaleForm>, IFormAccounting
+public class BusinessTravelFormVm : IMapFrom<BusinessTravelForm>, IFormAccounting
 {
     # region FromTemplate
     // Properties from FormTemplate
@@ -31,11 +31,11 @@ public class BusinessTravelFormVm : IMapFrom<ITSaleForm>, IFormAccounting
     public string NumberPrefix { get; set; } = "DEL";
     public string Status { get; set; } = "Rejestracja";
     public string? Number { get; set; } = "brak numeru";
-    //public List<string> Statuses { get; set; } = new();
+    //public List<string> BusinessTravelStatuses { get; set; } = new();
     public int WorkflowTemplateId { get; set; } = 5;
     # endregion
-    public DateTime? StartDate { get; set; } = DateTime.Now;
-    public DateTime? EndDate { get; set; } = DateTime.Now;
+    public DateTime? StartDate { get; set; } 
+    public DateTime? EndDate { get; set; } 
     public string? Destination { get; set; } = string.Empty;
     public string Objective { get; set; } = string.Empty;
     
@@ -43,22 +43,32 @@ public class BusinessTravelFormVm : IMapFrom<ITSaleForm>, IFormAccounting
     [CountryNotEmptyValidation]
     public CountryVm? DestinationCountry { get; set; } = new();
     public string? DestinationCountryCurrency { get; set; } = string.Empty;
-    # region Transport
+    #region Transport
+        public string Transportation { get; set; }
         public bool PrivateVehicle { get; set; } = false; //does trip requires private car= false;
-        public int PrivateVehicleEngineSize { get; set; } = 0;//private
+        //public int PrivateVehicleEngineSize { get; set; } = 0;//private
+        //public string PrivateVehicleEngineSize {
+        //    get => MileageRegister.PrivateCarEngineSize;
+        //    set => MileageRegister.PrivateCarEngineSize = value;
+        //} 
+
         public int PrivateVehicleMilage { get; set; } = 0;
         [PolishVehicleRegistration]
-        public string PrivateVehicleNumber { get; set; } = string.Empty;
-    
+        //public string PrivateVehicleNumber {
+        //    get => MileageRegister.PrivateCarRegistration; 
+        //    set => MileageRegister.PrivateCarRegistration = value; 
+        //}
+        //public decimal PrivateCarRateFactor { get; set; } = 0;
         public bool CompanyVehicle { get; set; } = false;
         [PolishVehicleRegistration]
         public string CompanyVehicleNumber { get; set; } = string.Empty;
         public bool PublicTransport { get; set; } = false;
         public bool PublicTransportPaid { get; set; } = false;
-    # endregion
+        public MileageRegister MileageRegister { get; set; } = new();
+    #endregion
     #region Approvers&Approvals
 
-        public string? OrganisationSapNumber { get; set; } = string.Empty;
+    public string? OrganisationSapNumber { get; set; } = string.Empty;
         public string EmployeeName { get; set; } = string.Empty;
         public string EnovaEmpId { get; set; } = string.Empty;
         public List<Approval>? Approvals { get; set; } = new();
@@ -70,15 +80,15 @@ public class BusinessTravelFormVm : IMapFrom<ITSaleForm>, IFormAccounting
         public List<OrganisationRoleForFormVm> Level6Approvers { get; set; } = new(); //drugi przełożony na przelew wychodzący i nie tylko
         public string LVL1_EnovaEmpId { get; set; } = string.Empty;
         public string LVL1_EmployeeName { get; set; } = string.Empty; // manager of user
-    public string LVL2_EnovaEmpId { get; set; } = string.Empty;
+        public string LVL2_EnovaEmpId { get; set; } = string.Empty;
         public string LVL2_EmployeeName { get; set; } = string.Empty; // some kind of Director
-    public string LVL3_EnovaEmpId { get; set; } = string.Empty;
+        public string LVL3_EnovaEmpId { get; set; } = string.Empty;
         public string LVL3_EmployeeName { get; set; } = string.Empty; // Cashier
-    public string LVL4_EnovaEmpId { get; set; } = string.Empty;
+        public string LVL4_EnovaEmpId { get; set; } = string.Empty;
         public string LVL4_EmployeeName { get; set; } = string.Empty; // Accountants
-    public string LVL5_EnovaEmpId { get; set; } = string.Empty;
+        public string LVL5_EnovaEmpId { get; set; } = string.Empty;
         public string LVL5_EmployeeName { get; set; } = string.Empty; // Accountants TLs
-    public string LVL6_EnovaEmpId { get; set; } = string.Empty;
+        public string LVL6_EnovaEmpId { get; set; } = string.Empty;
         public string LVL6_EmployeeName { get; set; } = string.Empty;
         public string? RejectReason { get; set; } = string.Empty;
 
@@ -102,11 +112,6 @@ public class BusinessTravelFormVm : IMapFrom<ITSaleForm>, IFormAccounting
     // do delegacji zagranicznej to min. 25% diety należnej wg kraju przeznaczenia i wg ilości naliczonej diety czyli czasu na jaki pracownik wypełnia delegację
     #endregion
     public DateTime CreatedDate { get; set; } = DateTime.Now;
-    //public List<FormFileVm> Files { get; set; } = new();
-    //public List<string> ConveyanceTypes { get; set; } = new()
-    //{
-    //    "Samochód służbowy", "Samochód prywatny", "Transport publiczny"
-    //};
     public List<Stage> Stages { get; set; } = new();
     public List<Accommodation> Accommodations { get; set; } = new();
     public List<Meals> Meals { get; set; } = new();
@@ -116,6 +121,7 @@ public class BusinessTravelFormVm : IMapFrom<ITSaleForm>, IFormAccounting
 
     public BankTransferMapping? BTMappingAdvancePayment { get; set; } = new();
     public BankTransferMapping? BTMappingPayout { get; set; } = new();
+    
     public decimal AllowancePL { get; set; } = 0;
     public decimal AllowanceNotPL { get; set; } = 0;
     public decimal? SumAllowancePL { get; set; } = 0;
@@ -126,7 +132,22 @@ public class BusinessTravelFormVm : IMapFrom<ITSaleForm>, IFormAccounting
     public decimal? AccomodationAllowanceSumNotPL { get; set; } = 0;
     public decimal? SumLocalTravelAllowancePL { get; set; } = 0;
     public decimal? SumLocalTravelAllowanceNotPL { get; set; } = 0;
-    public decimal? SumPrivateVehicleAllowance { get; set; } = 0;
+    public decimal? SumPrivateVehicleAllowance
+    {
+        get
+        {
+            if(MileageRegister.MileageAllowanceRate != 0)
+            {
+                return MileageRegister.MileageAllowanceRate * MileageRegister.Entries.Sum(e => e.Mileage);
+            } else
+            {
+                return 0;
+            }
+
+           
+        }
+    }
+
     public Location CashPoint { get; set; } = new();
     public decimal TotalBillsPL
     {
@@ -182,7 +203,7 @@ public class BusinessTravelFormVm : IMapFrom<ITSaleForm>, IFormAccounting
     {
         profile.CreateMap<BusinessTravelForm, BusinessTravelFormVm>()
             .ForMember(dest => dest.FormFiles, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<FormFileVm>>(src.FormFiles)))
-            //.ForMember(dest => dest.Statuses, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<string>>(src.Statuses)))
+            //.ForMember(dest => dest.BusinessTravelStatuses, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<string>>(src.BusinessTravelStatuses)))
             .ForMember(dest => dest.Countries, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<CountryVm>>(src.Countries)))
             .ForMember(dest => dest.DestinationCountry, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<CountryVm>(src.DestinationCountry)))
             .ForMember(dest => dest.Approvals, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<Approval>>(src.Approvals)))
@@ -204,11 +225,12 @@ public class BusinessTravelFormVm : IMapFrom<ITSaleForm>, IFormAccounting
             .ForMember(dest => dest.Bills, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<Bill>>(src.Bills)))
             .ForMember(dest => dest.BTMappingAdvancePayment, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<BankTransferMapping>(src.BTMappingAdvancePayment)))
             .ForMember(dest => dest.BTMappingPayout, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<BankTransferMapping>(src.BTMappingPayout)))
-            .ForMember(dest => dest.CashPoint, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<Location>(src.CashPoint)));
+            .ForMember(dest => dest.CashPoint, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<Location>(src.CashPoint)))
+            .ForMember(dest => dest.MileageRegister, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<MileageRegister>(src.MileageRegister)));
 
         profile.CreateMap<BusinessTravelFormVm, BusinessTravelForm>()
             .ForMember(dest => dest.FormFiles, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.FormFiles)))
-            //.ForMember(dest => dest.Statuses, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.Statuses)))
+            //.ForMember(dest => dest.BusinessTravelStatuses, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.BusinessTravelStatuses)))
             .ForMember(dest => dest.Countries, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.Countries)))
             .ForMember(dest => dest.DestinationCountry, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.DestinationCountry)))
             .ForMember(dest => dest.Approvals, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.Approvals)))
@@ -230,10 +252,14 @@ public class BusinessTravelFormVm : IMapFrom<ITSaleForm>, IFormAccounting
             .ForMember(dest => dest.Bills, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.Bills)))
             .ForMember(dest => dest.BTMappingAdvancePayment, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.BTMappingAdvancePayment)))
             .ForMember(dest => dest.BTMappingPayout, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.BTMappingPayout)))
-            .ForMember(dest => dest.CashPoint, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.CashPoint)));
+            .ForMember(dest => dest.CashPoint, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.CashPoint)))
+            .ForMember(dest => dest.MileageRegister, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.MileageRegister)));
     }
 
 }
+
+
+
 
 #region Validations
 
@@ -254,7 +280,7 @@ public class PolishVehicleRegistrationAttribute : ValidationAttribute
             return ValidationResult.Success;
         }
 
-        return new ValidationResult("Invalid Polish vehicle registration number.");
+        return new ValidationResult("Proszę wprowadzić poprawny numer rejestracyjny samochodu!");
     }
 }
 public class CountryNotEmptyValidationAttribute : ValidationAttribute

@@ -43,6 +43,12 @@
 
     private DateTime? CombineDateAndTime(DateOnly? date, TimeOnly? time)
     {
+        if (!time.HasValue)
+        {
+            var currentTime = TimeOnly.FromDateTime(DateTime.Now);
+            var timeToUse = time.HasValue ? time.Value : currentTime;
+            return date.Value.ToDateTime(timeToUse);
+        }
         if (date.HasValue && time.HasValue)
         {
             return date.Value.ToDateTime(time.Value);

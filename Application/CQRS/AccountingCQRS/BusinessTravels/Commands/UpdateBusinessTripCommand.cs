@@ -27,24 +27,24 @@ namespace Application.CQRS.AccountingCQRS.BusinessTravels.Commands
     public class UpdateBusinessTripCommandHandler(IAppDbContext appDbContext, IMapper mapper, IEmailService mailService, IConfiguration configuration) : IRequestHandler<UpdateBusinessTripCommand, BusinessTravelFormVm>
     {
         private readonly IAppDbContext _appDbContext = appDbContext;
-        private readonly IMapper _mapper = mapper;
-        private readonly IEmailService _mailService = mailService;
+        private readonly IMapper _mapper             = mapper;
+        private readonly IEmailService _mailService  = mailService;
         private readonly IConfiguration _configuration = configuration;
         public async Task<BusinessTravelFormVm> Handle(UpdateBusinessTripCommand request, CancellationToken cancellationToken)
         {
             var employee = await _appDbContext.Employees.Where(p => p.EnovaEmpId == int.Parse(request.Item.EnovaEmpId)).FirstOrDefaultAsync(cancellationToken);
             var manager = await _appDbContext.Employees.Where(p => p.EnovaEmpId == int.Parse(request.Item.LVL1_EnovaEmpId)).FirstOrDefaultAsync(cancellationToken);
 
-            string senderName = request.Item.EmployeeName;
-            string rcptEmail = manager.Email;
-            string rcptName = manager.LongName;
-            string custName = request.Item.Destination;
-            string frmNumber = request.Item.Number;
-            string reason = request.Item.Objective;
+            string senderName   = request.Item.EmployeeName;
+            string rcptEmail    = manager.Email;
+            string rcptName     = manager.LongName;
+            string custName     = request.Item.Destination;
+            string frmNumber    = request.Item.Number;
+            string reason       = request.Item.Objective;
             string rejectReason = request.Item.RejectReason;
-            string id = request.Item.Id.ToString();
-            string status = request.Item.Status;
-            string userEmail = employee.Email;
+            string id           = request.Item.Id.ToString();
+            string status       = request.Item.Status;
+            string userEmail    = employee.Email;
 
             using var transaction = await _appDbContext.BeginTransactionAsync();
             try

@@ -1979,6 +1979,10 @@ namespace Persistance.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("MileageRegister")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime?>("Modified")
                         .HasColumnType("datetime2");
 
@@ -2009,15 +2013,8 @@ namespace Persistance.Migrations
                     b.Property<bool>("PrivateVehicle")
                         .HasColumnType("bit");
 
-                    b.Property<int>("PrivateVehicleEngineSize")
-                        .HasColumnType("int");
-
                     b.Property<int>("PrivateVehicleMilage")
                         .HasColumnType("int");
-
-                    b.Property<string>("PrivateVehicleNumber")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("PublicTransport")
                         .HasColumnType("bit");
@@ -2084,6 +2081,10 @@ namespace Persistance.Migrations
                         .HasColumnType("decimal(10,2)");
 
                     b.Property<string>("Transit")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Transportation")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 

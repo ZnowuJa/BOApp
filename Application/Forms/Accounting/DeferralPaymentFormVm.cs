@@ -61,7 +61,7 @@ public class DeferralPaymentFormVm : IMapFrom<DeferralPaymentForm>, IFormVm
     {
         profile.CreateMap<DeferralPaymentForm, DeferralPaymentFormVm>()
              .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status))
-             .ForMember(dest => dest.Statuses, opt => opt.MapFrom(src => src.Statuses.ToList())) // Ensure Statuses is a List<string>
+             .ForMember(dest => dest.Statuses, opt => opt.MapFrom(src => src.Statuses.ToList())) // Ensure BusinessTravelStatusesx is a List<string>
 
              // Assuming Number is based on Id
 

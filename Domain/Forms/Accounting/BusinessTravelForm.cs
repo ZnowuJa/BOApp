@@ -32,10 +32,12 @@ namespace Domain.Forms.Accounting
         public string? DestinationCountry { get; set; } = string.Empty;
         public string? DestinationCountryCurrency { get; set; } = string.Empty;
         #region Transport
+        public string Transportation { get; set; }
         public bool PrivateVehicle { get; set; } = false; //does trip requires private car= false;
-        public int PrivateVehicleEngineSize { get; set; } = 0;//private
+        //public int PrivateVehicleEngineSize { get; set; } = 0;//private
         public int PrivateVehicleMilage { get; set; } = 0;
-        public string PrivateVehicleNumber { get; set; } = string.Empty;
+        //public string PrivateVehicleNumber { get; set; } = string.Empty;
+        public string MileageRegister { get; set; } = string.Empty;
         public bool CompanyVehicle { get; set; } = false;
         public string CompanyVehicleNumber { get; set; } = string.Empty;
         public bool PublicTransport { get; set; } = false;
@@ -96,6 +98,7 @@ namespace Domain.Forms.Accounting
         public string Bills { get; set; } = string.Empty;
         public string BTMappingAdvancePayment { get; set; } = string.Empty;
         public string BTMappingPayout { get; set; } = string.Empty;
+        
         public decimal AllowancePL { get; set; } = 0;
         public decimal AllowanceNotPL { get; set; } = 0;
         public decimal? SumAllowancePL { get; set; } = 0;
