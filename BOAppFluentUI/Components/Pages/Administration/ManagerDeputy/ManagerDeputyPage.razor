@@ -66,9 +66,16 @@ else
     private List<FilterColumn<ManagerDeputyVm>> filterColumns = new List<FilterColumn<ManagerDeputyVm>>
     {
         new FilterColumn<ManagerDeputyVm> { FirstRow = true, Label = "Id", Property = c => c.Id.ToString(), IsVisible = true, Width = "200px" },
-        //new FilterColumn<ManagerDeputyVm> { FirstRow = true, Label = "ManagerId", Property = c => c.ManagerId.ToString(), IsVisible = true, Width = "200px" },
+        new FilterColumn<ManagerDeputyVm> { FirstRow = true, Label = "ManagerId", Property = c => c.ManagerId.ToString(), IsVisible = true, Width = "200px" },
         new FilterColumn<ManagerDeputyVm> { FirstRow = true, Label = "LongName", Property = c => c.LongName, IsVisible = true, Width = "200px" },
-       // new FilterColumn<ManagerDeputyVm> { FirstRow = true, Label = "Deputies", Property = c => c.Deputies, IsVisible = true, Width = "200px" },
+        new FilterColumn<ManagerDeputyVm> 
+        { 
+            FirstRow = true, 
+            Label = "Deputies", 
+            Property = c => c.Deputies != null ? string.Join(", ", c.Deputies.Select(d => d.Employee.LongName)) : string.Empty,
+            IsVisible = true, 
+            Width = "200px" 
+        },
     };
 
     protected override async Task OnInitializedAsync() => await Load();
@@ -80,7 +87,16 @@ else
     }
 
     private async Task View(ManagerDeputyVm item)
-    {}
+    {
+    var dialog = await _dialogService.ShowDialogAsync<ManagerDeputyDetailsComponent>(item, new DialogParameters()
+        {
+            Height = "400px",
+            Width = "500px",
+            Title = $"Szczegóły zastępstw dla menadżera: {item.LongName}",
+            PreventDismissOnOverlayClick = false,
+            PreventScroll = true,
+        });
+    }
     private async Task Delete(ManagerDeputyVm item)
     {}
     private async Task EditItem(ManagerDeputyVm item)
