@@ -1,6 +1,8 @@
 ﻿@* Manager Deputy Edit Component *@
 @using Application.CQRS.General.ManagerDeputies.Queries
+@using Application.CQRS.ITWarehouseCQRS.Employees.Queries
 @using Application.ViewModels.General
+@using System.Text.Json
 
 @inject IMediator _mediator
 @implements IDialogContentComponent<ManagerDeputyVm>
@@ -18,15 +20,15 @@
 <!-- Body -->
 <FluentDialogBody Style="overflow-y: auto; overflow-x: auto;">
     <EditForm EditContext="_editContext">
-        @* <FluentValidationValidator @ref="_fluentValidator" /> *@
         <DataAnnotationsValidator />
 
         <div class="card">
             <FluentTextField Id="LongName" @bind-Value="@Content.LongName" Disabled="true" Placeholder="Enter LongName">LongName:</FluentTextField>
             <FluentValidationMessage For="@(() => Content.LongName)" />
         </div>
+
         <div class="card">
-            <FluentAutocomplete TOption="ManagerDeputyVm"
+            <FluentAutocomplete TOption="EmployeeVm"
                                 AutoComplete="off"
                                 Autofocus="true"
                                 Label="Select Deputies"
@@ -35,16 +37,16 @@
                                 Placeholder="Search deputies"
                                 OnOptionsSearch="@OnSearchLongNameAsync"
                                 OptionText="@(item => item.LongName)"
-                                @bind-SelectedOptions="@SelectedManagerDeputies" />
+                                @bind-SelectedOptions="@_selectedManagerDeputies" />
             <p>
-                <b>Selected Deputies:</b> @(String.Join(", ", SelectedManagerDeputies.Select(i => i.LongName)))
+                <b>Selected Deputies:</b> @(String.Join(", ", _selectedManagerDeputies.Select(i => i.LongName)))
             </p>
         </div>
 
     </EditForm>
 </FluentDialogBody>
 
-<!-- Footer -->
+<!-- Footer --> 
 <FluentDialogFooter>
     <FluentButton Appearance="Appearance.Accent" OnClick="@SaveAsync">Save</FluentButton>
     <FluentButton Appearance="Appearance.Neutral" OnClick="@CancelAsync">Cancel</FluentButton>
@@ -55,30 +57,40 @@
     [CascadingParameter] public FluentDialog Dialog { get; set; } = default!;
 
     private EditContext _editContext;
-    private List<ManagerDeputyVm> AllManagerDeputies = new();
-
-    IEnumerable<ManagerDeputyVm> SelectedManagerDeputies = Array.Empty<ManagerDeputyVm>();
-    //private List<ManagerDeputyVm> SelectedManagerDeputies = new();
+    private IQueryable<EmployeeVm> _allEmployees;
+    private List<EmployeeVm> _allManagerDeputies = new();
+    private IEnumerable<EmployeeVm> _selectedManagerDeputies = Enumerable.Empty<EmployeeVm>();
 
     protected override async Task OnInitializedAsync()
     {
         _editContext = new EditContext(Content);
-        AllManagerDeputies = await LoadManagerDeputiesAsync();
 
+        // Pobranie listy wszystkich pracowników
+        _allEmployees = await _mediator.Send(new GetAllEmployeesQuery());
+
+        // Filtrowanie tylko pracowników z rolą Managera
+        _allManagerDeputies = _allEmployees.Where(e => e.IsManager).ToList();
+
+        if (Content.Deputies == null || !Content.Deputies.Any())
+        {
+            _selectedManagerDeputies = Array.Empty<EmployeeVm>();
+        }
+        else
+        {
+            _selectedManagerDeputies = Content.Deputies.Select(d => d.Employee).ToArray();
+        }
     }
 
-    private async Task<List<ManagerDeputyVm>> LoadManagerDeputiesAsync()
+    private async Task OnSearchLongNameAsync(OptionsSearchEventArgs<EmployeeVm> e)
     {
-        var itemsy = await _mediator.Send(new GetAllManagerDeputiesQuery());
-        return itemsy.ToList();
-    }
-
-    private async Task OnSearchLongNameAsync(OptionsSearchEventArgs<ManagerDeputyVm> e)
-    {
-        e.Items = AllManagerDeputies
-            .Where(i => i.LongName.Contains(e.Text, StringComparison.OrdinalIgnoreCase))
-            .OrderBy(i => i.LongName)
+        // Wyszukiwanie pracowników na podstawie tekstu w polu wyszukiwania
+        var filteredEmployees = _allManagerDeputies
+            .Where(emp => emp.LongName.Contains(e.Text, StringComparison.OrdinalIgnoreCase))
+            .OrderBy(emp => emp.LongName)
             .ToList();
+
+        // Przypisanie wyników do `e.Items`
+        e.Items = filteredEmployees.Cast<EmployeeVm>();
     }
 
     private async Task SaveAsync()
@@ -89,8 +101,8 @@
             return;
         }
 
-        Content.Deputies = SelectedManagerDeputies
-            .Select(d => new OrganisationRoleVm { EmpId = d.ManagerId})
+        Content.Deputies = _selectedManagerDeputies
+            .Select(d => new OrganisationRoleVm { EmpId = d.EnovaEmpId, Employee=d})
             .ToList();
 
         try

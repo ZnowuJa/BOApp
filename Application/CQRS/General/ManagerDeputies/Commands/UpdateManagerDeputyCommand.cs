@@ -23,6 +23,7 @@ public class UpdateManagerDeputyCommandHandler(IAppDbContext appDbContext, IMapp
     {
         var existingManagerDeputy = await _appDbContext.ManagerDeputies
             .FirstOrDefaultAsync(o => o.Id == request.Item.Id, cancellationToken);
+
         _mapper.Map(request.Item, existingManagerDeputy);
         _appDbContext.ManagerDeputies.Update(existingManagerDeputy);
         var res = await _appDbContext.SaveChangesAsync(cancellationToken);
