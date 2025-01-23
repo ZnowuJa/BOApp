@@ -161,9 +161,10 @@
         {
             "pracownik" or "employee" => items2load.Where(x => x.EnovaEmpId == _userContext.EnovaEmpId),
             "kierownikL1" or "managerL1" => items2load.Where(x => x.Level1Approvers.Any(approver => approver.EmpId == CurrentUserEnowaEmpId) &&  (x.Status == "AprobataL1" || x.Status == "AprobataL2" )),
-            "kierownikL2" or "managerL2" => items2load.Where(x => x.Level2Approvers.Any(approver => approver.EmpId == CurrentUserEnowaEmpId) && (x.Status == "AprobataL11" || x.Status == "AprobataL12")),
+            "kierownikL11" or "managerL11" => items2load.Where(x => x.Level1Approvers.Any(approver => approver.EmpId == CurrentUserEnowaEmpId) && (x.Status == "AprobataL1" || x.Status == "AprobataL2")),
+            "kierownikL12" or "managerL12" => items2load.Where(x => x.Level1Approvers.Any(approver => approver.EmpId == CurrentUserEnowaEmpId) && (x.Status == "AprobataL1" || x.Status == "AprobataL2")),
             "kasjer" or "cashier" => items2load.Where(x => x.Level2Approvers.Any(approver => approver.EmpId == CurrentUserEnowaEmpId) && (x.Status == "ZaliczkaKasa" || x.Status == "KasaRozliczenie")),
-            "ksiegowa" or "accountant" => items2load.Where(x => x.Level2Approvers.Any(approver => approver.EmpId == CurrentUserEnowaEmpId)),
+            "ksiegowe" or "accountants" => items2load,
             "zapisane" or "saved" => items2load.Where(x => x.Level2Approvers.Any(approver => approver.EmpId == CurrentUserEnowaEmpId)),
             _ => throw new ArgumentException("Błędny adres strony!")
         };

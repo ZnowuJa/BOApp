@@ -21,25 +21,26 @@
         {
             <tr>
                 <td>
-                    <FluentDatePicker @bind-Date="@entry.Date" Style="width: 130px;"/>
+                    <FluentDatePicker @bind-Date="@entry.Date" Style="width: 130px;" Disabled="@Disabled"/>
                 </td>
                 <td>
-                    <FluentTextField @bind-Value="@entry.RouteDescription" Style="width: 220px;" />
+                    <FluentTextField @bind-Value="@entry.RouteDescription" Style="width: 220px;" Disabled="@Disabled" />
                 </td>
                 <td>
-                    <FluentTextField @bind-Value="@entry.Purpose" Style="width: 220px;" />
+                    <FluentTextField @bind-Value="@entry.Purpose" Style="width: 220px;" Disabled="@Disabled" />
                 </td>
                 <td>
                     <FluentNumberField @bind-Value="@entry.Mileage" 
-                    @bind-Value:after="@HandleMileageChange"        
-                    Style="width: 120px;" />
+                        @bind-Value:after="@HandleMileageChange"        
+                        Style="width: 120px;"
+                        Disabled="@Disabled" />
                 </td>
                 <td>
                     <div>
                         @{
                             var entryRemId = $"entryRemId{entry.Id}";
                         }
-                        <FluentButton Id="@entryRemId"  IconEnd="@(new Icons.Filled.Size20.Delete())" OnClick="@(() => RemoveEntry(entry))" />
+                        <FluentButton Id="@entryRemId" IconEnd="@(new Icons.Filled.Size20.Delete())" OnClick="@(() => RemoveEntry(entry))" Disabled="@Disabled" />
                         <FluentTooltip Anchor="@entryRemId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50>Usuń przejazd</FluentTooltip>
                     </div>
                 </td>
@@ -48,7 +49,7 @@
     </tbody>
 </table>
 <div>
-    <FluentButton Id="AddEntryId" IconEnd="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddEntry())" />
+    <FluentButton Id="AddEntryId" IconEnd="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddEntry())" Disabled="@Disabled" />
     <FluentTooltip Anchor="AddEntryId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50>Dodaj przejazd</FluentTooltip>
 </div>
 
@@ -70,6 +71,7 @@
     [Parameter] public string EmployeeEmpId { get; set; }
     [Parameter] public decimal? TotalMileage { get; set; }
     [Parameter] public decimal? TotalValue { get; set; }
+    [Parameter] public bool Disabled { get; set; } = false;
 
     protected override async Task OnInitializedAsync()
     {

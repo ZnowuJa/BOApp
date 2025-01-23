@@ -74,14 +74,17 @@ namespace Domain.Forms.Accounting
         public bool AdvancePayment { get; set; } = false;
         public decimal? AdvancePaymentAmount { get; set; } = 0;
         public string? AdvancePaymentCurrency { get; set; } = "PLN";
-        public bool? AdvancePaymentCash { get; set; } = false;
+        public bool AdvancePaymentCash { get; set; } = false;
         public string? BankAccountNumber { get; set; } = string.Empty;
         // dorobic walidację numeru konta
         public DateOnly? AdvancePaymentDate { get; set; } = DateOnly.FromDateTime(DateTime.Now);
         public string? CashPayoutNumber { get; set; } = string.Empty;
-        public string? CashReceiptNumber { get; set; } = string.Empty;
         public string? PayoutCashierEmpId { get; set; } = string.Empty;
         public string? ReceiptCashierEmpId { get; set; } = string.Empty;
+        public string? ReceiptPaymentCurrency { get; set; } = "PLN";
+        public bool ReceiptPaymentCash { get; set; } = false;
+        public string? CashReceiptNumber { get; set; } = string.Empty; //receipt to rozliczenie
+        public string? ReceiptBankAccountNumber { get; set; } = string.Empty;
         public decimal CurrencyExchamngeRate { get; set; } = 1m;
         public DateOnly CurrencyExchangeRateDate { get; set; } = DateOnly.FromDateTime(DateTime.Now);
         // do delegacji zagranicznej to min. 25% diety należnej wg kraju przeznaczenia i wg ilości naliczonej diety czyli czasu na jaki pracownik wypełnia delegację
@@ -111,11 +114,13 @@ namespace Domain.Forms.Accounting
         public decimal? SumLocalTravelAllowanceNotPL { get; set; } = 0;
         public decimal? SumPrivateVehicleAllowance { get; set; } = 0;
         public string CashPoint { get; set; } = string.Empty;
+        public string CashPointReceipt { get; set; } = string.Empty;
         public decimal TotalBillsPL { get; set; } = 0;
         public decimal TotalBillsNotPL { get; set; } = 0;
         public decimal TotalAllowancePL { get; set; } = 0;
         public decimal TotalAllowanceNotPL { get; set; } = 0;
         public decimal TotalPayOut { get; set; } = 0;
+        public string TotalPayOutString { get; set; } = string.Empty;
 
         public static List<string> GetDefaultStatuses()
         {

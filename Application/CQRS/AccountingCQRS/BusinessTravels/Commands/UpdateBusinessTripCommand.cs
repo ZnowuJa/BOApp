@@ -52,7 +52,7 @@ namespace Application.CQRS.AccountingCQRS.BusinessTravels.Commands
                 var item = await _appDbContext.BusinessTravels.FindAsync(request.Item.Id, cancellationToken);
                 if (item != null)
                 {
-                    _mapper.Map<BusinessTravelForm>(request.Item);
+                    _mapper.Map(request.Item, item);
                 }
                 _appDbContext.BusinessTravels.Update(item);
                 await _appDbContext.SaveChangesAsync();

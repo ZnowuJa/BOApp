@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,7 +14,6 @@ public class MileageRegister
     public string EmployeeName { get; set; }
     public string EmployeeEmpId { get; set; }
 
-    [PolishVehicleRegistration]
     public string PrivateCarRegistration { get; set; }
     public string PrivateCarEngineSize { get; set; }
     public decimal MileageAllowanceRate { get; set; }

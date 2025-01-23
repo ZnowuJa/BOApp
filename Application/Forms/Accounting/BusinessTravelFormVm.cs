@@ -1,27 +1,21 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Text.RegularExpressions;
 
 using Application.AdHocJobs;
 using Application.Forms.Accounting.BuisnessTravelSmallClasses;
-using Application.Forms.IT;
 using Application.Interfaces;
 using Application.Mappings;
-using Application.ValidationAttributes;
 using Application.ViewModels.Accounting;
 using Application.ViewModels.General;
 
 using AutoMapper;
 
-using Domain.Entities.ITWarehouse;
 using Domain.Forms.Accounting;
-using Domain.Forms.ITForms;
 
 namespace Application.Forms.Accounting;
 public class BusinessTravelFormVm : IMapFrom<BusinessTravelForm>, IFormAccounting
 {
-    # region FromTemplate
+    # region FromTemplate 
     // Properties from FormTemplate
     public int Id { get; set; } = 0;
     public string Name { get; set; } = "Delegacja";
@@ -34,17 +28,21 @@ public class BusinessTravelFormVm : IMapFrom<BusinessTravelForm>, IFormAccountin
     //public List<string> BusinessTravelStatuses { get; set; } = new();
     public int WorkflowTemplateId { get; set; } = 5;
     # endregion
-    public DateTime? StartDate { get; set; } 
-    public DateTime? EndDate { get; set; } 
+    
+    public DateTime? StartDate { get; set; }
+    
+    public DateTime? EndDate { get; set; }
+    
     public string? Destination { get; set; } = string.Empty;
+    
     public string Objective { get; set; } = string.Empty;
     
     public List<CountryVm> Countries { get; set; } = new(); //to keep information about flat rates and Allowance
-    [CountryNotEmptyValidation]
+    
     public CountryVm? DestinationCountry { get; set; } = new();
     public string? DestinationCountryCurrency { get; set; } = string.Empty;
     #region Transport
-        public string Transportation { get; set; }
+        public string Transportation { get; set; } = string.Empty;
         public bool PrivateVehicle { get; set; } = false; //does trip requires private car= false;
         //public int PrivateVehicleEngineSize { get; set; } = 0;//private
         //public string PrivateVehicleEngineSize {
@@ -53,14 +51,15 @@ public class BusinessTravelFormVm : IMapFrom<BusinessTravelForm>, IFormAccountin
         //} 
 
         public int PrivateVehicleMilage { get; set; } = 0;
-        [PolishVehicleRegistration]
+        
         //public string PrivateVehicleNumber {
         //    get => MileageRegister.PrivateCarRegistration; 
         //    set => MileageRegister.PrivateCarRegistration = value; 
         //}
         //public decimal PrivateCarRateFactor { get; set; } = 0;
         public bool CompanyVehicle { get; set; } = false;
-        [PolishVehicleRegistration]
+        
+        
         public string CompanyVehicleNumber { get; set; } = string.Empty;
         public bool PublicTransport { get; set; } = false;
         public bool PublicTransportPaid { get; set; } = false;
@@ -94,22 +93,33 @@ public class BusinessTravelFormVm : IMapFrom<BusinessTravelForm>, IFormAccountin
 
     #endregion
     #region AdvancePayment
-    public bool AdvancePayment { get; set; } = false;
+        public bool AdvancePayment { get; set; } = true;
         public decimal? AdvancePaymentAmount { get; set; } = 0;
+        // do delegacji zagranicznej to min. 25% diety należnej wg kraju przeznaczenia i wg ilości naliczonej diety czyli czasu na jaki pracownik wypełnia delegację
         public string? AdvancePaymentCurrency { get; set; } = "PLN";
-        public bool? AdvancePaymentCash {get;set;} = false;
+        public bool AdvancePaymentCash {get;set;} = false;
         public string? BankAccountNumber { get; set; } = string.Empty;
-        // dorobic walidację numeru konta
+        
         public DateOnly? AdvancePaymentDate { get; set; } = DateOnly.FromDateTime(DateTime.Now);
-        public string? CashPayoutNumber { get; set; } = string.Empty;
-        public string? CashReceiptNumber { get; set; } = string.Empty;
+        public string? CashPayoutNumber { get; set; } = string.Empty; //payout to zaliczka
         public string? PayoutCashierEmpId { get; set; } = string.Empty;
-        public string? ReceiptCashierEmpId { get; set; } = string.Empty;
         [JsonIgnore] public EmployeeVm? PayoutCashier { get; set; } = new();
+
+
+        //public decimal? ReceiptPaymentAmount { get; set; } = 0; 
+        // do delegacji zagranicznej to min. 25% diety należnej wg kraju przeznaczenia i wg ilości naliczonej diety czyli czasu na jaki pracownik wypełnia delegację
+        public string? ReceiptPaymentCurrency { get; set; } = "PLN";
+        public bool ReceiptPaymentCash { get; set; } = false;
+
+        public DateOnly? ReceiptPaymentDate { get; set; } = DateOnly.FromDateTime(DateTime.Now);
+        public string? CashReceiptNumber { get; set; } = string.Empty; //receipt to rozliczenie
+        public string? ReceiptBankAccountNumber { get; set; } = string.Empty;
+        public string? ReceiptCashierEmpId { get; set; } = string.Empty;
+        
         [JsonIgnore] public EmployeeVm ReceiptCashier { get; set; } = new();
-        public decimal CurrencyExchamngeRate { get; set; } = 1m;
+        public decimal CurrencyExchangeRate { get; set; } = 1m;
         public DateOnly CurrencyExchangeRateDate { get; set; } = DateOnly.FromDateTime(DateTime.Now);
-    // do delegacji zagranicznej to min. 25% diety należnej wg kraju przeznaczenia i wg ilości naliczonej diety czyli czasu na jaki pracownik wypełnia delegację
+
     #endregion
     public DateTime CreatedDate { get; set; } = DateTime.Now;
     public List<Stage> Stages { get; set; } = new();
@@ -147,8 +157,8 @@ public class BusinessTravelFormVm : IMapFrom<BusinessTravelForm>, IFormAccountin
            
         }
     }
-
-    public Location CashPoint { get; set; } = new();
+    public Application.ViewModels.General.Location CashPoint { get; set; } = new();
+    public Application.ViewModels.General.Location CashPointReceipt { get; set; } = new();
     public decimal TotalBillsPL
     {
         get
@@ -193,12 +203,14 @@ public class BusinessTravelFormVm : IMapFrom<BusinessTravelForm>, IFormAccountin
     {
         get
         {
-            return TotalAllowanceNotPL*CurrencyExchamngeRate + TotalAllowancePL;
+            var totaltotal = TotalAllowanceNotPL * CurrencyExchangeRate + TotalAllowancePL;
+            TotalPayOutString = totaltotal.ToString("0.00");
+            return totaltotal;
         }
     }
+    public string TotalPayOutString { get; set; } = string.Empty;
 
-
-
+    
     public void Mapping(Profile profile)
     {
         profile.CreateMap<BusinessTravelForm, BusinessTravelFormVm>()
@@ -226,6 +238,7 @@ public class BusinessTravelFormVm : IMapFrom<BusinessTravelForm>, IFormAccountin
             .ForMember(dest => dest.BTMappingAdvancePayment, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<BankTransferMapping>(src.BTMappingAdvancePayment)))
             .ForMember(dest => dest.BTMappingPayout, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<BankTransferMapping>(src.BTMappingPayout)))
             .ForMember(dest => dest.CashPoint, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<Location>(src.CashPoint)))
+            .ForMember(dest => dest.CashPointReceipt, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<Location>(src.CashPointReceipt)))
             .ForMember(dest => dest.MileageRegister, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<MileageRegister>(src.MileageRegister)));
 
         profile.CreateMap<BusinessTravelFormVm, BusinessTravelForm>()
@@ -253,6 +266,7 @@ public class BusinessTravelFormVm : IMapFrom<BusinessTravelForm>, IFormAccountin
             .ForMember(dest => dest.BTMappingAdvancePayment, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.BTMappingAdvancePayment)))
             .ForMember(dest => dest.BTMappingPayout, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.BTMappingPayout)))
             .ForMember(dest => dest.CashPoint, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.CashPoint)))
+            .ForMember(dest => dest.CashPointReceipt, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.CashPointReceipt)))
             .ForMember(dest => dest.MileageRegister, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.MileageRegister)));
     }
 
@@ -263,37 +277,6 @@ public class BusinessTravelFormVm : IMapFrom<BusinessTravelForm>, IFormAccountin
 
 #region Validations
 
-public class PolishVehicleRegistrationAttribute : ValidationAttribute
-{
-    private const string Pattern = @"^[A-Z]{1,2,3}[A-Z0-9]{4,5}$|^[A-Z]{2}[0-9]{5}$|^[A-Z]{2}[0-9]{4}[A-Z]{1}$|^[A-Z]{2,3}\s?[0-9]{5}$";
 
-    protected override ValidationResult IsValid(object value, ValidationContext validationContext)
-    {
-        if (value == null || string.IsNullOrWhiteSpace(value.ToString()))
-        {
-            return ValidationResult.Success;
-        }
-
-        var regex = new Regex(Pattern);
-        if (regex.IsMatch(value.ToString()))
-        {
-            return ValidationResult.Success;
-        }
-
-        return new ValidationResult("Proszę wprowadzić poprawny numer rejestracyjny samochodu!");
-    }
-}
-public class CountryNotEmptyValidationAttribute : ValidationAttribute
-{
-    protected override ValidationResult IsValid(object value, ValidationContext validationContext)
-    {
-        var trip = (BusinessTravelFormVm)validationContext.ObjectInstance;
-        if (trip.DestinationCountry == null)
-        {
-            return new ValidationResult("Proszę wybrać kraj docelowy!");
-        }
-        return ValidationResult.Success;
-    }
-}
 #endregion
 

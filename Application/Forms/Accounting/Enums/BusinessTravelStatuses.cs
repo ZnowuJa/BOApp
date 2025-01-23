@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Application.Forms.Accounting.Enums
 {
     public enum BusinessTravelStatuses
-    {
+    { 
         Rejestracja, //user or just employee
         AprobataL1, // manager of user
         ZaliczkaKasa, // Cashier

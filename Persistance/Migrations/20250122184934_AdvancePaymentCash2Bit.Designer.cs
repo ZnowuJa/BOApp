@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Persistance;
 
@@ -11,9 +12,11 @@ using Persistance;
 namespace Persistance.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250122184934_AdvancePaymentCash2Bit")]
+    partial class AdvancePaymentCash2Bit
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1784,7 +1787,7 @@ namespace Persistance.Migrations
                     b.Property<decimal?>("AdvancePaymentAmount")
                         .HasColumnType("decimal(10,2)");
 
-                    b.Property<bool>("AdvancePaymentCash")
+                    b.Property<bool?>("AdvancePaymentCash")
                         .HasColumnType("bit");
 
                     b.Property<string>("AdvancePaymentCurrency")
@@ -1821,10 +1824,6 @@ namespace Persistance.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("CashPoint")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("CashPointReceipt")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -2026,16 +2025,7 @@ namespace Persistance.Migrations
                     b.Property<bool>("PublicTransportPaid")
                         .HasColumnType("bit");
 
-                    b.Property<string>("ReceiptBankAccountNumber")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("ReceiptCashierEmpId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("ReceiptPaymentCash")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("ReceiptPaymentCurrency")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("RejectReason")
@@ -2092,10 +2082,6 @@ namespace Persistance.Migrations
 
                     b.Property<decimal>("TotalPayOut")
                         .HasColumnType("decimal(10,2)");
-
-                    b.Property<string>("TotalPayOutString")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Transit")
                         .IsRequired()
