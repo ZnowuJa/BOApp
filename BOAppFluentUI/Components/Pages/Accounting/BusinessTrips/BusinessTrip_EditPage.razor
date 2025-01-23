@@ -148,7 +148,7 @@
                         </tbody>
                     </table>
                 }
-                
+
                 @* Dates *@
                 <table class="table-container">
                     <tbody>
@@ -1362,7 +1362,7 @@
         _editContext = new EditContext(formItem);
         _messageStore = new ValidationMessageStore(_editContext);
         await Utils.GetUserName(_authenticationStateProvider, _userContext, _mediator);
-        
+
         _employees = await _mediator.Send(new GetAllEmployeesQuery());
         _costCenters = await _mediator.Send(new GetAllCostCenterIEnumQuery());
         _glAccounts = await _mediator.Send(new GetAllGLAccountIEnumQuery());
@@ -1497,7 +1497,7 @@
     }
     private async Task ApproveForm()
     {
-        
+
         if(_editContext.Validate()){
             formItem.Approvals.Add(approvalInfo);
             formItem.Status = GetNextStatus(formItem);
@@ -2006,7 +2006,7 @@
             }
 
         }
-        ValidateDates()
+        ValidateDates();
         RecalculateForm();
         StateHasChanged();
     }
