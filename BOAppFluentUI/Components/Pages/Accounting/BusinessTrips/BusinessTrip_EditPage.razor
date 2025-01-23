@@ -2006,7 +2006,7 @@
             }
 
         }
-
+        ValidateDates()
         RecalculateForm();
         StateHasChanged();
     }
@@ -2827,6 +2827,8 @@
 
         Title = "Podróż służbowa - Rejestracja wniosku";
         await AddEmployee(_userContext.Employee);
+        await AddStage(Origin);
+
         formItem.EmployeeName = _userContext.LongName;
         formItem.EnovaEmpId = _userContext.EnovaEmpId;
         formItem.OrganisationSapNumber = _organisation.SapNumber;

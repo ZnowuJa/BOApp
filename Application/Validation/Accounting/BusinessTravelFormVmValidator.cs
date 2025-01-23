@@ -102,7 +102,14 @@ public class BusinessTravelFormVmValidator : AbstractValidator<BusinessTravelFor
         {
             RuleFor(x => x.CompanyVehicleNumber).NotEmpty().WithMessage("Wyszukaj samochód z listy!");
         });
-
+        When(form => form.Status == "Rozliczenie", () =>
+        {
+            RuleForEach(x => x.Stages).ChildRules(stage =>
+            {
+                stage.RuleFor(s => s.StartDate).NotEmpty().WithMessage("Uzupenij czas pobytu na poszczeglnych etapach");
+                stage.RuleFor(s => s.EndDate).NotEmpty().WithMessage("Uzupenij czas pobytu na poszczeglnych etapach");
+            });
+        });
 
 
     }
