@@ -45,7 +45,7 @@ namespace Persistance.Migrations
                 nullable: true);
 
             migrationBuilder.AddColumn<string>(
-                name: "Statuses",
+                name: "BusinessTravelStatuses",
                 table: "DeferralPayments",
                 type: "nvarchar(max)",
                 nullable: false,
@@ -60,7 +60,7 @@ namespace Persistance.Migrations
                 table: "DeferralPayments");
 
             migrationBuilder.DropColumn(
-                name: "Statuses",
+                name: "BusinessTravelStatuses",
                 table: "DeferralPayments");
 
             migrationBuilder.AlterColumn<bool>(

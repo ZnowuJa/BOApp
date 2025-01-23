@@ -1784,8 +1784,8 @@ namespace Persistance.Migrations
                     b.Property<decimal?>("AdvancePaymentAmount")
                         .HasColumnType("decimal(10,2)");
 
-                    b.Property<decimal?>("AdvancePaymentCash")
-                        .HasColumnType("decimal(10,2)");
+                    b.Property<bool>("AdvancePaymentCash")
+                        .HasColumnType("bit");
 
                     b.Property<string>("AdvancePaymentCurrency")
                         .HasColumnType("nvarchar(max)");
@@ -1821,6 +1821,10 @@ namespace Persistance.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("CashPoint")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CashPointReceipt")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -1979,6 +1983,10 @@ namespace Persistance.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("MileageRegister")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime?>("Modified")
                         .HasColumnType("datetime2");
 
@@ -2009,15 +2017,8 @@ namespace Persistance.Migrations
                     b.Property<bool>("PrivateVehicle")
                         .HasColumnType("bit");
 
-                    b.Property<int>("PrivateVehicleEngineSize")
-                        .HasColumnType("int");
-
                     b.Property<int>("PrivateVehicleMilage")
                         .HasColumnType("int");
-
-                    b.Property<string>("PrivateVehicleNumber")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("PublicTransport")
                         .HasColumnType("bit");
@@ -2025,7 +2026,16 @@ namespace Persistance.Migrations
                     b.Property<bool>("PublicTransportPaid")
                         .HasColumnType("bit");
 
+                    b.Property<string>("ReceiptBankAccountNumber")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("ReceiptCashierEmpId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("ReceiptPaymentCash")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("ReceiptPaymentCurrency")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("RejectReason")
@@ -2083,7 +2093,15 @@ namespace Persistance.Migrations
                     b.Property<decimal>("TotalPayOut")
                         .HasColumnType("decimal(10,2)");
 
+                    b.Property<string>("TotalPayOutString")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Transit")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Transportation")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 

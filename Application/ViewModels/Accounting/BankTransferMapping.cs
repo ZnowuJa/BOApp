@@ -26,6 +26,7 @@ namespace Application.ViewModels.Accounting
         public DateTime? AccountantTLTime { get; set; }
         public CostCenterVm CostCenter { get; set; } = new();
         public GLAccountVm GLAccount { get; set; } = new();
+        public bool BusinessTravel { get; set; } = false; //wyłącza pola jeśli true (np. datawaluta)
     }
 
 

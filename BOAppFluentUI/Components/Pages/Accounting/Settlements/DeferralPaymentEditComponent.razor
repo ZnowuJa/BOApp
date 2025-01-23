@@ -349,7 +349,7 @@
 
         message = $"Wniosek o numerze {saveResult.Number} o opóźnioną płatność dla {saveResult.KontrahentId}, {saveResult.KontrahentName} wysłana!";
         _navigationManager.NavigateTo(destination);
-        // GoBack();
+        
     }
 
     private async Task GetAllowedPersons(DeferralPaymentFormVm form)

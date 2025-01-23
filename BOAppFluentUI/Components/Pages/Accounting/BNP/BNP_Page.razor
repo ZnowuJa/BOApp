@@ -8,7 +8,7 @@
 @using System.Linq.Expressions
 @using System.Globalization;
 
-@* @attribute [Authorize(Policy = "Technician")] *@
+@attribute [Authorize(Policy = "User")]
 
 @inject IMediator _mediator
 @inject IToastService _toastService
