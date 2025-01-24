@@ -1369,6 +1369,7 @@
         _locations = await _mediator.Send(new GetLocationsQuery());
         _vatRates = await _mediator.Send(new GetAllVatRateIEnumQuery());
         _organisation = await _mediator.Send(new GetOrganisationByEmpSapNumberQuery(_userContext.Employee.SapNumber));
+        CompanyCarRegistrationNumbers = await _mediator.Send(new GetCompanyCarRegistrationNumbersQuery());
         SetSrcPage();
         Console.WriteLine(Id);
 
@@ -2828,6 +2829,11 @@
         Title = "Podróż służbowa - Rejestracja wniosku";
         await AddEmployee(_userContext.Employee);
         await AddStage(Origin);
+        // await RecalculateStages(firstStage.Id, nameof(firstStage.EndDate));
+        await RecalculateAccomodations();
+        await RecalculateMeals();
+        await RecalculateLocalTravels();
+        await RecalculateTransit();
 
         formItem.EmployeeName = _userContext.LongName;
         formItem.EnovaEmpId = _userContext.EnovaEmpId;
