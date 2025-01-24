@@ -73,7 +73,7 @@ namespace Domain.Forms.Accounting
         public bool ReceiptPaymentCash { get; set; } = false;
         public string? CashReceiptNumber { get; set; } = string.Empty; //receipt to rozliczenie
         public string? ReceiptBankAccountNumber { get; set; } = string.Empty;
-        public decimal CurrencyExchamngeRate { get; set; } = 1m;
+        public decimal CurrencyExchangeRate { get; set; } 
         public DateOnly CurrencyExchangeRateDate { get; set; } = DateOnly.FromDateTime(DateTime.Now);
         // do delegacji zagranicznej to min. 25% diety należnej wg kraju przeznaczenia i wg ilości naliczonej diety czyli czasu na jaki pracownik wypełnia delegację
         #endregion

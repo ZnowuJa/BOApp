@@ -30,6 +30,7 @@ public class ValidateEmployeesForCoC : IJob
 
     public async Task Execute(IJobExecutionContext context)
     {
+        Console.WriteLine("JOB STARTED!");
         var emps = await _mediator.Send(new GetAllEmployeesQuery());
         var positions = await _mediator.Send(new GetAllPositionsQuery());
         List<string> positionsNames = positions.Select(x => x.Name.ToLower()).ToList();
