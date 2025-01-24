@@ -623,10 +623,13 @@
                 @if (IsPrivateCar && (stroz || stks || stkstl || stal11 || stal12))
                 {
                     <MileageRegisterEditComponent 
+                    ParentEditContext="@_editContext"
                     MileageRegister="@formItem.MileageRegister"
                     EmployeeLongName="@formItem.EmployeeName"
                     EmployeeEmpId="@formItem.EnovaEmpId"
                     Disabled="@IsControlMileageEditDisabled()" />
+                    <FluentValidationMessage For="@(() => formItem.MileageRegister.Entries)" class="validation-error" />
+
                 }
                 @if (ShowLocalTravels)
                 {
@@ -1073,6 +1076,12 @@
 
                 @*Walidation Summary*@
                 <FluentValidationSummary class="validation-error" />
+                @* @if (_editContext.GetValidationMessages(new FieldIdentifier(formItem, nameof(formItem.MileageRegister.Entries))).Any())
+                {
+                    <h4>Mileage Register Errors</h4>
+                    <ValidationSummary  />
+                } *@
+
                 @* Aptobaty i przyciski *@
                 <div>
                     <h5>Aprobujący:</h5>
@@ -1458,6 +1467,7 @@
 
     }
     private async Task CheckForm(){
+        var x = _editContext.GetValidationMessages().Any(m => );
         _editContext.Validate();
     }
     private async Task CancelForm()

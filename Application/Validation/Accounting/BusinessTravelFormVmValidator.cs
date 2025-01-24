@@ -99,14 +99,9 @@ public class BusinessTravelFormVmValidator : AbstractValidator<BusinessTravelFor
         });
         When(form => form.Status == "Rozliczenie" && form.Transportation == "Samochód prywatny", () =>
         {
-            RuleForEach(x => x.MileageRegister.Entries).ChildRules(entry =>
-            {
-                entry.RuleFor(s => s.Date).NotEmpty().WithMessage("Uzupenij datę przejazdu w kilometrówce!");
-                entry.RuleFor(s => s.Mileage).GreaterThan(0).WithMessage("Uzupełnij listę przejechanych kilometrów");
-                entry.RuleFor(s => s.Purpose).NotEmpty().WithMessage("Uzupełnij cel przejazdu!");
-                entry.RuleFor(s => s.RouteDescription).NotEmpty().WithMessage("Uzupełnij opis przejazdu!");
-            });
+            RuleFor(x => x.MileageRegister).SetValidator(new MileageRegisterValidator());
         });
+        
 
     }
 }
