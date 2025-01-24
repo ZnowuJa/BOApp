@@ -1,0 +1,167 @@
+﻿@page "/managerdeputy"
+@using Application.CQRS.General.ManagerDeputies.Commands
+@using Application.CQRS.General.ManagerDeputies.Queries
+@using Microsoft.AspNetCore.Authorization
+@using Application.ViewModels.General
+
+@inject IMediator _mediator
+@inject IDialogService _dialogService
+@inject IToastService _toastService
+
+@attribute [Authorize(Policy = "Accountant")]
+
+
+<h3>ManagerDeputyPage</h3>
+
+@* <h3>Synchronize Managers</h3>
+
+ <button @onclick="SyncManagers">Synchronize</button>
+
+<p>@statusMessage</p> *@
+
+@if (items == null)
+{
+    <FluentProgressRing>Ładownie...</FluentProgressRing>
+}
+else
+{
+    <FluentDataGrid Items="@filtredItems" Pagination="@pagination" TGridItem="ManagerDeputyVm" GridTemplateColumns="80px repeat(6, 0.75fr)" ResizableColumns="true">
+        @foreach (var column in filterColumns.Where(c => c.IsVisible))
+        {
+            <PropertyColumn TGridItem="ManagerDeputyVm" TProp="string" Property="@(Utils.GetPropertyExpression<ManagerDeputyVm>(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label" Filtered="!string.IsNullOrWhiteSpace(column.Filter)">
+                <ColumnOptions>
+                    <div class="search-box">
+                        <FluentSearch type="search" Autofocus="true" @bind-Value="column.Filter" @oninput="(args) => Utils.HandleFilterDebounced(column, args, debounceDispatcher, () => InvokeAsync(StateHasChanged))" Placeholder="@($"{column.Label.ToLower()}...")" />
+                    </div>
+                </ColumnOptions>
+            </PropertyColumn>
+        }
+
+        @* Actions *@
+
+        <TemplateColumn Title="Actions" Align="Align.End">
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" />
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => EditItem(context))" />
+             @* <FluentButton IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" /> *@
+        </TemplateColumn>
+
+    </FluentDataGrid>
+    <FluentPaginator State="@pagination" />
+    @* <FluentButton IconStart="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddPanel())" /> *@
+}
+
+@code {
+    private IQueryable<ManagerDeputyVm> items;
+    private IQueryable<ManagerDeputyVm> filtredItems => items.Where(x =>
+    filterColumns.All(column => string.IsNullOrWhiteSpace(column.Filter) ||
+    column.Property(x).Contains(column.Filter, StringComparison.CurrentCultureIgnoreCase)));
+
+    PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
+    private DebounceDispatcher debounceDispatcher = new DebounceDispatcher();
+
+    private string statusMessage = "";
+
+    private List<FilterColumn<ManagerDeputyVm>> filterColumns = new List<FilterColumn<ManagerDeputyVm>>
+    {
+        new FilterColumn<ManagerDeputyVm> { FirstRow = true, Label = "Id", Property = c => c.Id.ToString(), IsVisible = true, Width = "200px" },
+        new FilterColumn<ManagerDeputyVm> { FirstRow = true, Label = "ManagerId", Property = c => c.ManagerId.ToString(), IsVisible = true, Width = "200px" },
+        new FilterColumn<ManagerDeputyVm> { FirstRow = true, Label = "LongName", Property = c => c.LongName, IsVisible = true, Width = "200px" },
+        new FilterColumn<ManagerDeputyVm> 
+        { 
+            FirstRow = true, 
+            Label = "Deputies", 
+            Property = c => c.Deputies != null ? string.Join(", ", c.Deputies.Select(d => d.Employee.LongName)) : string.Empty,
+            IsVisible = true, 
+            Width = "200px" 
+        },
+    };
+
+    protected override async Task OnInitializedAsync() => await Load();
+
+    private async Task Load()
+    {
+        var itemsy = await _mediator.Send(new GetAllManagerDeputiesQuery());
+        items = itemsy.AsQueryable();
+    }
+
+    private async Task View(ManagerDeputyVm item)
+    {
+    var dialog = await _dialogService.ShowDialogAsync<ManagerDeputyDetailsComponent>(item, new DialogParameters()
+        {
+            Height = "400px",
+            Width = "500px",
+            Title = $"Szczegóły zastępstw dla menadżera: {item.LongName}",
+            PreventDismissOnOverlayClick = false,
+            PreventScroll = true,
+        });
+    }
+    //private async Task Delete(ManagerDeputyVm item)
+    //{}
+    private async Task EditItem(ManagerDeputyVm item)
+    {
+        ToastIntent intent;
+        string message = string.Empty;
+        int resultId = 0;
+
+        var dialog = await _dialogService.ShowDialogAsync<ManagerDeputyEditComponent>(item, new DialogParameters()
+            {
+                Height = "400px",
+                Width = "500px",
+                Title = item.Id > 0 ? "Aktualizacja zastępstw" : "Dodanie nowego wpisu do ManagagerDeputy",
+                PreventDismissOnOverlayClick = false,
+                PreventScroll = true,
+            });
+
+        var result = await dialog.Result;
+
+        if (!result.Cancelled && result.Data != null)
+        {
+            var final = (ManagerDeputyVm)result.Data;
+
+            if (final.Id > 0)
+            {
+                resultId = await _mediator.Send(new UpdateManagerDeputyCommand(final));
+                intent = ToastIntent.Success;
+                message = "Zastępstwo zostało ustawione!";
+            }
+            else if (final.Id == 0)
+            {
+                resultId = await _mediator.Send(new CreateManagerDeputyCommand(final));
+                intent = ToastIntent.Success;
+                message = "Wpis do ManagerDeputy został utworzony!";
+            }
+            else
+            {
+                intent = ToastIntent.Warning;
+                message = "Coś poszło źle!";
+            }
+        }
+        else if (result.Cancelled)
+        {
+            intent = ToastIntent.Info;
+            message = "Operacja anulowana";
+        }
+        else
+        {
+            intent = ToastIntent.Error;
+            message = "Coś poszło źle!";
+        }
+
+        await Load();
+        _toastService.ShowToast(intent, message, 3000);
+    }
+    // private async Task AddPanel()
+    // {}
+
+    // private async Task SyncManagers()
+    // {
+    //     try
+    //     {
+    //         statusMessage = await _mediator.Send(new SyncManagersCommand());
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         statusMessage = $"Error: {ex.Message}";
+    //     }
+    // }
+}
