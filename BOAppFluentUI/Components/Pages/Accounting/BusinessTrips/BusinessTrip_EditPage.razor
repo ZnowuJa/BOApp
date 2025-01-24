@@ -1778,11 +1778,14 @@
             formItem.Accommodations.RemoveRange(1, formItem.Accommodations.Count - 1);
             formItem.Meals.RemoveRange(1, formItem.Meals.Count - 1);
             formItem.LocalTravels.RemoveRange(1, formItem.LocalTravels.Count - 1);
+
+
         }
 
         if (newCountry.Name != "Polska")
         {
             // Add the new country stage and the return to Polska stage
+
             await AddStage(newCountry);
             await AddStage(Origin);
         }
@@ -1797,6 +1800,7 @@
         else if (formItem.Stages.Count == 3)
         {
             AbroadCurrencyExchangeRate = await _mediator.Send(new GetNbpCurrencyRateByDateAndCodeQuery(DateOnly.FromDateTime(DateTime.Today.AddDays(-1)), formItem.Stages[1].CountryCurrency));
+            formItem.CurrencyExchangeRate = formItem.Stages[1].NbpCurrencyRateVm.Mid;
             formItem.CurrencyExchangeRate = AbroadCurrencyExchangeRate.Mid;
             formItem.CurrencyExchangeRateDate = AbroadCurrencyExchangeRate.RateDate;
             formItem.DestinationCountryCurrency = AbroadCurrencyExchangeRate.Code;
@@ -2405,6 +2409,28 @@
 
         editContext.NotifyFieldChanged(fieldIdentifier);
     }
+    private void AssignTransportation(){
+        if (formItem.Transportation == "Samochód prywatny")
+        {
+            IsPrivateCar = true;
+            IsCompanyCar = false;
+            IsPublicTransport = false;
+        }
+        else if (formItem.Transportation == "Samochód służbowy")
+        {
+            IsPrivateCar = false;
+            IsCompanyCar = true;
+            IsPublicTransport = false;
+
+        }
+        else if (formItem.Transportation == "Transport publiczny")
+        {
+            IsPrivateCar = false;
+            IsCompanyCar = false;
+            IsPublicTransport = true;
+        }
+
+    }
     private async Task AssignAllApprovers(EmployeeVm emp)
     {
         approverL1 = new()
@@ -2485,7 +2511,7 @@
         try{
 
             var duration = (formItem.EndDate.HasValue && formItem.StartDate.HasValue) ? (formItem.EndDate.Value - formItem.StartDate.Value).TotalDays : 0;
-            var firstStage = new Stage()
+            var newStage = new Stage()
                 {
                     Id = formItem.Stages.Count() + 1,
                     CountryCode = country.CountryCode,
@@ -2497,15 +2523,15 @@
                     Duration = Math.Round((decimal)duration, 2),
                     NbpCurrencyRateVm = AbroadCurrencyExchangeRate
                 };
-            formItem.Stages.Add(firstStage);
+            formItem.Stages.Add(newStage);
             ValidateDates();
 
             var firstAccomodation = new Accommodation()
                 {
-                    StageId = firstStage.Id,
+                    StageId = newStage.Id,
                     CountryCode = country.CountryCode,
                     CountryName = country.Name,
-                    Duration = firstStage.Duration,
+                    Duration = newStage.Duration,
                     AllowanceRate = country.IsPL ? Math.Round(country.Allowance * 1.5m, 2) : Math.Round(country.MaxHotelCost / 4m, 2), //Ryczałt za nocleg
                     AllowanceRateCurrency = country.CurrencyVmName,
                     MaxHotelCost = country.MaxHotelCost,
@@ -2517,31 +2543,31 @@
 
             var firstMeal = new Meals()
                 {
-                    StageId = firstStage.Id,
+                    StageId = newStage.Id,
                     CountryCode = country.CountryCode,
                     CountryName = country.Name,
                     AllowanceRate = country.Allowance,
                     AllowanceRateCurrency = country.CurrencyVmName,
-                    Duration = (int)Math.Ceiling(firstStage.AllowanceOrigin.GetValueOrDefault() + firstStage.AllowanceAbroad.GetValueOrDefault())
+                    Duration = (int)Math.Ceiling(newStage.AllowanceOrigin.GetValueOrDefault() + newStage.AllowanceAbroad.GetValueOrDefault())
                 };
             formItem.Meals.Add(firstMeal);
 
             var firstLocalTravel = new LocalTravel()
                 {
-                    StageId = firstStage.Id,
+                    StageId = newStage.Id,
                     CountryCode = country.CountryCode,
                     CountryName = country.Name,
                     AllowanceRate = country.LocalTravelAllowance,
                     AllowanceRateCurrency = country.CurrencyVmName,
-                    Duration = (int)Math.Ceiling(firstStage.AllowanceOrigin.GetValueOrDefault() + firstStage.AllowanceAbroad.GetValueOrDefault())
+                    Duration = (int)Math.Ceiling(newStage.AllowanceOrigin.GetValueOrDefault() + newStage.AllowanceAbroad.GetValueOrDefault())
                 };
             formItem.LocalTravels.Add(firstLocalTravel);
 
-            if (firstStage.CountryCode != "PL")
+            if (newStage.CountryCode != "PL")
             {
                 formItem.Transit = new Transit()
                     {
-                        StageId = firstStage.Id,
+                        StageId = newStage.Id,
                         CountryCode = country.CountryCode,
                         CountryName = country.Name,
                         AllowanceRate = country.TravelAllowance,
@@ -2550,7 +2576,7 @@
                 await RecalculateTransit();
             }
 
-            await RecalculateStages(firstStage.Id, nameof(firstStage.EndDate));
+            await RecalculateStages(newStage.Id, nameof(newStage.EndDate));
             await RecalculateAccomodations();
             await RecalculateMeals();
             await RecalculateLocalTravels();
@@ -2839,6 +2865,8 @@
         formItem.EnovaEmpId = _userContext.EnovaEmpId;
         formItem.OrganisationSapNumber = _organisation.SapNumber;
         formItem.AdvancePayment = true;
+
+        #region SetBoolsOnStatus
         ShowAccomodations = false;
         ShowMeals = false;
         ShowStages = false;
@@ -2860,6 +2888,7 @@
         IsMileageDisabled = false;
         IsCashPayoutNumberDisabled = true;
         DisableSendButton = false;
+        #endregion
         StateHasChanged();
     }
     private async Task SetupFormKasa()
@@ -2895,27 +2924,9 @@
     {
         Title = "Podróż służbowa - Rozliczenie";
 
-        if (formItem.Transportation == "Samochód prywatny")
-        {
-            IsPrivateCar = true;
-            IsCompanyCar = false;
-            IsPublicTransport = false;
-        }
-        else if (formItem.Transportation == "Samochód służbowy")
-        {
-            IsPrivateCar = false;
-            IsCompanyCar = true;
-            IsPublicTransport = false;
+        AssignTransportation();
 
-        }
-        else if (formItem.Transportation == "Transport publiczny")
-        {
-            IsPrivateCar = false;
-            IsCompanyCar = false;
-            IsPublicTransport = true;
-        }
-
-
+        #region SetBoolsOnStatus
         ShowAccomodations = true;
         ShowMeals = true;
         ShowStages = true;
@@ -2938,8 +2949,7 @@
         IsTransportationDisabled = true;
         IsMileageDisabled = false;
         IsCashPayoutNumberDisabled = true;
-
-
+        #endregion
 
     }
     private async Task SetupFormKsiegowosc()
@@ -3050,27 +3060,11 @@
     private async Task SetupFormAprobata(string status)
     {
         Title = $"Podróż służbowa - {status}";
-        if (formItem.Transportation == "Samochód prywatny"){
-            IsPrivateCar = true;
-            IsCompanyCar = false;
-            IsPublicTransport = false;
-        }
-        else if (formItem.Transportation == "Samochód służbowy"){
-            IsPrivateCar = false;
-            IsCompanyCar = true;
-            IsPublicTransport = false;
 
-        }
-        else if (formItem.Transportation == "Transport publiczny")
-        {
-            IsPrivateCar = false;
-            IsCompanyCar = false;
-            IsPublicTransport = true;
-        }
+        AssignTransportation();
 
         if(formItem.AdvancePayment){
-            // var tempLocation = 
-            // tempLocation.Add(formItem.CashPoint);
+
             _selectedLocation = new List<Location> { formItem.CashPoint };
 
         }
