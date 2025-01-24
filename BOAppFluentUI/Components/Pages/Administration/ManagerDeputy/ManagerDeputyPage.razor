@@ -15,7 +15,7 @@
 
 @* <h3>Synchronize Managers</h3>
 
-<button @onclick="SyncManagers">Synchronize</button>
+ <button @onclick="SyncManagers">Synchronize</button>
 
 <p>@statusMessage</p> *@
 
@@ -42,14 +42,12 @@ else
         <TemplateColumn Title="Actions" Align="Align.End">
             <FluentButton IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" />
             <FluentButton IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => EditItem(context))" />
-            <FluentButton IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" />
+             @* <FluentButton IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" /> *@
         </TemplateColumn>
 
     </FluentDataGrid>
     <FluentPaginator State="@pagination" />
-    <FluentButton IconStart="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddPanel())" />
-
-
+    @* <FluentButton IconStart="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddPanel())" /> *@
 }
 
 @code {
@@ -61,7 +59,7 @@ else
     PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
     private DebounceDispatcher debounceDispatcher = new DebounceDispatcher();
 
-    //private string statusMessage = "";
+    private string statusMessage = "";
 
     private List<FilterColumn<ManagerDeputyVm>> filterColumns = new List<FilterColumn<ManagerDeputyVm>>
     {
@@ -97,8 +95,8 @@ else
             PreventScroll = true,
         });
     }
-    private async Task Delete(ManagerDeputyVm item)
-    {}
+    //private async Task Delete(ManagerDeputyVm item)
+    //{}
     private async Task EditItem(ManagerDeputyVm item)
     {
         ToastIntent intent;
@@ -152,8 +150,8 @@ else
         await Load();
         _toastService.ShowToast(intent, message, 3000);
     }
-    private async Task AddPanel()
-    {}
+    // private async Task AddPanel()
+    // {}
 
     // private async Task SyncManagers()
     // {

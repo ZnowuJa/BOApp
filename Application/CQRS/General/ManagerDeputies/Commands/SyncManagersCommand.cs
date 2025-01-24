@@ -3,6 +3,7 @@ using AutoMapper;
 using Domain.Entities.Administration;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace Application.CQRS.General.ManagerDeputies.Commands
 {
@@ -16,50 +17,42 @@ namespace Application.CQRS.General.ManagerDeputies.Commands
 
         public async Task<string> Handle(SyncManagersCommand request, CancellationToken cancellationToken)
         {
-            // Pobiera pracowników, którzy są managerami
             var employees = await _appDbContext.Employees
-                .Where(e => e.IsManager == true)
+                .Where(e => e.IsManager)
                 .ToListAsync(cancellationToken);
 
-            // Pobiera istniejących managerów w ManagerDeputies
-            var existingManagerIds = await _appDbContext.ManagerDeputies
+            var existingManagerIdsSet = new HashSet<int>(await _appDbContext.ManagerDeputies
                 .Select(m => m.ManagerId)
-                .ToListAsync(cancellationToken);
+                .ToListAsync(cancellationToken));
 
-            int addedCount = 0;
-
-            // Dodaj nowych managerów
-            foreach (var employee in employees)
-            {
-                if (!existingManagerIds.Contains((int)employee.EnovaEmpId))
+            var newManagers = employees
+                .Where(e => !existingManagerIdsSet.Contains((int)e.EnovaEmpId))
+                .Select(e => new ManagerDeputy
                 {
-                    _appDbContext.ManagerDeputies.Add(new ManagerDeputy
-                    {
-                        ManagerId = (int)employee.EnovaEmpId,
-                        LongName = employee.LongName,
-                        Deputies = "[]"
-                    });
-                    addedCount++;
-                }
+                    ManagerId = (int)e.EnovaEmpId,
+                    LongName = e.LongName,
+                    Deputies = "[]"
+                });
+
+            int addedCount = newManagers.Count();
+
+            if (addedCount > 0)
+            {
+                await _appDbContext.ManagerDeputies.AddRangeAsync(newManagers, cancellationToken);
             }
 
-            // Usuwa managerów, którzy nie są już managerami
-            var employeesManagerIds = employees.Select(e => e.EnovaEmpId).ToList();
-            var managersToRemove = await _appDbContext.ManagerDeputies
+            var employeesManagerIds = new HashSet<int>(employees.Select(e => (int)e.EnovaEmpId));
+
+            var removedCount = await _appDbContext.ManagerDeputies
                 .Where(m => !employeesManagerIds.Contains(m.ManagerId))
-                .ToListAsync(cancellationToken);
+                .ExecuteDeleteAsync(cancellationToken);
 
-            int removedCount = managersToRemove.Count;
-
-            _appDbContext.ManagerDeputies.RemoveRange(managersToRemove);
-
-            // Zapisuje zmiany w bazie danych
             await _appDbContext.SaveChangesAsync(cancellationToken);
 
             var message = addedCount == 0 && removedCount == 0
                 ? "Lista menedżerów jest już aktualna."
                 : $"Synchronizacja zakończona pomyślnie. Dodano: {addedCount}, Usnięto: {removedCount}.";
-
+            
             return message;
         }
 
