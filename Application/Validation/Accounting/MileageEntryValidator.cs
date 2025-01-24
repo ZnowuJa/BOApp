@@ -35,8 +35,5 @@ public class MileageRegisterValidator : AbstractValidator<MileageRegister>
             .Must(entries => entries != null && entries.Any())
             .WithMessage("Proszę dodaj co najmniej jeden przejazd.");
     }
-
-
-
 }
 

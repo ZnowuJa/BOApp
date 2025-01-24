@@ -492,7 +492,7 @@
                                 <th>Etap</th>
                                 <th>Państwo</th>
                                 <th>Noclegi</th>
-                                <th>Rachunek <FluentIcon Id="AccInvId" Value="@(new Icons.Regular.Size16.Info())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" /></th>
+                                <th>Faktura <FluentIcon Id="AccInvId" Value="@(new Icons.Regular.Size16.Info())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" /></th>
                                 <th>Ryczałt <FluentIcon Id="AccMaxRateId" Value="@(new Icons.Regular.Size16.Info())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" /></th>
                                 <th>Maks. stawka <FluentIcon Id="AccMaxCostId" Value="@(new Icons.Regular.Size16.Info())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" /></th>
                                 <th>Waluta</th>
@@ -544,8 +544,8 @@
                         </tbody>
                     </table>
                     <FluentTooltip Anchor="AccId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50>Informacja o noclegach </FluentTooltip>
-                    <FluentTooltip Anchor="AccInvId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50>Zaznacz jeśli nocliegi były opłacone przez PIA lub masz rachunek. Rachunek za opłacony samodzielnie nocleg dodaj w sekcji "Pozostałe rachunki i bilety". Rachunki opłacone przez PIA należy wysłać poprzez InvoiceTrack </FluentTooltip>
-                    <FluentTooltip Anchor="AccMaxRateId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50> Wartość ryczałtu za nocleg.</FluentTooltip>
+                    <FluentTooltip Anchor="AccInvId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50>Zaznacz, jeśli noclegi były opłacone przez PIA lub noclegi opłacono ze swoich środków. Fakturę za noclegi opłacone ze swoich środków dodaj w sekcji „Pozostałe faktury i bilety” </FluentTooltip>
+                    <FluentTooltip Anchor="AccMaxRateId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50> Wartość ryczałtu za nocleg – ryczałt należny, jeśli pracodawca nie zapewnia noclegu.</FluentTooltip>
                     <FluentTooltip Anchor="AccMaxCostId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50> Maksymalna stawka za Hotel.</FluentTooltip>
                     <FluentTooltip Anchor="AccTotalRateId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50> Ryczałt za nocleg do wypłaty dla pracownika lub zwrot poniesionych kosztów.</FluentTooltip>
 
@@ -593,19 +593,21 @@
                                         <td>
                                             <div Style="min-width: 100px;">
                                                 <FluentNumberField Disabled="@(((meal.Duration == 0) || IsControlMealsEditDisabled())? true : false)"
-                                                Min="0"
-                                                Max="@meal.Duration.ToString()"
-                                                @bind-Value:get="@meal.CoveredDinners"
-                                                @bind-Value:set="(value => HandleMealChanged(meal, value, nameof(meal.CoveredDinners)))" />
+                                                                   Min="0"
+                                                                   Max="@meal.Nights.ToString()"
+                                                                   @bind-Value:get="@meal.CoveredLunches"
+                                                                   @bind-Value:set="(value => HandleMealChanged(meal, value, nameof(meal.CoveredLunches)))" />
                                             </div>
+
+                                            
                                         </td>
                                         <td>
                                             <div Style="min-width: 100px;">
                                                 <FluentNumberField Disabled="@(((meal.Duration == 0) || IsControlMealsEditDisabled())? true : false)"
-                                                Min="0"
-                                                Max="@meal.Duration.ToString()"
-                                                @bind-Value:get="@meal.CoveredLunches"
-                                                @bind-Value:set="(value => HandleMealChanged(meal, value, nameof(meal.CoveredLunches)))" />
+                                                    Min="0"
+                                                    Max="@meal.Nights.ToString()"
+                                                    @bind-Value:get="@meal.CoveredDinners"
+                                                    @bind-Value:set="(value => HandleMealChanged(meal, value, nameof(meal.CoveredDinners)))" />
                                             </div>
                                         </td>
                                         <td>@meal.Total</td>
@@ -675,7 +677,7 @@
                             }
                         </tbody>
                     </table>
-                    <FluentTooltip Anchor="LocTravId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50> Wypełnij jeśli korzystałeś z komunikacji miejskiej w mieście docelowym i nie dysponujesz biletami lub rachunkami.</FluentTooltip>
+                    <FluentTooltip Anchor="LocTravId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50> Wypełnij jeśli korzystałeś z komunikacji miejskiej w mieście docelowym i nie dysponujesz biletami lub fakturami. Jeśli posiadasz bilety lub faktury za komunikację miejską czy taksówkę, dołącz je w sekcji "Pozostałe rachunki i bilety"  - ryczałt się nie należy.</FluentTooltip>
                 }
                 @if (ShowTransits)
                 {
@@ -1076,10 +1078,123 @@
 
                 @*Walidation Summary*@
                 <FluentValidationSummary class="validation-error" />
-                @* @if (_editContext.GetValidationMessages(new FieldIdentifier(formItem, nameof(formItem.MileageRegister.Entries))).Any())
+                @if (StageHasErrors())
                 {
-                    <h4>Mileage Register Errors</h4>
-                    <ValidationSummary  />
+                    <h4>Błędy w etapach podróży:</h4>
+
+                    @foreach (var entry in formItem.Stages)
+                    {
+                        string messageSummary = string.Empty;
+                        <div class="validation-error">
+                            @foreach (var message in _editContext.GetValidationMessages(new FieldIdentifier(entry, nameof(entry.StartDate))))
+                            {
+                                messageSummary += message + " | ";
+                            }
+                            @foreach (var message in _editContext.GetValidationMessages(new FieldIdentifier(entry, nameof(entry.EndDate))))
+                            {
+                                messageSummary += message + " | ";
+                            }
+
+                            <b>Etap: @entry.Id</b> <span>@messageSummary</span>
+                        </div>
+                    }
+                    <h4>Błędy w etapach podróży:</h4>
+
+                    <ul class="validation-errors-list">
+                        @foreach (var entry in formItem.Stages)
+                        {
+
+
+                            <b>Etap: @entry.Id</b>
+
+                            @foreach (var message in _editContext.GetValidationMessages(new FieldIdentifier(entry, nameof(entry.StartDate))))
+                            {
+                                @message
+                            }
+                            @foreach (var message in _editContext.GetValidationMessages(new FieldIdentifier(entry, nameof(entry.EndDate))))
+                            {
+                                @message
+                            }
+
+
+                        }
+                    </ul>
+
+                    <h2> Przerwa </h2>
+                    <h4>Błędy w etapach podróży:</h4>
+
+                    <ul class="validation-errors-list">
+                        @foreach (var entry in formItem.Stages)
+                        {
+                            string errorMessages = string.Empty;
+
+                            // Check validation messages for StartDate
+                            foreach (var message in _editContext.GetValidationMessages(new FieldIdentifier(entry, nameof(entry.StartDate))))
+                            {
+                                errorMessages += message + " ";
+                            }
+
+                            // Check validation messages for EndDate
+                            foreach (var message in _editContext.GetValidationMessages(new FieldIdentifier(entry, nameof(entry.EndDate))))
+                            {
+                                errorMessages += message + " ";
+                            }
+
+                            // If there are any error messages, display them
+                            if (!string.IsNullOrEmpty(errorMessages))
+                            {
+                                <li>
+                                    <b>Etap: @entry.Id</b> - @errorMessages
+                                </li>
+                            }
+                        }
+                    </ul>
+                    <h2> another error list</h2>
+                    <h4>Błędy w etapach podróży:</h4>
+
+                    <ul class="validation-errors-list">
+                        @foreach (var entry in formItem.Stages)
+                        {
+                            string errorMessages = string.Empty;
+
+                            // Use reflection to get all properties of the Stage object
+                            var properties = entry.GetType().GetProperties();
+
+                            foreach (var property in properties)
+                            {
+                                // Check validation messages for each property
+                                foreach (var message in _editContext.GetValidationMessages(new FieldIdentifier(entry, property.Name)))
+                                {
+                                    errorMessages += message + " ";
+                                }
+                            }
+
+                            // If there are any error messages, display them
+                            if (!string.IsNullOrEmpty(errorMessages))
+                            {
+                                <li>
+                                    <b>Etap: @entry.Id</b> - @errorMessages
+                                </li>
+                            }
+                        }
+                    </ul>
+
+                }
+                @*                 @foreach (var entry in formItem.MileageRegister.Entries)
+                {
+                    <div>
+                        <h5>Entry ID: @entry.Id</h5>
+                        <ul>
+                            @foreach (var property in typeof(MileageRegisterEntry).GetProperties())
+                            {
+                                var fieldIdentifier = new FieldIdentifier(entry, property.Name);
+                                foreach (var message in _editContext.GetValidationMessages(fieldIdentifier))
+                                {
+                                    <li>@property.Name Error: @message</li>
+                                }
+                            }
+                        </ul>
+                    </div>
                 } *@
 
                 @* Aptobaty i przyciski *@
@@ -1356,6 +1471,46 @@
     // private FluentValidationValidator? _fluentValidator;
     // private bool SendButton = true;
     #endregion
+
+    private bool MileageRegisterHasErrors()
+    {
+        var anyEntries = _editContext.GetValidationMessages(new FieldIdentifier(formItem.MileageRegister, nameof(formItem.MileageRegister))).Any();
+        if (formItem.MileageRegister.Entries.Count == 0)
+        {
+            return false;
+        }
+        foreach (var entry in formItem.MileageRegister.Entries)
+        {
+            if (_editContext.GetValidationMessages(new FieldIdentifier(entry, nameof(entry.Mileage))).Any() ||
+                _editContext.GetValidationMessages(new FieldIdentifier(entry, nameof(entry.Date))).Any() ||
+                _editContext.GetValidationMessages(new FieldIdentifier(entry, nameof(entry.RouteDescription))).Any() || 
+                _editContext.GetValidationMessages(new FieldIdentifier(entry, nameof(entry.Purpose))).Any() 
+            )
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+    private bool StageHasErrors()
+    {
+        var anyStage = _editContext.GetValidationMessages(new FieldIdentifier(formItem.Stages, nameof(formItem.Stages))).Any();
+        if (formItem.Stages.Count == 0)
+        {
+            return false;
+        }
+        foreach (var stage in formItem.Stages)
+        {
+            if (_editContext.GetValidationMessages(new FieldIdentifier(stage, nameof(stage.StartDate))).Any() ||
+                (_editContext.GetValidationMessages(new FieldIdentifier(stage, nameof(stage.StartDate))).Any()
+            ))
+            {
+                return true;
+            };
+
+        }
+        return false;
+    }
     protected override async Task OnInitializedAsync()
     {
 
@@ -1776,6 +1931,7 @@
         else
         {
             AbroadCurrencyExchangeRate = await _mediator.Send(new GetNbpCurrencyRateByDateAndCodeQuery(DateOnly.FromDateTime(DateTime.Today.AddDays(-1)), newCountry.CurrencyVmName));
+            
         }
 
         formItem.DestinationCountry = newCountry;
@@ -1789,6 +1945,7 @@
             formItem.Meals.RemoveRange(1, formItem.Meals.Count - 1);
             formItem.LocalTravels.RemoveRange(1, formItem.LocalTravels.Count - 1);
 
+            formItem.AdvancePayment = false;
 
         }
 
@@ -1798,6 +1955,7 @@
 
             await AddStage(newCountry);
             await AddStage(Origin);
+            formItem.AdvancePayment = true;
         }
 
         //Assign currency to formItem
@@ -2103,12 +2261,14 @@
 
                         // Calculate for the remaining hours
                         var remainingHours = stage.TimeSpan.TotalHours % 24;
-                        if (remainingHours < 8)
+                        if(remainingHours == 0){
+
+                        } else if (remainingHours < 8 && remainingHours > 0)
                         {
                             stage.AllowanceOrigin += 0.5m;
                             stage.AllowanceOriginValue += stage.CountryAllowance / 2;
                         }
-                        else
+                        else if (remainingHours >= 8)
                         {
                             stage.AllowanceOrigin += 1;
                             stage.AllowanceOriginValue += stage.CountryAllowance;
@@ -2121,7 +2281,7 @@
                 {
                     formItem.AllowanceNotPL = stage.CountryAllowance;
                     // Calculate AllowanceAbroad factor and value
-                    if (stage.TimeSpan.TotalHours < 8)
+                    if (stage.TimeSpan.TotalHours < 8 && stage.TimeSpan.TotalHours > 0)
                     {
                         stage.AllowanceAbroad = 0.33m;
                         stage.AllowanceAbroadValue = Math.Round(stage.CountryAllowance / 3, 2);
@@ -2874,7 +3034,7 @@
         formItem.EmployeeName = _userContext.LongName;
         formItem.EnovaEmpId = _userContext.EnovaEmpId;
         formItem.OrganisationSapNumber = _organisation.SapNumber;
-        formItem.AdvancePayment = true;
+        // formItem.AdvancePayment = true;
 
         #region SetBoolsOnStatus
         ShowAccomodations = false;
@@ -3839,6 +3999,22 @@
             padding: 8px; /* Standard padding */
             text-align: center; /* Center-align text */
         }
+</style>
+<style>
+    .validation-errors-list {
+        margin: 0;
+        padding-left: 20px; /* Indent the sub-list */
+    }
+
+        .validation-errors-list li {
+            margin-bottom: 5px; /* Adjust spacing between lines */
+            line-height: 1.2; /* Adjust line height for compactness */
+        }
+
+            .validation-errors-list li ul {
+                margin-top: 2px; /* Reduce space before nested lists */
+                padding-left: 15px; /* Indent nested lists */
+            }
 </style>
 <script>
     function triggerFileUpload() {

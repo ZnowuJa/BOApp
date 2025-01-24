@@ -93,7 +93,7 @@ public class BusinessTravelFormVm : IMapFrom<BusinessTravelForm>, IFormAccountin
 
     #endregion
     #region AdvancePayment
-        public bool AdvancePayment { get; set; } = true;
+        public bool AdvancePayment { get; set; } = false;
         public decimal? AdvancePaymentAmount { get; set; } = 0;
         // do delegacji zagranicznej to min. 25% diety należnej wg kraju przeznaczenia i wg ilości naliczonej diety czyli czasu na jaki pracownik wypełnia delegację
         public string? AdvancePaymentCurrency { get; set; } = "PLN";

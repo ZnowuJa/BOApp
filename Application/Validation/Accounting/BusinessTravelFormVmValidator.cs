@@ -22,7 +22,6 @@ public class BusinessTravelFormVmValidator : AbstractValidator<BusinessTravelFor
         });
         RuleFor(x => x.Objective).NotEmpty().WithMessage("Wybierz cel wyjazdu!");
         RuleFor(x => x.Transportation).NotEmpty().WithMessage("Wybierz środek transportu!");
-
         When(form => form.Status == "ZaliczkaKasa", () =>
         {
             RuleFor(x => x.CashPayoutNumber).NotEmpty().WithMessage("Wprowadź numer dokumentu kasowego z Austostacji!");
@@ -91,11 +90,13 @@ public class BusinessTravelFormVmValidator : AbstractValidator<BusinessTravelFor
         });
         When(form => form.Status == "Rozliczenie", () =>
         {
-            RuleForEach(x => x.Stages).ChildRules(stage =>
-            {
-                stage.RuleFor(s => s.StartDate).NotEmpty().WithMessage("Uzupenij czas pobytu na poszczeglnych etapach");
-                stage.RuleFor(s => s.EndDate).NotEmpty().WithMessage("Uzupenij czas pobytu na poszczeglnych etapach");
-            });
+            RuleForEach(s => s.Stages).SetValidator(new StageValidator());
+            //RuleForEach(x => x.Stages).ChildRules(stage =>
+            //{
+            //    stage.RuleFor(s => s.StartDate).NotEmpty().WithMessage("Uzupenij czas pobytu na poszczeglnych etapach");
+            //    stage.RuleFor(s => s.EndDate).NotEmpty().WithMessage("Uzupenij czas pobytu na poszczeglnych etapach");
+            //    stage.RuleFor(s=>s).Must(s => s.EndDate > s.StartDate).WithMessage("Rozpoczęcie etapu nie może być wcześniejsze niż jego zakończenie.");
+            //});
         });
         When(form => form.Status == "Rozliczenie" && form.Transportation == "Samochód prywatny", () =>
         {
