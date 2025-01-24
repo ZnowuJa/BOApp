@@ -117,7 +117,7 @@ public class BusinessTravelFormVm : IMapFrom<BusinessTravelForm>, IFormAccountin
         public string? ReceiptCashierEmpId { get; set; } = string.Empty;
         
         [JsonIgnore] public EmployeeVm ReceiptCashier { get; set; } = new();
-        public decimal CurrencyExchangeRate { get; set; } = 1m;
+        public decimal CurrencyExchangeRate { get; set; } 
         public DateOnly CurrencyExchangeRateDate { get; set; } = DateOnly.FromDateTime(DateTime.Now);
 
     #endregion

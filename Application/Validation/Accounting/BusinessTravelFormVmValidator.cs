@@ -53,19 +53,6 @@ public class BusinessTravelFormVmValidator : AbstractValidator<BusinessTravelFor
             });
 
         });
-        When(form => form.Status == "Rozliczenie" && form.ReceiptPaymentCash, () =>
-        {
-            RuleFor(x => x.BankAccountNumber)
-            .Custom((bankAccountNumber, context) =>
-            {
-                if (string.IsNullOrEmpty(bankAccountNumber) || !System.Text.RegularExpressions.Regex.IsMatch(bankAccountNumber, "^PL\\d{26}$"))
-                {
-                    context.AddFailure("Wprowadź poprawny numer konta!");
-                }
-            });
-            //RuleFor(x => x.BankAccountNumber).NotEmpty().WithMessage("Wprowadź numer konta!").Matches("^PL\\d{26}$").WithMessage("Wprowadź poprawny numer konta!");
-
-        });
         When(form => form.Status == "Rozliczenie" && form.ReceiptPaymentCash == false, () =>
         {
             RuleFor(x => x.CashPointReceipt).ChildRules(cashpoint =>
@@ -81,7 +68,7 @@ public class BusinessTravelFormVmValidator : AbstractValidator<BusinessTravelFor
             {
                 if (string.IsNullOrEmpty(bankAccountNumber) || !System.Text.RegularExpressions.Regex.IsMatch(bankAccountNumber, "^PL\\d{26}$"))
                 {
-                    context.AddFailure("Wprowadź poprawny numer konta!");
+                    context.AddFailure("Wprowadź poprawny numer konta Receiptt!");
                 }
             });
             //RuleFor(x => x.BankAccountNumber).NotEmpty().WithMessage("Wprowadź numer konta!").Matches("^PL\\d{26}$").WithMessage("Wprowadź poprawny numer konta!");
@@ -110,7 +97,16 @@ public class BusinessTravelFormVmValidator : AbstractValidator<BusinessTravelFor
                 stage.RuleFor(s => s.EndDate).NotEmpty().WithMessage("Uzupenij czas pobytu na poszczeglnych etapach");
             });
         });
-
+        When(form => form.Status == "Rozliczenie" && form.Transportation == "Samochód prywatny", () =>
+        {
+            RuleForEach(x => x.MileageRegister.Entries).ChildRules(entry =>
+            {
+                entry.RuleFor(s => s.Date).NotEmpty().WithMessage("Uzupenij datę przejazdu w kilometrówce!");
+                entry.RuleFor(s => s.Mileage).GreaterThan(0).WithMessage("Uzupełnij listę przejechanych kilometrów");
+                entry.RuleFor(s => s.Purpose).NotEmpty().WithMessage("Uzupełnij cel przejazdu!");
+                entry.RuleFor(s => s.RouteDescription).NotEmpty().WithMessage("Uzupełnij opis przejazdu!");
+            });
+        });
 
     }
 }
