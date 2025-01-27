@@ -109,6 +109,11 @@ public class BusinessTravelFormVmValidator : AbstractValidator<BusinessTravelFor
         {
             RuleFor(x => x.MileageRegister).SetValidator(new MileageRegisterValidator());
         });
+        When(form => form.Status == "Rozliczenie" && form.Bills.Count > 0, () =>
+        {
+            RuleForEach(x => x.Bills).SetValidator(new BillValidator());
+
+        });
         RuleSet("MainDates", () =>
         {
            

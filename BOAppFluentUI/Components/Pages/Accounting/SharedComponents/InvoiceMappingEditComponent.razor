@@ -5,72 +5,88 @@
 @using Application.ViewModels.Accounting
 @using Application.ViewModels.General
 @inject IMediator _mediator
-<table>
-    <tbody>
-        <tr class="fluent-row">
-            <td>
-                <FluentAutocomplete TOption="Location"
-                Disabled="@Disabled"
-                SelectValueOnTab="true"
-                AutoComplete="on"
-                OnOptionsSearch="@OnLocationSearch"
-                Placeholder="Wybierz lokalizację..."
-                MaximumSelectedOptions="1"
-                OptionText="@(p => p.SapNumber + ' ' + p.Name)"
-                @bind-SelectedOptions="@_selectedLocation"
-                @bind-SelectedOptions:after="@HandleLocationChange"
-                Width="150px"
-                class="left-align-text"
-                />
-            </td>
-            <td>
-                <FluentAutocomplete TOption="CostCenterVm"
-                Disabled="@Disabled"
-                SelectValueOnTab="true"
-                AutoComplete="on"
-                OnOptionsSearch="@OnCostCenterSearch"
-                Placeholder="Wybierz MPK..."
-                MaximumSelectedOptions="1"
-                OptionText="@(p => p.MPK + ' ' + p.Description)"
-                @bind-SelectedOptions="@_selectedCostCenter"
-                @bind-SelectedOptions:after="@HandleCostCenterChange"
-                Width="150px"
-                class="left-align-text"
-                />
-            </td>
-            <td>
-                <FluentAutocomplete TOption="GLAccountVm"
-                Disabled="@Disabled"
-                SelectValueOnTab="true"
-                AutoComplete="on"
-                OnOptionsSearch="@OnGLAccountSearch"
-                Placeholder="Wybierz konto..."
-                MaximumSelectedOptions="1"
-                OptionText="@(p => p.AccountNumber + ' ' + p.Description)"
-                @bind-SelectedOptions="@_selectedGlAccount"
-                @bind-SelectedOptions:after="@HandleGlAccountChange"
-                Width="150px"
-                class="left-align-text"
-                />
-            </td>
-            <td>
-                <FluentAutocomplete TOption="VATRateVm"
-                Disabled="@Disabled"
-                SelectValueOnTab="true"
-                AutoComplete="on"
-                OnOptionsSearch="@OnVATRateSearch"
-                Placeholder="Wybierz stawkę VAT..."
-                MaximumSelectedOptions="1"
-                OptionText="@(p => p.Percentage.ToString() + ' ' + p.Name)"
-                @bind-SelectedOptions="@_selectedVatRate"
-                @bind-SelectedOptions:after="@HandleVatRateChange"
-                Width="150px"
-                class="left-align-text"
-                />
-            </td>
-        </tr>
-    </tbody>
-</table>
+<EditForm EditContext="@ParentEditContext">
+
+
+    <table>
+        <tbody>
+            <tr class="fluent-row">
+                <td>
+                    <FluentAutocomplete TOption="Location"
+                    Disabled="@Disabled"
+                    SelectValueOnTab="true"
+                    AutoComplete="on"
+                    OnOptionsSearch="@OnLocationSearch"
+                    Placeholder="Wybierz lokalizację..."
+                    MaximumSelectedOptions="1"
+                    OptionText="@(p => p.SapNumber + ' ' + p.Name)"
+                    @bind-SelectedOptions="@_selectedLocation"
+                    @bind-SelectedOptions:after="@HandleLocationChange"
+                    Width="150px"
+                    class="left-align-text"
+                    />
+                </td>
+                <td>
+                    <FluentAutocomplete TOption="CostCenterVm"
+                    Disabled="@Disabled"
+                    SelectValueOnTab="true"
+                    AutoComplete="on"
+                    OnOptionsSearch="@OnCostCenterSearch"
+                    Placeholder="Wybierz MPK..."
+                    MaximumSelectedOptions="1"
+                    OptionText="@(p => p.MPK + ' ' + p.Description)"
+                    @bind-SelectedOptions="@_selectedCostCenter"
+                    @bind-SelectedOptions:after="@HandleCostCenterChange"
+                    Width="150px"
+                    class="left-align-text"
+                    />
+                </td>
+                <td>
+                    <FluentAutocomplete TOption="GLAccountVm"
+                    Disabled="@Disabled"
+                    SelectValueOnTab="true"
+                    AutoComplete="on"
+                    OnOptionsSearch="@OnGLAccountSearch"
+                    Placeholder="Wybierz konto..."
+                    MaximumSelectedOptions="1"
+                    OptionText="@(p => p.AccountNumber + ' ' + p.Description)"
+                    @bind-SelectedOptions="@_selectedGlAccount"
+                    @bind-SelectedOptions:after="@HandleGlAccountChange"
+                    Width="150px"
+                    class="left-align-text"
+                    />
+                </td>
+                <td>
+                    <FluentAutocomplete TOption="VATRateVm"
+                    Disabled="@Disabled"
+                    SelectValueOnTab="true"
+                    AutoComplete="on"
+                    OnOptionsSearch="@OnVATRateSearch"
+                    Placeholder="Wybierz stawkę VAT..."
+                    MaximumSelectedOptions="1"
+                    OptionText="@(p => p.Percentage.ToString() + ' ' + p.Name)"
+                    @bind-SelectedOptions="@_selectedVatRate"
+                    @bind-SelectedOptions:after="@HandleVatRateChange"
+                    Width="150px"
+                    class="left-align-text"
+                    />
+                    @if (InvoiceMapping.VATRate != null)
+                    {
+                        <FluentValidationMessage For="@(() => InvoiceMapping.VATRate.Id)" class="validation-error" />
+                    }
+                    <FluentValidationMessage For="@(() => InvoiceMapping.VATRate)" class="validation-error" />
+                </td>
+                <td>
+                    <FluentNumberField @bind-Value="@InvoiceMapping.AmountNet" />
+                    <FluentValidationMessage 
+                    For="@(() => InvoiceMapping.AmountNet)"
+                    class="validation-error" />
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+</EditForm>
 
 @code {
     [Parameter] public InvoiceMapping InvoiceMapping { get; set; }
@@ -82,6 +98,8 @@
     [Parameter] public CostCenterVm? settledCostCenter { get; set; }
     [Parameter] public Location? settledLocation { get; set; }
     [Parameter] public GLAccountVm? settledGLAccount { get; set; }
+    [Parameter] public VATRateVm? settledVatRate { get; set; }
+    [Parameter] public EditContext ParentEditContext { get; set; }
 
     IEnumerable<Location> _selectedLocation = Array.Empty<Location>();
     IEnumerable<CostCenterVm> _selectedCostCenter = Array.Empty<CostCenterVm>();
@@ -106,6 +124,9 @@
         {
             _selectedLocation = new List<Location> { InvoiceMapping.Location };
         }
+        if (InvoiceMapping.VATRate != null){
+            _selectedVatRate = new List<VATRateVm> { InvoiceMapping.VATRate };
+        }
 
     }
 
@@ -129,6 +150,7 @@
     }
     private void HandleVatRateChange()
     {
+        
         InvoiceMapping.VATRate = _selectedVatRate.FirstOrDefault();
 
         Console.WriteLine();

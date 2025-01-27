@@ -4,6 +4,7 @@
 
 @using System.Globalization
 @using Application.CQRS.General.ManagerDeputies.Queries
+@using Application.Validation.Accounting
 @using BOAppFluentUI.Components.Pages.Accounting.Settlements
 @using Blazored.FluentValidation
 @using Application.CQRS.AccountingCQRS.BusinessTravels.Commands
@@ -732,6 +733,8 @@
                                         @bind-Value:get="@bill.Amount"
                                         @bind-Value:set="(value => HandleBillChanged(bill, value))"
                                         width="100px" />
+                                        <FluentValidationMessage For="@(() => bill.Amount)" 
+                                        class="validation-error" />
                                     </td>
                                     <td>
                                         <FluentSelect TOption="string"
@@ -749,38 +752,72 @@
                                         AllowFreeform="false"
                                         Placeholder="Wybierz lub wprowadź..."
                                         Width="150px" />
+                                        <FluentValidationMessage 
+                                        For="@(() => bill.Reason)" class="validation-error" />
                                     </td>
                                     <td>
                                         <div>
                                             @{
                                                 var attbillId = $"attbillId-{bill.Id}";
                                             }
-                                            <FluentButton Id="@attbillId" Disabled="@IsControlBillEditDisabled()" IconEnd="@(new Icons.Filled.Size20.Attach())" OnClick="@(() => UploadFileForBill(bill))" />
+                                            <FluentButton Id="@attbillId" 
+                                            Disabled="@IsControlBillEditDisabled()" 
+                                            IconEnd="@(new Icons.Filled.Size20.Attach())" 
+                                            OnClick="@(() => UploadFileForBill(bill))" />
                                             @if (bill.FilePath is not null)
                                             {
-                                                <FluentTooltip Anchor="@attbillId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50>Wymień załącznik</FluentTooltip>
+                                                <FluentTooltip Anchor="@attbillId" 
+                                                HideTooltipOnCursorLeave="true" 
+                                                Position=TooltipPosition.Right 
+                                                Delay=50>Wymień załącznik</FluentTooltip>
+
                                                 var billId = $"billId-{bill.Id}";
-                                                <FluentButton Id="@billId" Disabled="@IsControlBillEditDisabled()" IconEnd="@(new Icons.Regular.Size20.DeleteOff())" OnClick="@(() => RemoveFileFromBill(bill))" />
-                                                <FluentTooltip Anchor="@billId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50>Usuń załącznik</FluentTooltip>
+                                                <FluentButton Id="@billId" 
+                                                Disabled="@IsControlBillEditDisabled()" 
+                                                IconEnd="@(new Icons.Regular.Size20.DeleteOff())" 
+                                                OnClick="@(() => RemoveFileFromBill(bill))" />
+                                                <FluentTooltip Anchor="@billId" 
+                                                HideTooltipOnCursorLeave="true" 
+                                                Position=TooltipPosition.Right 
+                                                Delay=50>Usuń załącznik</FluentTooltip>
                                                 var billViewId = $"billViewId-{bill.Id}";
-                                                <FluentButton Id="@billViewId" Disabled="@IsControlBillEditDisabled()" IconEnd="@(new Icons.Filled.Size20.ArrowDownload())" OnClick="@(() => ViewAttachment(bill.AttUrl))" />
-                                                <FluentTooltip Anchor="@billViewId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50>Pobierz/Otwórz załącznik</FluentTooltip>
+                                                <FluentButton Id="@billViewId" 
+                                                Disabled="@IsControlBillEditDisabled()" 
+                                                IconEnd="@(new Icons.Filled.Size20.ArrowDownload())" 
+                                                OnClick="@(() => ViewAttachment(bill.AttUrl))" />
+                                                <FluentTooltip Anchor="@billViewId" 
+                                                HideTooltipOnCursorLeave="true" 
+                                                Position=TooltipPosition.Right 
+                                                Delay=50>Pobierz/Otwórz załącznik</FluentTooltip>
                                             }
                                             else
                                             {
-                                                <FluentTooltip Anchor="@attbillId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50>Dodaj załącznik</FluentTooltip>
+                                                <FluentTooltip Anchor="@attbillId" 
+                                                HideTooltipOnCursorLeave="true" 
+                                                Position=TooltipPosition.Right 
+                                                Delay=50>Dodaj załącznik</FluentTooltip>
 
                                             }
 
                                         </div>
+                                        @*                                         @if (!string.IsNullOrEmpty(messageFilePathValidator)){
+                                            <p class="validation-error">@messageFilePathValidator</p>
+                                        } *@
+                                        <FluentValidationMessage 
+                                        For="@(() => bill.FilePath)" class="validation-error" />
                                     </td>
                                     <td>
                                         @{
                                             var billRemId = $"billRemId-{bill.Id}";
                                         }
                                         <div>
-                                            <FluentButton Id="@billRemId" Disabled="@IsControlBillEditDisabled()" IconEnd="@(new Icons.Filled.Size20.Delete())" OnClick="@(() => RemoveBill(bill))" />
-                                            <FluentTooltip Anchor="@billRemId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50>Usuń rachunek/bilet</FluentTooltip>
+                                            <FluentButton Id="@billRemId" 
+                                            Disabled="@IsControlBillEditDisabled()" 
+                                            IconEnd="@(new Icons.Filled.Size20.Delete())" 
+                                            OnClick="@(() => RemoveBill(bill))" />
+                                            <FluentTooltip Anchor="@billRemId" HideTooltipOnCursorLeave="true" 
+                                            Position=TooltipPosition.Right 
+                                            Delay=50>Usuń rachunek/bilet</FluentTooltip>
                                         </div>
                                     </td>
                                 </tr>
@@ -798,7 +835,9 @@
                                                 VatRates="@_vatRates" 
                                                 Locations="@_locations"
                                                 Disabled="@IsControlBillEditDisabled()"
-                                                InvoiceMapping="@invMapping" />
+                                                InvoiceMapping="@invMapping" 
+                                                ParentEditContext="@_editContext"
+                                                />
                                             </td>
                                             <td>
                                                 <FluentButton Id="@addinvMappingId"
@@ -1472,6 +1511,7 @@
     private List<string> allowedEditor { get; set; } = new List<string>();
     private Approval approvalInfo { get; set; }
     #endregion
+    private string messageFilePathValidator = string.Empty;
     // private FluentValidationValidator? _fluentValidator;
     // private bool SendButton = true;
     #endregion
@@ -1614,6 +1654,7 @@
 
 
         if(_editContext.Validate()){
+            
             formItem.Approvals.Add(approvalInfo);
             formItem.Status = GetNextStatus(formItem);
             var newId = await _mediator.Send(new CreateBusinessTripCommand(formItem));
@@ -1625,6 +1666,24 @@
         }
 
     }
+    // private void ValidateBill(Bill bill)
+    // {
+    //     messageFilePathValidator = string.Empty;
+    //     var validator = new BillValidator();
+    //     var validationResult = validator.Validate(bill);
+
+    //     // Handle validation result
+    //     if (!validationResult.IsValid)
+    //     {
+    //         // Display validation errors
+    //         foreach (var error in validationResult.Errors)
+    //         {
+    //             messageFilePathValidator += error.ErrorMessage;
+    //         }
+    //     }
+    //     _editContext.Validate();
+    // }
+
     private async Task CheckForm(){
         // var x = _editContext.GetValidationMessages().Any(m => );
         // _fluentValidationValidator?.Validate(options => options.IncludeRuleSets("MainDates"));
@@ -1670,6 +1729,9 @@
     {
 
         if(_editContext.Validate()){
+            if(stroz){
+                await SaveBillFiles();
+            }
             formItem.Approvals.Add(approvalInfo);
             formItem.Status = GetNextStatus(formItem);
             await _mediator.Send(new UpdateBusinessTripCommand(formItem));
@@ -2002,7 +2064,7 @@
     }
     private async Task HandleCompanyCarChange()
     {
-
+        formItem.CompanyVehicleNumber = string.Empty;   
         Console.WriteLine(SelectedCompanyCar.Count());
 
         if (SelectedCompanyCar.FirstOrDefault() == null)
@@ -2013,7 +2075,7 @@
         {
             formItem.CompanyVehicleNumber = SelectedCompanyCar.First().ToString();
         }
-
+        _editContext.Validate();
         StateHasChanged();
     }
     private async Task HandleCityChange(string value)
@@ -2872,6 +2934,8 @@
                 CurrentBillForUpload.AttUrl = FileUtils.GenerateUrl(CurrentBillForUpload.FilePath, Environment.WebRootPath);
             }
         }
+        _editContext.Validate();
+        // ValidateBill(CurrentBillForUpload);
     }
     private void RemoveFileFromBill(Bill bill)
     {
@@ -2879,13 +2943,14 @@
         bill.FilePath = null;
         bill.OriginalFileName = null;
         bill.AttUrl = null;
+        _editContext.Validate();
     }
     private void UploadFileForBill(Bill bill)
     {
         CurrentBillForUpload = bill;
         JS.InvokeVoidAsync("triggerFileUpload");
     }
-    private void SaveBillFiles()
+    private async Task SaveBillFiles()
     {
         foreach (var bill in formItem.Bills)
         {
