@@ -13,6 +13,7 @@ namespace Application.BackgroundJobs
 
         public async Task Execute(IJobExecutionContext context)
         {
+            // Job begins each day at 9:00 AM
             var employees = await _appDbContext.Employees
                 .Where(e => e.IsManager == true)
                 .ToListAsync(context.CancellationToken);
