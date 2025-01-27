@@ -13,8 +13,15 @@ public class BusinessTravelFormVmValidator : AbstractValidator<BusinessTravelFor
     public BusinessTravelFormVmValidator()
     {
         RuleFor(x => x.StartDate).NotEmpty().WithMessage("Wprowadź datę początkową!");
-        RuleFor(x => x.EndDate).NotEmpty().WithMessage("Wprowadź datę końcową!");
-        RuleFor(x => x).Must(x => x.StartDate < x.EndDate).WithMessage("Data początkowa powinna być wcześniejsza niż data końcowa!");
+        RuleFor(x => x.EndDate)
+            .NotEmpty().WithMessage("Wprowadź datę końcową!");
+        RuleFor(x => x.EndDate)
+            .Must((model, endDate) => model.StartDate < endDate)
+            .WithMessage("Data początkowa powinna być wcześniejsza niż data końcowa!")
+            .When(x => x.EndDate.HasValue && x.StartDate.HasValue);
+        //RuleFor(x => x.EndDate).NotEmpty().WithMessage("Wprowadź datę końcową!");
+
+        //RuleFor(x => x).Must(x => x.StartDate < x.EndDate).WithMessage("Data początkowa powinna być wcześniejsza niż data końcowa!");
         RuleFor(x => x.Destination).NotEmpty().WithMessage("Wybierz lub wprowadź miasto docelowe!");
         RuleFor(x => x.DestinationCountry).ChildRules(country =>
         {
@@ -102,7 +109,10 @@ public class BusinessTravelFormVmValidator : AbstractValidator<BusinessTravelFor
         {
             RuleFor(x => x.MileageRegister).SetValidator(new MileageRegisterValidator());
         });
-        
+        RuleSet("MainDates", () =>
+        {
+           
+        });
 
     }
 }

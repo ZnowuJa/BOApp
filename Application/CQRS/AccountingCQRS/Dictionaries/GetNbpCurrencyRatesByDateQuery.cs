@@ -33,7 +33,8 @@ namespace Application.CQRS.AccountingCQRS.Dictionaries
         {
             // Filter the records based on RateDate
             var query = _context.NbpCurrencyRates
-                .Where(c => c.RateDate == request.RateDate) // Filter by RateDate
+                .Where(c => c.RateDate <= request.RateDate && c.RateDate > request.RateDate.AddDays(-60)) // Filter by RateDate
+                .OrderByDescending(c => c.RateDate)
                 .Select(c => new NbpCurrencyRateVm(
                     c.Id,
                     c.Currency,

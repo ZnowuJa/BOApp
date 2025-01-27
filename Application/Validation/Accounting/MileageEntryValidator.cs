@@ -17,7 +17,7 @@ public class MileageEntryValidator : AbstractValidator<MileageRegisterEntry>
     public MileageEntryValidator()
     {
 
-        RuleFor(s => s.Date).NotEmpty().WithMessage("Uzupenij datę przejazdu!").WithErrorCode("ddd");
+        RuleFor(s => s.DateTimeForBinding).NotEmpty().WithMessage("Uzupenij datę przejazdu!");
         RuleFor(s => s.Mileage).NotEmpty().WithMessage("Podaj liczbę przejechanych kilometrów").GreaterThanOrEqualTo(1).WithMessage("Uzupełnij liczbę przejechanych kilometrów");
         RuleFor(s => s.Purpose).NotEmpty().WithMessage("Uzupełnij cel przejazdu!");
         RuleFor(s => s.RouteDescription).NotEmpty().WithMessage("Uzupełnij opis przejazdu!");

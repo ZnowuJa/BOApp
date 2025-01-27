@@ -3,6 +3,7 @@
 @page "/delegacja/{id:int}"
 
 @using System.Globalization
+@using Application.CQRS.General.ManagerDeputies.Queries
 @using BOAppFluentUI.Components.Pages.Accounting.Settlements
 @using Blazored.FluentValidation
 @using Application.CQRS.AccountingCQRS.BusinessTravels.Commands
@@ -593,21 +594,21 @@
                                         <td>
                                             <div Style="min-width: 100px;">
                                                 <FluentNumberField Disabled="@(((meal.Duration == 0) || IsControlMealsEditDisabled())? true : false)"
-                                                                   Min="0"
-                                                                   Max="@meal.Nights.ToString()"
-                                                                   @bind-Value:get="@meal.CoveredLunches"
-                                                                   @bind-Value:set="(value => HandleMealChanged(meal, value, nameof(meal.CoveredLunches)))" />
+                                                Min="0"
+                                                Max="@meal.Nights.ToString()"
+                                                @bind-Value:get="@meal.CoveredLunches"
+                                                @bind-Value:set="(value => HandleMealChanged(meal, value, nameof(meal.CoveredLunches)))" />
                                             </div>
 
-                                            
+
                                         </td>
                                         <td>
                                             <div Style="min-width: 100px;">
                                                 <FluentNumberField Disabled="@(((meal.Duration == 0) || IsControlMealsEditDisabled())? true : false)"
-                                                    Min="0"
-                                                    Max="@meal.Nights.ToString()"
-                                                    @bind-Value:get="@meal.CoveredDinners"
-                                                    @bind-Value:set="(value => HandleMealChanged(meal, value, nameof(meal.CoveredDinners)))" />
+                                                Min="0"
+                                                Max="@meal.Nights.ToString()"
+                                                @bind-Value:get="@meal.CoveredDinners"
+                                                @bind-Value:set="(value => HandleMealChanged(meal, value, nameof(meal.CoveredDinners)))" />
                                             </div>
                                         </td>
                                         <td>@meal.Total</td>
@@ -1077,7 +1078,7 @@
                 }
 
                 @*Walidation Summary*@
-                <FluentValidationSummary class="validation-error" />
+                @* <FluentValidationSummary class="validation-error" /> *@
                 @if (StageHasErrors())
                 {
                     <h4>Błędy w etapach podróży:</h4>
@@ -1131,6 +1132,7 @@
                             // Check validation messages for StartDate
                             foreach (var message in _editContext.GetValidationMessages(new FieldIdentifier(entry, nameof(entry.StartDate))))
                             {
+                                errorMessages += message + " ";
                                 errorMessages += message + " ";
                             }
 
@@ -1213,6 +1215,7 @@
                         OptionSelected="@(p => p.IsDefault)"
                         @bind-SelectedOption="@approverL1"
                         Height="200px"
+                        Style="margin-bottom: 20px;"
                         @onchange="HandleChangeApproverL1" />
 
                     }
@@ -1451,7 +1454,7 @@
     private bool DisableRejectButton = false;
     #endregion
     #region Dictionaries
-    private IQueryable<NbpCurrencyRateVm> NbpCurrencies { get; set; }
+    private List<NbpCurrencyRateVm> NbpCurrencies { get; set; }
     private IEnumerable<CompanyCarRegistrationNumberVm> CompanyCarRegistrationNumbers { get; set; }
     private NbpCurrencyRateVm AbroadCurrencyExchangeRate { get; set; }
     private NbpCurrencyRateVm OriginExchangeRate { get; set; } = new NbpCurrencyRateVm(
@@ -1464,6 +1467,7 @@
     #endregion
     #region Other
     private bool test = false;
+    private ManagerDeputyVm _managerDeputy {get; set;} = new ();
     private List<string> allowedEmp { get; set; } = new List<string>();
     private List<string> allowedEditor { get; set; } = new List<string>();
     private Approval approvalInfo { get; set; }
@@ -1623,6 +1627,7 @@
     }
     private async Task CheckForm(){
         // var x = _editContext.GetValidationMessages().Any(m => );
+        // _fluentValidationValidator?.Validate(options => options.IncludeRuleSets("MainDates"));
         _editContext.Validate();
     }
     private async Task CancelForm()
@@ -1718,10 +1723,7 @@
                 newStatus = "WyslaneDoRobota";
             } 
         }
-        // else if (formItem.Status == "AprobataL12")
-        // {
-        //     newStatus = "AprobataL12";
-        // }
+
 
         return newStatus;
     }
@@ -1843,15 +1845,18 @@
         };
 
     }
-    private void HandleLocationChange()
+    private async Task HandleLocationChange()
     {
         formItem.CashPoint = _selectedLocation.FirstOrDefault();
-
+        var tempOrg = await _mediator.Send(new GetOrganisationByEmpSapNumberQuery(formItem.CashPoint.SapNumber));
+        formItem.Level2Approvers = SetApprovers(tempOrg.Role_Cashiers);
         Console.WriteLine();
     }
-    private void HandleLocationReceiptChange()
+    private async Task HandleLocationReceiptChange()
     {
         formItem.CashPointReceipt = _selectedLocation.FirstOrDefault();
+        var tempOrg = await _mediator.Send(new GetOrganisationByEmpSapNumberQuery(formItem.CashPointReceipt.SapNumber));
+        formItem.Level2Approvers = SetApprovers(tempOrg.Role_Cashiers);
 
         Console.WriteLine();
     }
@@ -1930,8 +1935,10 @@
         }
         else
         {
-            AbroadCurrencyExchangeRate = await _mediator.Send(new GetNbpCurrencyRateByDateAndCodeQuery(DateOnly.FromDateTime(DateTime.Today.AddDays(-1)), newCountry.CurrencyVmName));
-            
+            // AbroadCurrencyExchangeRate = await _mediator.Send(new GetNbpCurrencyRateByDateAndCodeQuery(DateOnly.FromDateTime(DateTime.Today.AddDays(-1)), newCountry.CurrencyVmName));
+
+            AbroadCurrencyExchangeRate = NbpCurrencies.Where(c => c.Code == newCountry.CurrencyVmName ).First();
+
         }
 
         formItem.DestinationCountry = newCountry;
@@ -2152,7 +2159,7 @@
         {
             AddStage(Origin);
         }
-
+        // _fluentValidationValidator?.Validate(options => options.IncludeRuleSets("MainDates"));
         RecalculateForm();
     }
     private async Task HandleStageDateTimeChanged(DateTime? value, Stage stage, string propertyName, int stageId)
@@ -2603,24 +2610,20 @@
     }
     private async Task AssignAllApprovers(EmployeeVm emp)
     {
-        approverL1 = new()
-            {
-                IsDefault = true,
-                EmpId = emp.ManagerId,
-                LongName = emp.Manager.LongName
-            };
+        // approverL1 = new()
+        //     {
+        //         IsDefault = true,
+        //         EmpId = emp.ManagerId,
+        //         LongName = emp.Manager.LongName
+        //     };
         formItem.Level1Approvers.Clear();
-        formItem.Level1Approvers.Add(approverL1);
+        formItem.Level1Approvers = await SetManagerAndDeputies(); // Przełożony
         formItem.LVL1_EnovaEmpId = emp.ManagerId.ToString();
         formItem.LVL1_EmployeeName = emp.Manager.LongName;
-
-        // Drugi przełożony co może nie być potrzebne
-        formItem.Level3Approvers = SetApprovers(_organisation.Role_Cashiers);
-        // Kasjerki
-        formItem.Level3Approvers = SetApprovers(_organisation.Role_Cashiers);
-        // Księgowe
-        formItem.Level4Approvers = SetApprovers(_organisation.Role_Accountants);
-        formItem.Level5Approvers = SetApprovers(_organisation.Role_AccountantsTeamLeader);
+        formItem.Level2Approvers = SetApprovers(_organisation.Role_Cashiers); // Kasjerki
+        formItem.Level3Approvers = SetApprovers(_organisation.Role_Accountants); // Księgowe
+        formItem.Level4Approvers = SetApprovers(_organisation.Role_AccountantsTeamLeader); // Księgowe TL
+        formItem.Level5Approvers = SetApprovers(_organisation.Role_DealerDirector); // Dyrektor oddziału
 
     }
     private async Task GetAllowedPersons()
@@ -2652,6 +2655,29 @@
         return rolesIn
             .Select(role => new OrganisationRoleForFormVm(role))
             .ToList();
+    }
+    private async Task <List<OrganisationRoleForFormVm>> SetManagerAndDeputies()
+    {
+        var empl = _employees.Where(e => e.EnovaEmpId == int.Parse(formItem.EnovaEmpId)).First();
+        approverL1 = new()
+            {
+                IsDefault = true,
+                EmpId = empl.ManagerId,
+                LongName = empl.Manager.LongName
+            };
+        var managers = await _mediator.Send(new GetManagerDeputyByManagerIdQuery(empl.ManagerId));
+        var managerDeputies = managers.Deputies;
+
+        var result = new List<OrganisationRoleForFormVm>();
+        foreach (var item in managerDeputies)
+        {
+            result.Add(new OrganisationRoleForFormVm(item));
+        }
+
+        result.Insert(0, approverL1);
+
+        return result;
+
     }
     private void AssignStatusBool()
     {
@@ -2778,6 +2804,8 @@
     }
     private async Task AddEmployee(EmployeeVm newEmployee)
     {
+        formItem.EnovaEmpId = newEmployee.EnovaEmpId.ToString();
+        formItem.EmployeeName = newEmployee.LongName;
         UpdateBankTransferMappings(newEmployee);
         var employeesList = new List<EmployeeVm>();
 
@@ -3008,22 +3036,27 @@
     }
     private async Task SetupFormRejestracja()
     {
-        await AssignAllApprovers(_userContext.Employee);
+
 
         Countries = await _mediator.Send(new GetAllCountryQuery());
         SelectedCountries = new List<CountryVm> { Countries.FirstOrDefault(c => c.Name == "Polska") };
         formItem.Countries = SelectedCountries;
         SelectedCountry = SelectedCountries;
         Origin = SelectedCountries[0];
-        NbpCurrencies = await _mediator.Send(new GetNbpCurrencyRatesByDateQuery(DateOnly.FromDateTime(DateTime.Today.AddDays(-1))));
+        var tempCurrencies =  await _mediator.Send(new GetNbpCurrencyRatesByDateQuery(DateOnly.FromDateTime(DateTime.Today.AddDays(-1))));
+
+        NbpCurrencies = tempCurrencies.ToList();
+        NbpCurrencies.Insert(0, OriginExchangeRate);
         CompanyCarRegistrationNumbers = await _mediator.Send(new GetCompanyCarRegistrationNumbersQuery());
         if(formItem.DestinationCountry.CountryCode is null){
             formItem.DestinationCountry = SelectedCountry.First();
             formItem.DestinationCountryCurrency = "PLN";
         }
+        
 
         Title = "Podróż służbowa - Rejestracja wniosku";
         await AddEmployee(_userContext.Employee);
+        await AssignAllApprovers(_userContext.Employee);
         await AddStage(Origin);
         // await RecalculateStages(firstStage.Id, nameof(firstStage.EndDate));
         await RecalculateAccomodations();
@@ -3035,6 +3068,7 @@
         formItem.EnovaEmpId = _userContext.EnovaEmpId;
         formItem.OrganisationSapNumber = _organisation.SapNumber;
         // formItem.AdvancePayment = true;
+        // var tempManager = await _mediator.Send(new GetManagerDeputyByEmpIdQuery(int.Parse(formItem.EnovaEmpId)));
 
         #region SetBoolsOnStatus
         ShowAccomodations = false;
