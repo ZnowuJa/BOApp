@@ -6,18 +6,18 @@
 <h3>Przełączanie licencji</h3>
 
 <EditForm EditContext="_context">
-    <DataAnnotationsValidator/>
+    <DataAnnotationsValidator />
     <FluentTextField @bind-Value="Content.Nazwa" Label="Nazwa licencji"></FluentTextField>
-    <FluentValidationMessage For="@(() => Content.Nazwa)"/>
+    <FluentValidationMessage For="@(() => Content.Nazwa)" />
     <div>
-        <hr/>
+        <hr />
         <FluentStack Orientation="Orientation.Vertical">
-        @foreach (var salon in Salons)
-        {
-            <FluentCheckbox @bind-Value="@salon.IsSelected">
-                @salon.Name (@salon.Id)
-            </FluentCheckbox>
-        }
+            @foreach (var salon in Salons)
+            {
+                <FluentCheckbox @bind-Value="@salon.IsSelected">
+                    @salon.Name (@salon.Id)
+                </FluentCheckbox>
+            }
         </FluentStack>
     </div>
     <div>
@@ -29,12 +29,12 @@
     private MysystemPunktLicenceVm Content { get; set; } = new MysystemPunktLicenceVm();
     private EditContext _context;
     private string Message { get; set; }
-    
+
     protected override void OnInitialized()
     {
         _context = new EditContext(Content);
     }
-    
+
     private List<Salon> Salons { get; set; } = new List<Salon>
     {
         new Salon { Name = "Bentley Katowice", Id = "997" },
@@ -72,22 +72,29 @@
 
     private async Task SaveAsync()
     {
-        try
+        if (_context.Validate())
         {
-            var selectedDealers = Salons
-                .Where(d => d.IsSelected)
-                .Select(d => d.Name)
-                .ToList();
+            try
+            {
+                var selectedDealers = Salons
+                    .Where(d => d.IsSelected)
+                    .Select(d => d.Name)
+                    .ToList();
 
-            //await _mediator.Send(new AssignLicenseToLocationCommand(Content.Nazwa, selectedDealers));
-            Message = $"Przypisano lokalizację {selectedDealers} do licencji {@Content.Nazwa}";
+                //await _mediator.Send(new AssignLicenseToLocationCommand(Content.Nazwa, selectedDealers));
+                Message = $"Przypisano lokalizację {selectedDealers} do licencji {@Content.Nazwa}";
+            }
+            catch (Exception ex)
+            {
+                Message = $"Błąd: {ex.Message}";
+            }
         }
-        catch (Exception ex)
+        else
         {
-            Message = $"Błąd: {ex.Message}";
+            Console.WriteLine("EditContext Validation NOT OK!...");
         }
     }
-    
+
     private class Salon
     {
         public string Name { get; set; }

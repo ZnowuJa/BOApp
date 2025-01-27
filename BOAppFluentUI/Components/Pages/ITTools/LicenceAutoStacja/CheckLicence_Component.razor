@@ -6,9 +6,9 @@
 <h3>Sprawdzenie punktów licencji</h3>
 
 <EditForm EditContext="_context">
-    <DataAnnotationsValidator/>
+    <DataAnnotationsValidator />
     <FluentTextField @bind-Value="Content.Nazwa" Label="Nazwa licencji"></FluentTextField>
-    <FluentValidationMessage For="@(() => Content.Nazwa)"/>
+    <FluentValidationMessage For="@(() => Content.Nazwa)" />
     <div>
         <FluentButton Appearance="Appearance.Accent" OnClick="@PrintLicense">Sprawdź przypisanie</FluentButton>
     </div>
@@ -25,31 +25,38 @@
 @code {
     private MysystemPunktLicenceVm Content { get; set; } = new MysystemPunktLicenceVm();
     private EditContext _context;
-    
+
     protected override void OnInitialized()
     {
         _context = new EditContext(Content);
     }
-    
+
     private string LicenseList { get; set; }
-    
+
     private async Task PrintLicense()
     {
-        try
+        if (_context.Validate())
         {
-            LicenseList = await _mediator.Send(new GetLicenseConnectionsQuery(@Content.Nazwa));
-            // Wyświetl informację
-            Console.WriteLine($"Licencja {Content.Nazwa} może przełączyć się do: \n\n{LicenseList}");
-            if (string.IsNullOrEmpty(LicenseList))
+            try
             {
-                LicenseList = "Nie ma dopisanych innych punktów do tej licencji";
+                LicenseList = await _mediator.Send(new GetLicenseConnectionsQuery(@Content.Nazwa));
+                // Wyświetl informację
+                Console.WriteLine($"Licencja {Content.Nazwa} może przełączyć się do: \n\n{LicenseList}");
+                if (string.IsNullOrEmpty(LicenseList))
+                {
+                    LicenseList = "Nie ma dopisanych innych punktów do tej licencji";
+                }
+            }
+            catch (Exception ex)
+            {
+                // Obsłuż błąd
+                Console.WriteLine($"Błąd: {ex.Message}");
+                LicenseList = $"Błąd: {ex.Message}";
             }
         }
-        catch (Exception ex)
+        else
         {
-            // Obsłuż błąd
-            Console.WriteLine($"Błąd: {ex.Message}");
-            LicenseList = $"Błąd: {ex.Message}";
+            Console.WriteLine("EditContext Validation NOT OK!...");
         }
     }
 }

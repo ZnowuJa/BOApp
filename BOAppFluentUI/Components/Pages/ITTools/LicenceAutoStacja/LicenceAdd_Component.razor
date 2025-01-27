@@ -27,7 +27,7 @@
 </EditForm>
 
 @code {
-    private MysystemPunktLicenceVm Content { get; set; } = new MysystemPunktLicenceVm();
+    private MysystemPunktVm Content { get; set; } = new MysystemPunktVm();
     private EditContext _context;
     private string SelectedSalonId { get; set; }
     private string Message { get; set; }
@@ -75,31 +75,37 @@
     private async Task SaveAsync()
     {
         Console.WriteLine("SaveAsync starts...");
-
-        try
+        if (_context.Validate())
         {
-            // Znajdź wybrany salon
-            var selectedSalon = Salons.FirstOrDefault(s => s.Id == SelectedSalonId);
-            if (selectedSalon == null)
+            try
             {
-                Message = "Wybrany salon nie istnieje.";
-                return;
+                // Znajdź wybrany salon
+                var selectedSalon = Salons.FirstOrDefault(s => s.Id == SelectedSalonId);
+                if (selectedSalon == null)
+                {
+                    Message = "Wybrany salon nie istnieje.";
+                    return;
+                }
+
+                Console.WriteLine($"Wybrano salon: {selectedSalon.Name}");
+
+                // Wywołanie komendy Mediatora
+                await _mediator.Send(new AddLicenseCommand(Content.Nazwa, int.Parse(selectedSalon.Id), Content.PunktTelefon));
+
+                // Ustawienie wiadomości sukcesu
+                Message = $"Dodano licencję {Content.Nazwa} dla salonu {selectedSalon.Name} i komputera {Content.PunktTelefon}.";
+                await ShowDialogAsync(Message, isError: false);
             }
-
-            Console.WriteLine($"Wybrano salon: {selectedSalon.Name}");
-
-            // Wywołanie komendy Mediatora
-            await _mediator.Send(new AddLicenseCommand(Content.Nazwa, int.Parse(selectedSalon.Id), Content.PunktTelefon));
-
-            // Ustawienie wiadomości sukcesu
-            Message = $"Dodano licencję {Content.Nazwa} dla salonu {selectedSalon.Name} i komputera {Content.PunktTelefon}.";
-            await ShowDialogAsync(Message, isError: false);
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Błąd: {ex.Message}");
+                await ShowDialogAsync(ex.Message, isError: true);
+                Message = $"Błąd: {ex.Message}";
+            }
         }
-        catch (Exception ex)
+        else
         {
-            Console.WriteLine($"Błąd: {ex.Message}");
-            await ShowDialogAsync(ex.Message, isError: true);
-            Message = $"Błąd: {ex.Message}";
+            Console.WriteLine("EditContext Validation NOT OK!...");
         }
     }
 
