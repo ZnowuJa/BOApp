@@ -9,6 +9,12 @@ public class MileageRegisterEntry
 {
     public int Id { get; set; }
     public DateOnly? Date { get; set; }
+
+    public DateTime? DateTimeForBinding
+    {
+        get => Date?.ToDateTime(TimeOnly.MinValue);
+        set => Date = value.HasValue ? DateOnly.FromDateTime(value.Value) : null;
+    }
     public decimal? TotalValue { get; set; }
     
     public int? Mileage { get; set; }

@@ -46,17 +46,6 @@ namespace Application.CQRS.AccountingCQRS.Dictionaries
                     c.RateDate
                 ))
                 .FirstOrDefaultAsync(cancellationToken);
-            // Filter the records based on RateDate and Code
-            //var result = await _context.NbpCurrencyRates
-            //    .Where(c => c.RateDate == request.RateDate && c.Code == request.Code) // Filter by RateDate and Code
-            //    .Select(c => new NbpCurrencyRateVm(
-            //        c.Id,
-            //        c.Currency,
-            //        c.Code,
-            //        c.Mid,
-            //        c.RateDate
-            //    ))
-            //    .FirstOrDefaultAsync(cancellationToken); // Fetch single result or null if not found
 
             return result;
         }

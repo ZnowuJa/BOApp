@@ -1,18 +1,16 @@
 ﻿@using System.Globalization
 @using Microsoft.FluentUI.AspNetCore.Components.Extensions
-<FluentGridItem class = fluent-grid-item>
-    <div class = "form-group">
-    <FluentDatePicker Label="@Label" 
-                      Value="@SelectedDate.ToDateTimeNullable()"
-                      ValueChanged="@(e => OnDateChanged(e.ToDateOnlyNullable()))"
-                      Disabled="Disabled"
-                      Style="width: 130px"
-    />
-    <FluentTimePicker Value="@SelectedTime.ToDateTimeNullable()" 
-                      ValueChanged="@(e => OnTimeChanged(e.ToTimeOnlyNullable()))"
-                      Style="width: 90px"
-                      Disabled="Disabled"
-                      />
+<FluentGridItem class=fluent-grid-item>
+    <div class="form-group">
+        <FluentDatePicker Label="@Label"
+                          Value="@SelectedDate.ToDateTimeNullable()"
+                          ValueChanged="@(e => OnDateChanged(e.ToDateOnlyNullable()))"
+                          Disabled="Disabled"
+                          Style="width: 130px" />
+        <FluentTimePicker Value="@SelectedTime.ToDateTimeNullable()"
+                          ValueChanged="@(e => OnTimeChanged(e.ToTimeOnlyNullable()))"
+                          Style="width: 90px"
+                          Disabled="Disabled" />
     </div>
 </FluentGridItem>
 

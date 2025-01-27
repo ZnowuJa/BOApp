@@ -24,8 +24,8 @@
            
             <tr>
                 <td>
-                    <FluentDatePicker @bind-Date="@entry.Date" Style="width: 130px;" Disabled="@Disabled"/>
-                    <FluentValidationMessage For="@(() => entry.Date)" class="validation-error" />
+                            <FluentDatePicker @bind-Value="@entry.DateTimeForBinding" Style="width: 130px;" Disabled="@Disabled" />
+                            <FluentValidationMessage For="@(() => entry.DateTimeForBinding)" class="validation-error" />
                 </td>
                 <td>
                     <FluentTextField @bind-Value="@entry.RouteDescription" Style="width: 220px;" Disabled="@Disabled" />

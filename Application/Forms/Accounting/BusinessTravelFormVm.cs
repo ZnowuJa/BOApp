@@ -31,7 +31,7 @@ public class BusinessTravelFormVm : IMapFrom<BusinessTravelForm>, IFormAccountin
     
     public DateTime? StartDate { get; set; }
     
-    public DateTime? EndDate { get; set; }
+    public DateTime? EndDate { get; set; } 
     
     public string? Destination { get; set; } = string.Empty;
     
@@ -71,12 +71,12 @@ public class BusinessTravelFormVm : IMapFrom<BusinessTravelForm>, IFormAccountin
         public string EmployeeName { get; set; } = string.Empty;
         public string EnovaEmpId { get; set; } = string.Empty;
         public List<Approval>? Approvals { get; set; } = new();
-        public List<OrganisationRoleForFormVm> Level1Approvers { get; set; } = new(); // przełożony wniosek
-        public List<OrganisationRoleForFormVm> Level2Approvers { get; set; } = new(); // To już nie będzie potrzebne na druga aprobatę przelewu.
-        public List<OrganisationRoleForFormVm> Level3Approvers { get; set; } = new(); // Kasa
-        public List<OrganisationRoleForFormVm> Level4Approvers { get; set; } = new(); // Księgowość
-        public List<OrganisationRoleForFormVm> Level5Approvers { get; set; } = new(); // Księgowość TeamLeader
-        public List<OrganisationRoleForFormVm> Level6Approvers { get; set; } = new(); //drugi przełożony na przelew wychodzący i nie tylko
+        public List<OrganisationRoleForFormVm> Level1Approvers { get; set; } = new(); // przełożony etapy: AprobataL1, AprobataL11
+        public List<OrganisationRoleForFormVm> Level2Approvers { get; set; } = new(); // Kasa etapy: ZaliczkaKasa, RozliczenieKasa
+        public List<OrganisationRoleForFormVm> Level3Approvers { get; set; } = new(); // Księgowość etapy: ZaliczkaKsiegowosc, Ksiegowosc
+        public List<OrganisationRoleForFormVm> Level4Approvers { get; set; } = new(); // Księgowość TeamLeader etapy: ZaliczkaKsiegowoscTL, KsiegowoscTL
+        public List<OrganisationRoleForFormVm> Level5Approvers { get; set; } = new(); // drugi przełożony etapy: AprobataL12
+        public List<OrganisationRoleForFormVm> Level6Approvers { get; set; } = new(); // Na razie nie wykorzystywany
         public string LVL1_EnovaEmpId { get; set; } = string.Empty;
         public string LVL1_EmployeeName { get; set; } = string.Empty; // manager of user
         public string LVL2_EnovaEmpId { get; set; } = string.Empty;

@@ -18,7 +18,7 @@ namespace Application.ViewModels.General
         public static void Mapping(Profile profile)
         {
             profile.CreateMap<ManagerDeputy, ManagerDeputyVm>()
-        .ForMember(dest => dest.Deputies, opt => opt.MapFrom(src => DeserializeRoles(src.Deputies)));
+                .ForMember(dest => dest.Deputies, opt => opt.MapFrom(src => DeserializeRoles(src.Deputies)));
 
             profile.CreateMap<ManagerDeputyVm, ManagerDeputy>()
                 .ForMember(dest => dest.Deputies, opt => opt.MapFrom(src => SerializeRoles(src.Deputies)));
