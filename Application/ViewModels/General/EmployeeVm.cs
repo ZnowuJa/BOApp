@@ -39,6 +39,7 @@ public class EmployeeVm : IMapFrom<Employee>, IAssigneeVm
     public List<string> Roles { get; set; }
     public string JobCode {  get; set; }
     public int CoCGroupId { get; set; }
+    public string? BankAccountNumber { get; set; }
     public EmployeeVm()
     {
         Id = 0;
@@ -68,7 +69,8 @@ public class EmployeeVm : IMapFrom<Employee>, IAssigneeVm
         Roles = new List<string>();
         JobCode = string.Empty;
         CoCGroupId = 0;
-}
+        BankAccountNumber = string.Empty;
+    }
     public void Mapping(Profile profile)
     {
         profile.CreateMap<Employee, EmployeeVm>()

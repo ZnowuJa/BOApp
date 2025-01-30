@@ -36,6 +36,9 @@ namespace Domain.Forms.Accounting
         public string? OrganisationSapNumber { get; set; } = string.Empty;
         public string EmployeeName { get; set; } = string.Empty;
         public string EnovaEmpId { get; set; } = string.Empty;
+        public string FormCostCenter { get; set;} = string.Empty;
+        public string FormCostLocation { get; set; } = string.Empty;
+        
         public string? Approvals { get; set; } = string.Empty;
         public string? Level1Approvers { get; set; } = string.Empty; // przełożony wniosek
         public string Level2Approvers { get; set; } = string.Empty; // przełożony rozliczenie

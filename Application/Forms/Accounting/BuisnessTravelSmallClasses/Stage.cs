@@ -19,6 +19,7 @@ namespace Application.Forms.Accounting.BuisnessTravelSmallClasses
         public DateTime? EndDate { get; set; } = DateTime.Now;
         public decimal? Duration { get; set; } = 0;
         public TimeSpan TimeSpan { get; set; } = TimeSpan.Zero;
+        public bool TimeSpanOK { get; set; } = true;
         public decimal? AllowanceOrigin { get; set; } = 0;
         public decimal? AllowanceOriginValue { get; set; } = 0;
         public decimal? AllowanceAbroad { get; set; } = 0;

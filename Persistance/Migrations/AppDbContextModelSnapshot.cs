@@ -388,39 +388,6 @@ namespace Persistance.Migrations
                     b.ToView("v_NBPExchangeRates", (string)null);
                 });
 
-            modelBuilder.Entity("Domain.Entities.Accounting.ManagerDeputy", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Deputies")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("Inactivated")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("InactivatedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("LongName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("ManagerId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("StatusId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("ManagerDeputies");
-                });
-
             modelBuilder.Entity("Domain.Entities.Accounting.VATRate", b =>
                 {
                     b.Property<int>("Id")
@@ -487,6 +454,42 @@ namespace Persistance.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("BackgroundJobs");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Administration.ManagerDeputy", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Deputies")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("Inactivated")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("InactivatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LongName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ManagerId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("StatusId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ManagerId")
+                        .IsUnique();
+
+                    b.ToTable("ManagerDeputies");
                 });
 
             modelBuilder.Entity("Domain.Entities.BusinessOperations.CompanyCarRegistrationNumber", b =>
@@ -1326,6 +1329,9 @@ namespace Persistance.Migrations
                     b.Property<Guid>("AzureObjectId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("BankAccountNumber")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("CoCGroupId")
                         .HasColumnType("int");
 
@@ -1925,6 +1931,14 @@ namespace Persistance.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("FolderName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FormCostCenter")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FormCostLocation")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("FormFiles")
