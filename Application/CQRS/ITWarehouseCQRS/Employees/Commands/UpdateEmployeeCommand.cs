@@ -34,14 +34,14 @@ public class UpdateEmployeeCommand : IRequest<int>
         int managerId, 
         EmployeeTypeVm type
         )
-    {
-        Id = id;
-        FirstName = firstName;
-        LastName = lastName;
-        Email = email;
-        MobileNumber = mobileNumber;
-        PhoneNumber = phoneNumber;
-        ManagerId = managerId;
-        Type = type;
-    }
+            {
+                Id = id;
+                FirstName = firstName;
+                LastName = lastName;
+                Email = email;
+                MobileNumber = mobileNumber;
+                PhoneNumber = phoneNumber;
+                ManagerId = managerId;
+                Type = type;
+            }
 }

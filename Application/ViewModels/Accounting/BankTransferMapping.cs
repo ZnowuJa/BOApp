@@ -18,6 +18,7 @@ namespace Application.ViewModels.Accounting
         public string Comment { get; set; } = string.Empty;
         public string SapDocNumber { get; set; } = string.Empty;
         public string SapPaymentKey { get; set; } = string.Empty;
+        public string BankTrasferTitle { get; set; } = string.Empty;
         public int AccountantEmpId { get; set; } = 0;
         public string AccountantName { get; set; } = string.Empty;
         public int AccountantTLEmpId { get; set; } = 0;
