@@ -1843,15 +1843,19 @@
     {
         formItem.CashPoint = _selectedLocation.FirstOrDefault();
         var tempOrg = await _mediator.Send(new GetOrganisationByEmpSapNumberQuery(formItem.CashPoint.SapNumber));
-        formItem.Level2Approvers = SetApprovers(tempOrg.Role_Cashiers);
-        Console.WriteLine();
+        if(tempOrg != null){
+            formItem.Level2Approvers = SetApprovers(tempOrg.Role_Cashiers);
+        }
+        
     }
     private async Task HandleFormCostLocationChange()
     {
         formItem.FormCostLocation = _selectedFormCostLocation.FirstOrDefault();
         var tempOrg = await _mediator.Send(new GetOrganisationByEmpSapNumberQuery(formItem.CashPoint.SapNumber));
-        formItem.Level5Approvers = SetApprovers(tempOrg.Role_Cashiers);
-        Console.WriteLine();
+        if(tempOrg != null){
+             formItem.Level5Approvers = SetApprovers(tempOrg.Role_DealerDirector);
+        }
+
     }
     private async Task HandleLocationReceiptChange()
     {
@@ -1862,7 +1866,7 @@
         }
 
 
-        Console.WriteLine();
+      
     }
     private async Task HandleBillChanged(Bill bill, decimal v)
     {
