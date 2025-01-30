@@ -67,8 +67,10 @@
 
             <FluentGridItem xs="6" sm="6">
                 <div class="card">
-                    <FluentNumberField Id="Allowance" Value="Content.Allowance"
-                                       ValueChanged="@((decimal e) => OnAmountChange(e))" Placeholder="Wpisz wysokość diety">
+                    <FluentNumberField Id="Allowance" 
+                                       Value="Content.Allowance"
+                                       ValueChanged="@((decimal e) => OnAmountChange(e))" 
+                                       Placeholder="Wpisz wysokość diety">
                         Wysokość diety:
                     </FluentNumberField>
                     <FluentValidationMessage For="@(() => Content.Allowance)" />
