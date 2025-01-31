@@ -10,13 +10,13 @@ using Application.Interfaces;
 using Application.ViewModels.General;
 
 using AutoMapper;
-
 using MediatR;
 
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.FluentUI.AspNetCore.Components;
+using Newtonsoft.Json;
 
 namespace BOAppFluentUI.Components.Pages;
 
@@ -147,7 +147,7 @@ public static class Utils
 
         }
 
-        return true; 
+        return true;
     }
 
     public static bool IsAccEditDisabled<T>(T context, FormUserContext _userContext) where T : IFormAccounting
@@ -242,7 +242,7 @@ public static class Utils
 
         return csvWithBom;
     }
-    public static async Task OnFileUploadedAsync<TContent>(FluentInputFileEventArgs file, IFileService fileService, IMediator mediator, string sessionId, TContent content, List<FormFileVm> addedFiles, ILogger logger) 
+    public static async Task OnFileUploadedAsync<TContent>(FluentInputFileEventArgs file, IFileService fileService, IMediator mediator, string sessionId, TContent content, List<FormFileVm> addedFiles, ILogger logger)
         where TContent : IFormVm
     {
         var fileInfo = new Dictionary<string, string>();
@@ -292,7 +292,42 @@ public static class Utils
         addedFiles.Remove(fileToDelete);
         content.FormFiles = formFiles.ToList();
     }
+
+    private static readonly HttpClient httpClient = new();
+
+    public static async Task<bool> ValidateIbanAsync(string iban)
+    {
+        if (string.IsNullOrWhiteSpace(iban)) { return false; }
+
+        string apiSecret = Environment.GetEnvironmentVariable("SEPATOOLS_API_SECRET");
+
+        if (string.IsNullOrEmpty(apiSecret)) { return false; }
+
+        try
+        {
+            var byteArray = Encoding.ASCII.GetBytes($"piapl_service:{apiSecret}");
+            httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
+
+            var response = await httpClient.GetAsync($"https://rest.sepatools.eu/validate_iban/{iban}");
+            response.EnsureSuccessStatusCode();
+
+            var result = await response.Content.ReadAsStringAsync();
+            var apiResponse = JsonConvert.DeserializeObject<ApiResponse>(result);
+
+            return apiResponse?.Result == "passed";
+        }
+        catch (Exception ex)
+        {
+            return false;
+        }
+    }
+    public class ApiResponse
+    {
+        [JsonProperty("result")]
+        public string Result { get; set; }
+    }
 }
+
 public static class QueryableExtensions
 {
     public static IQueryable<TDestination> ProjectTo<TSource, TDestination>(this IQueryable<TSource> source, IMapper mapper)
