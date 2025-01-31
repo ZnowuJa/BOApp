@@ -68,25 +68,47 @@ public class CreateDeferralPaymentCommandHandler(IAppDbContext appDbContext, IMa
         string reason = request.Item.Note;
         string id = request.Item.Id.ToString();
 
+        if (request.Item.Status == "AprobataL2")
+        {
+            rcptEmail = string.Empty;
+            rcptName = "Dział Rozrachunków";
 
-        await SendEmail(senderName, rcptEmail, rcptName, custName, frmNumber, reason, id);
+            // Fetch data sequentially rather than using async tasks in parallel
+            var emails = new List<string>();
+            foreach (var approver in request.Item.Level2Approvers)
+            {
+                var empl = await _appDbContext.Employees
+                    .FirstOrDefaultAsync(p => p.EnovaEmpId == approver.EmpId, cancellationToken);
+
+                if (empl != null && !string.IsNullOrEmpty(empl.Email))
+                {
+                    emails.Add(empl.Email);
+                }
+            }
+
+            rcptEmail = string.Join(";", emails);
+            //Console.WriteLine();
+        }
+
+        await SendEmail(senderName, rcptEmail, rcptName, custName, frmNumber, reason, id, request.Item.Status);
         //_logger.LogInformation($"CreateDeferralPaymentCommandHandler {request.Item.EmployeeName}");
         return request.Item;
     }
-    private string SerializeApprovals(List<ViewModels.General.Approval> approvals)
-    {
-        return approvals == null || approvals.Count == 0 ? null : JsonSerializer.Serialize(approvals);
-    }
 
-    private string SerializeRole(List<OrganisationRoleForFormVm> roles)
-    {
-        return roles == null || roles.Count == 0 ? null : JsonSerializer.Serialize(roles);
-    }
-
-    private async Task SendEmail(string senderName, string rcptEmail, string rcptName, string custName, string frmNumber, string reason, string id)
+    private async Task SendEmail(string senderName, string rcptEmail, string rcptName, string custName, string frmNumber, string reason, string id, string status)
     {
         var _baseUrl = _configuration["BaseUrl"];
         var subject = $"Nowy wniosek o odroczoną płatność ({frmNumber}) :)";
+
+        var url2Item = $"{_baseUrl}/platnoscodroczona/{id}?srcPage=rozrachunki";
+        var url2List = $"{_baseUrl}/platnosciodroczone/kierownik";
+       
+        if (status == "AprobataL2")
+        {
+            url2Item = $"{_baseUrl}/platnoscodroczona/{id}?srcPage=rozrachunki";
+            url2List = $"{_baseUrl}/platnosciodroczone/rozrachunki";
+        }
+
         var body = $@"
         <!DOCTYPE html>
         <html>
@@ -139,4 +161,13 @@ public class CreateDeferralPaymentCommandHandler(IAppDbContext appDbContext, IMa
         await _mailService.SendEmailAsync(message);
     }
 
+    private string SerializeApprovals(List<ViewModels.General.Approval> approvals)
+    {
+        return approvals == null || approvals.Count == 0 ? null : JsonSerializer.Serialize(approvals);
+    }
+
+    private string SerializeRole(List<OrganisationRoleForFormVm> roles)
+    {
+        return roles == null || roles.Count == 0 ? null : JsonSerializer.Serialize(roles);
+    }
 }
