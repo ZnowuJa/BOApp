@@ -85,7 +85,7 @@
                     @if (!string.IsNullOrEmpty(validationResult))
                     {
                     <p>Wynik walidacji: @validationResult</p>
-                    } 
+                    }
                     *@
                     </td>
                 </tr>
@@ -96,41 +96,28 @@
     </table>
     <hr />
     <h5>Aprobujący:</h5>
-    @* @if (strej)
+    @if (strej)
     {
-    <p></p>
-    <FluentSelect TOption="OrganisationRoleForFormVm"
-    Id="AL1Id"
-    Autofocus="true"
-    Items="@formItem.Level1Approvers"
-    Multiple="false"
-    OptionValue="@(p => p.EmpId.ToString())"
-    OptionText="@(p => p.LongName)"
-    OptionSelected="@(p => p.IsDefault)"
-    @bind-SelectedOption="@approverL1"
-    Height="200px"
-    Style="margin-bottom: 20px;"
-    @onchange="HandleChangeApproverL1" />
+        <p></p>
+        <FluentSelect TOption="OrganisationRoleForFormVm"
+                      Id="AL1Id"
+                      Autofocus="true"
+                      Items="@formItem.Level1Approvers"
+                      Multiple="false"
+                      OptionValue="@(p => p.EmpId.ToString())"
+                      OptionText="@(p => p.LongName)"
+                      OptionSelected="@(p => p.IsDefault)"
+                      @bind-SelectedOption="@approverL1"
+                      Height="200px"
+                      Style="margin-bottom: 20px;"
+                      @onchange="HandleChangeApproverL1" />
 
-    } *@
+    }
 
     @(IsBankTransfer ? (MarkupString)"<p>AprobującyL2</p>" : (MarkupString)"")
     <button type="submit">Zapisz</button>
 </EditForm>
 @code {
-
-    private string iban;
-    private string validationResult;
-
-    private async Task ValidateIban()
-    {
-        if (!string.IsNullOrEmpty(iban))
-        {
-            bool isValid = await Utils.ValidateIbanAsync(iban);
-            validationResult = isValid ? "Konto istnieje" : "Konto nie istnieje";
-        }
-    }
-
     private AdvancePaymentVm formItem = new AdvancePaymentVm();
     private EditContext _editContext;
     //private OrganisationRoleForFormVm approverL1 { get; set; }
@@ -141,7 +128,65 @@
     private bool IsCashPayment { get; set; } = false;
     private bool IsBankTransfer { get; set; } = false;
 
-    private bool strej { get; set; }
+    private OrganisationRoleForFormVm approverL1 { get; set; }
+
+    private bool strej = false;
+
+    // private string iban;
+    // private string validationResult;
+
+    // private async Task ValidateIban()
+    // {
+    //     if (!string.IsNullOrEmpty(iban))
+    //     {
+    //         bool isValid = await Utils.ValidateIbanAsync(iban);
+    //         validationResult = isValid ? "Konto istnieje" : "Konto nie istnieje";
+    //     }
+    // }
+
+    private void AssignStatusBool()
+    {
+        strej = formItem.Status == "Rejestracja";
+    }
+
+    private async Task<List<OrganisationRoleForFormVm>> SetManagerAndDeputies()
+    {
+        var empl = _employees.Where(e => e.EnovaEmpId == int.Parse(formItem.EnovaEmpId)).First();
+        approverL1 = new()
+            {
+                IsDefault = true,
+                EmpId = empl.ManagerId,
+                LongName = empl.Manager.LongName
+            };
+        var managers = await _mediator.Send(new GetManagerDeputyByManagerIdQuery(empl.ManagerId));
+        var managerDeputies = managers.Deputies;
+
+        var result = new List<OrganisationRoleForFormVm>();
+        foreach (var item in managerDeputies)
+        {
+            result.Add(new OrganisationRoleForFormVm(item));
+        }
+
+        result.Insert(0, approverL1);
+
+        return result;
+
+    }
+
+    private async Task AssignAllApprovers(EmployeeVm emp)
+    {
+        formItem.Level1Approvers.Clear();
+        formItem.Level1Approvers = await SetManagerAndDeputies(); // Przełożony
+        formItem.LVL1_EnovaEmpId = emp.ManagerId.ToString();
+        formItem.LVL1_EmployeeName = emp.Manager.LongName;
+    }
+
+    private async Task HandleChangeApproverL1(ChangeEventArgs e)
+    {
+        var tempEmp = _employees.First(p => p.EnovaEmpId == int.Parse(e.Value.ToString()));
+        formItem.LVL1_EnovaEmpId = tempEmp.EnovaEmpId.ToString();
+        formItem.LVL1_EmployeeName = tempEmp.LongName;
+    }
 
     private void OnPaymentMethodChanged(ChangeEventArgs e)
     {
@@ -155,17 +200,8 @@
         _editContext = new EditContext(formItem);
         await Utils.GetUserName(_authenticationStateProvider, _userContext, _mediator);
         formItem.EmployeeName = _userContext.LongName;
-        // var authState = await AuthStateProvider.GetAuthenticationStateAsync();
-        // var user = authState.User;
-
-        // if (user.Identity?.IsAuthenticated == true)
-        // {
-        //     formItem.EmployeeName = user.Identity.Name; //Ustawienie nazwy użytkownika
-        // }
-        // else
-        // {
-        //     formItem.EmployeeName = "Nieznany użytkownik";
-        // }
+        AssignStatusBool();
+        await AssignAllApprovers(_userContext.Employee);
     }
 
     private void LoadAutocompleteControls()
