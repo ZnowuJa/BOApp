@@ -2,6 +2,7 @@
 @page "/compliance"
 
 @using Application.AdHocJobs
+@using Application.BackgroundJobs
 @using Microsoft.AspNetCore.Authorization
 
 @attribute [Authorize(Policy = "User")]
@@ -194,7 +195,8 @@
 
     private async Task Assign()
     {
-        AssignCoCGroupByJobCode job = new AssignCoCGroupByJobCode(_mediator);
+        MarkEmployeesGroupJob job = new MarkEmployeesGroupJob(_mediator);
+        // AssignCoCGroupByJobCode job = new AssignCoCGroupByJobCode(_mediator);
         job.Execute();
     }
 }

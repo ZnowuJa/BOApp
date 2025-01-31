@@ -97,6 +97,7 @@ public class BusinessTravelFormVmValidator : AbstractValidator<BusinessTravelFor
         });
         When(form => form.Status == "Rozliczenie", () =>
         {
+            RuleFor(s => s.FormCostCenter.MPK).NotEmpty().WithMessage("Wybierz MPK w sekcji Rozliczenie!");
             RuleForEach(s => s.Stages).SetValidator(new StageValidator());
             //RuleForEach(x => x.Stages).ChildRules(stage =>
             //{
@@ -108,6 +109,11 @@ public class BusinessTravelFormVmValidator : AbstractValidator<BusinessTravelFor
         When(form => form.Status == "Rozliczenie" && form.Transportation == "Samochód prywatny", () =>
         {
             RuleFor(x => x.MileageRegister).SetValidator(new MileageRegisterValidator());
+        });
+        When(form => form.Status == "Rozliczenie" && form.Bills.Count > 0, () =>
+        {
+            RuleForEach(x => x.Bills).SetValidator(new BillValidator());
+
         });
         RuleSet("MainDates", () =>
         {

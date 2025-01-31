@@ -6,9 +6,9 @@
 @using Application.ViewModels.Accounting
 @using Application.ViewModels.General
 <div class = "tableBT-wrapper" >
-    <table class="tableBT-container">
+    <table class="table-container">
         <thead>
-            <tr class="tableBT-header-left">
+            <tr class="table-header-left">
                 <th style="width: 150px;">Data księgowania</th>
                 <th style="width: 150px;">Data waluta</th>
                 <th style="width: 150px;">Formularz SAP</th>
@@ -19,29 +19,28 @@
         <tbody>
             <tr >
                 <td>
-                    <FluentDatePicker @bind-Value="@BTItem.PostingDate" Style="width: 150px;" />
+                    <FluentDatePicker @bind-Value="@BTItem.PostingDate" Style="width: 200px;" />
                 </td>
                 <td>
                     <FluentDatePicker  
                         @bind-Value="@BTItem.CurrencyExchangeDate"
-                        Style="width: 150px;"
-                        Disabled="@BTItem.BusinessTravel" />"
-                    />
+                                      Style="width: 200px;"
+                         />
+                    
                 </td>
                 <td>
                     <FluentAutocomplete TOption="string"
-                    Disabled="@Disabled"
-                    SelectValueOnTab="true"
-                    AutoComplete="on"
-                    OnOptionsSearch="@OnSapFormTypeSearch"
-                    Placeholder="..."
-                    MaximumSelectedOptions="1"
+                        Disabled="@Disabled"
+                        SelectValueOnTab="true"
+                        AutoComplete="on"
+                        OnOptionsSearch="@OnSapFormTypeSearch"
+                        Placeholder="..."
+                        MaximumSelectedOptions="1"
 
-                    @bind-SelectedOptions="@_selectedSapFormType"
-                    @bind-SelectedOptions:after="@HandleSapFormTypeChange"
-                    Width="150px"
+                        @bind-SelectedOptions="@_selectedSapFormType"
+                        @bind-SelectedOptions:after="@HandleSapFormTypeChange"
+                        Width="200px"
                     class="left-align-text" />
-
                 </td>
                 <td>
                     <FluentAutocomplete TOption="CostCenterVm"
@@ -54,7 +53,7 @@
                     OptionText="@(p => p.MPK + ' ' + p.Description)"
                     @bind-SelectedOptions="@_selectedCostCenter"
                     @bind-SelectedOptions:after="@HandleCostCenterChange"
-                    Width="150px"
+                    Width="200px"
                     class="left-align-text" />
                 </td>
                 <td>
@@ -68,7 +67,7 @@
                     OptionText="@(p => p.AccountNumber + ' ' + p.Description)"
                     @bind-SelectedOptions="@_selectedGlAccount"
                     @bind-SelectedOptions:after="@HandleGlAccountChange"
-                    Width="150px"
+                    Width="200px"
                     class="left-align-text" />
                 </td>
 
@@ -94,13 +93,13 @@
                     <FluentSwitch @bind-Value="@BTItem.TLChecked" Style="width: 150px;" />
                 </td>
                 <td>
-                    <FluentTextField @bind-Value="@BTItem.SapDocNumber" Style="width: 150px;" Required="_accountant" />
+                    <FluentTextField @bind-Value="@BTItem.SapDocNumber" Style="width: 200px;" Required="_accountant" />
                 </td>
                 <td>
-                    <FluentTextField @bind-Value="@BTItem.SapPaymentKey" Style="width: 150px;" Required="_accountant" />
+                    <FluentTextField @bind-Value="@BTItem.SapPaymentKey" Style="width: 200px;" Required="_accountant" />
                 </td>
                 <td>
-                    <FluentTextField @bind-Value="@BTItem.Comment" Style="width: 150px;" />
+                    <FluentTextField @bind-Value="@BTItem.Comment" Style="width: 300px;" />
                 </td>
             </tr>
         </tbody>
@@ -108,6 +107,7 @@
     <table class="tableBT-container" style="width = 500px">
         <thead>
             <tr class="tableBT-header-left">
+                <th style="width = 200px">Tytuł przelewu </th>
                 <th style="width = 200px">Księgowa </th>
                 <th style="width = 125px">Data </th>
                 <th style="width = 200px">TeamLeader </th>
@@ -117,16 +117,19 @@
         <tbody>
             <tr>
                 <td>
-                    <FluentTextField @bind-Value="@BTItem.AccountantName"  />
+                    <FluentTextField @bind-Value="@BTItem.BankTrasferTitle" Disabled="true" Style = "width: 200px;"/>
                 </td>
                 <td>
-                    <FluentTextField @bind-Value="@_accountantTime"  />
+                    <FluentTextField @bind-Value="@BTItem.AccountantName" Style="width: 200px;" />
                 </td>
                 <td>
-                    <FluentTextField @bind-Value="@BTItem.AccountantTLName"  />
+                    <FluentTextField @bind-Value="@_accountantTime" Style="width: 200px;" />
                 </td>
                 <td>
-                    <FluentTextField @bind-Value="@_accountantTLTime"  />
+                    <FluentTextField @bind-Value="@BTItem.AccountantTLName" Style="width: 200px;" />
+                </td>
+                <td>
+                    <FluentTextField @bind-Value="@_accountantTLTime" Style="width: 200px;" />
                 </td>
             </tr>
         </tbody>

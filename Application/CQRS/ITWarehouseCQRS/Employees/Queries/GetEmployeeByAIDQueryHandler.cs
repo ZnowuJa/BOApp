@@ -19,6 +19,7 @@ public class GetEmployeeByAIDQueryHandler : IRequestHandler<GetEmployeeByAIDQuer
     }
     public async Task<EmployeeVm> Handle(GetEmployeeByAIDQuery request, CancellationToken cancellationToken)
     {
+        //Guid employeeId = Guid.Parse(request.EmployeeId);
         var result = await _appDbContext.Employees.Where(p => p.AzureObjectId == request.EmployeeId)
             .Include(b => b.Type).FirstOrDefaultAsync(cancellationToken);
         if (result == null)

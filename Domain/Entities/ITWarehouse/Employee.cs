@@ -34,7 +34,7 @@ public class Employee : AuditableEntity, IAssignee
     public string? Oeshort {  get; set; }
     public string? JobCode { get; set; }
     public int CoCGroupId { get; set; }
-
+    public string? BankAccountNumber { get; set; }
 
 
     public Employee()
@@ -67,6 +67,7 @@ public class Employee : AuditableEntity, IAssignee
         Oeshort = string.Empty;
         JobCode = string.Empty;
         CoCGroupId = 0;
+        BankAccountNumber = string.Empty;
     }
 
 }

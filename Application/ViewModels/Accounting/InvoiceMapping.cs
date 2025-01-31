@@ -9,4 +9,5 @@ public class InvoiceMapping
     public CostCenterVm CostCenter { get; set; } = new();
     public GLAccountVm GLAccount { get; set; } = new();
     public VATRateVm VATRate { get; set; } = new();
+    public decimal AmountNet { get; set; } = 0m;
 }

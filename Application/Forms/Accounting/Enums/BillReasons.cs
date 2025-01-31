@@ -4,6 +4,5 @@ public enum BillReasons
 {
     Posiłek,
     Bilet,
-    Nocleg,
-    Inne
+    Nocleg
 }
