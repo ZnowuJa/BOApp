@@ -39,19 +39,19 @@ public class AddCoCOnboardingsAdHocJob
             var _organisation = organisations.Where(o => o.SapNumber == emp.SapNumber).FirstOrDefault();
             Console.WriteLine($"Organisation: {_organisation.SapNumber}");
             var instStats = new List<InstructionStatus>();
-            var position = positions.Where(p => p.Name == emp.Position).FirstOrDefault();
-            try
-            {
-                Console.WriteLine($"Position: {position.Name}");
-            }
-            catch
-            {
-                continue;
-            }
+            //var position = positions.Where(p => p.Name == emp.Position).FirstOrDefault();
+            //try
+            //{
+            //    Console.WriteLine($"Position: {position.Name}");
+            //}
+            //catch
+            //{
+            //    continue;
+            //}
 
-            if (position != null)
+            if (emp != null)
             {
-                var groupCoC = groups.Where(gc => gc.Id == position.GroupCoCId).FirstOrDefault();
+                var groupCoC = groups.Where(gc => gc.Id == emp.CoCGroupId).FirstOrDefault();
                 Console.WriteLine($"Group: {groupCoC.GroupName}");
                 if (groupCoC != null)
                 {
