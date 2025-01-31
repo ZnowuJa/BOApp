@@ -151,7 +151,7 @@ public class UpdateDeferralPaymentCommandHandler(IAppDbContext appDbContext, IMa
                 Address = email.Trim()
             }
         }).ToList();
-
+        //This check here is probably not required.
         if (status == "AprobataL1")
         {
             subject = $"Wniosek o odroczoną płatność ({frmNumber}) oczekuje na aprobatę)";
