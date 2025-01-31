@@ -1,0 +1,43 @@
+﻿@* Manager Deputy Details Component *@
+@using Application.CQRS.General.ManagerDeputies.Queries
+@using Application.ViewModels.General
+
+@inject IMediator _mediator
+@implements IDialogContentComponent<ManagerDeputyVm>
+
+    <!-- Header -->
+    <FluentDialogHeader ShowDismiss="true">
+        <FluentStack VerticalAlignment="VerticalAlignment.Center">
+            <FluentLabel Typo="Typography.PaneHeader">
+                Szczegóły zastępstw
+            </FluentLabel>
+        </FluentStack>
+    </FluentDialogHeader>
+
+    <!-- Body -->
+    <FluentDialogBody Style="overflow-y: auto; overflow-x: hidden; padding: 16px;">
+        <p><b>Dla menadżera:</b> @Content.LongName</p>
+        <p><b>Ustawione zastępstwa:</b></p>
+        @if (Content.Deputies != null && Content.Deputies.Any())
+        {
+            <ul>
+                @foreach (var deputy in Content.Deputies)
+                {
+                    <li>@deputy.Employee.LongName</li>
+                }
+            </ul>
+        }
+        else
+        {
+            <p>Brak ustawionych zastępstw</p>
+        }
+    </FluentDialogBody>
+
+    <!-- Footer -->
+    <FluentDialogFooter>    
+
+    </FluentDialogFooter>
+
+@code {
+    [Parameter] public ManagerDeputyVm Content { get; set; } = default!; // Przekazywany model
+}

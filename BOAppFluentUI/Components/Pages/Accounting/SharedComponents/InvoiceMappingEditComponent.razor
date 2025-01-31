@@ -5,12 +5,15 @@
 @using Application.ViewModels.Accounting
 @using Application.ViewModels.General
 @inject IMediator _mediator
-<table>
-    <tbody>
-        <tr class="fluent-row">
-            <td>
-                <FluentAutocomplete TOption="Location"
-                                    Disabled="@Disabled"
+<EditForm EditContext="@ParentEditContext">
+
+
+    <table>
+        <tbody>
+            <tr class="fluent-row">
+                <td>
+                    <FluentAutocomplete TOption="Location"
+                    Disabled="@Disabled"
                     SelectValueOnTab="true"
                     AutoComplete="on"
                     OnOptionsSearch="@OnLocationSearch"
@@ -22,10 +25,10 @@
                     Width="150px"
                     class="left-align-text"
                     />
-            </td>
-            <td>
-                <FluentAutocomplete TOption="CostCenterVm"
-                                    Disabled="@Disabled"
+                </td>
+                <td>
+                    <FluentAutocomplete TOption="CostCenterVm"
+                    Disabled="@Disabled"
                     SelectValueOnTab="true"
                     AutoComplete="on"
                     OnOptionsSearch="@OnCostCenterSearch"
@@ -37,10 +40,10 @@
                     Width="150px"
                     class="left-align-text"
                     />
-            </td>
-            <td>
-                <FluentAutocomplete TOption="GLAccountVm"
-                                    Disabled="@Disabled"
+                </td>
+                <td>
+                    <FluentAutocomplete TOption="GLAccountVm"
+                    Disabled="@Disabled"
                     SelectValueOnTab="true"
                     AutoComplete="on"
                     OnOptionsSearch="@OnGLAccountSearch"
@@ -52,10 +55,10 @@
                     Width="150px"
                     class="left-align-text"
                     />
-            </td>
-            <td>
-                <FluentAutocomplete TOption="VATRateVm"
-                                    Disabled="@Disabled"
+                </td>
+                <td>
+                    <FluentAutocomplete TOption="VATRateVm"
+                    Disabled="@Disabled"
                     SelectValueOnTab="true"
                     AutoComplete="on"
                     OnOptionsSearch="@OnVATRateSearch"
@@ -66,11 +69,24 @@
                     @bind-SelectedOptions:after="@HandleVatRateChange"
                     Width="150px"
                     class="left-align-text"
-                />
-            </td>
-        </tr>
-    </tbody>
-</table>
+                    />
+                    @if (InvoiceMapping.VATRate != null)
+                    {
+                        <FluentValidationMessage For="@(() => InvoiceMapping.VATRate.Id)" class="validation-error" />
+                    }
+                    <FluentValidationMessage For="@(() => InvoiceMapping.VATRate)" class="validation-error" />
+                </td>
+                <td>
+                    <FluentNumberField @bind-Value="@InvoiceMapping.AmountNet" />
+                    <FluentValidationMessage 
+                    For="@(() => InvoiceMapping.AmountNet)"
+                    class="validation-error" />
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+</EditForm>
 
 @code {
     [Parameter] public InvoiceMapping InvoiceMapping { get; set; }
@@ -79,6 +95,12 @@
     [Parameter] public IEnumerable<CostCenterVm> CostCenters { get; set; }
     [Parameter] public IEnumerable<GLAccountVm> GLAccounts { get; set; }
     [Parameter] public IEnumerable<VATRateVm> VatRates { get; set; }
+    [Parameter] public CostCenterVm? settledCostCenter { get; set; }
+    [Parameter] public Location? settledLocation { get; set; }
+    [Parameter] public GLAccountVm? settledGLAccount { get; set; }
+    [Parameter] public VATRateVm? settledVatRate { get; set; }
+    [Parameter] public EditContext ParentEditContext { get; set; }
+
     IEnumerable<Location> _selectedLocation = Array.Empty<Location>();
     IEnumerable<CostCenterVm> _selectedCostCenter = Array.Empty<CostCenterVm>();
     IEnumerable<GLAccountVm> _selectedGlAccount = Array.Empty<GLAccountVm>();
@@ -90,6 +112,21 @@
         CostCenters = await _mediator.Send(new GetAllCostCenterIEnumQuery());
         GLAccounts = await _mediator.Send(new GetAllGLAccountIEnumQuery());
         VatRates = await _mediator.Send(new GetAllVatRateIEnumQuery());
+        if (InvoiceMapping.CostCenter != null)
+        {
+            _selectedCostCenter = new List<CostCenterVm> { InvoiceMapping.CostCenter };
+        }
+        if (InvoiceMapping.GLAccount != null)
+        {
+            _selectedGlAccount = new List<GLAccountVm> { InvoiceMapping.GLAccount };
+        }
+        if (InvoiceMapping.Location != null)
+        {
+            _selectedLocation = new List<Location> { InvoiceMapping.Location };
+        }
+        if (InvoiceMapping.VATRate != null){
+            _selectedVatRate = new List<VATRateVm> { InvoiceMapping.VATRate };
+        }
 
     }
 
@@ -113,6 +150,7 @@
     }
     private void HandleVatRateChange()
     {
+        
         InvoiceMapping.VATRate = _selectedVatRate.FirstOrDefault();
 
         Console.WriteLine();

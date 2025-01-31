@@ -6,11 +6,11 @@ using System.Threading.Tasks;
 
 namespace Application.Forms.Accounting.Enums
 {
-    public enum Statuses
-    {
+    public enum BusinessTravelStatuses
+    { 
         Rejestracja, //user or just employee
         AprobataL1, // manager of user
-        AprobataL2, // some kind of Director
+        AprobataL2, // manager of manager of user
         ZaliczkaKasa, // Cashier
         ZaliczkaKsiegowosc, // Accountants
         ZaliczkaKsiegowoscTL, // Accountants TLs

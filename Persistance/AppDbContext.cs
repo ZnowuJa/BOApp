@@ -62,6 +62,7 @@ public class AppDbContext : IdentityDbContext<AppUser>, IAppDbContext
     public DbSet<ITScrappingForm> ITScrappingForms { get; set; }
     public DbSet<ITSaleForm> ITSaleForms { get; set; }
     public DbSet<AccountingNoteForm> AccountingNotes { get; set; }
+    public DbSet<ManagerDeputy> ManagerDeputies { get; set; }
     public DbSet<CompanyCarRegistrationNumber> CompanyCarRegistrationNumbers { get ; set; }
     public DbSet<NbpCurrencyRate> NbpCurrencyRates {  get; set; }
     public DbSet<BusinessTravelForm> BusinessTravels { get; set; }
@@ -73,8 +74,8 @@ public class AppDbContext : IdentityDbContext<AppUser>, IAppDbContext
         builder.Entity<BusinessTravelForm>(e =>
         {
             e.Property(e => e.AdvancePaymentAmount).HasColumnType("decimal(10,2)");
-            e.Property(e => e.AdvancePaymentCash).HasColumnType("decimal(10,2)");
-            e.Property(e => e.CurrencyExchamngeRate).HasColumnType("decimal(10,4)");
+            e.Property(e => e.AdvancePaymentCash).HasColumnType("bit");
+            e.Property(e => e.CurrencyExchangeRate).HasColumnType("decimal(10,4)");
             e.Property(e => e.AllowancePL).HasColumnType("decimal(10,2)");
             e.Property(e => e.AllowanceNotPL).HasColumnType("decimal(10,2)");
             e.Property(e => e.SumAllowancePL).HasColumnType("decimal(10,2)");
@@ -133,6 +134,10 @@ public class AppDbContext : IdentityDbContext<AppUser>, IAppDbContext
         builder.Entity<NbpCurrencyRate>()
             .Property(c => c.RateDate)
             .HasColumnName("Rate_date");
+
+        builder.Entity<ManagerDeputy>()
+        .HasIndex(m => m.ManagerId)
+        .IsUnique();
 
         base.OnModelCreating(builder);
 

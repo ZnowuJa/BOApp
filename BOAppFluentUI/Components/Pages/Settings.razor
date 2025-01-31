@@ -1,4 +1,5 @@
 ﻿@using System.Security.Claims
+@using Application.CQRS.ITWarehouseCQRS.Employees.Commands
 @using Application.CQRS.ITWarehouseCQRS.Employees.Queries
 @using Application.ViewModels.General
 
@@ -10,22 +11,31 @@
 
 
 <FluentDesignTheme  @bind-Mode="@Mode"
-                    @bind-OfficeColor = "@Color" 
-                    StorageName="theme"/>
+@bind-OfficeColor = "@Color" 
+StorageName="theme"/>
 
 <FluentSelect Label="Theme" Items="@(Enum.GetValues<DesignThemeModes>())" @bind-SelectedOption="@Mode" />
 <FluentSelect Label="Color" Items="@(new OfficeColor?[] {OfficeColor.Word, OfficeColor.Excel, OfficeColor.OneNote, OfficeColor.Access, OfficeColor.Booking, OfficeColor.Exchange, OfficeColor.Yammer, OfficeColor.PowerApps})" @bind-SelectedOption="@Color" />
 <FluentDivider Orientation="Orientation.Horizontal"/>
+
+<p></p>
+<FluentLabel>Twój numer konta bankowego:</FluentLabel>
+@if(emp != null){
+    
+    <FluentTextField @bind-Value="@emp.BankAccountNumber" 
+    @bind-Value:after="@HandleEmpBankAccountChanged"/>
+}
+@*  *@
 <p></p>
 @if(userRoles is not null)
 {
-    <b>Your current roles:</b>
-    
+    <b>Twoje role w systemie:</b>
+
     @foreach(var role in userRoles)
-        {
-            <li>@role</li>
-        }
-        @* @emp.LongName.ToString(); *@
+    {
+        <li>@role</li>
+    }
+    @* @emp.LongName.ToString(); *@
 }
 
 <p></p>
@@ -74,6 +84,10 @@
             emp = new EmployeeVm();
             // Console.WriteLine($"No claim of type {claimTypeAID} found.");
         }
+    }
+
+    private async Task HandleEmpBankAccountChanged(){
+        await _mediator.Send(new UpdateEmployeeCommand(emp));
     }
 
 }

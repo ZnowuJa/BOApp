@@ -3,9 +3,11 @@
 @inject IConfiguration _configuration
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IMediator _mediator
+@inject IHostEnvironment HostEnvironment
+
 <FluentLayout>
     <FluentHeader>
-         PIAPL BackOffice App
+        PIAPL BackOffice App
         <FluentSpacer />
         Ustawienia &nbsp;
         <FluentIcon Value="@(new Icons.Regular.Size20.Settings())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Lightweight" OnClick="ShowSettingAsync" />
@@ -19,7 +21,7 @@
         </FluentBodyContent>
     </FluentStack>
     <FluentFooter style="display: flex; justify-content: space-between;">
-        <div >
+        <div>
             <b>Environment: @envi  |  Version: @appVersion</b>
         </div>
         <div class="link2">
@@ -56,7 +58,7 @@
                 Title = "Ustawienia",
                 Alignment = HorizontalAlignment.Right,
                 SecondaryAction = null,
-               
+
             });
     }
 }

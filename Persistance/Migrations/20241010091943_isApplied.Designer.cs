@@ -1496,7 +1496,7 @@ namespace Persistance.Migrations
                     b.Property<int?>("StatusId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Statuses")
+                    b.Property<string>("BusinessTravelStatuses")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -1625,7 +1625,7 @@ namespace Persistance.Migrations
                     b.Property<int?>("StatusId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Statuses")
+                    b.Property<string>("BusinessTravelStatuses")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -1743,7 +1743,7 @@ namespace Persistance.Migrations
                     b.Property<int?>("StatusId")
                         .HasColumnType("int");
 
-                    b.Property<string>("Statuses")
+                    b.Property<string>("BusinessTravelStatuses")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 

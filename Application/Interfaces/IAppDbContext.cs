@@ -54,6 +54,7 @@ public interface IAppDbContext
     DbSet<GLAccount> GLAccounts { get; set; }
     DbSet<VATRate> VATRates { get; set; }
     DbSet<AccountingNoteForm> AccountingNotes { get; set; }
+    DbSet<ManagerDeputy> ManagerDeputies { get; set; }
     DbSet<CompanyCarRegistrationNumber> CompanyCarRegistrationNumbers { get; set; }
     DbSet<NbpCurrencyRate> NbpCurrencyRates { get; set; }
     DbSet<BusinessTravelForm> BusinessTravels { get; set; }
