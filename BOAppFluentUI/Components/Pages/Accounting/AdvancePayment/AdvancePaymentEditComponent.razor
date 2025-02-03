@@ -1,4 +1,6 @@
 ﻿@page "/zaliczki"
+@using Application.CQRS.ITWarehouseCQRS.Employees.Queries;
+@using Application.CQRS.General.Organisations.Queries;
 @using Application.Forms.Accounting;
 @using Application.ViewModels.General;
 @using Infrastructure.Services;
@@ -9,12 +11,18 @@
 <h3>Zaliczka - Rejestracja wniosku</h3>
 
 <EditForm EditContext="_editContext" OnValidSubmit="HandleValidSubmit">
-    @*     <FluentValidationValidator @ref="_fluentValidationValidator" /> *@
     <table class="table-container">
         <thead>
             <tr class="table-caption">
                 <th style="text-align: left; border-right: none; font-size: large;" colspan="2">
                     Informacje Ogólne
+                </th>
+                <th>
+                    <FluentSelect Items="@statuses"
+                                  OptionText="@(i => i.Text)"
+                                  OptionValue="@(i => i.Value)"
+                                  OptionSelected="@(i => i.Selected)"
+                                  @bind-Value="@formItem.Status" />
                 </th>
                 <th style="text-align: right; border-left: none; font-size: large;" colspan="2">
                     Status: @formItem.Status | Numer: 12345
@@ -33,7 +41,18 @@
                     @formItem.EmployeeName
                 </td>
                 <td>
-                    Warszawa
+                    @*                      <FluentAutocomplete TOption="Location"
+                    Disabled="@editControlDisabled"
+                    SelectValueOnTab="true"
+                    AutoComplete="on"
+                    OnOptionsSearch="@OnLocationSearch"
+                    Placeholder="wybierz lokalizację..."
+                    MaximumSelectedOptions="1"
+                    OptionText="@(p => p.SapNumber + ' ' + p.Name)"
+                    @bind-SelectedOptions="@_selectedLocation"
+                    @bind-SelectedOptions:after="@HandleLocationChange"
+                    Width="180px" /> *@
+                    Warszawa HQ IT
                 </td>
                 <td>
                     <FluentTextField />
@@ -58,10 +77,6 @@
                                   Value="formItem.PaymentMethod"
                                   @onchange="OnPaymentMethodChanged" />
                 </td>
-                @*             <td>
-                </td>
-                <td>
-                </td> *@
             </tr>
             @if (IsBankTransfer)
             {
@@ -76,7 +91,7 @@
                         Numer konta bankowego:
                     </td>
                     <td>
-                        Pobierzemy wartość IBAN z tabeli Employee
+                        @formItem.AccountNumber
                         @*
                     <FluentTextField @bind-Value="iban"
                     Placeholder="Wpisz IBAN"
@@ -114,12 +129,28 @@
 
     }
 
-    @(IsBankTransfer ? (MarkupString)"<p>AprobującyL2</p>" : (MarkupString)"")
-    <button type="submit">Zapisz</button>
+    @if (IsBankTransfer)
+    {
+@*         <p></p>
+        <FluentSelect TOption="OrganisationRoleForFormVm"
+                      Id="AL2Id"
+                      Autofocus="true"
+                      Items="@formItem.Level2Approvers"
+                      Multiple="false"
+                      OptionValue="@(p => p.EmpId.ToString())"
+                      OptionText="@(p => p.LongName)"
+                      OptionSelected="@(p => p.IsDefault)"
+                      @bind-SelectedOption="@approverL2"
+                      Height="200px"
+                      Style="margin-bottom: 20px;"
+                      @onchange="HandleChangeApproverL2" /> *@
+    }
+
 </EditForm>
 @code {
     private AdvancePaymentVm formItem = new AdvancePaymentVm();
     private EditContext _editContext;
+    private OrganisationVm _organisation { get; set; }
     //private OrganisationRoleForFormVm approverL1 { get; set; }
     private IQueryable<EmployeeVm> _employees { get; set; }
     private IEnumerable<EmployeeVm> SelectedEmpl { get; set; }
@@ -129,6 +160,11 @@
     private bool IsBankTransfer { get; set; } = false;
 
     private OrganisationRoleForFormVm approverL1 { get; set; }
+    private OrganisationRoleForFormVm approverL2 { get; set; }
+
+
+    private List<string> allowedEmp { get; set; } = new List<string>();
+    private List<string> allowedEditor { get; set; } = new List<string>();
 
     private bool strej = false;
 
@@ -143,42 +179,33 @@
     //         validationResult = isValid ? "Konto istnieje" : "Konto nie istnieje";
     //     }
     // }
+    static List<Option<string>> statuses = new()
+{
+    new Option<string> { Value = "Rejestracja", Text = "Rejestracja" },
+    new Option<string> { Value = "AprobataL1", Text = "Aprobata L1 (Manager)" },
+    new Option<string> { Value = "AprobataL2", Text = "Aprobata L2 (Manager's Manager)" },
+    new Option<string> { Value = "ZaliczkaKasa", Text = "Zaliczka (Kasa)" },
+    new Option<string> { Value = "ZaliczkaKsiegowosc", Text = "Zaliczka (Księgowość)" },
+    new Option<string> { Value = "ZaliczkaKsiegowoscTL", Text = "Zaliczka (Księgowość TL)" },
+    new Option<string> { Value = "Rozliczenie", Text = "Rozliczenie" },
+    new Option<string> { Value = "Ksiegowosc", Text = "Księgowość" },
+    new Option<string> { Value = "KsiegowoscTL", Text = "Księgowość TL" },
+    new Option<string> { Value = "AprobataL11", Text = "Aprobata L1.1 (Manager)" },
+    new Option<string> { Value = "AprobataL12", Text = "Aprobata L1.2 (Dyrektor)" },
+    new Option<string> { Value = "KasaRozliczenie", Text = "Kasa (Rozliczenie)" },
+    new Option<string> { Value = "WyslaneDoRobota", Text = "Wysłane do Robota" },
+    new Option<string> { Value = "Rozliczone", Text = "Rozliczone" },
+    new Option<string> { Value = "Zamkniete", Text = "Zamknięte" }
+};
+
+    private void HandleStatusChange()
+    {
+        SetupForm(formItem.Status);
+    }
 
     private void AssignStatusBool()
     {
         strej = formItem.Status == "Rejestracja";
-    }
-
-    private async Task<List<OrganisationRoleForFormVm>> SetManagerAndDeputies()
-    {
-        var empl = _employees.Where(e => e.EnovaEmpId == int.Parse(formItem.EnovaEmpId)).First();
-        approverL1 = new()
-            {
-                IsDefault = true,
-                EmpId = empl.ManagerId,
-                LongName = empl.Manager.LongName
-            };
-        var managers = await _mediator.Send(new GetManagerDeputyByManagerIdQuery(empl.ManagerId));
-        var managerDeputies = managers.Deputies;
-
-        var result = new List<OrganisationRoleForFormVm>();
-        foreach (var item in managerDeputies)
-        {
-            result.Add(new OrganisationRoleForFormVm(item));
-        }
-
-        result.Insert(0, approverL1);
-
-        return result;
-
-    }
-
-    private async Task AssignAllApprovers(EmployeeVm emp)
-    {
-        formItem.Level1Approvers.Clear();
-        formItem.Level1Approvers = await SetManagerAndDeputies(); // Przełożony
-        formItem.LVL1_EnovaEmpId = emp.ManagerId.ToString();
-        formItem.LVL1_EmployeeName = emp.Manager.LongName;
     }
 
     private async Task HandleChangeApproverL1(ChangeEventArgs e)
@@ -186,6 +213,12 @@
         var tempEmp = _employees.First(p => p.EnovaEmpId == int.Parse(e.Value.ToString()));
         formItem.LVL1_EnovaEmpId = tempEmp.EnovaEmpId.ToString();
         formItem.LVL1_EmployeeName = tempEmp.LongName;
+    }
+    private async Task HandleChangeApproverL2(ChangeEventArgs e)
+    {
+        var tempEmp = _employees.First(p => p.EnovaEmpId == int.Parse(e.Value.ToString()));
+        formItem.LVL2_EnovaEmpId = tempEmp.EnovaEmpId.ToString();
+        formItem.LVL2_EmployeeName = tempEmp.LongName;
     }
 
     private void OnPaymentMethodChanged(ChangeEventArgs e)
@@ -199,9 +232,65 @@
     {
         _editContext = new EditContext(formItem);
         await Utils.GetUserName(_authenticationStateProvider, _userContext, _mediator);
+        await GetAllowedPersons();
+        _employees = await _mediator.Send(new GetAllEmployeesQuery());
+        _organisation = await _mediator.Send(new GetOrganisationByEmpSapNumberQuery(_userContext.Employee.SapNumber));
         formItem.EmployeeName = _userContext.LongName;
+        formItem.AccountNumber = _userContext.Employee.BankAccountNumber;
+        //AssignStatusBool();
+
+        Approval approval = new Approval()
+            {
+                Status = formItem.Status,
+                EnovaEmpId = _userContext.EnovaEmpId,
+                LongName = _userContext.LongName,
+                Date = DateTime.Now,
+                IsApproved = true
+            };
+        formItem.Approvals.Add(approval);
+
+        await SetupForm(formItem.Status);
+    }
+
+    private async Task SetupForm(string status)
+    {
         AssignStatusBool();
+        if (status == "Rejestracja") await SetupFormRejestracja();
+
+        //else if (stal1 || stal2 || stal11 || stal12) await SetupFormAprobata(status);
+    }
+
+    private async Task SetupFormRejestracja()
+    {
         await AssignAllApprovers(_userContext.Employee);
+    }
+
+    private async Task GetAllowedPersons()
+    {
+        if (formItem.Status == "Rejestracja")
+        {
+            allowedEmp.Add(_userContext.EnovaEmpId);
+            allowedEditor.Add(_userContext.EnovaEmpId);
+        }
+    }
+
+    private async Task AssignAllApprovers(EmployeeVm emp)
+    {
+        approverL1 = new()
+            {
+                IsDefault = true,
+                EmpId = emp.ManagerId,
+                LongName = emp.Manager.LongName
+            };
+
+        formItem.Level1Approvers.Clear();
+        formItem.Level1Approvers.Add(approverL1);
+        formItem.LVL1_EnovaEmpId = emp.ManagerId.ToString();
+        formItem.LVL1_EmployeeName = emp.Manager.LongName;
+        // formItem.Level2Approvers.Clear();
+        // formItem.Level2Approvers.Add(approverL1);
+        // formItem.LVL2_EnovaEmpId = emp.ManagerId.ToString();
+        // formItem.LVL2_EmployeeName = emp.Manager.LongName;
     }
 
     private void LoadAutocompleteControls()
@@ -218,17 +307,6 @@
         { new Option<string> { Text = "Gotówką w kasie", Value = "cash"} },
         { new Option<string> { Text = "Przelew", Value = "bank" } }
     };
-
-    // private void AssignStatusBool()
-    // {
-    //     strej = formItem.Status == "Rejestracja";
-    // }
-    // private async Task HandleChangeApproverL1(ChangeEventArgs e)
-    // {
-    //     var tempEmp = _employees.First(p => p.EnovaEmpId == int.Parse(e.Value.ToString()));
-    //     formItem.LVL1_EnovaEmpId = tempEmp.EnovaEmpId.ToString();
-    //     formItem.LVL1_EmployeeName = tempEmp.LongName;
-    // }
 
     private void HandleValidSubmit(EditContext arg)
     {

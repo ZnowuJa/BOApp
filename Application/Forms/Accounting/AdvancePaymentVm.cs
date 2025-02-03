@@ -36,10 +36,15 @@ namespace Application.Forms.Accounting
         public string AccountNumber { get; set; }
 
         #region ApproversDetails
+        public List<Approval>? Approvals { get; set; } = new();
         public List<OrganisationRoleForFormVm> Level1Approvers { get; set; } = new(); // przełożony etapy: AprobataL1, AprobataL11
+        public List<OrganisationRoleForFormVm> Level2Approvers { get; set; } = new(); // przełożony etapy: AprobataL1, AprobataL11
+
 
         public string LVL1_EnovaEmpId { get; set; } = string.Empty;
         public string LVL1_EmployeeName { get; set; } = string.Empty; // manager of user
+        public string LVL2_EnovaEmpId { get; set; } = string.Empty;
+        public string LVL2_EmployeeName { get; set; } = string.Empty; // manager of user
         #endregion
     }
 }
