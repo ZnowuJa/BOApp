@@ -1,5 +1,5 @@
 ﻿namespace Application.ViewModels.General;
-public class Approval
+public class ApprovalVm
 {
 
     public string Status { get; set; }

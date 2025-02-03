@@ -1,4 +1,8 @@
-﻿@using Application.ViewModels.General
+﻿@using Application.AdHocJobs
+@using Application.Interfaces
+@using Application.BackgroundJobs
+@using Application.Interfaces
+@using Application.ViewModels.General
 @using Microsoft.AspNetCore.Authorization
 @using Application.AdHocJobs
 
@@ -9,6 +13,8 @@
 @inject ILogger<AddOnboardingsTimeSpan> _logger
 @inject IDialogService _dialogService
 @inject IToastService _toastService
+@inject IEmailService _mailService;
+@inject IConfiguration _configuration;
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @implements IDialogContentComponent<string>
 
@@ -54,30 +60,17 @@
         isBusy = true;
         if (FromFTEDate.HasValue && ToFTEDate.HasValue)
         {
-            AddCoCOnboardingsAdHocJob job = new AddCoCOnboardingsAdHocJob(_mediator, FromFTEDate.Value, ToFTEDate.Value);
+            
+            AddCoCOnboardingTimeSpanAdHocJob job = new AddCoCOnboardingTimeSpanAdHocJob(_mediator, FromFTEDate.Value, ToFTEDate.Value, _mailService, _configuration);
             generated = await job.Execute();
             if (generated.HasValue)
             {
                 isBusy = false;
             }
         };
-        // AddCoCOnboardingsAdHocJob job = new AddCoCOnboardingsAdHocJob(_mediator, FromFTEDate, ToFTEDate);
-
-        // generated = await job.Execute();
-
-        // if(generated.HasValue){
-        //     isBusy = false;
-        // }
 
     }
 
-    // private void OnFromDateChanged(DateTime date){
-    //     FromFTEDate = date;
-    // }
-    // private void OnToDateChanged(DateTime date)
-    // {
-    //     ToFTEDate = date;
-    // }
     private async Task SaveAsync()
     {
         await Dialog.CloseAsync(Content);

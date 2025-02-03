@@ -224,8 +224,8 @@
 
     private async Task Assign()
     {
-        MarkEmployeesGroupJob job = new MarkEmployeesGroupJob(_mediator);
-        // AssignCoCGroupByJobCode job = new AssignCoCGroupByJobCode(_mediator);
+        // AdHoc job = new AdHoc(_mediator);
+        MarkEmpCoCGroupByJobCodeAdHocJob job = new MarkEmpCoCGroupByJobCodeAdHocJob(_mediator);
         job.Execute();
     }
 }

@@ -65,7 +65,7 @@ public class UpdateOnboardingFormCommandHandler : IRequestHandler<UpdateOnboardi
         return request.Item;
     }
 
-    private string SerializeApprovals(List<ViewModels.General.Approval> approvals)
+    private string SerializeApprovals(List<ViewModels.General.ApprovalVm> approvals)
     {
         return approvals == null || approvals.Count == 0 ? string.Empty : JsonSerializer.Serialize(approvals);
     }

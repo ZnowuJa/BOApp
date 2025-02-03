@@ -14,8 +14,11 @@ using Microsoft.Extensions.Configuration;
 
 using Application.ViewModels.General;
 using MediatR;
+using Microsoft.Graph.Models;
 
-
+//
+//  THIS JOB IS Manualy from GUI.
+//
 
 namespace Application.AdHocJobs;
 public class AddCoCOnboardingsAdHocJob
@@ -39,6 +42,7 @@ public class AddCoCOnboardingsAdHocJob
 
     public async Task<int> Execute()
     {
+        List<string> errorList = new();
         string today;
         var emps = new List<EmployeeVm>();
         var positions = await _mediator.Send(new GetAllPositionsQuery());
@@ -56,10 +60,27 @@ public class AddCoCOnboardingsAdHocJob
 
             }
         }
+        else
+        {
+            errorList.Add("Invalid date range");
+        }
+
+
 
         var onboardings = await _mediator.Send(new GetAllOnboardingsQuery());
         var excludedEmpIds = onboardings.Select(o => o.EmployeeId).ToHashSet();
+        var organisationSapNumbers = organisations.Select(o => o.SapNumber).ToHashSet();
+        var missingSapNumbers = emps
+            .Select(e => e.SapNumber)
+            .Where(sapNumber => !organisationSapNumbers.Contains(sapNumber))
+            .Distinct();
+        errorList.Add(string.Join(", ", missingSapNumbers));
+        var excludedEmployees = emps.Where(emp => excludedEmpIds.Contains(emp.EnovaEmpId)).ToList();
+        errorList.Add(string.Join(", ", excludedEmployees.Select(e => $"{e.LongName} ({e.EnovaEmpId})")));
         emps = emps.Where(emp => !excludedEmpIds.Contains(emp.EnovaEmpId)).ToList();
+        
+
+
 
         foreach (var emp in emps)
         {
@@ -81,7 +102,7 @@ public class AddCoCOnboardingsAdHocJob
                 {
                     EmployeeId = emp.EnovaEmpId,
                     EmployeeName = emp.LongName,
-                    Approvals = new List<Approval>(),
+                    Approvals = new List<ApprovalVm>(),
                     Level1Approvers = _organisation.Role_ComplianceAssistant.Select(role => new OrganisationRoleForFormVm(role)).ToList() ?? new List<OrganisationRoleForFormVm>(),
                     Level2Approvers = _organisation.Role_ComplianceManager.Select(role => new OrganisationRoleForFormVm(role)).ToList() ?? new List<OrganisationRoleForFormVm>(),
                     LVL1_EnovaEmpId = _organisation.Role_ComplianceAssistant.Where(e => e.IsDefault == true).Select(m => m.EmpId).FirstOrDefault().ToString() ?? String.Empty,
@@ -106,16 +127,18 @@ public class AddCoCOnboardingsAdHocJob
             }
             else
             {
-
+                errorList.Add($"Employee {emp.LongName} ({emp.EnovaEmpId}) has no SAP number");
             }
             
         }
         await Task.CompletedTask;
+        //SendEmail(_configuration["Email:ErrorRecipients"], errorList).Wait();
+        SendEmail("marcin.jarco@porscheinterauto.pl; dawid.urbaniak@porscheinterauto.pl", errorList).Wait();
         return emps.Count;
 
     }
 
-    public string SerializeApprovals(List<Approval> approvals)
+    public string SerializeApprovals(List<ApprovalVm> approvals)
     {
         return approvals == null || approvals.Count == 0 ? null : JsonSerializer.Serialize(approvals);
     }
@@ -152,13 +175,13 @@ public class AddCoCOnboardingsAdHocJob
         var emailAddresses = rcptEmail.Split(';');
         var recipients = emailAddresses.Select(email => new Microsoft.Graph.Models.Recipient
         {
-            EmailAddress = new Microsoft.Graph.Models.EmailAddress
+            EmailAddress = new EmailAddress
             {
                 Address = email.Trim()
             }
         }).ToList();
 
-        subject = $"Wykryto błędy w imporcie danych pracowników!";
+        subject = $"Wykryto błędy w generowaniu nowych formularzy OnBoarding!";
         body = $@"
                 <!DOCTYPE html>
                 <html>
@@ -166,12 +189,12 @@ public class AddCoCOnboardingsAdHocJob
                 </head>
                 <body>
                     <div class=""header"">
-                        <h1>Błędy w imporcie danych pracowników!</h1>
+                        <h1>Błędy w generowaniu nowych formularzy OnBoarding</h1>
                     </div>
                     <div>
                     </p>
                         
-                        <p>Znaleziono poniższe błędy w tabeli Employee:</p>
+                        <p>Znaleziono poniższe błędy:</p>
                         <p> Total errors: {errorList.Count()}</p>
                         {listHTML}
   
@@ -179,17 +202,17 @@ public class AddCoCOnboardingsAdHocJob
                         <p>Twój zespół Automatyzacji!</p>
                     </div>
                     <div class=""footer"">
-                        <p>© 2024 Porsche Inter Auto Polska Sp. z o.o.</p>
+                        <p>© 2025 Porsche Inter Auto Polska Sp. z o.o.</p>
                     </div>
                 </body>
                 </html>";
 
-        var message = new Microsoft.Graph.Models.Message
+        var message = new Message
         {
             Subject = subject,
-            Body = new Microsoft.Graph.Models.ItemBody
+            Body = new ItemBody
             {
-                ContentType = Microsoft.Graph.Models.BodyType.Html,
+                ContentType = BodyType.Html,
                 Content = body
             },
             ToRecipients = recipients

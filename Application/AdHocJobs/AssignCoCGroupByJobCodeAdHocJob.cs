@@ -4,11 +4,11 @@ using Application.CQRS.ITWarehouseCQRS.Employees.Queries;
 using MediatR;
 
 namespace Application.AdHocJobs;
-public class AssignCoCGroupByJobCode
+public class AssignCoCGroupByJobCodeAdHocJob
 {
     private readonly IMediator _mediator;
 
-    public AssignCoCGroupByJobCode(IMediator mediator)
+    public AssignCoCGroupByJobCodeAdHocJob(IMediator mediator)
     {
         _mediator = mediator;
     }

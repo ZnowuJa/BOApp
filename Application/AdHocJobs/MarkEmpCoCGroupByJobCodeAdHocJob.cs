@@ -1,27 +1,16 @@
-﻿using System.Linq;
-
-using Application.CQRS.CoCCQRS.GroupCoCs.Queries;
-using Application.CQRS.CoCCQRS.InstructionCoCs.Queries;
-using Application.CQRS.CoCCQRS.Positions.Queries;
-using Application.CQRS.General.Organisations.Queries;
+﻿using Application.CQRS.CoCCQRS.GroupCoCs.Queries;
 using Application.CQRS.ITWarehouseCQRS.Employees.Commands;
 using Application.CQRS.ITWarehouseCQRS.Employees.Queries;
-using Application.Interfaces;
 
 using MediatR;
-
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Graph.Models;
-
-using Quartz;
 //Application.BackgroundJobs.MarkEmployeesGroupJob
 namespace Application.BackgroundJobs;
-public class MarkEmployeesGroupJob 
+public class MarkEmpCoCGroupByJobCodeAdHocJob 
 {
 
     private readonly IMediator _mediator;
 
-    public MarkEmployeesGroupJob(IMediator mediator)
+    public MarkEmpCoCGroupByJobCodeAdHocJob(IMediator mediator)
     {
  
         _mediator = mediator;
@@ -29,8 +18,6 @@ public class MarkEmployeesGroupJob
 
     public async Task Execute()
     {
-        var today = "2024-05-02";
-        //var emps = await _mediator.Send(new GetAllEmployeesByFTEStartDateQuery(today));
         var allemps = await _mediator.Send(new GetAllEmployeesQuery()); //only active employees
         var allEmpsList = allemps.ToList();
         var groups = await _mediator.Send(new GetAllGroupCoCsQuery());
@@ -69,20 +56,6 @@ public class MarkEmployeesGroupJob
 
         allEmpsList = allEmpsList.Except(group41).ToList();
 
-        Console.WriteLine(allEmpsList.Count());
-
-        //Group 2 is for employees with job code 970 and VCDCOMP 01324
-        //var group2 = allEmpsList.Where(emp => (emp.JobCode == "970" && (emp.VcdCompanyNr == "01324" || emp.Position.ToLower().Contains("higien")))).ToList();
-
-        //foreach(var groupmember in group2)
-        //{
-        //    groupmember.CoCGroupId = 2;
-        //    await _mediator.Send(new UpdateEmployeeCommand(groupmember));
-        //}
-
-        //allEmpsList = allEmpsList.Except(group2).ToList();
-
-        //Console.WriteLine(allEmpsList.Count());
         var group22 = allEmpsList.Where(emp => ((emp.JobCode == "970" || emp.JobCode == "700"  || emp.JobCode == "711") && (emp.VcdCompanyNr == "01324" || emp.Position.ToLower().Contains("higien")))).ToList();
 
         foreach (var groupmember in group22)
@@ -93,7 +66,6 @@ public class MarkEmployeesGroupJob
 
         allEmpsList = allEmpsList.Except(group22).ToList();
 
-        Console.WriteLine(allEmpsList.Count());
 
         //Group 2 is for employees with job code
         var jobCodesExtended = new List<string>
@@ -121,11 +93,6 @@ public class MarkEmployeesGroupJob
         }
 
         allEmpsList = allEmpsList.Except(groupMinimal).ToList();
-
-        Console.WriteLine(allEmpsList.Count());
-
-
-
 
         await Task.CompletedTask;
     }

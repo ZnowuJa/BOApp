@@ -46,7 +46,7 @@ public class UpdateTestFormCommandHandler(IAppDbContext appDbContext, IMapper ma
 
     }
 
-    private string SerializeApprovals(List<Approval> approvals)
+    private string SerializeApprovals(List<ApprovalVm> approvals)
     {
         return approvals == null || approvals.Count == 0 ? null : JsonSerializer.Serialize(approvals);
     }

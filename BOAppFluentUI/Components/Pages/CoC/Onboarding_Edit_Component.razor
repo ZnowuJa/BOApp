@@ -256,7 +256,7 @@ else
 
     private int instrRead { get; set; }
 
-    private Approval approval { get; set; }
+    private ApprovalVm approval { get; set; }
 
     private OrganisationVm _organisation { get; set; }
     private WorkflowTemplateVm wf { get; set; }
@@ -349,7 +349,7 @@ else
         formItem.Progress = (int?)((double)(instrRead) / _allFormInstructions.Count() * 100);
 
         _organisation = await _mediator.Send(new GetOrganisationByEmpSapNumberQuery(emp.SapNumber));
-        approval = new Approval()
+        approval = new ApprovalVm()
             {
                 Status = formItem.Status,
                 EnovaEmpId = _userContext.EnovaEmpId,
@@ -458,7 +458,7 @@ else
 
     private async Task Save()
     {
-        Approval approval = new Approval()
+        ApprovalVm approval = new ApprovalVm()
             {
                 Status = formItem.Status,
                 EnovaEmpId = emp.EnovaEmpId.ToString(),
