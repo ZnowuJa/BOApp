@@ -75,7 +75,7 @@ namespace Application.CQRS.AccountingCQRS.DeferralPayment.Commands
             //_logger.LogInformation($"CreateDeferralPaymentCommandHandler {request.Item.EmployeeName}");
             return request.Item;
         }
-        private string SerializeApprovals(List<ViewModels.General.Approval> approvals)
+        private string SerializeApprovals(List<ViewModels.General.ApprovalVm> approvals)
         {
             return approvals == null || approvals.Count == 0 ? null : JsonSerializer.Serialize(approvals);
         }

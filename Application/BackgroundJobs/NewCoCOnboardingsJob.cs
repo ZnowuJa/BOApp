@@ -63,7 +63,7 @@ public class NewCoCOnboardingsJob : IJob
                 //WorkflowTemplateId = 2,
                 EmployeeId = emp.EnovaEmpId,
                 EmployeeName = emp.LongName,
-                Approvals = new List<Approval>(),
+                Approvals = new List<ApprovalVm>(),
                 Level1Approvers = _organisation.Role_ComplianceAssistant.Select(role => new OrganisationRoleForFormVm(role)).ToList() ?? new List<OrganisationRoleForFormVm>(),
                 Level2Approvers = _organisation.Role_ComplianceManager.Select(role => new OrganisationRoleForFormVm(role)).ToList() ?? new List<OrganisationRoleForFormVm>(),
                 LVL1_EnovaEmpId = _organisation.Role_ComplianceAssistant.Where(e => e.IsDefault == true).Select(m => m.EmpId).FirstOrDefault().ToString() ?? String.Empty,
@@ -82,7 +82,7 @@ public class NewCoCOnboardingsJob : IJob
 
     }
 
-    public string SerializeApprovals(List<Approval> approvals)
+    public string SerializeApprovals(List<ApprovalVm> approvals)
     {
         return approvals == null || approvals.Count == 0 ? null : JsonSerializer.Serialize(approvals);
     }

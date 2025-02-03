@@ -12,7 +12,7 @@
 @using Application.Interfaces
 @using Microsoft.EntityFrameworkCore.Metadata
 @using Microsoft.Graph.Models
-@using Approval = Application.ViewModels.General.Approval
+@using ApprovalVm = Application.ViewModels.General.ApprovalVm
 @using Application.ViewModels.General
 
 @inject IMediator _mediator;
@@ -203,7 +203,7 @@
     private IEnumerable<CompanyVm> SelectedCompanies = Array.Empty<CompanyVm>();
     private IQueryable<FormFileVm> formFiles { get; set; }
 
-    private Approval approval { get; set; }
+    private ApprovalVm approval { get; set; }
     
     private bool showAssetAdd = false;
     private PaginationState pagination = new PaginationState { ItemsPerPage = 5 };
@@ -270,7 +270,7 @@
         Content.Assets = AssetsList.ToList();
         SelectedAsset = Array.Empty<AssetVm>();
         
-        approval = new Approval()
+        approval = new ApprovalVm()
         {
             Status = Content.Status,
             EnovaEmpId = _userContext.EnovaEmpId,

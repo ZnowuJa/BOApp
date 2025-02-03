@@ -142,7 +142,7 @@
                          Spacing="10px"
                          Style="padding: 20px;">
                 @(new Icons.Regular.Size24.BotSparkle().ToMarkup("48px"))
-                <h4 style="margin: 0;">Generuj </h4>
+                <h4 style="margin: 0;">Generuj Onboardingi </h4>
                 <FluentButton BackgroundColor="var(--accent-fill-rest)"
                               Disabled="false"
                               Color="var(--neutral-fill-rest)"
@@ -167,7 +167,7 @@
                                  Spacing="10px"
                                  Style="padding: 20px;">
                         @(new Icons.Regular.Size24.Bot().ToMarkup("48px"))
-                        <h4 style="margin: 0;">Generuj </h4>
+                        <h4 style="margin: 0;">Markuj ludzi </h4>
                         <FluentButton BackgroundColor="var(--accent-fill-rest)"
                                       Disabled="false"
                                       Color="var(--neutral-fill-rest)"
@@ -182,21 +182,50 @@
 
 @code {
     // JustifyContent Justification = JustifyContent.Center;
-
+    
     public int xssize { get; set; } = 2;
     public int smsize { get; set; } = 2;
     // public /* AddCoCOnboardingsAdHocJob job = new AddCoCOnboardingsAdHocJob(); */
 
     private async Task Generate()
     {
-        AddCoCOnboardingsAdHocJob job = new AddCoCOnboardingsAdHocJob(_mediator);
-        job.Execute();
+        ToastIntent intent;
+        string message = string.Empty;
+        var dialog = await _dialogService.ShowDialogAsync<AddOnboardingsTimeSpan>(new DialogParameters()
+            {
+                Height = "450px",
+                Width = "400px",
+                Title =  "Generuj Onboardingi",
+                PreventDismissOnOverlayClick = true,
+                PreventScroll = false
+            });
+
+        var result = await dialog.Result;
+
+        if (!result.Cancelled)
+        {
+           
+                intent = ToastIntent.Success;
+                message = "Organisation has been updated!";
+            
+        }
+        else if (result.Cancelled)
+        {
+            intent = ToastIntent.Info;
+            message = "Operation Cancelled...";
+        }
+        else
+        {
+            intent = ToastIntent.Error;
+            message = "Something went wrong!";
+        }
+
     }
 
     private async Task Assign()
     {
-        MarkEmployeesGroupJob job = new MarkEmployeesGroupJob(_mediator);
-        // AssignCoCGroupByJobCode job = new AssignCoCGroupByJobCode(_mediator);
+        // AdHoc job = new AdHoc(_mediator);
+        MarkEmpCoCGroupByJobCodeAdHocJob job = new MarkEmpCoCGroupByJobCodeAdHocJob(_mediator);
         job.Execute();
     }
 }

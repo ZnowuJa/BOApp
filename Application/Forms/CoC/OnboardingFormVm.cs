@@ -27,7 +27,7 @@ namespace Application.Forms.CoC
         public int? EmployeeId { get; set; }
         public string? EmployeeName { get; set; }
         public DateTime? Requested { get; set; }
-        public List<Approval>? Approvals { get; set; }
+        public List<ApprovalVm>? Approvals { get; set; }
         public List<OrganisationRoleForFormVm> Level1Approvers { get; set; } // tu przypisać dziewczyny z Regionów które będą mogły coś z tym całym formularzem zrobić (nowa rola w Organizacjach - CoC Assistants)
         public List<OrganisationRoleForFormVm> Level2Approvers { get; set; } // tu przypisać Aleksandrę i Anię (nowa rola w Organizacjach - CoC Managers)
         public string LVL1_EnovaEmpId { get; set; }

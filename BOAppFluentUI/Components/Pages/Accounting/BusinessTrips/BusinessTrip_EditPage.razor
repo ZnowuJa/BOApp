@@ -1462,7 +1462,7 @@
     private ManagerDeputyVm _managerDeputy {get; set;} = new ();
     private List<string> allowedEmp { get; set; } = new List<string>();
     private List<string> allowedEditor { get; set; } = new List<string>();
-    private Approval approvalInfo { get; set; }
+    private ApprovalVm approvalInfo { get; set; }
     #endregion
     // private string messageFilePathValidator = string.Empty;
     // private FluentValidationValidator? _fluentValidator;
@@ -1504,7 +1504,7 @@
             DisableApproveButton = true;
         }
 
-        approvalInfo = new Approval()
+        approvalInfo = new ApprovalVm()
             {
                 Status = formItem.Status,
                 EnovaEmpId = _userContext.EnovaEmpId,

@@ -72,7 +72,7 @@ public class BusinessTravelFormVm : IMapFrom<BusinessTravelForm>, IFormAccountin
         public string EnovaEmpId { get; set; } = string.Empty;
         public CostCenterVm FormCostCenter { get; set; } = new CostCenterVm();
         public Application.ViewModels.General.Location FormCostLocation { get; set; } = new ();
-        public List<Approval>? Approvals { get; set; } = new();
+        public List<ApprovalVm>? Approvals { get; set; } = new();
     #region ApproversDetails
         public List<OrganisationRoleForFormVm> Level1Approvers { get; set; } = new(); // przełożony etapy: AprobataL1, AprobataL11
         public List<OrganisationRoleForFormVm> Level2Approvers { get; set; } = new(); // Kasa etapy: ZaliczkaKasa, RozliczenieKasa
@@ -223,7 +223,7 @@ public class BusinessTravelFormVm : IMapFrom<BusinessTravelForm>, IFormAccountin
             //.ForMember(dest => dest.BusinessTravelStatuses, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<string>>(src.BusinessTravelStatuses)))
             .ForMember(dest => dest.Countries, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<CountryVm>>(src.Countries)))
             .ForMember(dest => dest.DestinationCountry, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<CountryVm>(src.DestinationCountry)))
-            .ForMember(dest => dest.Approvals, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<Approval>>(src.Approvals)))
+            .ForMember(dest => dest.Approvals, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<ApprovalVm>>(src.Approvals)))
             .ForMember(dest => dest.Level1Approvers, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<OrganisationRoleForFormVm>>(src.Level1Approvers)))
             .ForMember(dest => dest.Level2Approvers, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<OrganisationRoleForFormVm>>(src.Level2Approvers)))
             .ForMember(dest => dest.Level3Approvers, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<OrganisationRoleForFormVm>>(src.Level3Approvers)))

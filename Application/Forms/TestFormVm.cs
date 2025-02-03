@@ -27,7 +27,7 @@ public class TestFormVm : IMapFrom<TestForm>
     public int? EmployeeId { get; set; }
     public string? EmployeeName { get; set; }
     public DateTime? Requested { get; set; }
-    public List<Approval>? Approvals { get; set; }
+    public List<ApprovalVm>? Approvals { get; set; }
     public List<OrganisationRoleForFormVm> Level1Approvers { get; set; }
     public List<OrganisationRoleForFormVm> Level2Approvers { get; set; }
     public List<FormFileVm> FormFiles { get; set; }

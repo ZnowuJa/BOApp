@@ -2,6 +2,7 @@
 using Application.CQRS.CoCCQRS.GroupCoCs.Queries;
 using Application.CQRS.CoCCQRS.InstructionCoCs.Queries;
 using Application.CQRS.CoCCQRS.Onboarding.Commands;
+using Application.CQRS.CoCCQRS.Onboarding.Queries;
 using Application.CQRS.CoCCQRS.Positions.Queries;
 using Application.CQRS.General.Organisations.Queries;
 using Application.CQRS.ITWarehouseCQRS.Employees.Queries;
@@ -10,72 +11,89 @@ using Application.Interfaces;
 using Application.ViewModels.CoC;
 using Application.ViewModels.General;
 using MediatR;
+
+using Microsoft.Extensions.Configuration;
+using Microsoft.Graph.Models;
+
 using Quartz;
-//Application.BackgroundJobs.AddCoCOnboardingsJob
+
+
+//
+//  THIS JOB IS FIRED due to shceduler in table.
+//
 namespace Application.BackgroundJobs;
 public class AddCoCOnboardingsJob : IJob
 {
     private readonly IAppDbContext _appDbContext;
     private readonly IMediator _mediator;
+    public IEmailService _mailService { get; }
+    public IConfiguration _configuration { get; }
 
-    public AddCoCOnboardingsJob(IAppDbContext appDbContext, IMediator mediator)
+    public AddCoCOnboardingsJob(IAppDbContext appDbContext, IMediator mediator, IEmailService mailService, IConfiguration configuration)
     {
         _appDbContext = appDbContext;
         _mediator = mediator;
-
+        _mailService = mailService;
+        _configuration = configuration;
     }
     public async Task Execute(IJobExecutionContext context)
     {
-        //Console.WriteLine("AddCoCOnboardingsJob has just started...");
-        //var today = DateTime.Now.ToString("yyyy-MM-dd");
-        var today = "2024-05-02";
-        var emps = await _mediator.Send(new GetAllEmployeesByFTEStartDateQuery(today));
-        var allemps = await _mediator.Send(new GetAllEmployeesQuery());
-        var positions = await _mediator.Send(new GetAllPositionsQuery());
+
+        List<string> errorList = new();
+        var today = DateTime.Now.ToString("yyyy-MM-dd");
+        
+        var empsTemp =  await _mediator.Send(new GetAllEmployeesByFTEStartDateQuery(today));
+        var emps = empsTemp.ToList();
+        //var positions = await _mediator.Send(new GetAllPositionsQuery());
         var instructions = await _mediator.Send(new GetAllInstructionCoCsQuery());
         var organisations = await _mediator.Send(new GetAllOrganisationsQuery());
         var groups = await _mediator.Send(new GetAllGroupCoCsQuery());
 
+
+
+
+
+        var onboardings = await _mediator.Send(new GetAllOnboardingsQuery());
+        var excludedEmpIds = onboardings.Select(o => o.EmployeeId).ToHashSet();
+        var organisationSapNumbers = organisations.Select(o => o.SapNumber).ToHashSet();
+        var missingSapNumbers = emps
+            .Select(e => e.SapNumber)
+            .Where(sapNumber => !organisationSapNumbers.Contains(sapNumber))
+            .Distinct();
+        errorList.Add(string.Join(", ", missingSapNumbers));
+        var excludedEmployees = emps.Where(emp => excludedEmpIds.Contains(emp.EnovaEmpId)).ToList();
+        errorList.Add(string.Join(", ", excludedEmployees.Select(e => $"{e.LongName} ({e.EnovaEmpId})")));
+        emps = emps.Where(emp => !excludedEmpIds.Contains(emp.EnovaEmpId)).ToList();
+
+
+
+
         foreach (var emp in emps)
         {
-            var _organisation = organisations.Where(o => o.SapNumber == emp.SapNumber).FirstOrDefault();
-            Console.WriteLine($"Organisation: {_organisation.SapNumber}");
-            var instStats = new List<InstructionStatus>();
-            //var position = positions.Where(p => p.Name == emp.Position).FirstOrDefault();
-            //try
-            //{
-            //    Console.WriteLine($"Position: {position.Name}");
-            //}
-            //catch 
-            //{
-            //    continue;
-            //}
-            
-            if (emp != null)
+            if (!string.IsNullOrEmpty(emp.SapNumber))
             {
+                var _organisation = organisations.Where(o => o.SapNumber == emp.SapNumber).FirstOrDefault();
+                if (_organisation is null)
+                    continue;
+
+                //Console.WriteLine($"Organisation: {_organisation.SapNumber}");
+                var instStats = new List<InstructionStatus>();
                 var groupCoC = groups.Where(gc => gc.Id == emp.CoCGroupId).FirstOrDefault();
-                Console.WriteLine($"Group: {groupCoC.GroupName}");
+                //Console.WriteLine($"Group: {groupCoC.GroupName}");
                 if (groupCoC != null)
                 {
-                    //var instsId = 
-                    
                     instStats = groupCoC.Instructions.Select(p => new InstructionStatus { InstructionId = p.Id }).ToList();
-                    //InstStats is instruction plus initial false
-                    Console.WriteLine($"instStats: {instStats.Count()}");
                 }
-
-                //Console.WriteLine($"Organisation: {_organisation.Title}");
                 var onboarding = new OnboardingFormVm()
                 {
-                    //WorkflowTemplateId = 2,
                     EmployeeId = emp.EnovaEmpId,
                     EmployeeName = emp.LongName,
-                    Approvals = new List<Approval>(),
-                    Level1Approvers = _organisation.Role_ComplianceAssistant.Select(role => new OrganisationRoleForFormVm(role)).ToList()??new List<OrganisationRoleForFormVm>(),
+                    Approvals = new List<ApprovalVm>(),
+                    Level1Approvers = _organisation.Role_ComplianceAssistant.Select(role => new OrganisationRoleForFormVm(role)).ToList() ?? new List<OrganisationRoleForFormVm>(),
                     Level2Approvers = _organisation.Role_ComplianceManager.Select(role => new OrganisationRoleForFormVm(role)).ToList() ?? new List<OrganisationRoleForFormVm>(),
                     LVL1_EnovaEmpId = _organisation.Role_ComplianceAssistant.Where(e => e.IsDefault == true).Select(m => m.EmpId).FirstOrDefault().ToString() ?? String.Empty,
                     LVL2_EnovaEmpId = _organisation.Role_ComplianceManager.Where(e => e.IsDefault == true).Select(m => m.EmpId).FirstOrDefault().ToString() ?? String.Empty,
-                    LVL1_EmployeeName = _organisation.Role_ComplianceAssistant.Where(e => e.IsDefault).Select(m => m.Employee.LongName).FirstOrDefault()??String.Empty,
+                    LVL1_EmployeeName = _organisation.Role_ComplianceAssistant.Where(e => e.IsDefault).Select(m => m.Employee.LongName).FirstOrDefault() ?? String.Empty,
                     LVL2_EmployeeName = _organisation.Role_ComplianceManager.Where(e => e.IsDefault).Select(m => m.Employee.LongName).FirstOrDefault() ?? String.Empty,
                     ManagerId = emp.ManagerId,
                     Instructions = instStats,
@@ -83,19 +101,34 @@ public class AddCoCOnboardingsJob : IJob
                     FirstRun = true
                 };
                 Console.WriteLine($"onboarding: ready to save");
-                var result = await _mediator.Send(new CreateOnboardingFormCommand(onboarding));
+                try
+                {
+                    var result = await _mediator.Send(new CreateOnboardingFormCommand(onboarding));
+                }
+                catch (Exception ex)
+                {
+                    errorList.Add(ex.Message.ToString());
+                    Console.WriteLine(ex.Message.ToString());
+                }
+
             }
             else
             {
-
+                errorList.Add($"Employee {emp.LongName} ({emp.EnovaEmpId}) has no SAP number");
             }
-            await Task.CompletedTask;
+
         }
 
+        SendEmail("marcin.jarco@porscheinterauto.pl; dawid.urbaniak@porscheinterauto.pl", errorList).Wait();
+        await Task.CompletedTask;
 
+        
     }
 
-    public string SerializeApprovals(List<Approval> approvals)
+
+    
+
+    public string SerializeApprovals(List<ApprovalVm> approvals)
     {
         return approvals == null || approvals.Count == 0 ? null : JsonSerializer.Serialize(approvals);
     }
@@ -108,5 +141,73 @@ public class AddCoCOnboardingsJob : IJob
     private string SerializeInstructions(List<InstructionStatus> items)
     {
         return items == null || items.Count == 0 ? null : JsonSerializer.Serialize(items);
+    }
+    private async Task SendEmail(string rcptEmail, List<string> errorList)
+    {
+        var _baseUrl = _configuration["BaseUrl"];
+        string body = string.Empty;
+        string subject = string.Empty;
+        string listHTML = string.Empty;
+        // Build the table of errors
+        int idCounter = 1;
+        listHTML = "<table style='border-collapse: collapse; width: 100%;'>"; // Start the table
+        listHTML += "<tr><th style='border: 1px solid black; padding: 8px;'>ID</th><th style='border: 1px solid black; padding: 8px;'>Error</th></tr>"; // Table header
+
+        foreach (var err in errorList)
+        {
+            listHTML += $"<tr><td style='border: 1px solid black; padding: 8px;'>{idCounter}</td><td style='border: 1px solid black; padding: 8px;'>{err}</td></tr>";
+            idCounter++;
+        }
+
+        listHTML += "</table>"; // End the table
+
+        var emailAddresses = rcptEmail.Split(';');
+        var recipients = emailAddresses.Select(email => new Microsoft.Graph.Models.Recipient
+        {
+            EmailAddress = new EmailAddress
+            {
+                Address = email.Trim()
+            }
+        }).ToList();
+
+        subject = $"Wykryto błędy w generowaniu nowych formularzy OnBoarding!";
+        body = $@"
+                <!DOCTYPE html>
+                <html>
+                <head>
+                </head>
+                <body>
+                    <div class=""header"">
+                        <h1>Błędy w generowaniu nowych formularzy OnBoarding</h1>
+                    </div>
+                    <div>
+                    </p>
+                        
+                        <p>Znaleziono poniższe błędy:</p>
+                        <p> Total errors: {errorList.Count()}</p>
+                        {listHTML}
+  
+                        <p>Pozdrawiamy!</p>
+                        <p>Twój zespół Automatyzacji!</p>
+                    </div>
+                    <div class=""footer"">
+                        <p>© 2025 Porsche Inter Auto Polska Sp. z o.o.</p>
+                    </div>
+                </body>
+                </html>";
+
+        var message = new Message
+        {
+            Subject = subject,
+            Body = new ItemBody
+            {
+                ContentType = BodyType.Html,
+                Content = body
+            },
+            ToRecipients = recipients
+        };
+
+
+        await _mailService.SendEmailAsync(message);
     }
 }

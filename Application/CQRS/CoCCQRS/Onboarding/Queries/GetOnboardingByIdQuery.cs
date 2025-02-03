@@ -51,9 +51,9 @@ public class GetOnboardingByIdQueryHandler : IRequestHandler<GetOnboardingByIdQu
         return result;
     }
 
-    private List<Approval> DeserializeApprovals(string json)
+    private List<ApprovalVm> DeserializeApprovals(string json)
     {
-        return string.IsNullOrEmpty(json) ? new List<Approval>() : JsonSerializer.Deserialize<List<Approval>>(json);
+        return string.IsNullOrEmpty(json) ? new List<ApprovalVm>() : JsonSerializer.Deserialize<List<ApprovalVm>>(json);
     }
     private List<OrganisationRoleForFormVm> DeserializeRoles(string json)
     {

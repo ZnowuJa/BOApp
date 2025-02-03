@@ -172,8 +172,8 @@ else
         itemEmployeesList = await _mediator.Send(new GetAllEmployeesQuery());
         _organisation = await _mediator.Send(new GetOrganisationByEmpSapNumberQuery(_userContext.Employee.SapNumber));
 
-        formItem.Approvals = new List<Approval>();
-        Approval approval = new Approval()
+        formItem.Approvals = new List<ApprovalVm>();
+        ApprovalVm approval = new ApprovalVm()
         {
             Status = formItem.Status,
                 EnovaEmpId = emp.EnovaEmpId.ToString(), // to i Longname można wziąć z FormUserContext i zliwkidować GetUsername z tej klasy, bo FormUserContext jest a Utils.GetUserName

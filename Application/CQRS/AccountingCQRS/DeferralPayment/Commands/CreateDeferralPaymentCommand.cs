@@ -161,7 +161,7 @@ public class CreateDeferralPaymentCommandHandler(IAppDbContext appDbContext, IMa
         await _mailService.SendEmailAsync(message);
     }
 
-    private string SerializeApprovals(List<ViewModels.General.Approval> approvals)
+    private string SerializeApprovals(List<ViewModels.General.ApprovalVm> approvals)
     {
         return approvals == null || approvals.Count == 0 ? null : JsonSerializer.Serialize(approvals);
     }

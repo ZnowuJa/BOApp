@@ -27,7 +27,7 @@ public class ITScrappingFormVm : IMapFrom<ITScrappingForm>
     public int? OperatorId { get; set; }
     public string? OperatorName { get; set; }
 
-    public List<Approval>? Approvals { get; set; }
+    public List<ApprovalVm>? Approvals { get; set; }
     public List<OrganisationRoleForFormVm> Level1Approvers { get; set; }
     public List<OrganisationRoleForFormVm> Level2Approvers { get; set; }
     public string LVL1_EnovaEmpId { get; set; }
@@ -53,7 +53,7 @@ public class ITScrappingFormVm : IMapFrom<ITScrappingForm>
             .ForMember(dest => dest.Level2Approvers, opt => opt.MapFrom(src => SerializeRoles(src.Level2Approvers)))
             .ForMember(dest => dest.Approvals, opt => opt.MapFrom(src => SerializeApprovals(src.Approvals)));
     }
-    private string SerializeApprovals(List<Approval> approvals)
+    private string SerializeApprovals(List<ApprovalVm> approvals)
     {
         return approvals == null || approvals.Count == 0 ? string.Empty : JsonSerializer.Serialize(approvals);
     }
@@ -61,9 +61,9 @@ public class ITScrappingFormVm : IMapFrom<ITScrappingForm>
     {
         return roles == null || roles.Count == 0 ? string.Empty : JsonSerializer.Serialize(roles);
     }
-    private List<Approval> DeserializeApprovals(string json)
+    private List<ApprovalVm> DeserializeApprovals(string json)
     {
-        return string.IsNullOrEmpty(json) ? new List<Approval>() : JsonSerializer.Deserialize<List<Approval>>(json);
+        return string.IsNullOrEmpty(json) ? new List<ApprovalVm>() : JsonSerializer.Deserialize<List<ApprovalVm>>(json);
     }
     private List<OrganisationRoleForFormVm> DeserializeRoles(string json)
     {
