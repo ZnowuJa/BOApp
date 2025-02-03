@@ -2,70 +2,83 @@
 using Application.CQRS.CoCCQRS.GroupCoCs.Queries;
 using Application.CQRS.CoCCQRS.InstructionCoCs.Queries;
 using Application.CQRS.CoCCQRS.Onboarding.Commands;
+using Application.CQRS.CoCCQRS.Onboarding.Queries;
 using Application.CQRS.CoCCQRS.Positions.Queries;
 using Application.CQRS.General.Organisations.Queries;
 using Application.CQRS.ITWarehouseCQRS.Employees.Queries;
+using Application.Forms.CoC;
+using Application.Interfaces;
 using Application.ViewModels.CoC;
+using Microsoft.Extensions.Configuration;
+
 
 using Application.ViewModels.General;
-
 using MediatR;
+
+
 
 namespace Application.AdHocJobs;
 public class AddCoCOnboardingsAdHocJob
 {
     //private readonly IAppDbContext _appDbContext;
     private readonly IMediator _mediator;
+    private readonly DateTime _from;
+    private readonly DateTime _to;
+    private readonly IEmailService _mailService;
+    private readonly IConfiguration _configuration;
 
-    public AddCoCOnboardingsAdHocJob(IMediator mediator)
+    public AddCoCOnboardingsAdHocJob(IMediator mediator, DateTime from, DateTime to, IEmailService mailService, IConfiguration configuration)
     {
         
         _mediator = mediator;
-
+        _from = from;
+        _to = to;
+        _mailService = mailService;
+        _configuration = configuration;
     }
 
-    public async Task Execute()
-    { 
-        var today = "2024-05-02";
-        var emps = await _mediator.Send(new GetAllEmployeesByFTEStartDateQuery(today));
-        //var allemps = await _mediator.Send(new GetAllEmployeesQuery());
+    public async Task<int> Execute()
+    {
+        string today;
+        var emps = new List<EmployeeVm>();
         var positions = await _mediator.Send(new GetAllPositionsQuery());
         var instructions = await _mediator.Send(new GetAllInstructionCoCsQuery());
         var organisations = await _mediator.Send(new GetAllOrganisationsQuery());
         var groups = await _mediator.Send(new GetAllGroupCoCsQuery());
 
+        if(_from <= _to)
+        {
+            for (DateTime date = _from; date <= _to; date = date.AddDays(1))
+            {
+                today = date.ToString("yyyy-MM-dd");
+                var tempemps = await _mediator.Send(new GetAllEmployeesByFTEStartDateQuery(today));
+                emps.AddRange(tempemps.ToList());
+
+            }
+        }
+
+        var onboardings = await _mediator.Send(new GetAllOnboardingsQuery());
+        var excludedEmpIds = onboardings.Select(o => o.EmployeeId).ToHashSet();
+        emps = emps.Where(emp => !excludedEmpIds.Contains(emp.EnovaEmpId)).ToList();
+
         foreach (var emp in emps)
         {
-            var _organisation = organisations.Where(o => o.SapNumber == emp.SapNumber).FirstOrDefault();
-            Console.WriteLine($"Organisation: {_organisation.SapNumber}");
-            var instStats = new List<InstructionStatus>();
-            //var position = positions.Where(p => p.Name == emp.Position).FirstOrDefault();
-            //try
-            //{
-            //    Console.WriteLine($"Position: {position.Name}");
-            //}
-            //catch
-            //{
-            //    continue;
-            //}
-
-            if (emp != null)
+            if (!string.IsNullOrEmpty(emp.SapNumber))
             {
+                var _organisation = organisations.Where(o => o.SapNumber == emp.SapNumber).FirstOrDefault();
+                if (_organisation is null)
+                    continue;
+                
+                //Console.WriteLine($"Organisation: {_organisation.SapNumber}");
+                var instStats = new List<InstructionStatus>();
                 var groupCoC = groups.Where(gc => gc.Id == emp.CoCGroupId).FirstOrDefault();
-                Console.WriteLine($"Group: {groupCoC.GroupName}");
+                //Console.WriteLine($"Group: {groupCoC.GroupName}");
                 if (groupCoC != null)
                 {
-                    //var instsId = 
-
                     instStats = groupCoC.Instructions.Select(p => new InstructionStatus { InstructionId = p.Id }).ToList();
-                    //InstStats is instruction plus initial false
-                    Console.WriteLine($"instStats: {instStats.Count()}");
                 }
-
-                //Console.WriteLine($"Organisation: {_organisation.Title}");
                 var onboarding = new OnboardingFormVm()
                 {
-                    //WorkflowTemplateId = 2,
                     EmployeeId = emp.EnovaEmpId,
                     EmployeeName = emp.LongName,
                     Approvals = new List<Approval>(),
@@ -95,9 +108,10 @@ public class AddCoCOnboardingsAdHocJob
             {
 
             }
-            await Task.CompletedTask;
+            
         }
-
+        await Task.CompletedTask;
+        return emps.Count;
 
     }
 
@@ -116,20 +130,72 @@ public class AddCoCOnboardingsAdHocJob
         return items == null || items.Count == 0 ? null : JsonSerializer.Serialize(items);
     }
 
-    private class OnboardingFormVm : Forms.CoC.OnboardingFormVm
+    private async Task SendEmail(string rcptEmail, List<string> errorList)
     {
-        public int EmployeeId { get; set; }
-        public string EmployeeName { get; set; }
-        public List<Approval> Approvals { get; set; }
-        public List<OrganisationRoleForFormVm> Level1Approvers { get; set; }
-        public List<OrganisationRoleForFormVm> Level2Approvers { get; set; }
-        public string LVL1_EnovaEmpId { get; set; }
-        public string LVL2_EnovaEmpId { get; set; }
-        public string LVL1_EmployeeName { get; set; }
-        public string LVL2_EmployeeName { get; set; }
-        public int ManagerId { get; set; }
-        public List<InstructionStatus> Instructions { get; set; }
-        public string Group { get; set; }
-        public bool FirstRun { get; set; }
+        var _baseUrl = _configuration["BaseUrl"];
+        string body = string.Empty;
+        string subject = string.Empty;
+        string listHTML = string.Empty;
+        // Build the table of errors
+        int idCounter = 1;
+        listHTML = "<table style='border-collapse: collapse; width: 100%;'>"; // Start the table
+        listHTML += "<tr><th style='border: 1px solid black; padding: 8px;'>ID</th><th style='border: 1px solid black; padding: 8px;'>Error</th></tr>"; // Table header
+
+        foreach (var err in errorList)
+        {
+            listHTML += $"<tr><td style='border: 1px solid black; padding: 8px;'>{idCounter}</td><td style='border: 1px solid black; padding: 8px;'>{err}</td></tr>";
+            idCounter++;
+        }
+
+        listHTML += "</table>"; // End the table
+
+        var emailAddresses = rcptEmail.Split(';');
+        var recipients = emailAddresses.Select(email => new Microsoft.Graph.Models.Recipient
+        {
+            EmailAddress = new Microsoft.Graph.Models.EmailAddress
+            {
+                Address = email.Trim()
+            }
+        }).ToList();
+
+        subject = $"Wykryto błędy w imporcie danych pracowników!";
+        body = $@"
+                <!DOCTYPE html>
+                <html>
+                <head>
+                </head>
+                <body>
+                    <div class=""header"">
+                        <h1>Błędy w imporcie danych pracowników!</h1>
+                    </div>
+                    <div>
+                    </p>
+                        
+                        <p>Znaleziono poniższe błędy w tabeli Employee:</p>
+                        <p> Total errors: {errorList.Count()}</p>
+                        {listHTML}
+  
+                        <p>Pozdrawiamy!</p>
+                        <p>Twój zespół Automatyzacji!</p>
+                    </div>
+                    <div class=""footer"">
+                        <p>© 2024 Porsche Inter Auto Polska Sp. z o.o.</p>
+                    </div>
+                </body>
+                </html>";
+
+        var message = new Microsoft.Graph.Models.Message
+        {
+            Subject = subject,
+            Body = new Microsoft.Graph.Models.ItemBody
+            {
+                ContentType = Microsoft.Graph.Models.BodyType.Html,
+                Content = body
+            },
+            ToRecipients = recipients
+        };
+
+
+        await _mailService.SendEmailAsync(message);
     }
 }

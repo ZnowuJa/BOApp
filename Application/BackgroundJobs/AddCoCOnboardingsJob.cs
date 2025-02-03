@@ -2,6 +2,7 @@
 using Application.CQRS.CoCCQRS.GroupCoCs.Queries;
 using Application.CQRS.CoCCQRS.InstructionCoCs.Queries;
 using Application.CQRS.CoCCQRS.Onboarding.Commands;
+using Application.CQRS.CoCCQRS.Onboarding.Queries;
 using Application.CQRS.CoCCQRS.Positions.Queries;
 using Application.CQRS.General.Organisations.Queries;
 using Application.CQRS.ITWarehouseCQRS.Employees.Queries;
@@ -35,21 +36,14 @@ public class AddCoCOnboardingsJob : IJob
         var instructions = await _mediator.Send(new GetAllInstructionCoCsQuery());
         var organisations = await _mediator.Send(new GetAllOrganisationsQuery());
         var groups = await _mediator.Send(new GetAllGroupCoCsQuery());
+        var onboardings = await _mediator.Send(new GetAllOnboardingsQuery());
 
         foreach (var emp in emps)
         {
             var _organisation = organisations.Where(o => o.SapNumber == emp.SapNumber).FirstOrDefault();
             Console.WriteLine($"Organisation: {_organisation.SapNumber}");
             var instStats = new List<InstructionStatus>();
-            //var position = positions.Where(p => p.Name == emp.Position).FirstOrDefault();
-            //try
-            //{
-            //    Console.WriteLine($"Position: {position.Name}");
-            //}
-            //catch 
-            //{
-            //    continue;
-            //}
+
             
             if (emp != null)
             {

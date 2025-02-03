@@ -15,15 +15,9 @@ public class AssignCoCGroupByJobCode
 
     public async Task Execute()
     {
-        //string wcmQuery = "e => e.IsManager == true";
-        //string wcQuery = "e => (e.VcdCompanyNr == \"01324\" && e.JobCode == \"970\") || e.JobCode == \"700\" || e.JobCode == \"710\"";
-        List<string> minimalGroupJobCodes = new List<string> { "501", "502", "716", "850", "852", "855", "856", "860", "910", "918" };
-        //string minimalQuery = "e => minimalGroupJobCodes.Contains(e.JobCode)";
-        //White Collar Managers
-        var emps = await _mediator.Send(new GetAllEmployeesQuery());
 
-        //string wcmQuery = "IsManager == true";
-        //var whiteCollarManager = emps.AsQueryable().Where(wcmQuery).ToList();
+        List<string> minimalGroupJobCodes = new List<string> { "501", "502", "716", "850", "852", "855", "856", "860", "910", "918" };
+        var emps = await _mediator.Send(new GetAllEmployeesQuery());
 
         var whiteCollarManager = emps.Where(e => e.IsManager == true).ToList();
         foreach (var employee in whiteCollarManager)
@@ -31,7 +25,6 @@ public class AssignCoCGroupByJobCode
             employee.CoCGroupId = 1;
             await _mediator.Send(new UpdateEmployeeCommand(employee));
         }
-
 
         //White Collar
         emps = emps.Except(whiteCollarManager);
@@ -44,14 +37,12 @@ public class AssignCoCGroupByJobCode
 
         //Minimal
         emps = emps.Except(whiteCollars).AsQueryable();
-        //var minimalGroupJobCodes = new List<string> { "501", "502", "716", "850", "852", "855", "856", "860", "910", "918" };
         var minimal = emps.Where(e => minimalGroupJobCodes.Contains(e.JobCode)).ToList();
         foreach (var employee in minimal)
         {
             employee.CoCGroupId = 4;
             await _mediator.Send(new UpdateEmployeeCommand(employee));
         }
-
         
         emps = emps.Except(minimal).AsQueryable();
         foreach (var employee in emps)
