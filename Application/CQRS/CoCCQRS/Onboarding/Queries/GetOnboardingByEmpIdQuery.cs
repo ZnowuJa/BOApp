@@ -42,6 +42,7 @@ public class GetOnboardingByEmpIdQueryHandler : IRequestHandler<GetOnboardingByE
         result.Level1Approvers = DeserializeRoles(item.Level1Approvers);
         result.Level2Approvers = DeserializeRoles(item.Level2Approvers);
         result.Instructions = DeserializeInstructions(item.Instructions);
+        result.Modified = item.Modified;
 
         return result;
     }

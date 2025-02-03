@@ -39,7 +39,8 @@ public class GraphEmailService : IEmailService
         };
         
         string senderEmail = "BackOfficeApp@porscheinterauto.pl";
-        await _graphServiceClient.Users[senderEmail].SendMail.PostAsync(sendMailRequestBody);
+        await _graphServiceClient.Users[senderEmail].SendMail.PostAsync(sendMailRequestBody).ConfigureAwait(false);
+        
         Console.WriteLine("Email sending task completed.");
     }
 }

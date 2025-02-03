@@ -3,6 +3,7 @@
 
 @using Application.AdHocJobs
 @using Application.BackgroundJobs
+@using Application.Interfaces
 @using Microsoft.AspNetCore.Authorization
 
 @attribute [Authorize(Policy = "User")]
@@ -11,6 +12,8 @@
 @* @inject ILogger<DeferralPaymentListPage> _logger *@
 @inject IDialogService _dialogService
 @inject IToastService _toastService
+@inject IEmailService _mailService
+@inject IConfiguration _configuration;
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager _navigationManager
 
@@ -178,6 +181,30 @@
                 </FluentCard>
             </AuthorizeView>
 </FluentStack>
+<FluentStack Orientation="Orientation.Horizontal"
+             HorizontalAlignment="HorizontalAlignment.Left"
+             VerticalAlignment="VerticalAlignment.Center"
+             Spacing="20px"
+             Style="padding: 20px;">
+    <AuthorizeView Roles="AppAdmin">
+        <FluentCard Style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); border-radius: 10px; overflow: hidden;">
+            <FluentStack Orientation="Orientation.Vertical"
+                         HorizontalAlignment="HorizontalAlignment.Center"
+                         VerticalAlignment="VerticalAlignment.Center"
+                         Spacing="10px"
+                         Style="padding: 20px;">
+                @(new Icons.Regular.Size24.Bot().ToMarkup("48px"))
+                <h4 style="margin: 0;">Markuj ludzi </h4>
+                <FluentButton BackgroundColor="var(--accent-fill-rest)"
+                              Disabled="false"
+                              Color="var(--neutral-fill-rest)"
+                              OnClick="@(()=>SendReport())">
+                    SendReport
+                </FluentButton>
+            </FluentStack>
+        </FluentCard>
+    </AuthorizeView>
+</FluentStack>
 
 
 @code {
@@ -226,6 +253,12 @@
     {
         // AdHoc job = new AdHoc(_mediator);
         MarkEmpCoCGroupByJobCodeAdHocJob job = new MarkEmpCoCGroupByJobCodeAdHocJob(_mediator);
+        job.Execute();
+    }
+    private async Task SendReport()
+    {
+        // AdHoc job = new AdHoc(_mediator);
+        SendCoCMonthlyReportAssistantsAdHocJob job = new SendCoCMonthlyReportAssistantsAdHocJob(_mediator, _mailService, _configuration);
         job.Execute();
     }
 }

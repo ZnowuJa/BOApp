@@ -82,7 +82,8 @@ namespace Application.CQRS.CoCCQRS.Onboarding.Queries
                 LVL2_EmployeeName = model.LVL2_EmployeeName,
                 Approvals = DeserializeApprovals(model.Approvals),
                 Level1Approvers = DeserializeRoles(model.Level1Approvers),
-                Level2Approvers = DeserializeRoles(model.Level2Approvers)
+                Level2Approvers = DeserializeRoles(model.Level2Approvers),
+                Modified = model.Modified
             };
         }
 
