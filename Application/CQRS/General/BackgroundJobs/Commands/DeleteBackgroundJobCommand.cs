@@ -1,12 +1,6 @@
-﻿using Application.CQRS.AccountingCQRS.GLAccounts.Commands;
-using Application.Interfaces;
+﻿using Application.Interfaces;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application.CQRS.General.BackgroundJobs.Commands
 {
@@ -14,6 +8,7 @@ namespace Application.CQRS.General.BackgroundJobs.Commands
     {
         public int Id { get; set; } = id;
     }
+
     public class DeleteBackgroundJobCommandHandler(IAppDbContext appDbContext) : IRequestHandler<DeleteBackgroundJobCommand, int>
     {
         private readonly IAppDbContext _appDbContext = appDbContext;

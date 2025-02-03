@@ -1,8 +1,11 @@
 ﻿@page "/backgroundjob"
+@using Application.CQRS.General.BackgroundJobs.Commands
 @using Application.CQRS.General.BackgroundJobs.Queries;
 @using Application.ViewModels.General
 
 @inject IMediator _mediator
+@inject IDialogService _dialogService
+@inject IToastService _toastService
 
 <h3>BackgroundJobPage</h3>
 
@@ -67,56 +70,56 @@ else
     { }
     private async Task EditItem(BackgroundJobVm item)
     {
-        // ToastIntent intent;
-        // string message = string.Empty;
-        // int resultId = 0;
+        ToastIntent intent;
+        string message = string.Empty;
+        int resultId = 0;
 
-        // var dialog = await _dialogService.ShowDialogAsync<GLAccount_Edit_Component>(item, new DialogParameters()
-        //     {
-        //         Height = "500px",
-        //         Width = "400px",
-        //         Title = item.Id > 0 ? "Aktualizuj konto księgi głównej" : "Dodanie nowego konta księgi głównej",
-        //         PreventDismissOnOverlayClick = false,
-        //         PreventScroll = true,
-        //     });
+        var dialog = await _dialogService.ShowDialogAsync <BackgroundJobEditComponent> (item, new DialogParameters()
+            {
+                Height = "450px",
+                Width = "550px",
+                Title = item.Id > 0 ? "Aktualizuj BackgroundJob" : "Dodanie nowego BackgroundJoba",
+                PreventDismissOnOverlayClick = false,
+                PreventScroll = true,
+            });
 
-        // var result = await dialog.Result;
+        var result = await dialog.Result;
 
-        // if (!result.Cancelled && result.Data != null)
-        // {
-        //     var final = (GLAccountVm)result.Data;
+        if (!result.Cancelled && result.Data != null)
+        {
+            var final = (BackgroundJobVm)result.Data;
 
-        //     if (final.Id > 0)
-        //     {
-        //         resultId = await _mediator.Send(new UpdateGLAccountCommand(final));
-        //         intent = ToastIntent.Success;
-        //         message = "Konto księgi głównej zostało zaktualizowane!";
-        //     }
-        //     else if (final.Id == 0)
-        //     {
-        //         resultId = await _mediator.Send(new CreateGLAccountCommand(final));
-        //         intent = ToastIntent.Success;
-        //         message = "Konto księgi głównej zostało utworzone!";
-        //     }
-        //     else
-        //     {
-        //         intent = ToastIntent.Warning;
-        //         message = "Coś poszło źle!";
-        //     }
-        // }
-        // else if (result.Cancelled)
-        // {
-        //     intent = ToastIntent.Info;
-        //     message = "Operacja anulowana";
-        // }
-        // else
-        // {
-        //     intent = ToastIntent.Error;
-        //     message = "Coś poszło źle!";
-        // }
+            if (final.Id > 0)
+            {
+                resultId = await _mediator.Send(new UpdateBackgroundJobCommand(final));
+                intent = ToastIntent.Success;
+                message = "BackgroundJob został zaktualizowany!";
+            }
+            else if (final.Id == 0)
+            {
+                resultId = await _mediator.Send(new CreateBackgroundJobCommand(final));
+                intent = ToastIntent.Success;
+                message = "BackgroundJob został utworzony!";
+            }
+            else
+            {
+                intent = ToastIntent.Warning;
+                message = "Coś poszło źle!";
+            }
+        }
+        else if (result.Cancelled)
+        {
+            intent = ToastIntent.Info;
+            message = "Operacja anulowana";
+        }
+        else
+        {
+            intent = ToastIntent.Error;
+            message = "Coś poszło źle!";
+        }
 
-        // await Load();
-        // _toastService.ShowToast(intent, message, 3000);
+        await Load();
+        _toastService.ShowToast(intent, message, 3000);
     }
     private async Task AddPanel()
     { }

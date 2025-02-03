@@ -4,7 +4,6 @@ using AutoMapper;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-
 namespace Application.CQRS.General.BackgroundJobs.Commands
 {
     public class UpdateBackgroundJobCommand(BackgroundJobVm backgroundJob) : IRequest<int>
@@ -20,7 +19,6 @@ namespace Application.CQRS.General.BackgroundJobs.Commands
         public async Task<int> Handle(UpdateBackgroundJobCommand request, CancellationToken cancellationToken)
         {
             var backgroundJob = await _appDbContext.BackgroundJobs.FirstOrDefaultAsync(g => g.Id == request.BackgroundJob.Id, cancellationToken);
-
             _mapper.Map(request.BackgroundJob, backgroundJob);
             await _appDbContext.SaveChangesAsync(cancellationToken);
             return backgroundJob.Id;
