@@ -43,6 +43,7 @@ namespace Application.Forms.CoC
         public int? Progress { get; set; } = 0;
         public bool FirstRun { get; set; } = false;
         List<FormFileVm> IFormVm.FormFiles { get; set; }
+        public DateTime? Modified { get; set; } = DateTime.Now;
 
         public void Mapping(Profile profile)
         {

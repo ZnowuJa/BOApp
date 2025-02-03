@@ -42,7 +42,7 @@ public class GetOnboardingByIdQueryHandler : IRequestHandler<GetOnboardingByIdQu
         result.Level1Approvers = DeserializeRoles(item.Level1Approvers);
         result.Level2Approvers = DeserializeRoles(item.Level2Approvers);
         result.Instructions = DeserializeInstructions(item.Instructions);
-
+        result.Modified = item.Modified;
         var resultVm = new OnboardingFormVm()
         {
 
