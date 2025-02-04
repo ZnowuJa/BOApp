@@ -32,7 +32,7 @@
                         <FluentSelect TOption="string"
                                       Items="@classNames"
                                       Placeholder="Select class"
-                                      @bind-Value="@selectedClass"
+                                      @bind-Value="@Content.JobClass"
                                       Width="200px" />
                         <FluentValidationMessage For="@(() => Content.JobClass)" />
                     </td>
@@ -95,7 +95,7 @@
 
     private List<string> classNames { get; set; }
 
-    private string selectedClass;
+    //private string selectedClass;
 
     bool value1 = true;
 
@@ -105,7 +105,7 @@
         classNames = GetClassNames();
         if (!string.IsNullOrWhiteSpace(Content.JobClass) && Content.JobClass.StartsWith("Application.BackgroundJobs."))
         {
-            selectedClass = Content.JobClass.Replace("Application.BackgroundJobs.", "");
+            Content.JobClass = Content.JobClass.Replace("Application.BackgroundJobs.", "");
         }
         base.OnInitialized();
     }
@@ -116,7 +116,7 @@
         if (_editContext.Validate())
         {
             Console.WriteLine("EditContext Validation OK!...");
-            Content.JobClass = $"Application.BackgroundJobs.{selectedClass}";
+            Content.JobClass = $"Application.BackgroundJobs.{Content.JobClass}";
             await Dialog.CloseAsync(Content);
         }
         else

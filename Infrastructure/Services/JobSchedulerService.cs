@@ -22,7 +22,7 @@ public class JobSchedulerService : IJobSchedulerService
     {
         var scheduler = await _schedulerFactory.GetScheduler();
 
-        // Pobierz aktualnie wykonywane joby
+        // Pobiera aktualnie wykonywane joby
         var executingJobs = (await scheduler.GetCurrentlyExecutingJobs())
             .Select(j => j.JobDetail.Key.Name)
             .ToList();
@@ -38,7 +38,7 @@ public class JobSchedulerService : IJobSchedulerService
 
         foreach (var job in jobs)
         {
-            // Pomijaj aktywne joby
+            // Pomija aktywne joby
             if (executingJobs.Contains(job.JobClass))
             {
                 _logger.LogInformation($"Skipping job {job.JobClass} because it is currently being executed.");
@@ -57,7 +57,7 @@ public class JobSchedulerService : IJobSchedulerService
             // Sprawdzenie, czy job o danym identyfikatorze już istnieje w schedulerze
             var existingJob = await scheduler.GetJobDetail(new JobKey(job.JobClass, "DEFAULT"));
 
-            // Jeśli job już istnieje, usuń go
+            // Jeśli job już istnieje, usuwa go
             if (existingJob != null)
             {
                 _logger.LogInformation($"Job {job.JobClass} exists. Deleting the old job before creating the new one.");

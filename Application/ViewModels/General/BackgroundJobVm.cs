@@ -12,6 +12,7 @@ namespace Application.ViewModels.General
         [Required(ErrorMessage = "Pole AssemblyName jest wymagane.")]
         public string AssemblyName { get; set; } = "Application";
 
+        [Required(ErrorMessage = "Pole JobClass jest wymagane.")]
         public string JobClass { get; set; }
 
         [Required(ErrorMessage = "Pole JobMethod jest wymagane.")]
