@@ -1,5 +1,11 @@
 ﻿@* BackgroundJob Edit Component *@
 @using Application.ViewModels.General
+@using Microsoft.AspNetCore.Components.Forms
+@using Application.Interfaces
+@using System.Security.Claims
+@using MediatR
+@using System.Reflection
+@using Quartz;
 
 @inject IMediator _mediator
 @implements IDialogContentComponent<BackgroundJobVm>
@@ -17,42 +23,54 @@
 <!-- Body -->
 <FluentDialogBody Style="overflow-y: auto; overflow-x: auto;">
     <EditForm EditContext="_editContext">
-        @* <FluentValidationValidator @ref="_fluentValidator" /> *@
         <DataAnnotationsValidator />
         <table class="table-container">
             <tbody>
                 <tr>
                     <td class="table-caption" style="text-align: left; border-right: none;">JobClass:</td>
                     <td>
-                        <FluentTextField Id="JobClass" @bind-Value="@Content.JobClass" Placeholder="Enter JobClass"></FluentTextField>
+                        <FluentSelect TOption="string"
+                                      Items="@classNames"
+                                      Placeholder="Select class"
+                                      @bind-Value="@selectedClass"
+                                      Width="200px" />
                         <FluentValidationMessage For="@(() => Content.JobClass)" />
                     </td>
                 </tr>
                 <tr>
                     <td class="table-caption" style="text-align: left; border-right: none;">JobMethod:</td>
                     <td>
-                        <FluentTextField Id="JobMethod" @bind-Value="@Content.JobMethod" Placeholder="Enter JobMethod"></FluentTextField>
+                        <FluentTextField Id="JobMethod" @bind-Value="@Content.JobMethod" Placeholder="Enter JobMethod" style="width: 200px;"></FluentTextField>
                         <FluentValidationMessage For="@(() => Content.JobMethod)" />
                     </td>
                 </tr>
                 <tr>
-                    <td class="table-caption" style="text-align: left; border-right: none;">JobMethod:</td>
+                    <td class="table-caption" style="text-align: left; border-right: none;">
+                        CronExpression:
+                    </td>
                     <td>
-                        <FluentTextField Id="CronExpression" @bind-Value="@Content.CronExpression" Placeholder="Enter JobMethod"></FluentTextField>
+                        <FluentTextField Id="CronExpression" @bind-Value="@Content.CronExpression" Placeholder="Enter CronExpression" style="width: 200px;"></FluentTextField>
+                        @* <FluentIcon Id="myFirstButton" Icon="Icons.Regular.Size24.Info" />
+                        <FluentTooltip Anchor="myFirstButton">
+                            Example: <br />
+                            At 08:00 AM: <b>0 0 8 ? * * *</b><br />
+                            At 08:00 AM, only on Monday, Wednesday, and Friday: <b>0 0 8 ? * MON,WED,FRI *</b><br />
+                            Every 5 hours: <b>0 0 0/5 ? * * *</b>
+                        </FluentTooltip> *@
                         <FluentValidationMessage For="@(() => Content.CronExpression)" />
                     </td>
                 </tr>
                 <tr>
                     <td class="table-caption" style="text-align: left; border-right: none;">AssemblyName:</td>
                     <td>
-                        <FluentTextField Id="AssemblyName" @bind-Value="@Content.AssemblyName" Placeholder="Enter AssemblyName"></FluentTextField>
+                        <FluentTextField Id="AssemblyName" @bind-Value="@Content.AssemblyName" Placeholder="Enter AssemblyName" style="width: 200px;"></FluentTextField>
                         <FluentValidationMessage For="@(() => Content.AssemblyName)" />
                     </td>
                 </tr>
                 <tr>
-                    <td class="table-caption" style="text-align: left; border-right: none;">Enabled:</td>
+                    <td class="table-caption" style="text-align: left; border-right: none;">Status:</td>
                     <td>
-                        <FluentSwitch @bind-Value=value1 CheckedMessage="On" UncheckedMessage="Off"/>
+                        <FluentSwitch @bind-Value="@Content.Enabled" CheckedMessage="On" UncheckedMessage="Off" />
                     </td>
                 </tr>
             </tbody>
@@ -74,21 +92,60 @@
     public FluentDialog Dialog { get; set; } = default!;
 
     private EditContext _editContext;
+
+    private List<string> classNames { get; set; }
+
+    private string selectedClass;
+
     bool value1 = true;
+
     protected override async Task OnInitializedAsync()
     {
         _editContext = new EditContext(Content);
+        classNames = GetClassNames();
+        if (!string.IsNullOrWhiteSpace(Content.JobClass) && Content.JobClass.StartsWith("Application.BackgroundJobs."))
+        {
+            selectedClass = Content.JobClass.Replace("Application.BackgroundJobs.", "");
+        }
         base.OnInitialized();
     }
 
     private async Task SaveAsync()
     {
+        Console.WriteLine("SaveAsync starts...");
+        if (_editContext.Validate())
+        {
+            Console.WriteLine("EditContext Validation OK!...");
+            Content.JobClass = $"Application.BackgroundJobs.{selectedClass}";
+            await Dialog.CloseAsync(Content);
+        }
+        else
+        {
+            Console.WriteLine("EditContext Validation NOT OK!...");
+            return;
+        }
+        if (Content.Id != 0)
+        {
+            await Dialog.CloseAsync(Content);
+        }
     }
 
     private async Task CancelAsync()
     {
         await Dialog.CancelAsync();
     }
+
+    private List<string> GetClassNames()
+    {
+        Assembly assembly = Assembly.Load("Application");
+        var classes = assembly.GetTypes()
+        .Where(t => t.IsClass && typeof(IJob).IsAssignableFrom(t) && t.Namespace == "Application.BackgroundJobs")
+        .Select(t => t.Name)
+        .ToList();
+
+        return classes;
+    }
+
 }
 <style>
     valid.disabled.outline {

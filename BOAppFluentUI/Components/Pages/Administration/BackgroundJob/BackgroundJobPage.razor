@@ -1,11 +1,16 @@
 ﻿@page "/backgroundjob"
 @using Application.CQRS.General.BackgroundJobs.Commands
 @using Application.CQRS.General.BackgroundJobs.Queries;
+@using Application.Interfaces
 @using Application.ViewModels.General
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize(Policy = "Technician")]
 
 @inject IMediator _mediator
 @inject IDialogService _dialogService
 @inject IToastService _toastService
+@inject IJobSchedulerService _jobSchedulerService
 
 <h3>BackgroundJobPage</h3>
 
@@ -47,6 +52,8 @@ else
 
     PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
     private DebounceDispatcher debounceDispatcher = new DebounceDispatcher();
+    
+    private bool deleteConfirm = false;
 
     private List<FilterColumn<BackgroundJobVm>> filterColumns = new List<FilterColumn<BackgroundJobVm>>
     {
@@ -67,7 +74,34 @@ else
     }
 
     private async Task Delete(BackgroundJobVm item)
-    { }
+    {
+        var dialog = await _dialogService.ShowConfirmationAsync(
+                $"Czy na pewno chcesz usunąć BackgroundJob: {item.JobClass}?",
+                "Usuń",
+                "Anuluj",
+                "Potwierdź usunięcie");
+        var result = await dialog.Result;
+        deleteConfirm = result.Cancelled;
+        ToastIntent intent;
+        string message = string.Empty;
+
+        if (deleteConfirm)
+        {
+            intent = ToastIntent.Error;
+            message = "Operacja anulowana";
+        }
+        else
+        {
+            var i = await _mediator.Send(new DeleteBackgroundJobCommand(item.Id));
+            intent = ToastIntent.Success;
+            message = "BackgroundJob został usunięty!";
+
+            await _jobSchedulerService.ScheduleJobsAsync();
+        }
+
+        _toastService.ShowToast(intent, message, 3000);
+        await Load();
+    }
     private async Task EditItem(BackgroundJobVm item)
     {
         ToastIntent intent;
@@ -106,6 +140,8 @@ else
                 intent = ToastIntent.Warning;
                 message = "Coś poszło źle!";
             }
+
+            await _jobSchedulerService.ScheduleJobsAsync();
         }
         else if (result.Cancelled)
         {
@@ -122,6 +158,9 @@ else
         _toastService.ShowToast(intent, message, 3000);
     }
     private async Task AddPanel()
-    { }
+    {
+        var item = new BackgroundJobVm();
+        await EditItem(item);
+    }
 
 }

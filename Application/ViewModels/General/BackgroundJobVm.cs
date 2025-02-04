@@ -1,18 +1,29 @@
 ﻿using Application.Mappings;
 using AutoMapper;
 using Domain.Entities.Administration;
+using System.ComponentModel.DataAnnotations;
 
 namespace Application.ViewModels.General
 {
     public class BackgroundJobVm : IMapFrom<BackgroundJob>
     {
         public int Id { get; set; }
-        public string AssemblyName { get; set; }
+
+        [Required(ErrorMessage = "Pole AssemblyName jest wymagane.")]
+        public string AssemblyName { get; set; } = "Application";
+
         public string JobClass { get; set; }
-        public string JobMethod { get; set; }
+
+        [Required(ErrorMessage = "Pole JobMethod jest wymagane.")]
+        public string JobMethod { get; set; } = "Execute";
+
+        [Required(ErrorMessage = "Pole CronExpression jest wymagane.")]
         public string CronExpression { get; set; }
+
         public bool Enabled { get; set; }
+
         public string IsEnabled => Enabled ? "Tak" : "Nie";
+
         public void Mapping(Profile profile)
         {
             profile.CreateMap<BackgroundJob, BackgroundJobVm>().ReverseMap();
