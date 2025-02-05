@@ -292,40 +292,6 @@ public static class Utils
         addedFiles.Remove(fileToDelete);
         content.FormFiles = formFiles.ToList();
     }
-
-    private static readonly HttpClient httpClient = new();
-
-    public static async Task<bool> ValidateIbanAsync(string iban)
-    {
-        if (string.IsNullOrWhiteSpace(iban)) { return false; }
-
-        string apiSecret = Environment.GetEnvironmentVariable("SEPATOOLS_API_SECRET");
-
-        if (string.IsNullOrEmpty(apiSecret)) { return false; }
-
-        try
-        {
-            var byteArray = Encoding.ASCII.GetBytes($"piapl_service:{apiSecret}");
-            httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
-
-            var response = await httpClient.GetAsync($"https://rest.sepatools.eu/validate_iban/{iban}");
-            response.EnsureSuccessStatusCode();
-
-            var result = await response.Content.ReadAsStringAsync();
-            var apiResponse = JsonConvert.DeserializeObject<ApiResponse>(result);
-
-            return apiResponse?.Result == "passed";
-        }
-        catch (Exception ex)
-        {
-            return false;
-        }
-    }
-    public class ApiResponse
-    {
-        [JsonProperty("result")]
-        public string Result { get; set; }
-    }
 }
 
 public static class QueryableExtensions

@@ -1,5 +1,5 @@
-﻿using System.Text.Json;
-
+﻿using System.Text;
+using System.Text.Json;
 using Application.DTOs;
 using Application.ViewModels.General;
 
@@ -74,6 +74,35 @@ public static class AppUtils
     public static List<OrganisationRoleForFormVm> DeserializeRoles(string json)
     {
         return string.IsNullOrEmpty(json) ? new List<OrganisationRoleForFormVm>() : JsonSerializer.Deserialize<List<OrganisationRoleForFormVm>>(json);
+    }
+
+    private static readonly HttpClient httpClient = new();
+
+    public static async Task<bool> ValidateIbanAsync(string iban)
+    {
+        if (string.IsNullOrWhiteSpace(iban)) { return false; }
+
+        string apiSecret = Environment.GetEnvironmentVariable("SEPATOOLS_API_SECRET");
+
+        if (string.IsNullOrEmpty(apiSecret)) { return false; }
+
+        try
+        {
+            var byteArray = Encoding.ASCII.GetBytes($"piapl_service:{apiSecret}");
+            httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
+
+            var response = await httpClient.GetAsync($"https://rest.sepatools.eu/validate_iban/{iban}");
+            response.EnsureSuccessStatusCode();
+
+            var result = await response.Content.ReadAsStringAsync();
+            var apiResponse = SafeDeserialize<ApiResponse>(result);
+
+            return apiResponse?.Result == "passed";
+        }
+        catch (Exception ex)
+        {
+            return false;
+        }
     }
 }
 
