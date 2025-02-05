@@ -181,7 +181,7 @@
                 </FluentCard>
             </AuthorizeView>
 </FluentStack>
-<FluentStack Orientation="Orientation.Horizontal"
+@* <FluentStack Orientation="Orientation.Horizontal"
              HorizontalAlignment="HorizontalAlignment.Left"
              VerticalAlignment="VerticalAlignment.Center"
              Spacing="20px"
@@ -204,7 +204,7 @@
             </FluentStack>
         </FluentCard>
     </AuthorizeView>
-</FluentStack>
+</FluentStack> *@
 
 
 @code {
@@ -255,10 +255,10 @@
         MarkEmpCoCGroupByJobCodeAdHocJob job = new MarkEmpCoCGroupByJobCodeAdHocJob(_mediator);
         job.Execute();
     }
-    private async Task SendReport()
-    {
-        // AdHoc job = new AdHoc(_mediator);
-        SendCoCMonthlyReportAssistantsAdHocJob job = new SendCoCMonthlyReportAssistantsAdHocJob(_mediator, _mailService, _configuration);
-        job.Execute();
-    }
+    // private async Task SendReport()
+    // {
+    //     // AdHoc job = new AdHoc(_mediator);
+    //     SendCoCMonthlyReportAssistantsAdHocJob job = new SendCoCMonthlyReportAssistantsAdHocJob();
+    //     job.Execute();
+    // }
 }

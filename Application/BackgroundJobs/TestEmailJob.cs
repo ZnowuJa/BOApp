@@ -10,52 +10,26 @@ using Microsoft.Graph.Models;
 using Quartz;
 //Application.BackgroundJobs.ValidateEmployeesForCoC
 namespace Application.BackgroundJobs;
-public class ValidateEmployeesForCoC : IJob
+public class TestEmailJob 
 {
-    private readonly IAppDbContext _appDbContext;
-    private readonly IMediator _mediator;
     private readonly IEmailService _mailService;
     private readonly IConfiguration _configuration;
-    Regex sapRegex = new Regex(@"^15\d{2,4}$");
-    Regex emailRegex = new Regex(@"^[^\s@]+@[^\s@]+\.[^\s@]+$");
 
 
-    public ValidateEmployeesForCoC(IAppDbContext appDbContext, IMediator mediator, IEmailService mailService, IConfiguration configuration)
+    public TestEmailJob(IEmailService mailService, IConfiguration configuration)
     {
-        _appDbContext = appDbContext;
-        _mediator = mediator;
         _mailService = mailService;
         _configuration = configuration;
     }
 
-    public async Task Execute(IJobExecutionContext context)
+    public async Task Execute()
     {
         Console.WriteLine("JOB STARTED!");
-        var emps = await _mediator.Send(new GetAllEmployeesQuery());
-        var positions = await _mediator.Send(new GetAllPositionsQuery());
-        List<string> positionsNames = positions.Select(x => x.Name.ToLower()).ToList();
         List<string> errors = new List<string>();
-        foreach (var employee in emps)
-        {
-            if (employee.SapNumber == null || !sapRegex.IsMatch(employee.SapNumber))
-            { 
-                errors.Add($"Problem with SAPNumber for EnovaId: {employee.EnovaEmpId} - either null or not martching pattern");
-            }
-            if (employee.Email == null || !emailRegex.IsMatch(employee.Email))
-            {
-                errors.Add($"Problem with Email for EnovaId: {employee.EnovaEmpId} - either null or not martching pattern");
-            }
-            if (employee.Position == null || !positionsNames.Contains(employee.Position.ToLower()))
-            {
-                errors.Add($"Problem with Position for EnovaId: {employee.EnovaEmpId}  - either null or not defined in Positions table | src: {employee.Position}");
-            }
-            //if (emps.All(emp => emps.Any(e => e.EnovaEmpId == emp.ManagerId)))
-            //{
-            //    errors.Add($"Problem with ManagerId for Employee: {employee.EnovaEmpId}  - either null or not defined in Employee table");
-            //}
+        errors.Add("Test emaila z systemu");
+        errors.Add("Test emaila z systemu");
 
 
-        }
 
 
         string rcptemail = "marcin.jarco@porscheinterauto.pl";
@@ -91,7 +65,7 @@ public class ValidateEmployeesForCoC : IJob
             }
         }).ToList();
 
-       subject = $"Wykryto błędy w imporcie danych pracowników!";
+       subject = $"Test Email Service";
             body = $@"
                 <!DOCTYPE html>
                 <html>
@@ -99,7 +73,7 @@ public class ValidateEmployeesForCoC : IJob
                 </head>
                 <body>
                     <div class=""header"">
-                        <h1>Błędy w imporcie danych pracowników!</h1>
+                        <h1>Test Email Service</h1>
                     </div>
                     <div>
                     </p>

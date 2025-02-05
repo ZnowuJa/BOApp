@@ -1,15 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
+﻿using System.Text.Json;
+
 using Application.CQRS.CoCCQRS.Onboarding.Queries;
 using Application.CQRS.ITWarehouseCQRS.Employees.Queries;
 using Application.Interfaces;
-using Application.ViewModels.CoC;
 using Application.ViewModels.General;
+
 using MediatR;
+
 using Microsoft.Extensions.Configuration;
 
 using Microsoft.Graph.Models;
@@ -47,8 +44,8 @@ public class SendCoCMonthlyReportAssistantsJob : IJob
         var onbOpened = onboardings.Where(o => o.Status == "W trakcie").ToList();
         var onbNotStarted = onboardings.Where(o => o.Status == "Rejestracja").ToList();
 
-        var level1Approvers = onboardings.SelectMany(o => o.Level1Approvers).Distinct().ToList();
-
+        var level1Approvers = onboardings.SelectMany(o => o.Level1Approvers).Distinct(new Level1ApproverComparer()).ToList();
+        
         foreach (var approver in level1Approvers)
         {
             var approverOnboardings = onboardings.Where(o => o.Level1Approvers.Any(a => a.EmpId == approver.EmpId)).ToList();
@@ -75,10 +72,14 @@ public class SendCoCMonthlyReportAssistantsJob : IJob
 
             if (approverErrorList.Any())
             {
+                bool prod = _configuration["Environment"] == "PROD";
+
                 var appEmpl = employees.Where(e => e.EnovaEmpId == approver.EmpId).FirstOrDefault();
+                //SendEmail(appEmpl.Email, approverErrorList, prod).Wait();
+
                 if (appEmpl.EnovaEmpId == 546)
                 {
-                    SendEmail(appEmpl.Email, approverErrorList).Wait();
+                    SendEmail(appEmpl.Email, approverErrorList, prod).Wait();
                 }
                 else
                 {
@@ -89,20 +90,18 @@ public class SendCoCMonthlyReportAssistantsJob : IJob
 
         await Task.CompletedTask;
 
-
     }
-
-
-
 
     public string SerializeApprovals(List<ApprovalVm> approvals)
     {
         return approvals == null || approvals.Count == 0 ? null : JsonSerializer.Serialize(approvals);
     }
 
-    private async Task SendEmail(string rcptEmail, List<string> errorList)
+    private async Task SendEmail(string rcptEmail, List<string> errorList, bool prodEnv)
     {
         var _baseUrl = _configuration["BaseUrl"];
+        
+        string messageDev = prodEnv ? string.Empty : "<p style='color: red; font-weight: bold;'>Wiadomość pochodzi ze środowiska testowego!</p>";
         string body = string.Empty;
         string subject = string.Empty;
         string listHTML = string.Empty;
@@ -140,9 +139,10 @@ public class SendCoCMonthlyReportAssistantsJob : IJob
                     </div>
                     <div>
                     </p>
+                        {messageDev}
                         
-                        <p>Znaleziono poniższe błędy:</p>
-                        <p> Total errors: {errorList.Count()}</p>
+                        <p></p>
+                        
                         {listHTML}
   
                         <p>Pozdrawiamy!</p>
@@ -167,5 +167,20 @@ public class SendCoCMonthlyReportAssistantsJob : IJob
 
 
         await _mailService.SendEmailAsync(message);
+    }
+}
+public class Level1ApproverComparer : IEqualityComparer<OrganisationRoleForFormVm>
+{
+    public bool Equals(OrganisationRoleForFormVm x, OrganisationRoleForFormVm y)
+    {
+        if (x == null || y == null)
+            return false;
+
+        return x.EmpId == y.EmpId; // Compare based on EmpId or other unique property
+    }
+
+    public int GetHashCode(OrganisationRoleForFormVm obj)
+    {
+        return obj.EmpId.GetHashCode(); // Use the same property for hash code
     }
 }
