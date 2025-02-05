@@ -255,7 +255,7 @@ else
 
         itemEmployeesList = await _mediator.Send(new GetAllEmployeesQuery());
         _organisation = await _mediator.Send(new GetOrganisationByEmpSapNumberQuery(emp.SapNumber));
-        Approval approval = new Approval()
+        ApprovalVm approval = new ApprovalVm()
         {
             Status = formItem.Status,
             EnovaEmpId = emp.EnovaEmpId.ToString(),
@@ -263,7 +263,7 @@ else
             Date = DateTime.Now,
             IsApproved = true
         };
-        formItem.Approvals = new List<Approval>();
+        formItem.Approvals = new List<ApprovalVm>();
         formItem.Approvals.Add(approval);
         formItem.WorkflowTemplateId = wf.Id;
 

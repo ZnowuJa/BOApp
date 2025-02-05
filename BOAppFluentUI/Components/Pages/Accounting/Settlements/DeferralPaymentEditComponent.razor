@@ -184,7 +184,7 @@
     private bool ApproveButton = false;
     private bool SendButton = true;
 
-    private Approval approval { get; set; }
+    private ApprovalVm approval { get; set; }
 
     private OrganisationVm _organisation { get; set; }
     private WorkflowTemplateVm wf { get; set; }
@@ -261,7 +261,7 @@
         }
 
         _organisation = await _mediator.Send(new GetOrganisationByEmpSapNumberQuery(emp.SapNumber));
-        approval = new Approval()
+        approval = new ApprovalVm()
         {
                 Status = formItem.Status,
                 EnovaEmpId = _userContext.EnovaEmpId,

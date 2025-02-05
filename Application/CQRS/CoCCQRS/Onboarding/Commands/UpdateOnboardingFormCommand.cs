@@ -49,6 +49,7 @@ public class UpdateOnboardingFormCommandHandler : IRequestHandler<UpdateOnboardi
         var _note = request.Item.Note ?? String.Empty;
         var _progress = request.Item.Progress;
         var _FirstRun = request.Item.FirstRun;
+        var _status = request.Item.Status;
 
         var formItem = await _appDbContext.OnboardingForms.Where(o => o.Id == request.Item.Id).FirstOrDefaultAsync(cancellationToken);
 
@@ -58,6 +59,7 @@ public class UpdateOnboardingFormCommandHandler : IRequestHandler<UpdateOnboardi
         formItem.Note = _note;
         formItem.Progress = _progress;
         formItem.FirstRun = _FirstRun;
+        formItem.Status = _status;
 
         _appDbContext.OnboardingForms.Update(formItem);
         await _appDbContext.SaveChangesAsync();
@@ -65,7 +67,7 @@ public class UpdateOnboardingFormCommandHandler : IRequestHandler<UpdateOnboardi
         return request.Item;
     }
 
-    private string SerializeApprovals(List<ViewModels.General.Approval> approvals)
+    private string SerializeApprovals(List<ViewModels.General.ApprovalVm> approvals)
     {
         return approvals == null || approvals.Count == 0 ? string.Empty : JsonSerializer.Serialize(approvals);
     }

@@ -23,6 +23,7 @@
 @using Microsoft.FluentUI.AspNetCore.Components.Extensions
 
 @attribute [Authorize(Policy = "Technician")]
+@attribute [Authorize(Policy = "Accountant")]
 
 @inject IMediator _mediator
 @inject ILogger<Assets_Page> _logger

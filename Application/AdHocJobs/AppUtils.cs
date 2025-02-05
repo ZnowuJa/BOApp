@@ -58,13 +58,13 @@ public static class AppUtils
     {
         return string.IsNullOrEmpty(json) ? new List<FormFileVm>() : JsonSerializer.Deserialize<List<FormFileVm>>(json);
     }
-    public static string SerializeApprovals(List<Approval> approvals)
+    public static string SerializeApprovals(List<ApprovalVm> approvals)
     {
         return approvals == null || approvals.Count == 0 ? string.Empty : JsonSerializer.Serialize(approvals);
     }
-    public static List<Approval> DeserializeApprovals(string json)
+    public static List<ApprovalVm> DeserializeApprovals(string json)
     {
-        return string.IsNullOrEmpty(json) ? new List<Approval>() : JsonSerializer.Deserialize<List<Approval>>(json);
+        return string.IsNullOrEmpty(json) ? new List<ApprovalVm>() : JsonSerializer.Deserialize<List<ApprovalVm>>(json);
     }
     public static string SerializeRoles(List<OrganisationRoleForFormVm> roles)
     {
