@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
+﻿using System.Text.Json;
 
 using Application.CQRS.CoCCQRS.Onboarding.Queries;
 using Application.CQRS.ITWarehouseCQRS.Employees.Queries;
 using Application.Interfaces;
-using Application.ViewModels.CoC;
 using Application.ViewModels.General;
 
 using MediatR;
@@ -17,26 +11,22 @@ using Microsoft.Extensions.Configuration;
 
 using Microsoft.Graph.Models;
 
-using Quartz;
-
 namespace Application.AdHocJobs;
 public class SendCoCMonthlyReportAssistantsAdHocJob
 {
-   
     private readonly IMediator _mediator;
-    public IEmailService _mailService { get; }
-    public IConfiguration _configuration { get; }
+    private readonly IEmailService _mailService;
+    private readonly IConfiguration _configuration;
 
-    public SendCoCMonthlyReportAssistantsAdHocJob( IMediator mediator, IEmailService mailService, IConfiguration configuration)
+    public SendCoCMonthlyReportAssistantsAdHocJob(IMediator mediator, IEmailService mailService, IConfiguration configuration)
     {
-
         _mediator = mediator;
         _mailService = mailService;
         _configuration = configuration;
     }
+
     public async Task Execute()
     {
-
 
         List<string> errorList = new();
         var employees = await _mediator.Send(new GetAllEmployeesQuery());
@@ -92,11 +82,7 @@ public class SendCoCMonthlyReportAssistantsAdHocJob
 
         await Task.CompletedTask;
 
-
     }
-
-
-
 
     public string SerializeApprovals(List<ApprovalVm> approvals)
     {

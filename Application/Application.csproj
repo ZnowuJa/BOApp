@@ -33,7 +33,6 @@
   <ItemGroup>
     <Compile Remove="AdHocJobs\AssignCoCGroupByJobCodeAdHocJob.cs" />
     <Compile Remove="BackgroundJobs\NewCoCOnboardingsJob.cs" />
-    <Compile Remove="BackgroundJobs\ValidateEmployeForCoCJob.cs" />
     <Compile Remove="CQRS\General\Organisations\Commands\CreateOrganisationCommandHandler.cs" />
     <Compile Remove="CQRS\General\Organisations\Commands\DeleteOrganisationCommandHandler.cs" />
     <Compile Remove="CQRS\General\Organisations\Commands\UpdateOrganisationCommandHandler.cs" />

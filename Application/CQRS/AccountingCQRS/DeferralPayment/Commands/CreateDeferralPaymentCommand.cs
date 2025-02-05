@@ -70,7 +70,7 @@ public class CreateDeferralPaymentCommandHandler(IAppDbContext appDbContext, IMa
 
         if (request.Item.Status == "AprobataL2")
         {
-            rcptEmail = string.Empty;
+            rcptEmail = "rozrachunki@porscheinterauto.pl";
             rcptName = "Dział Rozrachunków";
 
             // Fetch data sequentially rather than using async tasks in parallel

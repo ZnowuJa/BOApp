@@ -162,7 +162,7 @@ public class AddCoCOnboardingsJob : IJob
         listHTML += "</table>"; // End the table
 
         var emailAddresses = rcptEmail.Split(';');
-        var recipients = emailAddresses.Select(email => new Microsoft.Graph.Models.Recipient
+        var recipients = emailAddresses.Select(email => new Recipient
         {
             EmailAddress = new EmailAddress
             {
