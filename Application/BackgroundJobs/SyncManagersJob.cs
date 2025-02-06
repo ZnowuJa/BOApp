@@ -15,7 +15,7 @@ namespace Application.BackgroundJobs
         {
             // Job begins each day at 9:00 AM
             var employees = await _appDbContext.Employees
-                .Where(e => e.IsManager == true)
+                .Where(e => e.IsManager == true && e.IsActive == 1)
                 .ToListAsync(context.CancellationToken);
 
             var existingManagerIds = new HashSet<int>(
