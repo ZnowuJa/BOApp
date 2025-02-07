@@ -36,7 +36,7 @@ public class GraphEmailService : IEmailService
 
     public async Task SendEmailAsync(Message message)
     {
-
+        
         var sendMailRequestBody = new Microsoft.Graph.Users.Item.SendMail.SendMailPostRequestBody
         {
             Message = message,
