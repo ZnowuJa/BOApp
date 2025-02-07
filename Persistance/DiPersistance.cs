@@ -78,7 +78,7 @@ public static class DiPersistance
         {
             options.SignedOutCallbackPath = new PathString("/signout-oidc");
             options.SignedOutRedirectUri = "/";
-            options.CallbackPath = "/login-callback";
+            options.CallbackPath = "/authentication/login-callback";
             options.Events = new OpenIdConnectEvents
             {
                 OnTokenValidated = async context =>
