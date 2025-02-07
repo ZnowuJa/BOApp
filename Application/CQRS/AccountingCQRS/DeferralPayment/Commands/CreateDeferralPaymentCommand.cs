@@ -70,11 +70,13 @@ public class CreateDeferralPaymentCommandHandler(IAppDbContext appDbContext, IMa
 
         if (request.Item.Status == "AprobataL2")
         {
-            rcptEmail = string.Empty;
+            rcptEmail = "rozrachunki@porscheinterauto.pl";
             rcptName = "Dział Rozrachunków";
 
             // Fetch data sequentially rather than using async tasks in parallel
             var emails = new List<string>();
+            emails.Add(rcptEmail);
+            
             foreach (var approver in request.Item.Level2Approvers)
             {
                 var empl = await _appDbContext.Employees
@@ -161,7 +163,7 @@ public class CreateDeferralPaymentCommandHandler(IAppDbContext appDbContext, IMa
         await _mailService.SendEmailAsync(message);
     }
 
-    private string SerializeApprovals(List<ViewModels.General.Approval> approvals)
+    private string SerializeApprovals(List<ViewModels.General.ApprovalVm> approvals)
     {
         return approvals == null || approvals.Count == 0 ? null : JsonSerializer.Serialize(approvals);
     }

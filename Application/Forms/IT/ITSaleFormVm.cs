@@ -36,7 +36,7 @@ public class ITSaleFormVm : IMapFrom<ITSaleForm>, IFormVm
     public string? Note { get; set; }
     public int? OperatorId { get; set; }
     public string? OperatorName { get; set; }
-    public List<Approval>? Approvals { get; set; } = new List<Approval>();
+    public List<ApprovalVm>? Approvals { get; set; } = new List<ApprovalVm>();
     public List<OrganisationRoleForFormVm> Level1Approvers { get; set; } = new List<OrganisationRoleForFormVm>();
     public List<OrganisationRoleForFormVm> Level2Approvers { get; set; } = new List<OrganisationRoleForFormVm>();
     public string LVL1_EnovaEmpId { get; set; } = string.Empty;
@@ -73,13 +73,13 @@ public class ITSaleFormVm : IMapFrom<ITSaleForm>, IFormVm
         profile.CreateMap<ITSaleFormVm, ITSaleFormExportModel>()
                 .ForMember(dest => dest.AssetIds, opt => opt.MapFrom(src => SerializeAssetIds(src.AssetIds)));
     }
-    private string SerializeApprovals(List<Approval> approvals)
+    private string SerializeApprovals(List<ApprovalVm> approvals)
     {
         return approvals == null || approvals.Count == 0 ? string.Empty : JsonSerializer.Serialize(approvals);
     }
-    private List<Approval> DeserializeApprovals(string json)
+    private List<ApprovalVm> DeserializeApprovals(string json)
     {
-        return string.IsNullOrEmpty(json) ? new List<Approval>() : JsonSerializer.Deserialize<List<Approval>>(json);
+        return string.IsNullOrEmpty(json) ? new List<ApprovalVm>() : JsonSerializer.Deserialize<List<ApprovalVm>>(json);
     }
     private string SerializeRoles(List<OrganisationRoleForFormVm> roles)
     {

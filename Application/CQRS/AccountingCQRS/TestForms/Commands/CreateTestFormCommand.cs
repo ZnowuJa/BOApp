@@ -55,7 +55,7 @@ public class CreateTestFormCommandHandler(IAppDbContext appDbContext, IMapper ma
 
         return result;
     }
-    private string SerializeApprovals(List<Approval> approvals)
+    private string SerializeApprovals(List<ApprovalVm> approvals)
     {
         return approvals == null || approvals.Count == 0 ? null : JsonSerializer.Serialize(approvals);
     }
@@ -65,9 +65,9 @@ public class CreateTestFormCommandHandler(IAppDbContext appDbContext, IMapper ma
         return roles == null || roles.Count == 0 ? null : JsonSerializer.Serialize(roles);
     }
 
-    private List<Approval> DeserializeApprovals(string json)
+    private List<ApprovalVm> DeserializeApprovals(string json)
     {
-        return string.IsNullOrEmpty(json) ? new List<Approval>() : JsonSerializer.Deserialize<List<Approval>>(json);
+        return string.IsNullOrEmpty(json) ? new List<ApprovalVm>() : JsonSerializer.Deserialize<List<ApprovalVm>>(json);
     }
 
     private List<OrganisationRoleForFormVm> DeserializeRoles(string json)

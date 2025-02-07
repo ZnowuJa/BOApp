@@ -36,7 +36,7 @@
         }
     }
 </FluentStack>
-<FluentDataGrid Items="@filteredItems" Pagination="@pagination" TGridItem="OnboardingFormVm" GridTemplateColumns="80px repeat(7, 1fr)" ResizableColumns="true">
+<FluentDataGrid Items="@filteredItems" Pagination="@pagination" TGridItem="OnboardingFormVm" GridTemplateColumns="0.08fr 0.16fr 0.16fr 0.16fr 0.16fr 0.08fr 0.1fr" ResizableColumns="true">
 
     @foreach (var column in filterColumns.Where(c => c.IsVisible))
     {
@@ -104,6 +104,7 @@
         new FilterColumn<OnboardingFormVm> { FirstRow = true, Label = "Pracownik", Property = c => c.EmployeeName.ToString(), IsVisible = true },
         new FilterColumn<OnboardingFormVm> { FirstRow = true, Label = "Grupa", Property = c => c.Group.ToString(), IsVisible = true },
         new FilterColumn<OnboardingFormVm> { FirstRow = true, Label = "Postęp", Property = c => c.Progress.ToString(), IsVisible = true },
+        new FilterColumn<OnboardingFormVm> { FirstRow = true, Label = "Utworzone", Property = c => c.Requested.ToString(), IsVisible = true },
     };
 
     private FormUserContext _userContext = new FormUserContext("Onboarding", "Technician");

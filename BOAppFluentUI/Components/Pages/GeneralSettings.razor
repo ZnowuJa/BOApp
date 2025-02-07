@@ -4,23 +4,7 @@
 <h3>General Settings</h3>
 
 <FluentGrid Justify="@Justification">
-    <FluentGridItem xs="@xssize" sm="@smsize">
-    <FluentCard>
-        <FluentStack Orientation="Orientation.Vertical"
-                        HorizontalAlignment="HorizontalAlignment.Center"
-                        VerticalAlignment="VerticalAlignment.Center"
-                        >
-            <FluentIcon Value="@(new Icons.Regular.Size24.BookStar())" />
-            <h4>Organisations</h4>
-                
-            <FluentButton BackgroundColor="var(--accent-fill-rest)"
-                            Color="var(--neutral-fill-rest)"
-                            OnClick="@(()=>_navMan.NavigateTo("/organisations"))">
-                Organisations
-            </FluentButton>
-        </FluentStack>
-        </FluentCard>
-    </FluentGridItem>
+
     <FluentGridItem xs="@xssize" sm="@smsize">
         <FluentCard>
             <FluentStack Orientation="Orientation.Vertical"
@@ -37,22 +21,24 @@
             </FluentStack>
         </FluentCard>
     </FluentGridItem>
+
     <FluentGridItem xs="@xssize" sm="@smsize">
         <FluentCard>
             <FluentStack Orientation="Orientation.Vertical"
                          HorizontalAlignment="HorizontalAlignment.Center"
                          VerticalAlignment="VerticalAlignment.Center">
                 <FluentIcon Value="@(new Icons.Regular.Size24.BookStar())" />
-                <h4>Deferral Payments</h4>
+                <h4>BackgroundJobs</h4>
 
                 <FluentButton BackgroundColor="var(--accent-fill-rest)"
                               Color="var(--neutral-fill-rest)"
-                              OnClick="@(()=>_navMan.NavigateTo("/deferralpayments"))">
-                    Deferral Payments
+                              OnClick="@(()=>_navMan.NavigateTo("/backgroundjobs"))">
+                    BackgroundJobs
                 </FluentButton>
             </FluentStack>
         </FluentCard>
     </FluentGridItem>
+
 </FluentGrid>
            
 

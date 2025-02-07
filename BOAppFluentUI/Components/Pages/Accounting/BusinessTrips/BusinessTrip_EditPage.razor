@@ -1462,7 +1462,7 @@
     private ManagerDeputyVm _managerDeputy {get; set;} = new ();
     private List<string> allowedEmp { get; set; } = new List<string>();
     private List<string> allowedEditor { get; set; } = new List<string>();
-    private Approval approvalInfo { get; set; }
+    private ApprovalVm approvalInfo { get; set; }
     #endregion
     // private string messageFilePathValidator = string.Empty;
     // private FluentValidationValidator? _fluentValidator;
@@ -1504,7 +1504,7 @@
             DisableApproveButton = true;
         }
 
-        approvalInfo = new Approval()
+        approvalInfo = new ApprovalVm()
             {
                 Status = formItem.Status,
                 EnovaEmpId = _userContext.EnovaEmpId,
@@ -1850,6 +1850,7 @@
     }
     private async Task HandleFormCostLocationChange()
     {
+        //TUTAJ PRZELICZYĆ APPROVERÓW
         formItem.FormCostLocation = _selectedFormCostLocation.FirstOrDefault();
         var tempOrg = await _mediator.Send(new GetOrganisationByEmpSapNumberQuery(formItem.CashPoint.SapNumber));
         if(tempOrg != null){
@@ -2622,12 +2623,7 @@
     }
     private async Task AssignAllApprovers(EmployeeVm emp)
     {
-        // approverL1 = new()
-        //     {
-        //         IsDefault = true,
-        //         EmpId = emp.ManagerId,
-        //         LongName = emp.Manager.LongName
-        //     };
+
         formItem.Level1Approvers.Clear();
         formItem.Level1Approvers = await SetManagerAndDeputies(); // Przełożony
         formItem.LVL1_EnovaEmpId = emp.ManagerId.ToString();
@@ -4113,106 +4109,6 @@
      *@}
 
 </style>
-@* <style>
-    .BillTable-container {
-        max-height: 60px;
-        width: 100%;
-        max-width: 1000px; /* Restrict table width */
-        border-collapse: separate;
-        border-spacing: 0;
-        font-family: Arial, sans-serif;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        border-radius: 8px;
-        overflow: visible;
-    }
-
-        .BillTable-container thead tr:first-child th {
-            max-height: 60px;
-            color: white;
-            font-weight: bold;
-            text-align: center;
-            padding: 8px;
-        }
-
-        .BillTable-container th {
-            max-height: 60px;
-            padding: 8px;
-            font-size: 12px;
-            border: 1px solid #ddd;
-            white-space: nowrap; /* Prevent line breaks */
-            overflow: visible; /* Prevent content from spilling out */
-            text-overflow: ellipsis; /* Add "..." for overflowing text */
-            align-items: center; /* Vertically center content */
-            justify-content: space-between; /* Push text and icon to the edges */
-        }
-
-        .BillTable-container td {
-            max-height: 60px;
-            padding: 8px;
-            font-size: 12px;
-            border: 1px solid #ddd;
-            white-space: nowrap; /* Prevent line breaks */
-            overflow: visible;
-            text-overflow: ellipsis; /* Add "..." for overflowing text */
-        }
-
-    .BillTable-header-left {
-        max-height: 60px;
-        background-color: var(--accent-fill-rest);
-    }
-
-    .BillTable-header-right {
-        background-color: color-mix(in srgb, white 40%, var(--accent-fill-rest) 60%);
-    }
-
-    .BillTable-row {
-    }
-
-        .BillTable-row td {
-            padding: 5px;
-        }
-
-        .BillTable-row div {
-            display: block;
-            align-items: center;
-        }
-
-            .BillTable-row div FluentButton {
-                margin-right: 5px;
-            }
-
-    .bill-file-container {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 10px;
-    }
-
-    .bill-file-name {
-        flex-grow: 1;
-    }
-
-    .bill-file-buttons {
-        display: flex;
-        gap: 5px;
-    }
-
-    .bill-file-separator {
-        margin: 5px 0;
-    }
-
-    .BillTable-container th:nth-child(2),
-    .BillTable-container th:nth-child(3),
-    .BillTable-container th:nth-child(4),
-    .BillTable-container th:nth-child(6),
-    .BillTable-container td:nth-child(2),
-    .BillTable-container td:nth-child(3),
-    .BillTable-container td:nth-child(4),
-    .BillTable-container td:nth-child(6) {
-        width: 120px;
-    }
-
-</style> *@
 <style>
     .tableBT-wrapper {
         display: table;

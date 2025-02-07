@@ -22,11 +22,28 @@ public class JobSchedulerService : IJobSchedulerService
     {
         var scheduler = await _schedulerFactory.GetScheduler();
 
-        var jobs = await _dbContext.BackgroundJobs.Where(j => j.Enabled).ToListAsync();
+        // Pobiera aktualnie wykonywane joby
+        var executingJobs = (await scheduler.GetCurrentlyExecutingJobs())
+            .Select(j => j.JobDetail.Key.Name)
+            .ToList();
+
+        _logger.LogInformation($"Active jobs: {string.Join(", ", executingJobs)}");
+
+        var jobs = await _dbContext
+            .BackgroundJobs
+            .Where(j => j.Enabled)
+            .AsNoTracking()
+            .ToListAsync();
         _logger.LogInformation("Jobs Count: " + jobs.Count);
 
         foreach (var job in jobs)
         {
+            // Pomija aktywne joby
+            if (executingJobs.Contains(job.JobClass))
+            {
+                _logger.LogInformation($"Skipping job {job.JobClass} because it is currently being executed.");
+                continue;
+            }
 
             var jobClassFullName = $"{job.JobClass}, {job.AssemblyName}";
             var jobType = Type.GetType(jobClassFullName);
@@ -35,6 +52,16 @@ public class JobSchedulerService : IJobSchedulerService
             {
                 _logger.LogWarning($"Job type {job.JobClass} not found.");
                 continue;
+            }
+
+            // Sprawdzenie, czy job o danym identyfikatorze już istnieje w schedulerze
+            var existingJob = await scheduler.GetJobDetail(new JobKey(job.JobClass, "DEFAULT"));
+
+            // Jeśli job już istnieje, usuwa go
+            if (existingJob != null)
+            {
+                _logger.LogInformation($"Job {job.JobClass} exists. Deleting the old job before creating the new one.");
+                await scheduler.DeleteJob(new JobKey(job.JobClass, "DEFAULT"));
             }
 
             var jobDetail = JobBuilder.Create(jobType)

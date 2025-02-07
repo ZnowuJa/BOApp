@@ -82,13 +82,14 @@ namespace Application.CQRS.CoCCQRS.Onboarding.Queries
                 LVL2_EmployeeName = model.LVL2_EmployeeName,
                 Approvals = DeserializeApprovals(model.Approvals),
                 Level1Approvers = DeserializeRoles(model.Level1Approvers),
-                Level2Approvers = DeserializeRoles(model.Level2Approvers)
+                Level2Approvers = DeserializeRoles(model.Level2Approvers),
+                Modified = model.Modified
             };
         }
 
-        private List<Approval> DeserializeApprovals(string json)
+        private List<ApprovalVm> DeserializeApprovals(string json)
         {
-            return string.IsNullOrEmpty(json) ? new List<Approval>() : JsonSerializer.Deserialize<List<Approval>>(json);
+            return string.IsNullOrEmpty(json) ? new List<ApprovalVm>() : JsonSerializer.Deserialize<List<ApprovalVm>>(json);
         }
 
         private List<OrganisationRoleForFormVm> DeserializeRoles(string json)

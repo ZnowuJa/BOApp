@@ -105,7 +105,7 @@
             Console.WriteLine(ex.Message);
         }
 
-        Approval approval = new Approval()
+        ApprovalVm approval = new ApprovalVm()
             {
                 Status = selectedSale.Status,
                 EnovaEmpId = Content.FormUserContext.EnovaEmpId.ToString(),
@@ -135,7 +135,7 @@
 
     private async Task SaveAsync()
     {
-        Approval approval = new Approval()
+        ApprovalVm approval = new ApprovalVm()
             {
                 Status = selectedSale.Status,
                 EnovaEmpId = Content.FormUserContext.EnovaEmpId.ToString(),

@@ -117,7 +117,7 @@ public class ValidateEmployeesForCoC : IJob
                 </body>
                 </html>";
         
-        var message = new Microsoft.Graph.Models.Message
+        var message = new Message
         {
             Subject = subject,
             Body = new ItemBody

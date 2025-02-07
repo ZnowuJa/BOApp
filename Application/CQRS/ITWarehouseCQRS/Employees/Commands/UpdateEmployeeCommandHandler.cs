@@ -19,7 +19,7 @@ public class UpdateEmployeeCommandHandler : IRequestHandler<UpdateEmployeeComman
         {
             var empCoC = await _appDbContext.Employees.Where(p => p.Id == request.EmployeeVm.Id).FirstOrDefaultAsync();
             empCoC.CoCGroupId = request.EmployeeVm.CoCGroupId;
-            empCoC.BankAccountNumber = request.EmployeeVm.BankAccountNumber;
+            //empCoC.BankAccountNumber = request.EmployeeVm.BankAccountNumber;
             _appDbContext.Employees.Update(empCoC);
 
             await _appDbContext.SaveChangesAsync();
@@ -35,7 +35,15 @@ public class UpdateEmployeeCommandHandler : IRequestHandler<UpdateEmployeeComman
         item.MobileNumber = request.MobileNumber;
         item.PhoneNumber = request.PhoneNumber;
         item.ManagerId = request.ManagerId;
-        item.BankAccountNumber = request.EmployeeVm.BankAccountNumber;
+        //try
+        //{
+        //    item.BankAccountNumber = request.EmployeeVm.BankAccountNumber;
+        //}
+        //catch (Exception e)
+        //{
+        //    Console.WriteLine(e.Message);
+        //}
+
         item.Type = type;
 
         _appDbContext.Employees.Update(item);
