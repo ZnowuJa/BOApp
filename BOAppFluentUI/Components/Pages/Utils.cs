@@ -98,7 +98,7 @@ public static class Utils
                 var empId = int.Parse(userContext.EnovaEmpId);
                 if (userContext != null)
                     userContext.Employee = await mediator.Send(new GetEmployeeByEnovaIdQuery(empId));
-                await GetUserRoles(userContext);
+                //await GetUserRoles(userContext);
             }
             catch (Exception ex)
             {

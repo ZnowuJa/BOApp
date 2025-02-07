@@ -284,18 +284,7 @@ else
             .Select(role => new OrganisationRoleForFormVm(role))
             .ToList();
     }
-    // private List<OrganisationRoleForFormVm> SetApprovers(List<OrganisationRoleVm> rolesIn)
-    // {
-    //     var rolesOut = new List<OrganisationRoleForFormVm>();
 
-
-    //     foreach(var role in rolesIn)
-    //     {
-    //         var roleOut = new OrganisationRoleForFormVm(role);
-    //         rolesOut.Add(roleOut);
-    //     }
-    //     return rolesOut;
-    // }
     private async Task<List<OrganisationRoleForFormVm>> SetApproversL1(List<OrganisationRoleVm> rolesIn)
     {
         var manager = await _mediator.Send(new GetEmployeeByEnovaIdQuery(emp.ManagerId));
@@ -326,30 +315,7 @@ else
 
         return rolesOut;
     }
-    // private async Task<List<OrganisationRoleForFormVm>> SetApproversL1(List<OrganisationRoleVm> rolesIn)
-    // {
-    //     var rolesOut = new List<OrganisationRoleForFormVm>();
-    //     var manager = await _mediator.Send(new GetEmployeeByEnovaIdQuery(emp.ManagerId));
-    //     OrganisationRoleForFormVm managerRole = new()
-    //     {
-    //             IsDefault = true,
-    //             EmpId = emp.ManagerId,
-    //             LongName = manager.LongName
-    //     };
-    //     rolesOut.Add(managerRole);
 
-    //     foreach (var role in rolesIn)
-    //     {
-    //         var roleOut = new OrganisationRoleForFormVm(role);
-    //         if(roleOut.EmpId == emp.ManagerId)
-    //         {
-    //             continue;
-    //         }
-
-    //         rolesOut.Add(roleOut);
-    //     }
-    //     return rolesOut;
-    // }
     private void ChangeNote (ChangeEventArgs e)
     {
         // if (formItem.Note )

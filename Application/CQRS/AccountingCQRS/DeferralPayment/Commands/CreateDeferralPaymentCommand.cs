@@ -75,6 +75,8 @@ public class CreateDeferralPaymentCommandHandler(IAppDbContext appDbContext, IMa
 
             // Fetch data sequentially rather than using async tasks in parallel
             var emails = new List<string>();
+            emails.Add(rcptEmail);
+            
             foreach (var approver in request.Item.Level2Approvers)
             {
                 var empl = await _appDbContext.Employees

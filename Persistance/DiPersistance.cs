@@ -78,31 +78,37 @@ public static class DiPersistance
         {
             options.SignedOutCallbackPath = new PathString("/signout-oidc");
             options.SignedOutRedirectUri = "/";
+            options.CallbackPath = "/login-callback";
             options.Events = new OpenIdConnectEvents
             {
                 OnTokenValidated = async context =>
                 {
-                    var tokenValidatedHandler = context.HttpContext
-                    .RequestServices
-                    .GetRequiredService<ITokenValidatedHandlerService>();
+                    //var tokenValidatedHandler = context.HttpContext
+                    //.RequestServices
+                    //.GetRequiredService<ITokenValidatedHandlerService>();
 
-
-                    //// Below there are two the same lines running tokenvalidation.
-                    /// It is done that way because one pass doesn't updates current user if it is loging for the 1st time.
-                    /// Of course this is a bug and its workaround to fixe once.
-                    await tokenValidatedHandler.HandleTokenValidation(context);
                     //await tokenValidatedHandler.HandleTokenValidation(context);
-                    //var userManager = context.HttpContext.RequestServices.GetRequiredService<UserManager<AppUser>>();
-                    //var user = await userManager.GetUserAsync(context.Principal);
-                    //var roles = await userManager.GetRolesAsync(user);
 
-                    //var identity = (ClaimsIdentity)context.Principal.Identity;
-                    //foreach (var role in roles)
-                    //{
-                    //    identity.AddClaim(new Claim(ClaimTypes.Role, role));
-                    //}
+
+                    try
+                    {
+                        var tokenValidatedHandler = context.HttpContext
+                            .RequestServices
+                            .GetRequiredService<ITokenValidatedHandlerService>();
+
+                        await tokenValidatedHandler.HandleTokenValidation(context);
+                        Console.WriteLine("Token validation handled successfully.");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error during token validation: {ex.Message}");
+                    }
+
+
+
 
                 }
+
             };
         });
 
