@@ -9,18 +9,22 @@ using Application.Interfaces;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Application.Forms.Accounting;
+using Serilog;
+using Application.AdHocJobs;
+using Microsoft.Extensions.Logging;
 
 namespace Application.CQRS.AccountingCQRS.DeferralPayment.Commands;
 public class CreateDeferralPaymentCommand(DeferralPaymentFormVm item) : IRequest<DeferralPaymentFormVm>
 {
     public DeferralPaymentFormVm Item { get; set; } = item;
 }
-public class CreateDeferralPaymentCommandHandler(IAppDbContext appDbContext, IMapper mapper, IEmailService mailService, IConfiguration configuration) : IRequestHandler<CreateDeferralPaymentCommand, DeferralPaymentFormVm>
+public class CreateDeferralPaymentCommandHandler(IAppDbContext appDbContext, IMapper mapper, IEmailService mailService, IConfiguration configuration, ILogger<CreateDeferralPaymentCommandHandler> logger) : IRequestHandler<CreateDeferralPaymentCommand, DeferralPaymentFormVm>
 {
     private readonly IAppDbContext _appDbContext = appDbContext;
     private readonly IMapper _mapper = mapper;
     private readonly IEmailService _mailService = mailService;
     private readonly IConfiguration _configuration = configuration;
+    private readonly ILogger<CreateDeferralPaymentCommandHandler> _logger = logger;
 
     public async Task<DeferralPaymentFormVm> Handle(CreateDeferralPaymentCommand request, CancellationToken cancellationToken)
     {
@@ -68,6 +72,7 @@ public class CreateDeferralPaymentCommandHandler(IAppDbContext appDbContext, IMa
         string reason = request.Item.Note;
         string id = request.Item.Id.ToString();
 
+        //List<Recipient> recipients = new List<Recipient>();
         if (request.Item.Status == "AprobataL2")
         {
             rcptEmail = "rozrachunki@porscheinterauto.pl";
@@ -75,7 +80,7 @@ public class CreateDeferralPaymentCommandHandler(IAppDbContext appDbContext, IMa
 
             // Fetch data sequentially rather than using async tasks in parallel
             var emails = new List<string>();
-            emails.Add(rcptEmail);
+            //emails.Add(rcptEmail);
             
             foreach (var approver in request.Item.Level2Approvers)
             {
@@ -87,17 +92,27 @@ public class CreateDeferralPaymentCommandHandler(IAppDbContext appDbContext, IMa
                     emails.Add(empl.Email);
                 }
             }
+            //var recipients = emails.Select(email => new Recipient
+            //{
+            //    EmailAddress = new EmailAddress
+            //    {
+            //        Address = email
+            //    }
+            //}).ToList();
 
             rcptEmail = string.Join(";", emails);
+            _logger.LogInformation($"CreateDeferralPayment {request.Item.Number} email receipients: {rcptEmail}");
             //Console.WriteLine();
         }
 
         await SendEmail(senderName, rcptEmail, rcptName, custName, frmNumber, reason, id, request.Item.Status);
         //_logger.LogInformation($"CreateDeferralPaymentCommandHandler {request.Item.EmployeeName}");
+        var objectToLog = AppUtils.SafeSerialize(request.Item);
+        _logger.LogInformation($"CreateDeferralPayment Request.Item {objectToLog}");
         return request.Item;
     }
 
-    private async Task SendEmail(string senderName, string rcptEmail, string rcptName, string custName, string frmNumber, string reason, string id, string status)
+    private async Task SendEmail(string senderName,  string rcptEmail, string rcptName, string custName, string frmNumber, string reason, string id, string status)
     {
         var _baseUrl = _configuration["BaseUrl"];
         var subject = $"Nowy wniosek o odroczoną płatność ({frmNumber}) :)";
@@ -140,6 +155,17 @@ public class CreateDeferralPaymentCommandHandler(IAppDbContext appDbContext, IMa
         </body>
         </html>";
 
+        var emailAddresses = rcptEmail.Split(';');
+
+        // Create a list of Recipient objects
+        var recipients = emailAddresses.Select(email => new Recipient
+        {
+            EmailAddress = new EmailAddress
+            {
+                Address = email.Trim() // Trim any extra whitespace
+            }
+        }).ToList();
+
         var message = new Microsoft.Graph.Models.Message
         {
             Subject = subject,
@@ -148,16 +174,7 @@ public class CreateDeferralPaymentCommandHandler(IAppDbContext appDbContext, IMa
                 ContentType = BodyType.Html,
                 Content = body
             },
-            ToRecipients = new List<Recipient>
-        {
-            new Recipient
-            {
-                EmailAddress = new EmailAddress
-                {
-                    Address = rcptEmail
-                }
-            }
-        }
+            ToRecipients = recipients
         };
 
         await _mailService.SendEmailAsync(message);
