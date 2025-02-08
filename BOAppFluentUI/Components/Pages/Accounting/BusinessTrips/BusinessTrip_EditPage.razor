@@ -1,7 +1,7 @@
 ﻿@page "/create-business-travel/{id:int}"
 @page "/nowadelegacja/{id:int}"
 @page "/delegacja/{id:int}"
-
+@using System.Diagnostics;
 @using System.Globalization
 @using Application.CQRS.General.ManagerDeputies.Queries
 @using Application.Validation.Accounting
@@ -1199,25 +1199,25 @@
                                 Multiple="false"
                                 OptionValue="@(p => p.EmpId.ToString())"
                                 OptionText="@(p => p.LongName)"
-                                OptionSelected="@(p => p.IsDefault)"
+
                                 @bind-SelectedOption="@approverL1"
                                 Height="200px"
                                 Style="margin-bottom: 20px;"
                                 @onchange="HandleChangeApproverL1" />
 
                             }
-                            else if (stal1)
+                            else if (strej)
                             {
                                 <p></p>
                                 <FluentSelect TOption="OrganisationRoleForFormVm"
                                 Id="AL1Id"
                                 Autofocus="true"
-                                Items="@formItem.Level2Approvers"
+                                Items="@formItem.Level5Approvers"
                                 Multiple="false"
                                 OptionValue="@(p => p.EmpId.ToString())"
                                 OptionText="@(p => p.LongName)"
                                 OptionSelected="@(p => p.IsDefault)"
-                                @bind-SelectedOption="@approverL1"
+                                @bind-SelectedOption="@approverL3"
                                 Height="200px"
                                 @onchange="HandleChangeApproverL2" />
                             }
@@ -1472,11 +1472,15 @@
 
     protected override async Task OnInitializedAsync()
     {
+        var stopwatch = Stopwatch.StartNew();
 
         if (Id != 0)
         {
-            formItem = await _mediator.Send(new GetBusinessTripByIdQuery(Id));
-            if(formItem == null){
+            formItem = await LogExecutionTime("GetBusinessTripByIdQuery",
+                () => _mediator.Send(new GetBusinessTripByIdQuery(Id)));
+
+            if (formItem == null)
+            {
                 showForm = false;
                 isLoading = false;
                 return;
@@ -1484,16 +1488,56 @@
         }
 
         _editContext = new EditContext(formItem);
-        // _messageStore = new ValidationMessageStore(_editContext);
-        await Utils.GetUserName(_authenticationStateProvider, _userContext, _mediator);
 
-        _employees = await _mediator.Send(new GetAllEmployeesQuery());
-        _costCenters = await _mediator.Send(new GetAllCostCenterIEnumQuery());
-        _glAccounts = await _mediator.Send(new GetAllGLAccountIEnumQuery());
-        _locations = await _mediator.Send(new GetLocationsQuery());
-        _vatRates = await _mediator.Send(new GetAllVatRateIEnumQuery());
-        _organisation = await _mediator.Send(new GetOrganisationByEmpSapNumberQuery(_userContext.Employee.SapNumber));
-        CompanyCarRegistrationNumbers = await _mediator.Send(new GetCompanyCarRegistrationNumbersQuery());
+        var stopWatch2 = Stopwatch.StartNew();
+        await Utils.GetUserName(_authenticationStateProvider, _userContext, _mediator);
+        stopWatch2.Stop();
+        _logger.LogWarning($"GetUserName took {stopWatch2.ElapsedMilliseconds} ms");
+        // await LogExecutionTime("GetUserName",
+            // () => Utils.GetUserName(_authenticationStateProvider, _userContext, _mediator));
+
+        _employees = await LogExecutionTime("GetAllEmployeesQuery",
+            () => _mediator.Send(new GetAllEmployeesQuery()));
+
+        _costCenters = await LogExecutionTime("GetAllCostCenterIEnumQuery",
+            () => _mediator.Send(new GetAllCostCenterIEnumQuery()));
+
+        _glAccounts = await LogExecutionTime("GetAllGLAccountIEnumQuery",
+            () => _mediator.Send(new GetAllGLAccountIEnumQuery()));
+
+        _locations = await LogExecutionTime("GetLocationsQuery",
+            () => _mediator.Send(new GetLocationsQuery()));
+
+        _vatRates = await LogExecutionTime("GetAllVatRateIEnumQuery",
+            () => _mediator.Send(new GetAllVatRateIEnumQuery()));
+
+        _organisation = await LogExecutionTime("GetOrganisationByEmpSapNumberQuery",
+            () => _mediator.Send(new GetOrganisationByEmpSapNumberQuery(_userContext.Employee.SapNumber)));
+
+        CompanyCarRegistrationNumbers = await LogExecutionTime("GetCompanyCarRegistrationNumbersQuery",
+            () => _mediator.Send(new GetCompanyCarRegistrationNumbersQuery()));
+
+        // if (Id != 0)
+        // {
+        //     formItem = await _mediator.Send(new GetBusinessTripByIdQuery(Id));
+        //     if(formItem == null){
+        //         showForm = false;
+        //         isLoading = false;
+        //         return;
+        //     }
+        // }
+
+        // _editContext = new EditContext(formItem);
+        // // _messageStore = new ValidationMessageStore(_editContext);
+        // await Utils.GetUserName(_authenticationStateProvider, _userContext, _mediator);
+
+        // _employees = await _mediator.Send(new GetAllEmployeesQuery());
+        // _costCenters = await _mediator.Send(new GetAllCostCenterIEnumQuery());
+        // _glAccounts = await _mediator.Send(new GetAllGLAccountIEnumQuery());
+        // _locations = await _mediator.Send(new GetLocationsQuery());
+        // _vatRates = await _mediator.Send(new GetAllVatRateIEnumQuery());
+        // _organisation = await _mediator.Send(new GetOrganisationByEmpSapNumberQuery(_userContext.Employee.SapNumber));
+        // CompanyCarRegistrationNumbers = await _mediator.Send(new GetCompanyCarRegistrationNumbersQuery());
         SetSrcPage();
         Console.WriteLine(Id);
 
@@ -1514,8 +1558,25 @@
             };
 
         LoadAutocompleteControls();
+
+        var stopWatch3 = Stopwatch.StartNew();
         await SetupForm(formItem.Status);
+        stopWatch3.Stop();
+        _logger.LogWarning($"SetupForm took {stopWatch3.ElapsedMilliseconds} ms");
         // Console.WriteLine();
+
+        
+
+        stopwatch.Stop();
+        _logger.LogWarning($"ONINIT took {stopwatch.ElapsedMilliseconds} ms");
+    }
+    private async Task<T> LogExecutionTime<T>(string instructionName, Func<Task<T>> func)
+    {
+        var stopwatch = Stopwatch.StartNew();
+        T result = await func();
+        stopwatch.Stop();
+        _logger.LogWarning($"{instructionName} took {stopwatch.ElapsedMilliseconds} ms");
+        return result;
     }
     private void SetSrcPage(){
         var uri = new Uri(_navigationManager.Uri);
@@ -1846,7 +1907,7 @@
         if(tempOrg != null){
             formItem.Level2Approvers = SetApprovers(tempOrg.Role_Cashiers);
         }
-        
+
     }
     private async Task HandleFormCostLocationChange()
     {
@@ -1854,7 +1915,7 @@
         formItem.FormCostLocation = _selectedFormCostLocation.FirstOrDefault();
         var tempOrg = await _mediator.Send(new GetOrganisationByEmpSapNumberQuery(formItem.CashPoint.SapNumber));
         if(tempOrg != null){
-             formItem.Level5Approvers = SetApprovers(tempOrg.Role_DealerDirector);
+            formItem.Level5Approvers = SetApprovers(tempOrg.Role_DealerDirector);
         }
 
     }
@@ -1867,7 +1928,7 @@
         }
 
 
-      
+
     }
     private async Task HandleBillChanged(Bill bill, decimal v)
     {
@@ -2623,16 +2684,32 @@
     }
     private async Task AssignAllApprovers(EmployeeVm emp)
     {
+        int lvl1managerId = 0;
+        int lvl2managerId = 0;
 
+        var empMan = _employees.Where(e => e.EnovaEmpId == emp.ManagerId).First();
+
+        if(empMan.ManagerId == 0){
+            lvl1managerId = empMan.EnovaEmpId;
+            lvl2managerId = 976;
+        } else {
+            lvl1managerId = emp.ManagerId;
+            lvl2managerId = empMan.ManagerId;
+        }
+        _logger.LogInformation("LogInformation");
+        _logger.LogWarning("LogWarning");
         formItem.Level1Approvers.Clear();
-        formItem.Level1Approvers = await SetManagerAndDeputies(); // Przełożony
+        formItem.Level1Approvers = await SetManagerAndDeputies(lvl1managerId); // Przełożony
+        approverL1 = formItem.Level1Approvers[0];
         formItem.LVL1_EnovaEmpId = emp.ManagerId.ToString();
         formItem.LVL1_EmployeeName = emp.Manager.LongName;
         formItem.Level2Approvers = SetApprovers(_organisation.Role_Cashiers); // Kasjerki
         formItem.Level3Approvers = SetApprovers(_organisation.Role_Accountants); // Księgowe
         formItem.Level4Approvers = SetApprovers(_organisation.Role_AccountantsTeamLeader); // Księgowe TL
-        formItem.Level5Approvers = SetApprovers(_organisation.Role_DealerDirector); // Dyrektor oddziału
-
+        formItem.Level5Approvers = await SetManagerAndDeputies(lvl2managerId); // Dyrektor oddziału
+        approverL2 = formItem.Level5Approvers[0];
+        // var empMan = _employees.Where(e => e.EnovaEmpId == emp.ManagerId).First();
+        StateHasChanged();
     }
     private async Task GetAllowedPersons()
     {
@@ -2667,25 +2744,29 @@
             .Select(role => new OrganisationRoleForFormVm(role))
             .ToList();
     }
-    private async Task <List<OrganisationRoleForFormVm>> SetManagerAndDeputies()
+    private async Task <List<OrganisationRoleForFormVm>> SetManagerAndDeputies(int manId)
     {
-        var empl = _employees.Where(e => e.EnovaEmpId == int.Parse(formItem.EnovaEmpId)).First();
-        approverL1 = new()
+        var result = new List<OrganisationRoleForFormVm>();
+        var manDep = new ManagerDeputyVm();
+        var man = _employees.Where(e => e.EnovaEmpId == manId).First();
+        OrganisationRoleForFormVm apprL1 = new()
             {
                 IsDefault = true,
-                EmpId = empl.ManagerId,
-                LongName = empl.Manager.LongName
+                EmpId = man.EnovaEmpId,
+                LongName = man.LongName
             };
-        var managers = await _mediator.Send(new GetManagerDeputyByManagerIdQuery(empl.ManagerId));
-        var managerDeputies = managers.Deputies;
-
-        var result = new List<OrganisationRoleForFormVm>();
-        foreach (var item in managerDeputies)
+        manDep = await _mediator.Send(new GetManagerDeputyByManagerIdQuery(man.EnovaEmpId));
+        if (manDep != null)
         {
-            result.Add(new OrganisationRoleForFormVm(item));
-        }
+            var managerDeputies = manDep.Deputies;
 
-        result.Insert(0, approverL1);
+            foreach (var item in manDep.Deputies)
+            {
+                result.Add(new OrganisationRoleForFormVm(item));
+            }
+        }
+        
+        result.Insert(0, apprL1);
 
         return result;
 
