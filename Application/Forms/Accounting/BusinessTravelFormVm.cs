@@ -162,7 +162,7 @@ public class BusinessTravelFormVm : IMapFrom<BusinessTravelForm>, IFormAccountin
            
         }
     }
-    public Application.ViewModels.General.Location CashPoint { get; set; } = new();
+    public Location CashPoint { get; set; } = new();
     public Application.ViewModels.General.Location CashPointReceipt { get; set; } = new();
     public decimal TotalBillsPL
     {
@@ -214,8 +214,9 @@ public class BusinessTravelFormVm : IMapFrom<BusinessTravelForm>, IFormAccountin
         }
     }
     public string TotalPayOutString { get; set; } = string.Empty;
+    public bool SaveOnly { get; set; } = false;
 
-    
+
     public void Mapping(Profile profile)
     {
         profile.CreateMap<BusinessTravelForm, BusinessTravelFormVm>()
@@ -249,6 +250,7 @@ public class BusinessTravelFormVm : IMapFrom<BusinessTravelForm>, IFormAccountin
             .ForMember(dest => dest.MileageRegister, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<MileageRegister>(src.MileageRegister)));
 
         profile.CreateMap<BusinessTravelFormVm, BusinessTravelForm>()
+
             .ForMember(dest => dest.FormFiles, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.FormFiles)))
             //.ForMember(dest => dest.BusinessTravelStatuses, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.BusinessTravelStatuses)))
             .ForMember(dest => dest.Countries, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.Countries)))

@@ -65,7 +65,12 @@ namespace Application.CQRS.AccountingCQRS.BusinessTravels.Commands
                 throw;
             }
 
-            //await SendEmail(senderName, rcptEmail, rcptName, custName, frmNumber, reason, id, status, userEmail, rejectReason);
+            if(!request.Item.SaveOnly)
+            {
+                //await SendEmail(senderName, rcptEmail, rcptName, custName, frmNumber, reason, id, status, userEmail, rejectReason);
+            }
+
+            
 
             return request.Item;
         }
