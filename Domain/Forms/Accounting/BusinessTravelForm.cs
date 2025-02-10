@@ -67,7 +67,8 @@ namespace Domain.Forms.Accounting
         public string? AdvancePaymentCurrency { get; set; } = "PLN";
         public bool AdvancePaymentCash { get; set; } = false;
         public string? BankAccountNumber { get; set; } = string.Empty;
-        // dorobic walidację numeru konta
+
+        
         public DateOnly? AdvancePaymentDate { get; set; } = DateOnly.FromDateTime(DateTime.Now);
         public string? CashPayoutNumber { get; set; } = string.Empty;
         public string? PayoutCashierEmpId { get; set; } = string.Empty;
