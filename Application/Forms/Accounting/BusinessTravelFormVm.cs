@@ -104,8 +104,8 @@ public class BusinessTravelFormVm : IMapFrom<BusinessTravelForm>, IFormAccountin
         public string? AdvancePaymentCurrency { get; set; } = "PLN";
         public bool AdvancePaymentCash {get;set;} = false;
         public string? BankAccountNumber { get; set; } = string.Empty;
-        
-        public DateOnly? AdvancePaymentDate { get; set; } = DateOnly.FromDateTime(DateTime.Now);
+
+    public DateOnly? AdvancePaymentDate { get; set; } = DateOnly.FromDateTime(DateTime.Now);
         public string? CashPayoutNumber { get; set; } = string.Empty; //payout to zaliczka
         public string? PayoutCashierEmpId { get; set; } = string.Empty;
         [JsonIgnore] public EmployeeVm? PayoutCashier { get; set; } = new();
