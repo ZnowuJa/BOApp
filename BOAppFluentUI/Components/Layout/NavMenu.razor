@@ -1,11 +1,11 @@
 ﻿@inject IConfiguration _configuration
 
 <div class="navmenu">
-@*     <input type="checkbox" title="Menu expand/collapse toggle" id="navmenu-toggle" class="navmenu-icon" />
+    @*     <input type="checkbox" title="Menu expand/collapse toggle" id="navmenu-toggle" class="navmenu-icon" />
     <label for="navmenu-toggle" class="navmenu-icon"><FluentIcon Value="@(new Icons.Regular.Size20.Navigation())" Color="Color.Fill" /></label> *@
     <nav class="sitenav" aria-labelledby="main-menu" onclick="document.getElementById('navmenu-toggle').click();">
         <FluentNavMenu Id="main-menu" Collapsible="true" Width="230" Title="Navigation menu" @bind-Expanded="expanded">
-            
+
             <FluentNavLink Href="/" Match="NavLinkMatch.All" Icon="@(new Icons.Regular.Size20.Home())" IconColor="Microsoft.FluentUI.AspNetCore.Components.Color.Accent">Start</FluentNavLink>
             <AuthorizeView Policy="Technician">
                 <FluentNavGroup OnClick="OnClick" Title="IT CMDB IT" Icon="@(new Icons.Regular.Size24.DesktopPulse())">
@@ -13,20 +13,13 @@
                         <FluentNavLink Href="assets" Icon="@(new Icons.Regular.Size20.ReceiptMoney())">Assets</FluentNavLink>
                         <FluentNavLink Href="invoices" Icon="@(new Icons.Regular.Size20.AlbumAdd())">Invoices</FluentNavLink>
                         <FluentNavLink Href="invoiceitems" Icon="@(new Icons.Regular.Size20.AddSubtractCircle())">InvoiceItems</FluentNavLink>
-                        
                         <FluentNavLink Href="itcmdbsettings" Icon="@(new Icons.Regular.Size20.TrayItemAdd())">IT CMDB Settings</FluentNavLink>
-                        <FluentNavLink Href="generalsettings" Icon="@(new Icons.Regular.Size20.TrayItemAdd())">General Settings</FluentNavLink>
-
-                        <FluentNavLink Href="accountingsettings" Icon="@(new Icons.Regular.Size20.TrayItemAdd())">Accounting Settings</FluentNavLink>
-                  
-         
-            
                     </ChildContent>
                 </FluentNavGroup>
             </AuthorizeView>
             <AuthorizeView Policy="User">
-                
-                <FluentNavLink Href="rozrachunki" OnClick="OnClick" Match="NavLinkMatch.All" Icon="@(new Icons.Regular.Size20.MoneyHand())" IconColor="Microsoft.FluentUI.AspNetCore.Components.Color.Accent">Rozrachunki</FluentNavLink>
+
+                <FluentNavLink Href="rozrachunki" Match="NavLinkMatch.All" Icon="@(new Icons.Regular.Size20.MoneyHand())" IconColor="Microsoft.FluentUI.AspNetCore.Components.Color.Accent">Rozrachunki</FluentNavLink>
                 <FluentNavLink Href="wyciagibankowe" Match="NavLinkMatch.All" Icon="@(new Icons.Regular.Size20.Money())">Wyciągi Bankowe</FluentNavLink>
                 <FluentNavLink Href="/coc" Match="NavLinkMatch.All" Icon="@(new Icons.Regular.Size20.BookInformation())" IconColor="Microsoft.FluentUI.AspNetCore.Components.Color.Accent">Compliance</FluentNavLink>
 
@@ -34,11 +27,21 @@
                 {
                     <FluentNavLink Href="/delegacje" Match="NavLinkMatch.All" Icon="@(new Icons.Regular.Size20.BookInformation())" IconColor="Microsoft.FluentUI.AspNetCore.Components.Color.Accent">Delegacje</FluentNavLink>
                     <FluentNavLink Href="/testforms" Match="NavLinkMatch.All" Icon="@(new Icons.Regular.Size20.TextParagraphKo())" IconColor="Microsoft.FluentUI.AspNetCore.Components.Color.Accent">TestForm</FluentNavLink>
-                    
+
                 }
-                
+
 
             </AuthorizeView>
+
+            <AuthorizeView Policy="Technician">
+                <FluentNavGroup OnClick="OnClick" Title="Ustawienia" Icon="@(new Icons.Regular.Size24.Settings())">
+                    <ChildContent>
+                        <FluentNavLink Href="accountingsettings" Icon="@(new Icons.Regular.Size20.PersonAccounts())">Księgowość</FluentNavLink>
+                        <FluentNavLink Href="generalsettings" Icon="@(new Icons.Regular.Size20.WindowSettings())">System</FluentNavLink>
+                    </ChildContent>
+                </FluentNavGroup>
+            </AuthorizeView>
+
         </FluentNavMenu>
     </nav>
 </div>
