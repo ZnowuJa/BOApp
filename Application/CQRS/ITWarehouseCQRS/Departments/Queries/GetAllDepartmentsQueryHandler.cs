@@ -36,7 +36,13 @@ public class GetAllDepartmentsQueryHandler : IRequestHandler<GetAllDepartmentsQu
                 //var deptVm = _mapper.Map<DepartmentVm>(item);
                 item.CompanyVm = _mapper.Map<CompanyVm>( itemsCompanies.Where(c => c.Id == item.CompanyId).FirstOrDefault());
                 item.WarehouseVm = _mapper.Map<WarehouseVm>(itemsWarehouses.Where(c => c.Id == item.WarehouseID).FirstOrDefault());
-                item.ManagerVm = _mapper.Map<EmployeeVm>(itemsManagers.Where(c => c.EnovaEmpId == item.ManagerEmpId).FirstOrDefault());
+                var manager = itemsManagers.Where(c => c.EnovaEmpId == item.ManagerEmpId).FirstOrDefault();
+                var managerVm = _mapper.Map<EmployeeVm>(manager);
+                if (managerVm == null)
+                {
+                    managerVm = new EmployeeVm();
+                }
+                    item.ManagerVm = managerVm;
 
             }
 

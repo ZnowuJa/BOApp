@@ -318,9 +318,9 @@
                                             <FluentAutocomplete TOption="Location"
                                             Disabled="@IsControlAdvancePaymentDisabled()"
                                             SelectValueOnTab="true"
-                                            AutoComplete="on"
                                             OnOptionsSearch="@OnLocationSearch"
-                                            Placeholder="wybierz lokalizację..."
+                                            MaximumOptionsSearch="40"
+                                            Placeholder="select location..."
                                             MaximumSelectedOptions="1"
                                             OptionText="@(p => p.SapNumber + ' ' + p.Name)"
                                             @bind-SelectedOptions="@_selectedLocation"
@@ -837,9 +837,9 @@
                                         </td>
                                         <td>
                                             <FluentSwitch Id="billInvoiceId"
-                                                @bind-Value="@bill.Invoice"
-                                                @bind-Value:after="@(() => HandleBillInvoiceTitle(bill))" 
-                                                          />
+                                            @bind-Value="@bill.Invoice"
+                                            @bind-Value:after="@(() => HandleBillInvoiceTitle(bill))" 
+                                            />
                                         </td>
                                         <td style="width: 200px;">
                                             <div>
@@ -935,7 +935,7 @@
                                         </td>
                                         <td>
                                             <FluentLabel>Data wystawienia: </FluentLabel>
-                                            <FluentDatePicker 
+                                            <FluentDatePicker Value="@(bill.InvoiceDate)"
                                             ValueChanged="@(e => HandleInvoiceDateChanged(bill, e.ToDateTime()))" />
                                             <FluentValidationMessage For="@(() => bill.InvoiceDate)" class="validation-error" />
                                         </td>
@@ -1004,7 +1004,7 @@
                                                 <td>Pozostałe faktury i bilety</td>
                                                 <td>@formItem.TotalBillsPL PLN</td>
                                             </tr>
-                                            
+
                                             <tr>
                                                 <td>Razem w PLN</td>
                                                 <td>@formItem.TotalAllowancePL PLN</td>
@@ -1213,7 +1213,7 @@
                                         }
                                         <td>
                                             <FluentAutocomplete TOption="Location"
-                                                                Disabled="@IsControlReceiptPaymentDisabled()"
+                                            Disabled="@IsControlReceiptPaymentDisabled()"
                                             SelectValueOnTab="true"
                                             AutoComplete="on"
                                             OnOptionsSearch="@OnLocationSearch"
@@ -1225,7 +1225,7 @@
                                             Width="180px" />
                                             <FluentValidationMessage For="@(() => formItem.CashPoint.SapNumber)" class="validation-error" />
                                             <FluentAutocomplete TOption="CostCenterVm"
-                                                                Disabled="@IsControlReceiptPaymentDisabled()"
+                                            Disabled="@IsControlReceiptPaymentDisabled()"
                                             SelectValueOnTab="true"
                                             AutoComplete="on"
                                             OnOptionsSearch="@OnCostCenterSearch"
@@ -1311,6 +1311,7 @@
                         Appearance="Appearance.Outline"
                         Id="SaveFormId"
                         OnClick="@SaveForm"
+                        Disabled = "@DisableSaveButton"
                         BackgroundColor="var(--accent-fill-rest)" 
                         Style="width: 100px"> 
                             Zapisz </FluentButton>
@@ -1320,6 +1321,7 @@
                         Appearance="Appearance.Accent"
                         Id="SendFormId"
                         OnClick="@SendForm"
+                        Disabled = "@DisableSendButton"
                         BackgroundColor="var(--success)"
                         Style="width: 100px">
                             Wyślij </FluentButton>
@@ -1414,11 +1416,13 @@
     private bool stal12 = false;
     private bool strozk = false;
     private bool stwys = false;
-    private bool stblas = false;
+    private bool stblad = false;
     private bool strozend = false;
     private bool stzam = false;
     private bool stodrz = false;
     private bool DisableApproveButton = true;
+    private bool DisableSaveButton = true;
+    // private bool DisableSendButton = true;
     private bool DisableSendButton = true;
     private OrganisationVm _organisation { get; set; }
     private WorkflowTemplateVm wf { get; set; }
@@ -1487,7 +1491,7 @@
     private IEnumerable<CountryVm> SelectedCountry { get; set; }
     private IQueryable<CountryVm> Countries { get; set; }
     private CountryVm Origin { get; set; }
-    private IEnumerable<Location> _locations { get; set; } = new List<Location>().AsQueryable();
+    private List<Location> _locations { get; set; } = new List<Location>();
     IEnumerable<Location> _selectedLocation = Array.Empty<Location>();
     IEnumerable<Location> _selectedReceiptLocation = Array.Empty<Location>();
     IEnumerable<Location> _selectedFormCostLocation = Array.Empty<Location>();
@@ -1656,7 +1660,8 @@
         _employees = await _mediator.Send(new GetAllEmployeesQuery());
         _costCenters = await _mediator.Send(new GetAllCostCenterIEnumQuery());
         _glAccounts = await _mediator.Send(new GetAllGLAccountIEnumQuery());
-        _locations = await _mediator.Send(new GetLocationsQuery());
+        var tempLocations = await _mediator.Send(new GetLocationsQuery());
+        _locations = tempLocations.ToList();
         _vatRates = await _mediator.Send(new GetAllVatRateIEnumQuery());
         _organisation = await _mediator.Send(new GetOrganisationByEmpSapNumberQuery(_userContext.Employee.SapNumber));
         CompanyCarRegistrationNumbers = await _mediator.Send(new GetCompanyCarRegistrationNumbersQuery());
@@ -1724,12 +1729,13 @@
         if (query.TryGetValue("srcPage", out var sourcePageValue))
         {
 
-            if (sourcePageValue == "kierownikL1" || sourcePageValue == "managerL1" || sourcePageValue == "kierownikL11" || sourcePageValue == "managerL11" || sourcePageValue == "kierownikL12" || sourcePageValue == "managerL12" || sourcePageValue == "pracownik" || sourcePageValue == "employee" || sourcePageValue == "kasjer" || sourcePageValue == "cashier" || sourcePageValue == "ksiegowe" || sourcePageValue == "accountants")
+            if (sourcePageValue == "kierownikL1" || sourcePageValue == "managerL1" || sourcePageValue == "kierownikL11" || sourcePageValue == "managerL11" || sourcePageValue == "kierownikL12" || sourcePageValue == "managerL12" || sourcePageValue == "pracownik" || sourcePageValue == "employee" || sourcePageValue == "kasjer" || sourcePageValue == "cashier" || sourcePageValue == "ksiegowe" || sourcePageValue == "accountants" || sourcePageValue == "view")
             {
                 _srcPage = sourcePageValue; // Valid sourcePage is set
             }
             else
             {
+
                 blankPage = false; // Invalid value
                 return;
             }
@@ -1737,7 +1743,7 @@
         else
         {
             blankPage = false;
-            _srcPage = "pracownik";
+            _srcPage = "view";
             return;
         }
     }
@@ -1870,42 +1876,23 @@
         if (formItem.Id == 0)
         {
             savedId = await _mediator.Send(new CreateBusinessTripCommand(formItem));
-            var saveResult = await _mediator.Send(new GetBusinessTripByIdQuery(savedId));
+            // var saveResult = await _mediator.Send(new GetBusinessTripByIdQuery(savedId));
         }
         else
         {
             var updatedForm = await _mediator.Send(new UpdateBusinessTripCommand(formItem));
-            var saveResult = await _mediator.Send(new GetBusinessTripByIdQuery(updatedForm.Id));
+            // var saveResult = await _mediator.Send(new GetBusinessTripByIdQuery(updatedForm.Id));
         }
 
 
-        var message = $"Formularz został zapisany. Aby przekazać do Aprobaty wybierz przycisk Wyślij.";
-        var intent = ToastIntent.Success;
-        _toastService.ShowToast(intent, message, 3000);
+        // var message = $"Formularz został zapisany. Aby przekazać do Aprobaty wybierz przycisk Wyślij.";
+        // var intent = ToastIntent.Success;
+        // _toastService.ShowToast(intent, message, 3000);
         _navigationManager.NavigateTo($"/delegacje/{_srcPage}");
 
     }
-    // private void ValidateBill(Bill bill)
-    // {
-    //     messageFilePathValidator = string.Empty;
-    //     var validator = new BillValidator();
-    //     var validationResult = validator.Validate(bill);
-
-    //     // Handle validation result
-    //     if (!validationResult.IsValid)
-    //     {
-    //         // Display validation errors
-    //         foreach (var error in validationResult.Errors)
-    //         {
-    //             messageFilePathValidator += error.ErrorMessage;
-    //         }
-    //     }
-    //     _editContext.Validate();
-    // }
 
     private async Task CheckForm(){
-        // var x = _editContext.GetValidationMessages().Any(m => );
-        // _fluentValidationValidator?.Validate(options => options.IncludeRuleSets("MainDates"));
         hasValidationErrors = !_editContext.Validate();
         if (hasValidationErrors) ShowErrorAsync();
         _editContext.Validate();
@@ -1913,6 +1900,11 @@
     }
     private async Task CancelForm()
     {
+        if (_srcPage == "view")
+        {
+            _navigationManager.NavigateTo($"/delegacje");
+            return;
+        }
         _navigationManager.NavigateTo($"/delegacje/{_srcPage}");
     }
     private async Task RejectForm()
@@ -1937,9 +1929,9 @@
             approvalInfo.IsApproved = false;
             formItem.Status = "Odrzucone";
             await _mediator.Send(new UpdateBusinessTripCommand(formItem));
-            var message = $"Formularz został wysłany do {formItem.EmployeeName} w celu poprawienia.";
-            var intent = ToastIntent.Success;
-            _toastService.ShowToast(intent, message, 3000);
+            // var message = $"Formularz został wysłany do {formItem.EmployeeName} w celu poprawienia.";
+            // var intent = ToastIntent.Success;
+            // _toastService.ShowToast(intent, message, 3000);
             _navigationManager.NavigateTo($"/delegacje/{_srcPage}");
         }
         else
@@ -1996,7 +1988,7 @@
             } else {
                 newStatus = "AprobataL11";
             }
-            
+
         }
         else if (formItem.Status == "KsiegowoscTL")
         {
@@ -2043,15 +2035,6 @@
                 a.Name.Contains(e.Text, StringComparison.OrdinalIgnoreCase) ||
                 a.SapNumber.Contains(e.Text, StringComparison.OrdinalIgnoreCase)).ToList();
         }
-
-        // if (formItem.AdvancePayment)
-        // {
-        //     e.Items = _locations.Where(a => a.SapNumber.Contains(formItem.CashPoint.SapNumber)).ToList();
-        // }
-        // else
-        // {
-
-        // }
     }
     private void OnCountrySearch(OptionsSearchEventArgs<CountryVm> e)
     {
@@ -3082,7 +3065,7 @@
         stal12 = formItem.Status == "AprobataL12";
         strozk = formItem.Status == "KasaRozliczenie";
         stwys = formItem.Status == "WyslaneDoRobota";
-        stblas = formItem.Status == "BladRobota";
+        stblad = formItem.Status == "BladRobota";
         strozend = formItem.Status == "Rozliczone";
         stodrz = formItem.Status == "Odrzucone";
         stzam = formItem.Status == "Zamkniete";
@@ -3373,6 +3356,42 @@
         stzam = true;
         StateHasChanged();
     }
+    private void DisableButtons(){
+        DisableApproveButton = true;
+        DisableRejectButton = true;
+        DisableSaveButton = true;
+        DisableSendButton = true;
+
+        if (formItem.Status == "Rejestracja" || stroz || stodrz)
+        {
+            DisableApproveButton = true;
+            DisableRejectButton = true;
+            DisableSaveButton = false;
+            DisableSendButton = false;
+        }
+        if (stal1 || stal11 || stal12)
+        {
+            DisableApproveButton = false;
+            DisableRejectButton = false;
+            DisableSaveButton = false;
+            DisableSendButton = true;
+        }
+        if (stzk || strozk || stzks || stzkstl || stks || stkstl || stblad)
+        {
+            DisableApproveButton = false;
+            DisableRejectButton = false;
+            DisableSaveButton = false;
+            DisableSendButton = true;
+        }
+        if (strozend || stzam)
+        {
+            DisableApproveButton = true;
+            DisableRejectButton = true;
+            DisableSaveButton = true;
+            DisableSendButton = true;
+        }
+
+    }
     private async Task SetupForm(string status)
     {
         AssignStatusBool();
@@ -3402,7 +3421,7 @@
         if (formItem.Transportation == "Samochód służbowy") IsCompanyCar = true;
 
         #region GoToStatus
-        if (status == "Rejestracja") await SetupFormRejestracja();
+        if (status == "Rejestracja" || stodrz) await SetupFormRejestracja();
         else if (stal1 || stal2 || stal11 || stal12) await SetupFormAprobata(status); //po etapie al11 i al12 zrobic sprawdzenie czy kasa czy przelew i wysl
         else if (stzk) await SetupFormKasa();
         else if (stzks) await SetupFormZaliczkaKsiegowosc(); //zrobić SetupFormZaliczkaKsiegowosc
@@ -3418,9 +3437,11 @@
         if (Id != 0) DisableSendButton = true;
         // editControlDisabled = false;
         //Na czas testów wszystkie przyciski są włączone:
-        DisableApproveButton = false;
-        DisableRejectButton = false;
-        DisableSendButton = false;
+        // DisableApproveButton = false;
+        // DisableRejectButton = false;
+        // DisableSendButton = false;
+        if (_srcPage == "view") DisableAllControls();
+
         StateHasChanged();
     }
 
@@ -3543,6 +3564,7 @@
             await RecalculateMeals();
             await RecalculateLocalTravels();
             await RecalculateTransit();
+            
         };
 
 
@@ -4143,6 +4165,9 @@
         IsControlLocalTravelEditDisabled(true);
         IsControlTransitEditDisabled(true);
         IsControlBillEditDisabled(true);
+        DisableApproveButton = true;
+        DisableRejectButton = true;
+        DisableSendButton = true;
     }
     #endregion
     private void HandleValidSubmit(EditContext arg)
@@ -4390,6 +4415,9 @@
     }
 
     fluent-select[disabled] {
+        --disabled-opacity: 0.9 !important;
+    }
+    fluent-combobox[disabled] {
         --disabled-opacity: 1 !important;
     }
 
