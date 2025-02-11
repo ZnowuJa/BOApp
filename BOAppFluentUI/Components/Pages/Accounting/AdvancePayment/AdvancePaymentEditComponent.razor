@@ -1,11 +1,19 @@
 ﻿@page "/zaliczki"
+@using Application.CQRS.AccountingCQRS.CostCenters.Queries
+@using Application.CQRS.AccountingCQRS.GLAccounts.Queries
 @using Application.CQRS.ITWarehouseCQRS.Employees.Queries;
 @using Application.CQRS.General.Organisations.Queries;
 @using Application.Forms.Accounting;
 @using Application.ViewModels.General;
+@using BOAppFluentUI.Components.Pages.Accounting.Settlements
+@using BOAppFluentUI.Components.Pages.Accounting.SharedComponents
 @using Infrastructure.Services;
+@using Application.Forms.Accounting.Enums
+@using Application.ViewModels.Accounting
 
 @inject IMediator _mediator
+@inject IToastService _toastService
+@inject IDialogService _dialogService
 @inject AuthenticationStateProvider _authenticationStateProvider
 
 <h3>Zaliczka - Rejestracja wniosku</h3>
@@ -18,11 +26,9 @@
                     Informacje Ogólne
                 </th>
                 <th>
-                    <FluentSelect Items="@statuses"
-                                  OptionText="@(i => i.Text)"
-                                  OptionValue="@(i => i.Value)"
-                                  OptionSelected="@(i => i.Selected)"
-                                  @bind-Value="@formItem.Status" />
+                    <FluentSelect Items="@_Statuses"
+                                  @bind-Value="@formItem.Status"
+                                  @bind-Value:after="@HandleStatusChange" />
                 </th>
                 <th style="text-align: right; border-left: none; font-size: large;" colspan="2">
                     Status: @formItem.Status | Numer: 12345
@@ -71,14 +77,14 @@
                     Wypłata przez:
                 </td>
                 <td style="text-align: left;" colspan="5">
-                    <FluentSelect Items=@paymentMethodOptions
+                    <FluentSelect Items=@AdvancePaymentMethodsInt
                                   OptionText="@(i => i.Text)"
-                                  OptionValue="@(i => i.Value)"
-                                  Value="formItem.PaymentMethod"
-                                  @onchange="OnPaymentMethodChanged" />
+                                  OptionValue="@(a => a.Value.ToString())"
+                                  OptionSelected="@(a => a.Selected)"
+                                  @bind-Value="@AdvancePaymentCashString" />
                 </td>
             </tr>
-            @if (IsBankTransfer)
+            @if (formItem.AdvancePaymentCash)
             {
                 <tr>
                     <td class="table-caption" style="width: 170px">
@@ -109,42 +115,88 @@
 
         </tbody>
     </table>
+    @if (stks || stkstl || strozk)
+    {
+        <BankTransferMappingEditComponent BTItem="@formItem.BTMappingAdvancePayment" CostCenters="@_costCenters" GLAccounts="@_glAccounts" FormStatus="@formItem.Status" UserContext="@_userContext" />
+    }
     <hr />
-    <h5>Aprobujący:</h5>
-    @if (strej)
+    @if (strej || stks || stkstl || strozk)
     {
-        <p></p>
-        <FluentSelect TOption="OrganisationRoleForFormVm"
-                      Id="AL1Id"
-                      Autofocus="true"
-                      Items="@formItem.Level1Approvers"
-                      Multiple="false"
-                      OptionValue="@(p => p.EmpId.ToString())"
-                      OptionText="@(p => p.LongName)"
-                      OptionSelected="@(p => p.IsDefault)"
-                      @bind-SelectedOption="@approverL1"
-                      Height="200px"
-                      Style="margin-bottom: 20px;"
-                      @onchange="HandleChangeApproverL1" />
+        <h5>Aprobujący:</h5>
+        @if (strej)
+        {
+            <p>AprobataL1</p>
+            <FluentSelect TOption="OrganisationRoleForFormVm"
+                          Id="AL1Id"
+                          Autofocus="true"
+                          Items="@formItem.Level1Approvers"
+                          Multiple="false"
+                          OptionValue="@(p => p.EmpId.ToString())"
+                          OptionText="@(p => p.LongName)"
+                          OptionSelected="@(p => p.IsDefault)"
+                          @bind-SelectedOption="@approverL1"
+                          Height="200px"
+                          Style="margin-bottom: 20px;"
+                          @onchange="HandleChangeApproverL1" />
 
+        }
+
+        @if (formItem.AdvancePaymentCash)
+        {
+            <p>AprobataL2</p>
+            <FluentSelect TOption="OrganisationRoleForFormVm"
+                          Id="AL2Id"
+                          Autofocus="true"
+                          Items="@formItem.Level2Approvers"
+                          Multiple="false"
+                          OptionValue="@(p => p.EmpId.ToString())"
+                          OptionText="@(p => p.LongName)"
+                          OptionSelected="@(p => p.IsDefault)"
+                          @bind-SelectedOption="@approverL2"
+                          Height="200px"
+                          Style="margin-bottom: 20px;"
+                          @onchange="HandleChangeApproverL2" />
+        }
     }
-
-    @if (IsBankTransfer)
+    <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
+                  Appearance="Appearance.Accent"
+                  OnClick="@SendForm"
+                  BackgroundColor="var(--accent-fill-rest)"
+                  Style="width: 100px" Disabled="@(!strej)">
+        Wyślij
+    </FluentButton>
+    @if (stal1 || stal2)
     {
-@*         <p></p>
-        <FluentSelect TOption="OrganisationRoleForFormVm"
-                      Id="AL2Id"
-                      Autofocus="true"
-                      Items="@formItem.Level2Approvers"
-                      Multiple="false"
-                      OptionValue="@(p => p.EmpId.ToString())"
-                      OptionText="@(p => p.LongName)"
-                      OptionSelected="@(p => p.IsDefault)"
-                      @bind-SelectedOption="@approverL2"
-                      Height="200px"
-                      Style="margin-bottom: 20px;"
-                      @onchange="HandleChangeApproverL2" /> *@
+        <FluentSpacer Width="@buttonSpacer" />
+
+        <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
+                      Appearance="Appearance.Accent"
+                      OnClick="@ApproveForm"
+                      BackgroundColor="var(--success)"
+                      Style="width: 100px"
+                      Disabled="@DisableApproveButton">
+            Zatwierdź
+        </FluentButton>
+
+        <FluentSpacer Width="@buttonSpacer" />
+
+        <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
+                      Appearance="Appearance.Accent"
+                      OnClick="@RejectForm"
+                      BackgroundColor="var(--error)"
+                      Style="width: 100px">
+            Odrzuć
+        </FluentButton>
     }
+    <FluentSpacer Width="@buttonSpacer" />
+
+    <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
+                  Appearance="Appearance.Accent"
+                  OnClick="@CancelForm"
+                  BackgroundColor="var(--info)"
+                  Style="width: 100px">
+        Anuluj
+    </FluentButton>
 
 </EditForm>
 @code {
@@ -154,6 +206,9 @@
     //private OrganisationRoleForFormVm approverL1 { get; set; }
     private IQueryable<EmployeeVm> _employees { get; set; }
     private IEnumerable<EmployeeVm> SelectedEmpl { get; set; }
+    private IEnumerable<CostCenterVm> _costCenters { get; set; }
+    private IEnumerable<GLAccountVm> _glAccounts { get; set; }
+    private IEnumerable<Location> _locations { get; set; } = new List<Location>().AsQueryable();
     private FormUserContext _userContext = new FormUserContext("Accountant", "Technician");
 
     private bool IsCashPayment { get; set; } = false;
@@ -167,6 +222,35 @@
     private List<string> allowedEditor { get; set; } = new List<string>();
 
     private bool strej = false;
+    private bool stal1 = false;
+    private bool stal2 = false;
+    private bool stks = false;
+    private bool stwys = false;
+    private bool stkstl = false;
+    private bool strozk = false;
+    private bool stodrz = false;
+    private bool stzam = false;
+
+    private bool DisableApproveButton = true;
+    private bool DisableRejectButton = true;
+
+    private int buttonSpacer = 100;
+
+    private IQueryable<string> _Statuses = Enum.GetValues(typeof(AdvanceStatuses))
+    .Cast<AdvanceStatuses>().Select(c => c.ToString()).AsQueryable();
+
+    private ApprovalVm approvalInfo { get; set; }
+
+    public string AdvancePaymentCashString
+    {
+        get => formItem.AdvancePaymentCash ? (formItem.AdvancePaymentCash ? "1" : "0") : null;
+        set => formItem.AdvancePaymentCash = value switch
+        {
+            "1" => true,
+            "0" => false,
+            _ => false
+        };
+    }
 
     // private string iban;
     // private string validationResult;
@@ -179,33 +263,186 @@
     //         validationResult = isValid ? "Konto istnieje" : "Konto nie istnieje";
     //     }
     // }
-    static List<Option<string>> statuses = new()
-{
-    new Option<string> { Value = "Rejestracja", Text = "Rejestracja" },
-    new Option<string> { Value = "AprobataL1", Text = "Aprobata L1 (Manager)" },
-    new Option<string> { Value = "AprobataL2", Text = "Aprobata L2 (Manager's Manager)" },
-    new Option<string> { Value = "ZaliczkaKasa", Text = "Zaliczka (Kasa)" },
-    new Option<string> { Value = "ZaliczkaKsiegowosc", Text = "Zaliczka (Księgowość)" },
-    new Option<string> { Value = "ZaliczkaKsiegowoscTL", Text = "Zaliczka (Księgowość TL)" },
-    new Option<string> { Value = "Rozliczenie", Text = "Rozliczenie" },
-    new Option<string> { Value = "Ksiegowosc", Text = "Księgowość" },
-    new Option<string> { Value = "KsiegowoscTL", Text = "Księgowość TL" },
-    new Option<string> { Value = "AprobataL11", Text = "Aprobata L1.1 (Manager)" },
-    new Option<string> { Value = "AprobataL12", Text = "Aprobata L1.2 (Dyrektor)" },
-    new Option<string> { Value = "KasaRozliczenie", Text = "Kasa (Rozliczenie)" },
-    new Option<string> { Value = "WyslaneDoRobota", Text = "Wysłane do Robota" },
-    new Option<string> { Value = "Rozliczone", Text = "Rozliczone" },
-    new Option<string> { Value = "Zamkniete", Text = "Zamknięte" }
-};
+    //     static List<Option<string>> statuses = new()
+    // {
+    //     new Option<string> { Value = "Rejestracja", Text = "Rejestracja" },
+    //     new Option<string> { Value = "AprobataL1", Text = "Aprobata L1 (Manager)" },
+    //     new Option<string> { Value = "AprobataL2", Text = "Aprobata L2 (Manager's Manager)" },
+    //     new Option<string> { Value = "ZaliczkaKasa", Text = "Zaliczka (Kasa)" },
+    //     new Option<string> { Value = "ZaliczkaKsiegowosc", Text = "Zaliczka (Księgowość)" },
+    //     new Option<string> { Value = "ZaliczkaKsiegowoscTL", Text = "Zaliczka (Księgowość TL)" },
+    //     new Option<string> { Value = "Rozliczenie", Text = "Rozliczenie" },
+    //     new Option<string> { Value = "Ksiegowosc", Text = "Księgowość" },
+    //     new Option<string> { Value = "KsiegowoscTL", Text = "Księgowość TL" },
+    //     new Option<string> { Value = "AprobataL11", Text = "Aprobata L1.1 (Manager)" },
+    //     new Option<string> { Value = "AprobataL12", Text = "Aprobata L1.2 (Dyrektor)" },
+    //     new Option<string> { Value = "KasaRozliczenie", Text = "Kasa (Rozliczenie)" },
+    //     new Option<string> { Value = "WyslaneDoRobota", Text = "Wysłane do Robota" },
+    //     new Option<string> { Value = "Rozliczone", Text = "Rozliczone" },
+    //     new Option<string> { Value = "Zamkniete", Text = "Zamknięte" }
+    // };
+
+    private async Task UpdateBankTransferMappings(EmployeeVm newEmployee)
+    {
+        var tglaccount = _glAccounts.Where(g => g.AccountNumber == "24000").FirstOrDefault();
+        var tlocation = _locations.Where(l => l.SapNumber == formItem.OrganisationSapNumber).FirstOrDefault();
+        var tcostcenter = _costCenters.Where(c => c.MPK == _userContext.Employee.DeptNumber).FirstOrDefault();
+
+        formItem.BTMappingAdvancePayment.SapFormType = "FreeForm";
+        formItem.BTMappingAdvancePayment.CostCenter = tcostcenter;
+        formItem.BTMappingAdvancePayment.GLAccount = tglaccount;
+        formItem.BTMappingAdvancePayment.BusinessTravel = true;
+
+        formItem.BTMappingPayout.SapFormType = "FreeForm";
+        formItem.BTMappingPayout.CostCenter = tcostcenter;
+        formItem.BTMappingPayout.GLAccount = tglaccount;
+
+    }
+
+    private async Task CancelForm()
+    {
+    }
+
+    private async Task RejectForm()
+    {
+        string reason = string.Empty;
+
+        var dialog = await _dialogService.ShowDialogAsync<DeferralPaymentRejectComponent>(reason, new DialogParameters()
+            {
+                Height = "240px",
+                Title = $"Podaj powód odrzucenia...",
+                PreventDismissOnOverlayClick = true,
+                PreventScroll = true,
+            });
+        var result = await dialog.Result;
+        formItem.Status = "Odrzucone";
+    }
+
+    private async Task ApproveForm()
+    {
+        if (_editContext.Validate())
+        {
+            formItem.Approvals.Add(approvalInfo);
+            formItem.Status = GetNextStatus(formItem);
+            var message = $"Zaliczka została zatwierdzona!";
+            var intent = ToastIntent.Success;
+            _toastService.ShowToast(intent, message, 3000);
+        }
+    }
+
+    private async Task SendForm()
+    {
+        if (_editContext.Validate())
+        {
+            //isLoading = true;
+            //showForm = false;
+            formItem.Approvals.Add(approvalInfo);
+            formItem.Status = GetNextStatus(formItem);
+            AssignStatusBool();
+            // var newId = await _mediator.Send(new CreateBusinessTripCommand(formItem));
+            // var saveResult = await _mediator.Send(new GetBusinessTripByIdQuery(newId));
+            // var message = $"Formularz został wysłany do {saveResult.LVL1_EmployeeName} w celu zatwierdzenia.";
+            // var intent = ToastIntent.Success;
+            // _toastService.ShowToast(intent, message, 3000);
+            // _navigationManager.NavigateTo($"/delegacje/{_srcPage}");
+        }
+    }
+
+    private string GetNextStatus(AdvancePaymentVm form)
+    {
+        string newStatus = string.Empty;
+        if (formItem.Status == "Rejestracja")
+        {
+            newStatus = "AprobataL1";
+        }
+        else if (formItem.Status == "AprobataL1")
+        {
+            if (!formItem.AdvancePaymentCash)
+            {
+                newStatus = "Ksiegowosc";
+            }
+            else
+            {
+                newStatus = "AprobataL2";
+            }
+        }
+        else if (formItem.Status == "AprobataL2")
+        {
+            newStatus = "Ksiegowosc";
+        }
+        else if (formItem.Status == "Ksiegowosc")
+        {
+            newStatus = "WyslaneDoRobota";
+        }
+        else if (formItem.Status == "WyslaneDoRobota")
+        {
+            newStatus = "KsiegowoscTL";
+        }
+        else if (formItem.Status == "KsiegowoscTL")
+        {
+            newStatus = "Kasa";
+        }
+        else if (formItem.Status == "Kasa")
+        {
+            newStatus = "Zakonczone";
+        }
+        else if(formItem.Status == "Odrzucone")
+        {
+            newStatus = "Odrzucone";
+        }
+        return newStatus;
+    }
+
+
+    // else if (formItem.Status == "ZaliczkaKsiegowosc")
+    // {
+    //     newStatus = "ZaliczkaKsiegowoscTL";
+    // }
+    // else if (formItem.Status == "Rozliczenie")
+    // {
+    //     newStatus = "Ksiegowosc";
+    // }
+    // else if (formItem.Status == "Ksiegowosc")
+    // {
+    //     newStatus = "KsiegowoscTL";
+    // }
+    // else if (formItem.Status == "KsiegowoscTL")
+    // {
+    //     newStatus = "AprobataL11";
+    // }
+    // else if (formItem.Status == "AprobataL11")
+    // {
+    //     newStatus = "AprobataL12";
+    // }
+    // else if (formItem.Status == "AprobataL12")
+    // {
+    //     if (!formItem.ReceiptPaymentCash)
+    //     {
+    //         newStatus = "KasaRozliczenie";
+    //     }
+    //     else
+    //     {
+    //         newStatus = "WyslaneDoRobota";
+    //     }
+    // }
 
     private void HandleStatusChange()
     {
         SetupForm(formItem.Status);
+        AssignStatusBool();
     }
 
     private void AssignStatusBool()
     {
         strej = formItem.Status == "Rejestracja";
+        stal1 = formItem.Status == "AprobataL1";
+        stal2 = formItem.Status == "AprobataL2";
+        stks = formItem.Status == "Ksiegowosc";
+        stwys = formItem.Status == "WyslaneDoRobota";
+        stkstl = formItem.Status == "KsiegowoscTL";
+        strozk = formItem.Status == "Kasa";
+        stodrz = formItem.Status == "Odrzucone";
+        stzam = formItem.Status == "Zamkniete";
     }
 
     private async Task HandleChangeApproverL1(ChangeEventArgs e)
@@ -221,12 +458,12 @@
         formItem.LVL2_EmployeeName = tempEmp.LongName;
     }
 
-    private void OnPaymentMethodChanged(ChangeEventArgs e)
-    {
-        var value = e?.Value?.ToString();
-        IsCashPayment = value == "cash";
-        IsBankTransfer = value == "bank";
-    }
+    // private void OnPaymentMethodChanged(ChangeEventArgs e)
+    // {
+    //     var value = e?.Value?.ToString();
+    //     IsCashPayment = value == true;
+    //     IsBankTransfer = value == false;
+    // }
 
     protected override async Task OnInitializedAsync()
     {
@@ -235,11 +472,15 @@
         await GetAllowedPersons();
         _employees = await _mediator.Send(new GetAllEmployeesQuery());
         _organisation = await _mediator.Send(new GetOrganisationByEmpSapNumberQuery(_userContext.Employee.SapNumber));
+        _costCenters = await _mediator.Send(new GetAllCostCenterIEnumQuery());
+        _glAccounts = await _mediator.Send(new GetAllGLAccountIEnumQuery());
+        _locations = await _mediator.Send(new GetLocationsQuery());
+        formItem.OrganisationSapNumber = _organisation.SapNumber;
         formItem.EmployeeName = _userContext.LongName;
         formItem.AccountNumber = _userContext.Employee.BankAccountNumber;
         //AssignStatusBool();
 
-        Approval approval = new Approval()
+        ApprovalVm approval = new ApprovalVm()
             {
                 Status = formItem.Status,
                 EnovaEmpId = _userContext.EnovaEmpId,
@@ -256,10 +497,18 @@
     {
         AssignStatusBool();
         if (status == "Rejestracja") await SetupFormRejestracja();
+        else if (stal1 || stal2) await SetupFormAprobata(status);
 
-        //else if (stal1 || stal2 || stal11 || stal12) await SetupFormAprobata(status);
+        DisableApproveButton = false;
     }
 
+    private async Task SetupFormAprobata(string status)
+    {
+        if (status == "AprobataL1" || status == "AprobataL2")
+        {
+
+        }
+    }
     private async Task SetupFormRejestracja()
     {
         await AssignAllApprovers(_userContext.Employee);
@@ -271,6 +520,13 @@
         {
             allowedEmp.Add(_userContext.EnovaEmpId);
             allowedEditor.Add(_userContext.EnovaEmpId);
+        }
+        if (stal1 || stal2)
+        {
+            allowedEmp.Add(formItem.EnovaEmpId);
+            allowedEmp.Add(formItem.LVL1_EnovaEmpId); //this is manager of requestor
+            allowedEmp.Add(formItem.LVL2_EnovaEmpId);
+            //allowedEmp.AddRange(formItem.Level2Approvers.Select(l => l.EmpId.ToString()));//this is Settlement Department
         }
     }
 
@@ -287,10 +543,18 @@
         formItem.Level1Approvers.Add(approverL1);
         formItem.LVL1_EnovaEmpId = emp.ManagerId.ToString();
         formItem.LVL1_EmployeeName = emp.Manager.LongName;
+        formItem.Level2Approvers = SetApprovers(_organisation.Role_RegionDirector);
         // formItem.Level2Approvers.Clear();
         // formItem.Level2Approvers.Add(approverL1);
         // formItem.LVL2_EnovaEmpId = emp.ManagerId.ToString();
         // formItem.LVL2_EmployeeName = emp.Manager.LongName;
+    }
+
+    private List<OrganisationRoleForFormVm> SetApprovers(List<OrganisationRoleVm> rolesIn)
+    {
+        return rolesIn
+            .Select(role => new OrganisationRoleForFormVm(role))
+            .ToList();
     }
 
     private void LoadAutocompleteControls()
@@ -302,11 +566,11 @@
         }
     }
 
-    static List<Option<string>> paymentMethodOptions = new()
-    {
-        { new Option<string> { Text = "Gotówką w kasie", Value = "cash"} },
-        { new Option<string> { Text = "Przelew", Value = "bank" } }
-    };
+    private List<Option<int>> AdvancePaymentMethodsInt = new()
+        {
+            { new Option<int> { Value = 0, Text = "Wypłata w kasie"} },
+            { new Option<int> { Value = 1, Text = "Wypłata przelewem" } },
+        };
 
     private void HandleValidSubmit(EditContext arg)
     {
