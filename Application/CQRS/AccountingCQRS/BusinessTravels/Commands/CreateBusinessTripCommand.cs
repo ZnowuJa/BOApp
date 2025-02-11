@@ -48,8 +48,11 @@ namespace Application.CQRS.AccountingCQRS.BusinessTravels.Commands
             string frmNumber = request.Item.Number;
             string reason = request.Item.Objective;
             string id = request.Item.Id.ToString();
+            if (!request.Item.SaveOnly)
+            {
+                //await SendEmail(senderName, rcptEmail, rcptName, custName, frmNumber, reason, id);
+            }
 
-            //await SendEmail(senderName, rcptEmail, rcptName, custName, frmNumber, reason, id);
             #endregion
             return item.Id;
         }

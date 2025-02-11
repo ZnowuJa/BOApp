@@ -21,6 +21,7 @@ namespace Application.Forms.Accounting.Enums
         AprobataL12, // some kind of Director
         KasaRozliczenie, // Cashier
         WyslaneDoRobota, // BOT
+        BladRobota, // Księgowa
         Rozliczone, // Read Every One
         Zamkniete // Probably not necessary
     }

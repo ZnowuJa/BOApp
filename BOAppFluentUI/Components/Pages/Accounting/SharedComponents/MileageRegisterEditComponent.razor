@@ -7,8 +7,21 @@
     
     
 <table class="table-container">
-    <caption class="table-caption">Kilometrówka  |  pojazd: @MileageRegister.PrivateCarRegistration</caption>
+        @* <caption class="table-caption">Kilometrówka  |Road  pojazd: @MileageRegister.PrivateCarRegistration</caption> *@
     <thead>
+        
+        <tr class="table-caption">
+            <th style="text-align: left; border-right: none; font-size: large;" colspan="4">
+                    Kilometrówka  |  pojazd: @MileageRegister.PrivateCarRegistration
+                <FluentIcon Id="TransitId"
+                            Value="@(new Icons.Regular.Size16.Info())"
+                            Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" />
+            </th>
+            <th style="text-align: right; border-left: none; font-size: large;" colspan="1">
+                    <FluentIcon Id="TransitPictureId" Value="@(new Icons.Regular.Size24.Road())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" />
+            </th>
+        </tr>
+       
         <tr class="table-header-left">
             <th style="width: 130px;">Data</th>
             <th style="width: 220px;">Opis trasy</th>
