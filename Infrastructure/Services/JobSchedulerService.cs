@@ -82,5 +82,33 @@ public class JobSchedulerService : IJobSchedulerService
 
         await scheduler.Start();
     }
+
+    
+    public async Task RunJobManuallyAsync(string jobClass, string assemblyName)
+    {
+        var scheduler = await _schedulerFactory.GetScheduler();
+
+        var jobClassFullName = $"{jobClass}, {assemblyName}";
+        var jobType = Type.GetType(jobClassFullName);
+
+        if (jobType == null)
+        {
+            _logger.LogWarning($"Job type {jobClass} not found.");
+            return;
+        }
+
+        var jobKey = new JobKey(jobClass, "DEFAULT");
+        var jobDetail = await scheduler.GetJobDetail(jobKey);
+
+        if (jobDetail == null)
+        {
+            _logger.LogWarning($"Job {jobClass} not found in scheduler.");
+            return;
+        }
+
+        _logger.LogInformation($"Triggering job {jobClass} manually.");
+
+        await scheduler.TriggerJob(jobKey);
+    }
 }
 
