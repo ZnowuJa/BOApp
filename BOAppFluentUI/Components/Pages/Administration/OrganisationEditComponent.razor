@@ -57,6 +57,8 @@
                 <FluentGridItem xxl="3" xl="3">
                     <FluentTextArea Id="Desc" @bind-Value="@Content.Description" Placeholder="Enter description..." Label="Opis:"  />
                     <FluentValidationMessage For="@(() => Content.Description)" />
+                        <FluentTextArea Id="DisplId" @bind-Value="@Content.DisplayName" Placeholder="wprowadź..." Label="Nazwa wyświetlana:"  />
+                    <FluentValidationMessage For="@(() => Content.Description)" />
                 </FluentGridItem>
             </FluentGrid>
 

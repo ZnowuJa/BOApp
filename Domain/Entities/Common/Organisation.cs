@@ -6,6 +6,7 @@ public class Organisation : SmallAuditableEntity
     public string Name { get; set; }
     public string Make {  get; set; }
     public string Description { get; set; }
+    public string DisplayName { get; set; }
     public string SapNumber { get; set; }
     public string Role_SalesManager { get; set; } 
     public string Role_ServiceManager { get; set; } 

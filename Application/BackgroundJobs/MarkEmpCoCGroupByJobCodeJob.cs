@@ -58,7 +58,7 @@ public class MarkEmpCoCGroupByJobCodeJob : IJob
 
         Console.WriteLine(allEmpsList.Count());
 
-        var group41 = allEmpsList.Where(emp => ((emp.JobCode == "970" || emp.JobCode == "918") && (emp.Position.ToLower().Contains("pomoc") || emp.Position.ToLower().Contains("prace") || emp.Position.ToLower().Contains("jako") || emp.Position.ToLower().Contains("kierowca") || emp.Position.ToLower().Contains("wsparcie") || emp.Position.ToLower().Contains("mistrz")))).ToList();
+        var group41 = allEmpsList.Where(emp => ((emp.JobCode == "970" || emp.JobCode == "918" || emp.JobCode == "502") && (emp.Position.ToLower().Contains("pomoc") || emp.Position.ToLower().Contains("prace") || emp.Position.ToLower().Contains("jako") || emp.Position.ToLower().Contains("kierowca") || emp.Position.ToLower().Contains("wsparcie") || emp.Position.ToLower().Contains("mistrz")))).ToList();
         info.Add($"Group41 count: {group41.Count()}");
         foreach (var groupmember in group41)
         {

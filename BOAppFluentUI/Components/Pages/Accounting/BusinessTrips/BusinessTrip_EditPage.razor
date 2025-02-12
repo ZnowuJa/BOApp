@@ -322,7 +322,7 @@
                                             MaximumOptionsSearch="40"
                                             Placeholder="select location..."
                                             MaximumSelectedOptions="1"
-                                            OptionText="@(p => p.SapNumber + ' ' + p.Name)"
+                                            OptionText="@(p => p.SapNumber + ' ' + p.DisplayName)"
                                             @bind-SelectedOptions="@_selectedLocation"
                                             @bind-SelectedOptions:after="@HandleLocationChange"
                                             Width="180px" 
@@ -823,8 +823,10 @@
                                         </td>
                                         <td style="width: 100px !important;">
                                             <FluentSelect TOption="string"
+                                                          Disabled="@IsControlBillEditDisabled()"
                                             Items="@_billReasons"
                                             @bind-Value="@bill.Reason"
+                                                          @bind-Value:after="@(() => HandleBillReasonChange(bill))"
                                             Placeholder="Wybierz uzasadnienie..."
                                             Width="120px" />
                                             @* <FluentCombobox Disabled="@IsControlBillEditDisabled()"
@@ -837,6 +839,7 @@
                                         </td>
                                         <td>
                                             <FluentSwitch Id="billInvoiceId"
+                                                          Disabled="@(bill.Reason == "Posiłek" || bill.Reason == "Bilet" || !stroz)"
                                             @bind-Value="@bill.Invoice"
                                             @bind-Value:after="@(() => HandleBillInvoiceTitle(bill))" 
                                             />
@@ -916,26 +919,26 @@
                                         <td class="table-caption"></td>
                                         <td colspan="2">
                                             <FluentLabel>Wystawca: </FluentLabel>
-                                            <FluentTextField @bind-Value="@bill.BusinessPartner.Name" @bind-Value:after="@(() => _editContext.Validate())" />
+                                            <FluentTextField Disabled="@IsControlBillEditDisabled()" @bind-Value="@bill.BusinessPartner.Name" @bind-Value:after="@(() => _editContext.Validate())" />
                                             <FluentValidationMessage For="@(() => bill.BusinessPartner.Name)" class="validation-error" />
                                         </td>
                                         <td>
                                             <FluentLabel>Numer NIP: </FluentLabel>
-                                            <FluentTextField @bind-Value="@bill.BusinessPartner.VatId" @bind-Value:after="@(() => _editContext.Validate())" />
+                                            <FluentTextField Disabled="@IsControlBillEditDisabled()" @bind-Value="@bill.BusinessPartner.VatId" @bind-Value:after="@(() => _editContext.Validate())" />
 
                                             <FluentValidationMessage For="@(() => bill.BusinessPartner.VatId)" class="validation-error" />
                                         </td>
                                         <td colspan="2">
                                             <FluentLabel>Numer faktury: </FluentLabel>
-                                            <FluentTextField 
-                                            @bind-Value="@bill.InvoiceNumber" 
+                                        <FluentTextField Disabled="@(!(IsControlBillEditDisabled() || stks || stkstl))"
+                                                         @bind-Value="@bill.InvoiceNumber" 
                                             @bind-Value:after="@(() => _editContext.Validate())"
                                             />
                                             <FluentValidationMessage For="@(() => bill.InvoiceNumber)" class="validation-error" />
                                         </td>
                                         <td>
                                             <FluentLabel>Data wystawienia: </FluentLabel>
-                                            <FluentDatePicker Value="@(bill.InvoiceDate)"
+                                        <FluentDatePicker Disabled="@IsControlBillEditDisabled()" Value="@(bill.InvoiceDate)"
                                             ValueChanged="@(e => HandleInvoiceDateChanged(bill, e.ToDateTime()))" />
                                             <FluentValidationMessage For="@(() => bill.InvoiceDate)" class="validation-error" />
                                         </td>
@@ -1121,13 +1124,13 @@
                                             @if (formItem.TotalPayOut >= 0)
                                             {
                                                 <th>
-                                                    Łącznie do wypłaty
+                                                    Łącznie do wypłaty dla pracownika
                                                 </th>
                                             }
                                             else
                                             {
                                                 <th>
-                                                    Łącznie do zwrotu
+                                                    Łącznie do zwrotu przez pracownika
                                                 </th>
                                             }
 
@@ -1194,7 +1197,7 @@
                                                 OnOptionsSearch="@OnLocationSearch"
                                                 Placeholder="wybierz lokalizację..."
                                                 MaximumSelectedOptions="1"
-                                                OptionText="@(p => p.SapNumber + ' ' + p.Name)"
+                                                OptionText="@(p => p.SapNumber + ' ' + p.DisplayName)"
                                                 @bind-SelectedOptions="@_selectedReceiptLocation"
                                                 @bind-SelectedOptions:after="@HandleLocationReceiptChange"
                                                 Width="180px" />
@@ -1219,7 +1222,7 @@
                                             OnOptionsSearch="@OnLocationSearch"
                                             Placeholder="wybierz lokalizację..."
                                             MaximumSelectedOptions="1"
-                                            OptionText="@(p => p.SapNumber + ' ' + p.Name)"
+                                            OptionText="@(p => p.SapNumber + ' ' + p.DisplayName)"
                                             @bind-SelectedOptions="@_selectedFormCostLocation"
                                             @bind-SelectedOptions:after="@HandleFormCostLocationChange"
                                             Width="180px" />
@@ -1482,7 +1485,7 @@
 
     private List<string> PrivateVehEngSize = new(){
         "do 900 cm3",
-        "powyej 900 cm3"
+        "powyżej 900 cm3"
     };
 
     private Bill CurrentBillForUpload { get; set; } = new Bill();
@@ -1756,6 +1759,10 @@
             SelectedCountry = new List<CountryVm> { formItem.DestinationCountry };
         }
         if(!string.IsNullOrEmpty(formItem.CompanyVehicleNumber)){
+            SelectedCompanyCar = new List<string> { formItem.CompanyVehicleNumber };
+        }
+        if (formItem.PrivateVehicle)
+        {
             SelectedCompanyCar = new List<string> { formItem.CompanyVehicleNumber };
         }
         if(!string.IsNullOrEmpty(formItem.CashPoint.SapNumber)){
@@ -2032,7 +2039,7 @@
         if (e.Text != null)
         {
             e.Items = _locations.Where(a =>
-                a.Name.Contains(e.Text, StringComparison.OrdinalIgnoreCase) ||
+                a.DisplayName.Contains(e.Text, StringComparison.OrdinalIgnoreCase) ||
                 a.SapNumber.Contains(e.Text, StringComparison.OrdinalIgnoreCase)).ToList();
         }
     }
@@ -2183,6 +2190,13 @@
         } else {
             formItem.CashPointReceipt = new Location();
         }
+    }
+    private async Task HandleBillReasonChange(Bill bill)
+    {
+
+        bill.InvoiceTitle = string.Empty;
+        bill.InvoiceNumber = string.Empty;
+        bill.Invoice = false;
     }
     private async Task HandleBillInvoiceTitle(Bill bill){
         bill.InvoiceTitle = $"{formItem.Number} - {bill.Reason} - {formItem.EmployeeName}";
@@ -2935,6 +2949,17 @@
             IsPrivateCar = false;
             IsCompanyCar = false;
             IsPublicTransport = true;
+        } 
+        else {
+            IsPrivateCar = false;
+            IsCompanyCar = false;
+            IsPublicTransport = false;
+        }
+
+        //hide LocalTravels and Transit
+        if (IsPrivateCar || IsCompanyCar){
+            ShowLocalTravels = false;
+            ShowTransits = false;
         }
 
     }
@@ -3373,8 +3398,8 @@
         {
             DisableApproveButton = false;
             DisableRejectButton = false;
-            DisableSaveButton = false;
-            DisableSendButton = true;
+            DisableSaveButton = true;
+            DisableSendButton = false;
         }
         if (stzk || strozk || stzks || stzkstl || stks || stkstl || stblad)
         {
@@ -3395,30 +3420,31 @@
     private async Task SetupForm(string status)
     {
         AssignStatusBool();
+        AssignTransportation();
         ResetForm();
         // DisableForm();
-        switch (formItem.Transportation)
-        {
-            case "Samochód służbowy":
-                IsCompanyCar = true;
-                IsPrivateCar = false;
-                IsPublicTransport = false;
-                break;
-            case "Samochód prywatny":
-                IsCompanyCar = false;
-                IsPrivateCar = true;
-                IsPublicTransport = false;
-                break;
-            case "Transport publiczny":
-                IsCompanyCar = false;
-                IsPrivateCar = false;
-                IsPublicTransport = true;
-                break;
-            default:
-                Console.WriteLine("Other");
-                break;
-        }
-        if (formItem.Transportation == "Samochód służbowy") IsCompanyCar = true;
+        // switch (formItem.Transportation)
+        // {
+        //     case "Samochód służbowy":
+        //         IsCompanyCar = true;
+        //         IsPrivateCar = false;
+        //         IsPublicTransport = false;
+        //         break;
+        //     case "Samochód prywatny":
+        //         IsCompanyCar = false;
+        //         IsPrivateCar = true;
+        //         IsPublicTransport = false;
+        //         break;
+        //     case "Transport publiczny":
+        //         IsCompanyCar = false;
+        //         IsPrivateCar = false;
+        //         IsPublicTransport = true;
+        //         break;
+        //     default:
+        //         Console.WriteLine("Other");
+        //         break;
+        // }
+        // if (formItem.Transportation == "Samochód służbowy") IsCompanyCar = true;
 
         #region GoToStatus
         if (status == "Rejestracja" || stodrz) await SetupFormRejestracja();
@@ -3434,13 +3460,16 @@
         else if (strozend) await SetupFormRozliczone();
         else if (stzam) await SetupFormZamkniete();
         #endregion
-        if (Id != 0) DisableSendButton = true;
+        //DisableButtons ();
+        // if (Id != 0) DisableSendButton = true;
+
         // editControlDisabled = false;
         //Na czas testów wszystkie przyciski są włączone:
         // DisableApproveButton = false;
         // DisableRejectButton = false;
         // DisableSendButton = false;
-        if (_srcPage == "view") DisableAllControls();
+
+        if (_srcPage == "view") { DisableAllControls(); }
 
         StateHasChanged();
     }
@@ -3473,6 +3502,11 @@
         IsMileageDisabled = true;
         IsCashPayoutNumberDisabled = true;
 
+        DisableApproveButton = false;
+        DisableRejectButton = false;
+        DisableSaveButton = false;
+        DisableSendButton = true;
+
     }
     private async Task SetupFormZaliczkaKsiegowoscTL()
     {
@@ -3501,6 +3535,11 @@
         IsTransportationDisabled = true;
         IsMileageDisabled = true;
         IsCashPayoutNumberDisabled = true;
+
+        DisableApproveButton = false;
+        DisableRejectButton = false;
+        DisableSaveButton = false;
+        DisableSendButton = true;
     }
     private async Task SetupFormKsiegowoscTL()
     {
@@ -3527,10 +3566,18 @@
         IsMileageDisabled = true;
         IsCashPayoutNumberDisabled = true;
 
+        DisableApproveButton = false;
+        DisableRejectButton = false;
+        DisableSaveButton = false;
+        DisableSendButton = true;
+
     }
     private async Task SetupFormWyslaneDoRobota()
     {
-
+        DisableApproveButton = true;
+        DisableRejectButton = true;
+        DisableSaveButton = true;
+        DisableSendButton = true;
     }
     private async Task SetupFormRejestracja()
     {
@@ -3564,7 +3611,7 @@
             await RecalculateMeals();
             await RecalculateLocalTravels();
             await RecalculateTransit();
-            
+
         };
 
 
@@ -3594,7 +3641,12 @@
         IsTransportationDisabled = false;
         IsMileageDisabled = false;
         IsCashPayoutNumberDisabled = true;
+
+        DisableApproveButton = true;
+        DisableRejectButton = true;
+        DisableSaveButton = false;
         DisableSendButton = false;
+
         #endregion
         StateHasChanged();
     }
@@ -3626,6 +3678,11 @@
 
         formItem.PayoutCashier = _userContext.Employee;
         formItem.PayoutCashierEmpId = _userContext.EnovaEmpId;
+
+        DisableApproveButton = false;
+        DisableRejectButton = false;
+        DisableSaveButton = true;
+        DisableSendButton = true;
     }
     private async Task SetupFormRozliczenie()
     {
@@ -3637,7 +3694,7 @@
         ShowAccomodations = true;
         ShowMeals = true;
         ShowStages = true;
-        ShowLocalTravels = true;
+        
         ShowTransits = formItem.Stages.Count > 1;
         ShowCashier = true;
         ShowBills = true;
@@ -3656,6 +3713,11 @@
         IsTransportationDisabled = true;
         IsMileageDisabled = false;
         IsCashPayoutNumberDisabled = true;
+
+        DisableApproveButton = true;
+        DisableRejectButton = true;
+        DisableSaveButton = false;
+        DisableSendButton = false;
         #endregion
 
     }
@@ -3665,7 +3727,7 @@
         ShowAccomodations = true;
         ShowMeals = true;
         ShowStages = true;
-        ShowLocalTravels = true;
+        
         ShowTransits = formItem.Stages.Count > 1;
         ShowCashier = true;
         ShowBills = true;
@@ -3684,6 +3746,10 @@
         IsMileageDisabled = true;
         IsCashPayoutNumberDisabled = true;
 
+        DisableApproveButton = false;
+        DisableRejectButton = false;
+        DisableSaveButton = false;
+        DisableSendButton = true;
     }
     private async Task SetupFormKasaRozliczenie()
     {
@@ -3713,6 +3779,11 @@
         formItem.ReceiptCashier = _userContext.Employee;
         formItem.ReceiptCashierEmpId = _userContext.EnovaEmpId;
 
+        DisableApproveButton = false;
+        DisableRejectButton = false;
+        DisableSaveButton = true;
+        DisableSendButton = true;
+
     }
     private async Task SetupFormRozliczone()
     {
@@ -3739,6 +3810,11 @@
         IsMileageDisabled = true;
         IsCashPayoutNumberDisabled = true;
 
+        DisableApproveButton = true;
+        DisableRejectButton = true;
+        DisableSaveButton = true;
+        DisableSendButton = true;
+
     }
     private async Task SetupFormZamkniete()
     {
@@ -3763,6 +3839,11 @@
         IsTransportationDisabled = true;
         IsMileageDisabled = true;
         IsCashPayoutNumberDisabled = true;
+
+        DisableApproveButton = true;
+        DisableRejectButton = true;
+        DisableSaveButton = true;
+        DisableSendButton = true;
     }
     private async Task SetupFormAprobata(string status)
     {
@@ -3841,6 +3922,11 @@
         IsTransportationDisabled = true;
         IsMileageDisabled = true;
         IsCashPayoutNumberDisabled = true;
+
+        DisableApproveButton = false;
+        DisableRejectButton = false;
+        DisableSaveButton = false;
+        DisableSendButton = true;
     }
     #endregion
     #region SetUpEditControlsAndButtons
@@ -3870,7 +3956,7 @@
         }
         return result;
     }
-    
+
     private bool IsCashPayoutEnabled(bool? b = null) //pole do wpisania numeru KW
     {
         //kalkulacja warunków
@@ -3913,7 +3999,7 @@
         {
             result = false;
         }
-        
+
         return result;
     }
     private bool IsControlCountryDisabled(bool? b = null)
@@ -4114,7 +4200,7 @@
             return b.Value;
         }
         bool result = true;
-        if (stroz || stks || stkstl)
+        if (stroz )
         {
             result = false;
         }
@@ -4168,6 +4254,7 @@
         DisableApproveButton = true;
         DisableRejectButton = true;
         DisableSendButton = true;
+        DisableSaveButton = true;
     }
     #endregion
     private void HandleValidSubmit(EditContext arg)
