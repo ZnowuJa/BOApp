@@ -25,6 +25,7 @@ public class BillValidator : AbstractValidator<Bill>
         When(b => b.Invoice, () =>
         {
             RuleFor(b => b.InvoiceDate).NotEmpty().WithMessage("Uzupełnij datę wystawienia faktury!");
+
             RuleFor(b => b.InvoiceNumber).NotEmpty().WithMessage("Wprowadź numer faktury!");
             RuleFor(b => b.BusinessPartner.Name).NotEmpty().WithMessage("Wprowadź nazwę wystawcy faktury!");
             RuleFor(b => b.BusinessPartner.VatId)
