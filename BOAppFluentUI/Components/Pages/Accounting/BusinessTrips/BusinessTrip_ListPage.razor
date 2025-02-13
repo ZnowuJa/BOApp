@@ -88,11 +88,13 @@
 @*         <FluentButton Id="@viewId" IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" Disabled="@viewDisabled" />
         <FluentTooltip Anchor="@viewId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Left Delay=50>View form</FluentTooltip> *@
 
-        <FluentButton Id="@editId" IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => Edit(context))" Disabled="false" />
-        @* <FluentButton Id="@editId" IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => Edit(context))" Disabled="@Utils.IsAccEditDisabled(context, _userContext)" /> *@
+        @* <FluentButton Id="@editId" IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => Edit(context))" Disabled="false" /> *@
+        <FluentButton Id="@editId" IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => Edit(context))" Disabled="@Utils.IsAccEditDisabled(context, _userContext)" />
         @*WARNING it is not tested if isEditDisabled works*@
         <FluentTooltip Anchor="@editId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Edit form</FluentTooltip>
-
+        <FluentButton Id="@viewId" IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" Disabled="false" />
+        @*WARNING it is not tested if isEditDisabled works*@
+        <FluentTooltip Anchor="@viewId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>View form</FluentTooltip>
         <FluentButton Id="@deleteId" IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" Disabled="@actionsDisabled" />
         <FluentTooltip Anchor="@deleteId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Delete form</FluentTooltip>
 
@@ -170,7 +172,32 @@
         };
 
     }
+    /*
+     * 	stal1 = formItem.Status == "AprobataL1";
+        stzk = formItem.Status == "ZaliczkaKasa";
+        stzks = formItem.Status == "ZaliczkaKsiegowosc";
+        stzkstl = formItem.Status == "ZaliczkaKsiegowoscTL";
+        stroz = formItem.Status == "Rozliczenie";
+    stodrz = formItem.Status == "Odrzucone";
+        stks = formItem.Status == "Ksiegowosc";
+        stkstl = formItem.Status == "KsiegowoscTL";
+        stal11 = formItem.Status == "AprobataL11";
+        stal12 = formItem.Status == "AprobataL12";
+        strozk = formItem.Status == "KasaRozliczenie";
+        stwys = formItem.Status == "WyslaneDoRobota";
+    stblad = formItem.Status == "BladRobota";Lokoparma34$
+        strozend = formItem.Status == "Rozliczone";
+        stzam = formItem.Status == "Zamkniete";
 
+
+    Level1Approvers // przełożony etapy: AprobataL1, AprobataL11
+        Level2Approvers // Kasa etapy: ZaliczkaKasa, RozliczenieKasa
+        Level3Approvers // Księgowość etapy: ZaliczkaKsiegowosc, Ksiegowosc
+        Level4Approvers // Księgowość TeamLeader etapy: ZaliczkaKsiegowoscTL, KsiegowoscTL
+        Level5Approvers // drugi przełożony etapy: AprobataL12
+        Level6Approvers // Na razie nie wykorzystywany
+     *
+     */
 
     private async Task<IQueryable<BusinessTravelFormVm>> HandleSavedCase()
     {
@@ -195,21 +222,15 @@
     {
         _navigationManager.NavigateTo($"/delegacja/{item.Id}?srcPage={role}");
     }
+    private async Task View(BusinessTravelFormVm item = null)
+    {
+        _navigationManager.NavigateTo($"/delegacja/{item.Id}?srcPage=view");
+    }
     private async Task Delete(BusinessTravelFormVm item = null)
     {
 
     }
-    // private async Task View(BusinessTravelFormVm item = null)
-    // {
-    //     var dialog = await _dialogService.ShowPanelAsync<DeferralPaymentViewComponent>(item, new DialogParameters()
-    //         {
-    //             Height = "240px",
-    //             Width = "720px",
-    //             Title = item.Id > 0 ? "Wniosoek o delegację" : "Utwórz nową delegację",
-    //             PreventDismissOnOverlayClick = false,
-    //             PreventScroll = true,
-    //         });
-    // }
+
     private async Task DownloadCsv()
     {
         var selectedItems = @Utils.ApplyFilters(items, filterColumns);

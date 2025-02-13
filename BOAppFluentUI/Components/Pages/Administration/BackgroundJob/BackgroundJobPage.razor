@@ -37,6 +37,7 @@ else
         <TemplateColumn Title="Actions" Align="Align.End">
             <FluentButton IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => EditItem(context))" />
             <FluentButton IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" />
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.PersonRunning())" OnClick="@(() => Run(context))" />
         </TemplateColumn>
 
     </FluentDataGrid>
@@ -100,6 +101,29 @@ else
         }
 
         _toastService.ShowToast(intent, message, 3000);
+        await Load();
+    }
+    private async Task Run(BackgroundJobVm item)
+    {
+        var dialog = await _dialogService.ShowConfirmationAsync(
+                $"Czy na pewno chcesz uruchomić teraz: {item.JobClass}?",
+                "Uruchom",
+                "Anuluj",
+                "Potwierdź usunięcie");
+        var result = await dialog.Result;
+        deleteConfirm = result.Cancelled;
+     
+        string message = string.Empty;
+
+        if (deleteConfirm)
+        {
+            
+        }
+        else
+        {
+            await _jobSchedulerService.RunJobManuallyAsync(item.JobClass, item.AssemblyName);
+        }
+
         await Load();
     }
     private async Task EditItem(BackgroundJobVm item)

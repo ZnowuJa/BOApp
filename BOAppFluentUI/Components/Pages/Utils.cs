@@ -154,13 +154,17 @@ public static class Utils
     {
         var roles = _userContext.Employee.Roles.ToList();
         string typeName = typeof(T).Name;
+        if (_userContext.isFormAdmin)
+        {
+            return false;
+        }
         if (_userContext.Employee.Roles.Contains(_userContext.AdminRole))
         {
             _userContext.isFormAdmin = true;
             return false;
         }
 
-        if (context.Status == "Rejestracja")
+        if ((context.Status == "Rejestracja") || (context.Status == "Rozliczenie"))
         {
             var test = context.EnovaEmpId == _userContext.EnovaEmpId.ToString();
             Console.WriteLine(test);
@@ -181,6 +185,8 @@ public static class Utils
             return !(context.Level2Approvers.Any(approver => approver.EmpId.ToString() == _userContext.EnovaEmpId));
 
         }
+
+
 
         return true;
     }
