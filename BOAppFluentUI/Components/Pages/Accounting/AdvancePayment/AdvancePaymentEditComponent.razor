@@ -14,11 +14,17 @@
 @inject IMediator _mediator
 @inject IToastService _toastService
 @inject IDialogService _dialogService
+@inject NavigationManager _navigationManager
 @inject AuthenticationStateProvider _authenticationStateProvider
 
-<h3>Zaliczka - Rejestracja wniosku</h3>
-
+@if (isLoading)
+{
+    <FluentProgressRing />
+}else     
+    {
+        if(showForm){
 <EditForm EditContext="_editContext" OnValidSubmit="HandleValidSubmit">
+    <h3>@Title</h3>
     <table class="table-container">
         <thead>
             <tr class="table-caption">
@@ -61,10 +67,14 @@
                     Warszawa HQ IT
                 </td>
                 <td>
-                    <FluentTextField />
+                    <FluentTextField TOption="string"
+                                  Placeholder="Wpisz cel zaliczki..."
+                                  @bind-Value="@formItem.Objective" />
                 </td>
                 <td>
-                    <FluentNumberField TValue="double" />
+                    <FluentNumberField @bind-Value:get="@formItem.AdvancePaymentAmount"
+                                       @bind-Value:set="@(value => formItem.AdvancePaymentAmount = value)"
+                                       Style="width: 100px" />
                 </td>
             </tr>
         </tbody>
@@ -83,6 +93,24 @@
                                   OptionSelected="@(a => a.Selected)"
                                   @bind-Value="@AdvancePaymentCashString" />
                 </td>
+                @if (!formItem.AdvancePaymentCash)
+                {
+                <td class="table-caption" style="width: 170px">
+                    Kasa:
+                </td>
+                <td style="text-align: left;" colspan="5">
+                     <FluentAutocomplete TOption="Location"
+                                            SelectValueOnTab="true"
+                                            AutoComplete="on"
+                                            OnOptionsSearch="@OnLocationSearch"
+                                            Placeholder="Wybierz kase..."
+                                            MaximumSelectedOptions="1"
+                                            OptionText="@(p => p.SapNumber + ' ' + p.Name)"
+                                            @bind-SelectedOptions="@_selectedLocation"
+                                            @bind-SelectedOptions:after="@HandleLocationChange"
+                                            Width="180px" />
+                </td>
+                }
             </tr>
             @if (formItem.AdvancePaymentCash)
             {
@@ -97,7 +125,9 @@
                         Numer konta bankowego:
                     </td>
                     <td>
-                        @formItem.AccountNumber
+                        <FluentTextField Placeholder="wprowadź numer konta"
+                                         @bind-Value="@formItem.BankAccountNumber"
+                                         Style="width: 250px;" />
                         @*
                     <FluentTextField @bind-Value="iban"
                     Placeholder="Wpisz IBAN"
@@ -119,44 +149,78 @@
     {
         <BankTransferMappingEditComponent BTItem="@formItem.BTMappingAdvancePayment" CostCenters="@_costCenters" GLAccounts="@_glAccounts" FormStatus="@formItem.Status" UserContext="@_userContext" />
     }
+    @*Cashier Advance Payment*@
+    @if (strozk)
+    {
+        <table class="table-container">
+            <tbody>
+                <tr>
+                    <td class="table-caption">
+                        Wypłata zaliczki
+                    </td>
+                    <td class="table-caption">
+                        Kasjerka:
+                    </td>
+                    <td style="text-align: left;">
+                        <FluentTextField Disabled="true"
+                                         @bind-Value="@formItem.PayoutCashier.LongName" />
+                    </td>
+                    <td class="table-caption">
+                        Dokument AS:
+                    </td>
+                    <td style="text-align: left;">
+                        <FluentTextField @bind-Value="@formItem.CashPayoutNumber"
+                                         Style="width: auto;" />
+                        <FluentValidationMessage For="@(() => formItem.CashPayoutNumber)" class="validation-error" />
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    }
     <hr />
     @if (strej || stks || stkstl || strozk)
     {
-        <h5>Aprobujący:</h5>
-        @if (strej)
-        {
-            <p>AprobataL1</p>
-            <FluentSelect TOption="OrganisationRoleForFormVm"
-                          Id="AL1Id"
-                          Autofocus="true"
-                          Items="@formItem.Level1Approvers"
-                          Multiple="false"
-                          OptionValue="@(p => p.EmpId.ToString())"
-                          OptionText="@(p => p.LongName)"
-                          OptionSelected="@(p => p.IsDefault)"
-                          @bind-SelectedOption="@approverL1"
-                          Height="200px"
-                          Style="margin-bottom: 20px;"
-                          @onchange="HandleChangeApproverL1" />
+        <div>
+            <table class="table-container" style="width: 100%; max-width: 400px;">
+                <tr style="height: 40px;">
+                    <td class="table-caption">
+                        Aprobujący:
+                    </td>
+                    <td>
+                        @if (strej)
+                        {
+                            <FluentSelect TOption="OrganisationRoleForFormVm"
+                                          Id="AL1Id"
+                                          Autofocus="true"
+                                          Items="@formItem.Level1Approvers"
+                                          Multiple="false"
+                                          OptionValue="@(p => p.EmpId.ToString())"
+                                          OptionText="@(p => p.LongName)"
+                                          OptionSelected="@(p => p.IsDefault)"
+                                          @bind-SelectedOption="@approverL1"
+                                          Height="200px"
+                                          @onchange="HandleChangeApproverL1" />
+                        }
 
-        }
-
-        @if (formItem.AdvancePaymentCash)
-        {
-            <p>AprobataL2</p>
-            <FluentSelect TOption="OrganisationRoleForFormVm"
-                          Id="AL2Id"
-                          Autofocus="true"
-                          Items="@formItem.Level2Approvers"
-                          Multiple="false"
-                          OptionValue="@(p => p.EmpId.ToString())"
-                          OptionText="@(p => p.LongName)"
-                          OptionSelected="@(p => p.IsDefault)"
-                          @bind-SelectedOption="@approverL2"
-                          Height="200px"
-                          Style="margin-bottom: 20px;"
-                          @onchange="HandleChangeApproverL2" />
-        }
+                        @if (formItem.AdvancePaymentCash)
+                        {
+                            <p></p>
+                            <FluentSelect TOption="OrganisationRoleForFormVm"
+                                          Id="AL2Id"
+                                          Autofocus="true"
+                                          Items="@formItem.Level2Approvers"
+                                          Multiple="false"
+                                          OptionValue="@(p => p.EmpId.ToString())"
+                                          OptionText="@(p => p.LongName)"
+                                          OptionSelected="@(p => p.IsDefault)"
+                                          @bind-SelectedOption="@approverL2"
+                                          Height="200px"
+                                          @onchange="HandleChangeApproverL2" />
+                        }
+                    </td>
+                </tr>
+            </table>
+        </div>
     }
     <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
                   Appearance="Appearance.Accent"
@@ -199,27 +263,22 @@
     </FluentButton>
 
 </EditForm>
+        }
+    }
 @code {
-    private AdvancePaymentVm formItem = new AdvancePaymentVm();
+    private string _srcPage;
     private EditContext _editContext;
-    private OrganisationVm _organisation { get; set; }
-    //private OrganisationRoleForFormVm approverL1 { get; set; }
-    private IQueryable<EmployeeVm> _employees { get; set; }
-    private IEnumerable<EmployeeVm> SelectedEmpl { get; set; }
-    private IEnumerable<CostCenterVm> _costCenters { get; set; }
-    private IEnumerable<GLAccountVm> _glAccounts { get; set; }
-    private IEnumerable<Location> _locations { get; set; } = new List<Location>().AsQueryable();
+    private FluentValidationValidator? _fluentValidationValidator; //TODO
+    private bool isLoading { get; set; } = true; // TODO
+    private bool userAllowed { get; set; } = false; // TODO
+
+    private AdvancePaymentVm formItem = new AdvancePaymentVm();
     private FormUserContext _userContext = new FormUserContext("Accountant", "Technician");
-
-    private bool IsCashPayment { get; set; } = false;
-    private bool IsBankTransfer { get; set; } = false;
-
-    private OrganisationRoleForFormVm approverL1 { get; set; }
-    private OrganisationRoleForFormVm approverL2 { get; set; }
-
-
-    private List<string> allowedEmp { get; set; } = new List<string>();
-    private List<string> allowedEditor { get; set; } = new List<string>();
+    private OrganisationRoleForFormVm approverL1 { get; set; } //Mangager user
+    private OrganisationRoleForFormVm approverL2 { get; set; } //Manager managager
+    private OrganisationRoleForFormVm approverL3 { get; set; } //Ksiegowa - TODO
+    private OrganisationRoleForFormVm approverL4 { get; set; } //Ksiegowa TeamLeader - TODO
+    private OrganisationRoleForFormVm approverL5 { get; set; } //Kasa - TODO
 
     private bool strej = false;
     private bool stal1 = false;
@@ -228,28 +287,74 @@
     private bool stwys = false;
     private bool stkstl = false;
     private bool strozk = false;
-    private bool stodrz = false;
     private bool stzam = false;
+    private bool stodrz = false;
 
-    private bool DisableApproveButton = true;
+    private bool DisableApproveButton = true; //TODO
+    private bool DisableSendButton = true; //TODO
+    private OrganisationVm _organisation { get; set; }
+    private int buttonSpacer = 100;
+    private string Title { get; set; } = string.Empty;
+
+    private IQueryable<EmployeeVm> _employees { get; set; }
+    private IEnumerable<EmployeeVm> SelectedEmpl { get; set; }
+    private IQueryable<string> _Statuses = Enum.GetValues(typeof(AdvancePaymentStatuses))
+    .Cast<AdvancePaymentStatuses>().Select(c => c.ToString()).AsQueryable();
+
+    private IEnumerable<CostCenterVm> _costCenters { get; set; }
+    private IEnumerable<GLAccountVm> _glAccounts { get; set; }
+    private IEnumerable<Location> _locations { get; set; } = new List<Location>().AsQueryable();
+    private IEnumerable<Location> _selectedLocation = Array.Empty<Location>();
+
+    private bool IsCashPayment { get; set; } = false;
+    private bool IsBankTransfer { get; set; } = false;
+
+    private bool showForm { get; set; } = false;
+
+
+    private List<string> allowedEmp { get; set; } = new List<string>();
+    private List<string> allowedEditor { get; set; } = new List<string>();
+
+
+
+
+
     private bool DisableRejectButton = true;
 
-    private int buttonSpacer = 100;
 
-    private IQueryable<string> _Statuses = Enum.GetValues(typeof(AdvanceStatuses))
-    .Cast<AdvanceStatuses>().Select(c => c.ToString()).AsQueryable();
+
+
 
     private ApprovalVm approvalInfo { get; set; }
 
+    private void SetSrcPage()
+    {
+        var uri = new Uri(_navigationManager.Uri);
+        var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+
+        if (query.TryGetValue("srcPage", out var sourcePageValue))
+        {
+
+            if (sourcePageValue == "kierownikL1" || sourcePageValue == "managerL1" || sourcePageValue == "kierownikL11" || sourcePageValue == "managerL11" || sourcePageValue == "kierownikL12" || sourcePageValue == "managerL12" || sourcePageValue == "pracownik" || sourcePageValue == "employee" || sourcePageValue == "kasjer" || sourcePageValue == "cashier" || sourcePageValue == "ksiegowe" || sourcePageValue == "accountants")
+            {
+                _srcPage = sourcePageValue; // Valid sourcePage is set
+            }
+            else
+            {
+                return;
+            }
+        }
+        else
+        {
+            _srcPage = "pracownik";
+            return;
+        }
+    }
+
     public string AdvancePaymentCashString
     {
-        get => formItem.AdvancePaymentCash ? (formItem.AdvancePaymentCash ? "1" : "0") : null;
-        set => formItem.AdvancePaymentCash = value switch
-        {
-            "1" => true,
-            "0" => false,
-            _ => false
-        };
+        get => formItem.AdvancePaymentCash ? "1" : "0";
+        set => formItem.AdvancePaymentCash = value == "1";
     }
 
     // private string iban;
@@ -315,7 +420,23 @@
                 PreventScroll = true,
             });
         var result = await dialog.Result;
-        formItem.Status = "Odrzucone";
+
+        if (!result.Cancelled && (result.Data != null || (string)result.Data != string.Empty))
+        {
+            approvalInfo.IsApproved = false;
+            formItem.Approvals.Add(approvalInfo);
+            formItem.RejectReason = (string)result.Data;
+            formItem.Status = "Odrzucone";
+            //await _mediator.Send(new Update(formItem));
+            var message = $"Formularz został wysłany do {formItem.EmployeeName} w celu poprawienia.";
+            var intent = ToastIntent.Success;
+            _toastService.ShowToast(intent, message, 3000);
+            _navigationManager.NavigateTo($"/delegacje/{_srcPage}");
+        }
+        else
+        {
+            return;
+        }
     }
 
     private async Task ApproveForm()
@@ -324,6 +445,7 @@
         {
             formItem.Approvals.Add(approvalInfo);
             formItem.Status = GetNextStatus(formItem);
+            //await _mediator.Send(new Update(formItem));
             var message = $"Zaliczka została zatwierdzona!";
             var intent = ToastIntent.Success;
             _toastService.ShowToast(intent, message, 3000);
@@ -334,8 +456,8 @@
     {
         if (_editContext.Validate())
         {
-            //isLoading = true;
-            //showForm = false;
+            isLoading = true;
+            showForm = false;
             formItem.Approvals.Add(approvalInfo);
             formItem.Status = GetNextStatus(formItem);
             AssignStatusBool();
@@ -386,50 +508,39 @@
         {
             newStatus = "Zakonczone";
         }
-        else if(formItem.Status == "Odrzucone")
+        else if (formItem.Status == "Odrzucone")
         {
             newStatus = "Odrzucone";
         }
         return newStatus;
     }
 
-
-    // else if (formItem.Status == "ZaliczkaKsiegowosc")
-    // {
-    //     newStatus = "ZaliczkaKsiegowoscTL";
-    // }
-    // else if (formItem.Status == "Rozliczenie")
-    // {
-    //     newStatus = "Ksiegowosc";
-    // }
-    // else if (formItem.Status == "Ksiegowosc")
-    // {
-    //     newStatus = "KsiegowoscTL";
-    // }
-    // else if (formItem.Status == "KsiegowoscTL")
-    // {
-    //     newStatus = "AprobataL11";
-    // }
-    // else if (formItem.Status == "AprobataL11")
-    // {
-    //     newStatus = "AprobataL12";
-    // }
-    // else if (formItem.Status == "AprobataL12")
-    // {
-    //     if (!formItem.ReceiptPaymentCash)
-    //     {
-    //         newStatus = "KasaRozliczenie";
-    //     }
-    //     else
-    //     {
-    //         newStatus = "WyslaneDoRobota";
-    //     }
-    // }
+    #region OnSearch
+    private void OnLocationSearch(OptionsSearchEventArgs<Location> e)
+    {
+        if (e.Text != null)
+        {
+            e.Items = _locations.Where(a =>
+                a.Name.Contains(e.Text, StringComparison.OrdinalIgnoreCase) ||
+                a.SapNumber.Contains(e.Text, StringComparison.OrdinalIgnoreCase)).ToList();
+        }
+    }
+    #endregion
 
     private void HandleStatusChange()
     {
-        SetupForm(formItem.Status);
         AssignStatusBool();
+        SetupForm(formItem.Status);
+    }
+
+    private async Task HandleLocationChange()
+    {
+        formItem.CashPoint = _selectedLocation.FirstOrDefault();
+        var tempOrg = await _mediator.Send(new GetOrganisationByEmpSapNumberQuery(formItem.CashPoint.SapNumber));
+        if(tempOrg != null){
+            formItem.Level2Approvers = SetApprovers(tempOrg.Role_Cashiers);
+        }
+        
     }
 
     private void AssignStatusBool()
@@ -451,6 +562,7 @@
         formItem.LVL1_EnovaEmpId = tempEmp.EnovaEmpId.ToString();
         formItem.LVL1_EmployeeName = tempEmp.LongName;
     }
+
     private async Task HandleChangeApproverL2(ChangeEventArgs e)
     {
         var tempEmp = _employees.First(p => p.EnovaEmpId == int.Parse(e.Value.ToString()));
@@ -467,6 +579,9 @@
 
     protected override async Task OnInitializedAsync()
     {
+        showForm = false;
+        isLoading = false;
+
         _editContext = new EditContext(formItem);
         await Utils.GetUserName(_authenticationStateProvider, _userContext, _mediator);
         await GetAllowedPersons();
@@ -477,7 +592,7 @@
         _locations = await _mediator.Send(new GetLocationsQuery());
         formItem.OrganisationSapNumber = _organisation.SapNumber;
         formItem.EmployeeName = _userContext.LongName;
-        formItem.AccountNumber = _userContext.Employee.BankAccountNumber;
+        formItem.BankAccountNumber = _userContext.Employee.BankAccountNumber;
         //AssignStatusBool();
 
         ApprovalVm approval = new ApprovalVm()
@@ -498,19 +613,59 @@
         AssignStatusBool();
         if (status == "Rejestracja") await SetupFormRejestracja();
         else if (stal1 || stal2) await SetupFormAprobata(status);
+        else if (stks) await SetupFormKsiegowosc();
+        else if (stkstl) await SetupFormKsiegowoscTL();
+        else if (stwys) await SetupFormWyslaneDoRobota();
+        else if (strozk) await SetupFormKasa();
+        else if (stzam) await SetupFormZamkniete();
 
         DisableApproveButton = false;
+        StateHasChanged();
+    }
+
+    private async Task SetupFormKasa()
+    {
+        Title = "Wniosek o zaliczkę - Kasa";
+        formItem.PayoutCashier = _userContext.Employee;
+        formItem.PayoutCashierEmpId = _userContext.EnovaEmpId;
+    }
+
+    private async Task SetupFormZamkniete()
+    {
+        Title = "Wniosek o zaliczkę - Zamknięte";
+    }
+
+    private async Task SetupFormWyslaneDoRobota()
+    {
+        Title = "Wniosek o zaliczkę - WyslaneDoRobota";
+    }
+
+    private async Task SetupFormKsiegowosc()
+    {
+        Title = "Wniosek o zaliczkę - Księgowość";
+        formItem.BTMappingAdvancePayment.BankTrasferTitle = $"ZAL {formItem.Number} {formItem.EmployeeName}";
+    }
+
+    private async Task SetupFormKsiegowoscTL()
+    {
+        Title = "Wniosek o zaliczkę - Księgowość TeamLeader";
     }
 
     private async Task SetupFormAprobata(string status)
     {
-        if (status == "AprobataL1" || status == "AprobataL2")
+        if (status == "AprobataL1")
         {
-
+            Title = "Wniosek o zaliczkę - AprobataL1";
+        }
+        else if (status == "AprobataL2")
+        {
+            Title = "Wniosek o zaliczkę - AprobataL2";
         }
     }
+
     private async Task SetupFormRejestracja()
     {
+        Title = "Wniosek o zaliczkę - Rejestracja";
         await AssignAllApprovers(_userContext.Employee);
     }
 
@@ -528,6 +683,9 @@
             allowedEmp.Add(formItem.LVL2_EnovaEmpId);
             //allowedEmp.AddRange(formItem.Level2Approvers.Select(l => l.EmpId.ToString()));//this is Settlement Department
         }
+        showForm = allowedEmp.Contains(_userContext.EnovaEmpId);
+        isLoading = false;
+        StateHasChanged();
     }
 
     private async Task AssignAllApprovers(EmployeeVm emp)
@@ -576,6 +734,7 @@
     {
         throw new NotImplementedException();
     }
+
 }
 
 <style>
@@ -696,21 +855,7 @@
             padding-left: 0; /* Removes padding on the left of the first cell */
         }
 
-    tr:first-child .od-column {
-        border-top-left-radius: 10px;
-    }
-
-    tr:first-child .do-column {
-        border-top-right-radius: 10px;
-    }
-
-    tr:last-child .od-column {
-        border-bottom-left-radius: 10px;
-    }
-
-    tr:last-child .do-column {
-        border-bottom-right-radius: 10px;
-    }
+   
 
     .info-table {
         width: 650px;
@@ -744,7 +889,16 @@
         color: red;
         margin-top: 5px;
         margin-bottom: 5px;
+        white-space: normal; /* Allow wrapping */
+        word-wrap: break-word; /* Ensure long words break */
+        display: block; /* Ensure it takes full width */
     }
+
+        .validation-error::before {
+            font-size: 1.5em; /* Adjust size as needed */
+            margin-right: 5px; /* Space between icon and text */
+            vertical-align: middle; /* Align properly */
+        }
 
     .fluent-table {
         border-collapse: collapse;
@@ -812,16 +966,18 @@
         bottom: 0;
         width: 100%;
     }
-
-    .emptytemp {
+    .emptytemp{
+        margin-top: 20 px;
     }
 
     .disabled {
-        color: black !important;
         opacity: 1 !important;
     }
 
     fluent-select[disabled] {
+        --disabled-opacity: 0.9 !important;
+    }
+    fluent-combobox[disabled] {
         --disabled-opacity: 1 !important;
     }
 
@@ -896,7 +1052,7 @@
     }
 
     .table-header-right {
-        background-color: color-mix(in srgb, white 40%, var(--accent-fill-rest) 60%);
+        background-color: color-mix(in srgb, white 15%, var(--accent-fill-rest) 60%);
     }
 
     .table-caption {
@@ -911,4 +1067,133 @@
         border-bottom: none; /* Remove bottom border for seamless look with the table */
     }
 
+
+</style>
+<style>
+    .BillTable-container {
+        max-height: 60px;
+        width: 100%;
+        max-width: 1000px;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-family: Arial, sans-serif;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        overflow: visible; /* Prevent content overflow */
+        table-layout: fixed; /* Ensures width enforcement */
+    }
+
+        .BillTable-container th,
+        .BillTable-container td {
+            max-height: 60px;
+            padding: 8px;
+            font-size: 12px;
+            border: 1px solid #ddd;
+            white-space: nowrap;
+            position: relative;
+            overflow: visible; /* Prevents width overflow */
+            text-overflow: ellipsis; /* Adds "..." for long text */
+        }
+
+        .BillTable-container thead tr:first-child th {
+            color: white;
+            font-weight: bold;
+            text-align: center;
+            padding: 8px;
+        }
+
+        .BillTable-container th:nth-child(2),
+        .BillTable-container th:nth-child(3),
+        .BillTable-container th:nth-child(4),
+        .BillTable-container th:nth-child(6),
+        .BillTable-container td:nth-child(2),
+        .BillTable-container td:nth-child(3),
+        .BillTable-container td:nth-child(4),
+        .BillTable-container td:nth-child(6) {
+            width: 120px; /* Enforce fixed column widths */
+        }
+
+    .BillTable-header-left {
+        background-color: var(--accent-fill-rest);
+    }
+
+    .BillTable-header-right {
+        background-color: color-mix(in srgb, white 40%, var(--accent-fill-rest) 60%);
+    }
+
+    @* .fluent-select-dropdown {
+        
+     *@}
+
+</style>
+<style>
+    .tableBT-wrapper {
+        display: table;
+        width: 100%;
+    }
+
+    .tableBT-container {
+        width: 100%;
+        max-width: 500px;
+        border-collapse: collapse; /* Ensure no space between tables */
+        font-family: Arial, sans-serif;
+    }
+
+        .tableBT-container thead tr:first-child th {
+
+            font-weight: bold;
+            text-align: center;
+            padding: 8px;
+        }
+
+        .tableBT-container th, .tableBT-container td {
+            padding: 8px;
+            font-size: 14px;
+            border: 1px solid #ddd;
+            white-space: nowrap; /* Prevent line breaks */
+            overflow: hidden; /* Prevent content from spilling out */
+            text-overflow: ellipsis; /* Add "..." for overflowing text */
+            align-items: center; /* Vertically center content */
+            justify-content: space-between; /* Push text and icon to the edges */
+        }
+
+    .tableBT-header-left {
+        background-color: var(--accent-fill-rest);
+    }
+
+    .tableBT-container td {
+        border-top: none; /* Remove border between tables */
+    }
+
+    .tableBT-fullwidth {
+        width: 100%; /* Allow the table to stretch within the parent container */
+        max-width: 500px; /* Match the max-width of the first two tables */
+        margin: 0 auto; /* Center the table horizontally within the parent */
+        table-layout: auto; /* Allow columns to adjust based on content */
+    }
+
+        .tableBT-fullwidth th,
+        .tableBT-fullwidth td {
+            white-space: nowrap; /* Keep content in a single line */
+            overflow: hidden; /* Prevent content overflow */
+            text-overflow: ellipsis; /* Truncate with "..." if content exceeds width */
+            padding: 8px; /* Standard padding */
+            text-align: center; /* Center-align text */
+        }
+</style>
+<style>
+    .validation-errors-list {
+        margin: 0;
+        padding-left: 20px; /* Indent the sub-list */
+    }
+
+        .validation-errors-list li {
+            margin-bottom: 5px; /* Adjust spacing between lines */
+            line-height: 1.2; /* Adjust line height for compactness */
+        }
+
+            .validation-errors-list li ul {
+                margin-top: 2px; /* Reduce space before nested lists */
+                padding-left: 15px; /* Indent nested lists */
+            }
 </style>

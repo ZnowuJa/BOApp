@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Application.Forms.Accounting.Enums
 {
-    public enum AdvanceStatuses
+    public enum AdvancePaymentStatuses
     {
         Rejestracja, //user or just employee
         AprobataL1, // manager of user
@@ -15,7 +15,7 @@ namespace Application.Forms.Accounting.Enums
         WyslaneDoRobota, // BOT
         KsiegowoscTL, // Accountants TLs
         Kasa, // Cashier
-        Zakonczone, //
+        Zamkniete, //
         Odrzucone, // 
     }
 }

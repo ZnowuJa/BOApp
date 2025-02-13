@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace Application.Forms.Accounting
@@ -25,31 +26,48 @@ namespace Application.Forms.Accounting
         public int WorkflowTemplateId { get; set; }
         #endregion
 
-        public string EmployeeName { get; set; } = string.Empty;
-        public string EnovaEmpId { get; set; } = string.Empty;
-        public string Branch { get; set; }
-        public string Purpose { get; set; }
-        public decimal Amount { get; set; }
+        public string Objective { get; set; } = string.Empty;
+        public decimal? AdvancePaymentAmount { get; set; } = 0;
+        public string? AdvancePaymentCurrency { get; set; } = "PLN";
         public bool AdvancePaymentCash { get; set; } = false;
-        public string ApprovalL1 { get; set; }
-        public string ApprovalL2 { get; set; }
-        //public string RecipientName { get; set; }
-        public string AccountNumber { get; set; }
+        public string BankAccountNumber { get; set; } = string.Empty;
+
+        public DateOnly? AdvancePaymentDate { get; set; } = DateOnly.FromDateTime(DateTime.Now);
+        public string? CashPayoutNumber { get; set; } = string.Empty;
+        public string? PayoutCashierEmpId { get; set; } = string.Empty;
+        [JsonIgnore] public EmployeeVm? PayoutCashier { get; set; } = new();
 
         #region ApproversDetails
         public string? OrganisationSapNumber { get; set; } = string.Empty;
+        public string EmployeeName { get; set; } = string.Empty;
+        public string EnovaEmpId { get; set; } = string.Empty;
+        public CostCenterVm FormCostCenter { get; set; } = new CostCenterVm();
+        public Application.ViewModels.General.Location FormCostLocation { get; set; } = new();
         public List<ApprovalVm>? Approvals { get; set; } = new();
-        public List<OrganisationRoleForFormVm> Level1Approvers { get; set; } = new(); // przełożony etapy: AprobataL1, AprobataL11
-        public List<OrganisationRoleForFormVm> Level2Approvers { get; set; } = new(); // przełożony etapy: AprobataL1, AprobataL11
 
+        public List<OrganisationRoleForFormVm> Level1Approvers { get; set; } = new(); // przełożony użytkownika
+        public List<OrganisationRoleForFormVm> Level2Approvers { get; set; } = new(); // przełożony przełożonego
+        public List<OrganisationRoleForFormVm> Level3Approvers { get; set; } = new(); // Księgowość
+        public List<OrganisationRoleForFormVm> Level4Approvers { get; set; } = new(); // Księgowość TeamLeader
+        public List<OrganisationRoleForFormVm> Level5Approvers { get; set; } = new(); // kasa
 
         public string LVL1_EnovaEmpId { get; set; } = string.Empty;
-        public string LVL1_EmployeeName { get; set; } = string.Empty; // manager of user
+        public string LVL1_EmployeeName { get; set; } = string.Empty;
         public string LVL2_EnovaEmpId { get; set; } = string.Empty;
-        public string LVL2_EmployeeName { get; set; } = string.Empty; // manager of user
+        public string LVL2_EmployeeName { get; set; } = string.Empty;
+        public string LVL3_EnovaEmpId { get; set; } = string.Empty;
+        public string LVL3_EmployeeName { get; set; } = string.Empty; 
+        public string LVL4_EnovaEmpId { get; set; } = string.Empty;
+        public string LVL4_EmployeeName { get; set; } = string.Empty;
+        public string LVL5_EnovaEmpId { get; set; } = string.Empty;
+        public string LVL5_EmployeeName { get; set; } = string.Empty;
+
+        public string? RejectReason { get; set; } = string.Empty;
         #endregion
 
         public BankTransferMapping? BTMappingAdvancePayment { get; set; } = new();
         public BankTransferMapping? BTMappingPayout { get; set; } = new();
+
+        public Application.ViewModels.General.Location CashPoint { get; set; } = new();
     }
 }
