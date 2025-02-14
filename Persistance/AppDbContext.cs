@@ -66,8 +66,7 @@ public class AppDbContext : IdentityDbContext<AppUser>, IAppDbContext
     public DbSet<CompanyCarRegistrationNumber> CompanyCarRegistrationNumbers { get ; set; }
     public DbSet<NbpCurrencyRate> NbpCurrencyRates {  get; set; }
     public DbSet<BusinessTravelForm> BusinessTravels { get; set; }
-
-
+    public DbSet<AdvancePaymentForm> AdvancePayments { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
