@@ -1,4 +1,6 @@
-﻿@page "/zaliczki"
+﻿@page "/zaliczkiedit"
+@using Application.CQRS.AccountingCQRS.AdvancePayments.Commands
+@using Application.CQRS.AccountingCQRS.AdvancePayments.Queries
 @using Application.CQRS.AccountingCQRS.CostCenters.Queries
 @using Application.CQRS.AccountingCQRS.GLAccounts.Queries
 @using Application.CQRS.ITWarehouseCQRS.Employees.Queries;
@@ -272,7 +274,7 @@
     private bool isLoading { get; set; } = true; // TODO
     private bool userAllowed { get; set; } = false; // TODO
 
-    private AdvancePaymentVm formItem = new AdvancePaymentVm();
+    private AdvancePaymentFormVm formItem = new AdvancePaymentFormVm();
     private FormUserContext _userContext = new FormUserContext("Accountant", "Technician");
     private OrganisationRoleForFormVm approverL1 { get; set; } //Mangager user
     private OrganisationRoleForFormVm approverL2 { get; set; } //Manager managager
@@ -460,7 +462,9 @@
             showForm = false;
             formItem.Approvals.Add(approvalInfo);
             formItem.Status = GetNextStatus(formItem);
-            AssignStatusBool();
+            //AssignStatusBool();
+            var newId = await _mediator.Send(new CreateAdvanePaymentCommand(formItem));
+            var saveResult = await _mediator.Send(new GetAdvancePaymentByIdQuery(newId));
             // var newId = await _mediator.Send(new CreateBusinessTripCommand(formItem));
             // var saveResult = await _mediator.Send(new GetBusinessTripByIdQuery(newId));
             // var message = $"Formularz został wysłany do {saveResult.LVL1_EmployeeName} w celu zatwierdzenia.";
@@ -470,7 +474,7 @@
         }
     }
 
-    private string GetNextStatus(AdvancePaymentVm form)
+    private string GetNextStatus(AdvancePaymentFormVm form)
     {
         string newStatus = string.Empty;
         if (formItem.Status == "Rejestracja")

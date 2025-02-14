@@ -1,5 +1,10 @@
-﻿using Application.ViewModels.Accounting;
+﻿using Application.Interfaces;
+using Application.Mappings;
+using Application.ViewModels.Accounting;
 using Application.ViewModels.General;
+using AutoMapper;
+using Domain.Entities.Accounting;
+using Domain.Forms.Accounting;
 using Microsoft.Kiota.Abstractions;
 using System;
 using System.Collections.Generic;
@@ -10,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace Application.Forms.Accounting
 {
-    public class AdvancePaymentVm
+    public class AdvancePaymentFormVm : IMapFrom<AdvancePaymentForm>, IFormAccounting
     {
         #region FromTemplate
         // Properties from FormTemplate
@@ -69,5 +74,9 @@ namespace Application.Forms.Accounting
         public BankTransferMapping? BTMappingPayout { get; set; } = new();
 
         public Application.ViewModels.General.Location CashPoint { get; set; } = new();
+        public void Mapping(Profile profile)
+        {
+            profile.CreateMap<AdvancePaymentForm, AdvancePaymentFormVm>().ReverseMap();
+        }
     }
 }
