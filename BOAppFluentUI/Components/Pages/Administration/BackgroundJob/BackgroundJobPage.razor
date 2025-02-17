@@ -5,7 +5,7 @@
 @using Application.ViewModels.General
 @using Microsoft.AspNetCore.Authorization
 
-@attribute [Authorize(Policy = "Technician")]
+@attribute [Authorize(Policy = "User")]
 
 @inject IMediator _mediator
 @inject IDialogService _dialogService
@@ -59,7 +59,7 @@ else
     private List<FilterColumn<BackgroundJobVm>> filterColumns = new List<FilterColumn<BackgroundJobVm>>
     {
         new FilterColumn<BackgroundJobVm> { FirstRow = true, Label = "Id", Property = c => c.Id.ToString(), IsVisible = true, Width = "200px" },
-        new FilterColumn<BackgroundJobVm> { FirstRow = true, Label = "JobClass", Property = c => c.JobClass, IsVisible = true, Width = "200px" },
+        new FilterColumn<BackgroundJobVm> { FirstRow = true, Label = "JobClass", Property = c => c.JobClass.Split('.').Last(), IsVisible = true, Width = "200px" },
         new FilterColumn<BackgroundJobVm> { FirstRow = true, Label = "JobMethod", Property = c => c.JobMethod, IsVisible = true, Width = "200px" },
         new FilterColumn<BackgroundJobVm> { FirstRow = true, Label = "CronExpression", Property = c => c.CronExpression, IsVisible = true, Width = "200px" },
         new FilterColumn<BackgroundJobVm> { FirstRow = true, Label = "Enabled", Property = c => c.IsEnabled, IsVisible = true, Width = "200px" },
