@@ -1,12 +1,9 @@
-﻿using Application.CQRS.AccountingCQRS.BusinessTravels.Commands;
-using Application.Forms.Accounting;
+﻿using Application.Forms.Accounting;
 using Application.Interfaces;
 using AutoMapper;
 using Domain.Forms.Accounting;
 using MediatR;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Graph.Models;
 
 namespace Application.CQRS.AccountingCQRS.AdvancePayments.Commands
 {
@@ -14,11 +11,10 @@ namespace Application.CQRS.AccountingCQRS.AdvancePayments.Commands
     {
         public AdvancePaymentFormVm Item { get; set; } = item;
     }
-    public class CreateAdvanePaymentCommandHandler(IAppDbContext context, IMapper mapper, IEmailService mailService, IConfiguration configuration) : IRequestHandler<CreateAdvanePaymentCommand, int>
+    public class CreateAdvanePaymentCommandHandler(IAppDbContext context, IMapper mapper, IConfiguration configuration) : IRequestHandler<CreateAdvanePaymentCommand, int>
     {
         private readonly IAppDbContext _appDbContext = context;
         private readonly IMapper _mapper = mapper;
-        private readonly IEmailService _mailService = mailService;
         private readonly IConfiguration _configuration = configuration;
         public async Task<int> Handle(CreateAdvanePaymentCommand request, CancellationToken cancellationToken)
         {
