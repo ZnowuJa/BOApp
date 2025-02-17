@@ -83,12 +83,8 @@
             var viewId = $"viewid-{context.Id}";
             var editId = $"editid-{context.Id}";
             var deleteId = $"deleteid-{context.Id}";
-            // var addId = $"addid-{context.Id}";
+            
         }
-@*         <FluentButton Id="@viewId" IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" Disabled="@viewDisabled" />
-        <FluentTooltip Anchor="@viewId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Left Delay=50>View form</FluentTooltip> *@
-
-        @* <FluentButton Id="@editId" IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => Edit(context))" Disabled="false" /> *@
         <FluentButton Id="@editId" IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => Edit(context))" Disabled="@Utils.IsAccEditDisabled(context, _userContext)" />
         @*WARNING it is not tested if isEditDisabled works*@
         <FluentTooltip Anchor="@editId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Edit form</FluentTooltip>
@@ -97,9 +93,6 @@
         <FluentTooltip Anchor="@viewId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>View form</FluentTooltip>
         <FluentButton Id="@deleteId" IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" Disabled="@actionsDisabled" />
         <FluentTooltip Anchor="@deleteId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Delete form</FluentTooltip>
-
-        @*             <FluentButton Id="@addId" IconEnd="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddToList(context))" Disabled="@actionsDisabled" />
-    <FluentTooltip Anchor="@addId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50>Add Asset to update</FluentTooltip> *@
 
     </TemplateColumn>
 </FluentDataGrid>
