@@ -1459,23 +1459,13 @@
     #region Finance
     public string ReceiptPaymentCashString
     {
-        get => formItem.ReceiptPaymentCash ? (formItem.ReceiptPaymentCash ? "1" : "0") : null;
-        set => formItem.ReceiptPaymentCash = value switch
-        {
-            "1" => true,
-            "0" => false,
-            _ => false
-        };
+        get => formItem.ReceiptPaymentCash ?  "1" : "0";
+        set => formItem.ReceiptPaymentCash = value == "1";
     }
     public string AdvancePaymentCashString
     {
-        get => formItem.AdvancePaymentCash ? (formItem.AdvancePaymentCash ? "1" : "0") : null;
-        set => formItem.AdvancePaymentCash = value switch
-        {
-            "1" => true,
-            "0" => false,
-            _ => false
-        };
+        get => formItem.AdvancePaymentCash ?  "1" : "0";
+        set => formItem.AdvancePaymentCash = value == "1";
     }
     private List<Option<int>> AdvancePaymentMethodsInt = new()
         {
@@ -1954,6 +1944,7 @@
             if(stroz){
                 await SaveBillFiles();
             }
+            if(strozk)
             formItem.Approvals.Add(approvalInfo);
             formItem.Status = GetNextStatus(formItem);
             await _mediator.Send(new UpdateBusinessTripCommand(formItem));

@@ -4,7 +4,9 @@
 @using Application.AdHocJobs
 @using Application.BackgroundJobs
 @using Application.Interfaces
+@using Application.ViewModels.General
 @using Microsoft.AspNetCore.Authorization
+@using Quartz
 
 @attribute [Authorize(Policy = "User")]
 
@@ -14,6 +16,7 @@
 @inject IToastService _toastService
 @inject IEmailService _mailService
 @inject IConfiguration _configuration;
+@inject IJobSchedulerService _jobSchedulerService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager _navigationManager
 
@@ -162,31 +165,7 @@
              VerticalAlignment="VerticalAlignment.Center"
              Spacing="20px"
              Style="padding: 20px;">
-            <AuthorizeView Roles="AppAdmin">
-                <FluentCard Style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); border-radius: 10px; overflow: hidden;">
-                    <FluentStack Orientation="Orientation.Vertical"
-                                 HorizontalAlignment="HorizontalAlignment.Center"
-                                 VerticalAlignment="VerticalAlignment.Center"
-                                 Spacing="10px"
-                                 Style="padding: 20px;">
-                        @(new Icons.Regular.Size24.Bot().ToMarkup("48px"))
-                        <h4 style="margin: 0;">Markuj ludzi </h4>
-                        <FluentButton BackgroundColor="var(--accent-fill-rest)"
-                                      Disabled="false"
-                                      Color="var(--neutral-fill-rest)"
-                                      OnClick="@(()=>Assign())">
-                            Przypisz
-                        </FluentButton>
-                    </FluentStack>
-                </FluentCard>
-            </AuthorizeView>
-</FluentStack>
-@* <FluentStack Orientation="Orientation.Horizontal"
-             HorizontalAlignment="HorizontalAlignment.Left"
-             VerticalAlignment="VerticalAlignment.Center"
-             Spacing="20px"
-             Style="padding: 20px;">
-    <AuthorizeView Roles="AppAdmin">
+    <AuthorizeView Roles="Compliance">
         <FluentCard Style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); border-radius: 10px; overflow: hidden;">
             <FluentStack Orientation="Orientation.Vertical"
                          HorizontalAlignment="HorizontalAlignment.Center"
@@ -194,22 +173,40 @@
                          Spacing="10px"
                          Style="padding: 20px;">
                 @(new Icons.Regular.Size24.Bot().ToMarkup("48px"))
-                <h4 style="margin: 0;">Markuj ludzi </h4>
+                <h4 style="margin: 0;">Przypisz po stanowisku </h4>
                 <FluentButton BackgroundColor="var(--accent-fill-rest)"
                               Disabled="false"
                               Color="var(--neutral-fill-rest)"
-                              OnClick="@(()=>SendReport())">
-                    SendReport
+                              OnClick="@(()=>AssignWithPosition())">
+                    Przypisz po stanowisku
                 </FluentButton>
             </FluentStack>
         </FluentCard>
     </AuthorizeView>
-</FluentStack> *@
+    @* <AuthorizeView Roles="AppAdmin">
+        <FluentCard Style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); border-radius: 10px; overflow: hidden;">
+            <FluentStack Orientation="Orientation.Vertical"
+                         HorizontalAlignment="HorizontalAlignment.Center"
+                         VerticalAlignment="VerticalAlignment.Center"
+                         Spacing="10px"
+                         Style="padding: 20px;">
+                @(new Icons.Regular.Size24.BotSparkle().ToMarkup("48px"))
+                <h4 style="margin: 0;">Generuj Onboardingi po dacie</h4>
+                <FluentButton BackgroundColor="var(--accent-fill-rest)"
+                              Disabled="false"
+                              Color="var(--neutral-fill-rest)"
+                              OnClick="@(()=>GenerateCoCOnbByDate())">
+                    Generuj
+                </FluentButton>
+            </FluentStack>
+        </FluentCard>
+    </AuthorizeView> *@
+</FluentStack>
 
 
 @code {
     // JustifyContent Justification = JustifyContent.Center;
-    
+
     public int xssize { get; set; } = 2;
     public int smsize { get; set; } = 2;
     // public /* AddCoCOnboardingsAdHocJob job = new AddCoCOnboardingsAdHocJob(); */
@@ -218,7 +215,7 @@
     {
         ToastIntent intent;
         string message = string.Empty;
-        var dialog = await _dialogService.ShowDialogAsync<AddOnboardingsTimeSpan>(new DialogParameters()
+        var dialog = await _dialogService.ShowDialogAsync<AddOnboardingsTimeSpanComponent>(new DialogParameters()
             {
                 Height = "450px",
                 Width = "400px",
@@ -231,10 +228,10 @@
 
         if (!result.Cancelled)
         {
-           
-                intent = ToastIntent.Success;
-                message = "Organisation has been updated!";
-            
+
+            intent = ToastIntent.Success;
+            message = "Organisation has been updated!";
+
         }
         else if (result.Cancelled)
         {
@@ -249,16 +246,58 @@
 
     }
 
-    private async Task Assign()
+    private async Task AssignWithPosition()
     {
-        // AdHoc job = new AdHoc(_mediator);
-        MarkEmpCoCGroupByJobCodeAdHocJob job = new MarkEmpCoCGroupByJobCodeAdHocJob(_mediator);
-        job.Execute();
+        ToastIntent intent = new ToastIntent();
+
+        string className = "Application.BackgroundJobs.AssignCoCGroupByPositionJob";
+        string assembly = "Application";
+
+        var result = await _jobSchedulerService.RunJobManuallyAsyncBool(className, assembly);
+
+        string message = string.Empty;
+
+        if (result)
+        {
+
+            intent = ToastIntent.Success;
+            message = "Job run successfully!";
+
+        }
+        else if (!result)
+        {
+            intent = ToastIntent.Error;
+            message = "Job run failed...";
+        }
+
+        _toastService.ShowToast(intent, message);
+
     }
-    // private async Task SendReport()
+
+    // private async Task GenerateCoCOnbByDate()
+    // {
+    //     string className = "Application.BackgroundJobs.AddCoCOnboardingsJob";
+    //     string assembly = "Application";
+    //     DateTime dateTime = DateTime.Now;
+
+    //     await _jobSchedulerService.RunJobManuallyAsyncWithDate(className, assembly, dateTime);
+
+    //     // BackgroundJobVm item = new BackgroundJobVm();
+    //     // // AdHoc job = new AdHoc(_mediator);
+    //     // SendCoCMonthlyReportAssistantsAdHocJob job = new SendCoCMonthlyReportAssistantsAdHocJob();
+    //     // job.Execute();
+    // }
+    // // private async Task SendReport()
     // {
     //     // AdHoc job = new AdHoc(_mediator);
     //     SendCoCMonthlyReportAssistantsAdHocJob job = new SendCoCMonthlyReportAssistantsAdHocJob();
+    //     job.Execute();
+    // }
+
+    // private async Task Assign()
+    // {
+    //     // AdHoc job = new AdHoc(_mediator);
+    //     MarkEmpCoCGroupByJobCodeAdHocJob job = new MarkEmpCoCGroupByJobCodeAdHocJob(_mediator);
     //     job.Execute();
     // }
 }

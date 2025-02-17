@@ -113,14 +113,7 @@ public class BusinessTravelFormVmValidator : AbstractValidator<BusinessTravelFor
         When(form => form.Status == "Rozliczenie" && form.Bills.Count > 0, () =>
         {
             RuleForEach(x => x.Bills).SetValidator(new BillValidator());
-            //RuleForEach(x => x.Bills).Where(bill => bill.Invoice).ChildRules(bill =>
-            //{
-            //    bill.RuleFor(b => b.InvoiceDate)
-            //        .GreaterThanOrEqualTo(form => form.StartDate)
-            //        .LessThanOrEqualTo(form => form.EndDate)
-            //        .WithMessage(form => $"Data faktury powinna być między {form.StartDate} a {form.EndDate}.");
-            //});
-
+            //RuleForEach(x => x.Bills).SetValidator(new BillValidator(x.StartDate, x.EndDate));
         });
         //When(form => form.Status == "Rozliczenie" && form.Bills.Count > 0, () =>
         //{

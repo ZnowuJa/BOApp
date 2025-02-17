@@ -1,6 +1,12 @@
-﻿using Application.Interfaces;
+﻿using Application.CQRS.CoCCQRS.Positions.Commands;
+using Application.CQRS.CoCCQRS.Positions.Queries;
+using Application.CQRS.ITWarehouseCQRS.Employees.Queries;
+using Application.Interfaces;
+using Application.ViewModels.CoC;
+
 using AutoMapper;
-using Domain.Entities.Administration;
+using MediatR;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Graph.Models;
@@ -9,59 +15,58 @@ using Quartz;
 
 namespace Application.BackgroundJobs
 {
-    public class SyncManagersJob(IAppDbContext appDbContext, IMapper mapper, IEmailService mailService, IConfiguration configuration) : IJob
+    public class SyncPositionsJob(IAppDbContext appDbContext, IMapper mapper, IMediator mediator, IEmailService mailService, IConfiguration configuration) : IJob
     {
         private readonly IAppDbContext _appDbContext = appDbContext;
         private readonly IMapper _mapper = mapper;
+        private readonly IMediator _mediator = mediator;
         public IEmailService _mailService { get; } = mailService;
         public IConfiguration _configuration { get; } = configuration;
 
         public async Task Execute(IJobExecutionContext context)
         {
+            List<string> errorList = new();
             // Job begins each day at 9:00 AM
-            var employees = await _appDbContext.Employees
-                .Where(e => e.IsManager == true && e.IsActive == 1)
-                .ToListAsync(context.CancellationToken);
+            var employees = await _mediator.Send(new GetAllEmployeesQuery());
+            var positions = await _mediator.Send(new GetAllPositionsQuery());
 
-            var existingManagerIds = new HashSet<int>(
-                await _appDbContext.ManagerDeputies
-                    .Select(m => m.ManagerId)
-                    .ToListAsync(context.CancellationToken));
+            var distinctEmployeePositions = employees.Select(e => e.Position).Distinct().ToList();
+            var existingPositionNames = positions.Select(p => p.Name.ToLower()).ToHashSet();
 
-            var newManagers = employees
-                .Where(e => !existingManagerIds.Contains((int)e.EnovaEmpId))
-                .Select(e => new ManagerDeputy
+            var newPositions = new List<PositionVm>();
+
+            foreach (var position in distinctEmployeePositions)
+            {
+                if (!existingPositionNames.Contains(position.ToLower()))
                 {
-                    ManagerId = (int)e.EnovaEmpId,
-                    LongName = e.LongName,
-                    Deputies = "[]"
-                }).ToList();
-
-            int addedCount = newManagers.Count;
-
-            if (addedCount > 0)
-            {
-                await _appDbContext.ManagerDeputies.AddRangeAsync(newManagers, context.CancellationToken);
+                    var newPositionVm = new PositionVm
+                    {
+                        Name = position,
+                        Cat = string.Empty,
+                        GroupCoCId = 5,
+                        GroupCoC = new GroupCoCVm()
+                    };
+                    errorList.Add($"New position found: {position}");
+                    newPositions.Add(newPositionVm);
+                }
             }
 
-            var employeeManagerIds = new HashSet<int>(employees.Select(e => (int)e.EnovaEmpId));
-            var removedCount = await _appDbContext.ManagerDeputies
-                .Where(m => !employeeManagerIds.Contains(m.ManagerId))
-                .ExecuteDeleteAsync(context.CancellationToken);
-
-            if (addedCount > 0)
+            if (newPositions.Any())
             {
-                await _appDbContext.SaveChangesAsync(context.CancellationToken);
+
+                foreach (var newPosition in newPositions)
+                { 
+                    await _mediator.Send(new CreatePositionCommand(newPosition));
+                }
+            }
+            else
+            {
+                errorList.Add("No new positions found.");
             }
 
-            var message = addedCount == 0 && removedCount == 0
-                ? "Lista menedżerów jest już aktualna."
-                : $"Synchronizacja zakończona pomyślnie. Dodano: {addedCount}, Usunięto: {removedCount}.";
+            SendEmail("marcin.jarco@porscheinterauto.pl;dawid.urbaniak@porscheinterauto.pl", errorList);
 
-            Console.WriteLine(message);
-            SendEmail("marcin.jarco@porscheinterauto.pl;dawid.urbaniak@porscheinterauto.pl", new List<string> { message });
         }
-
 
         private async Task SendEmail(string rcptEmail, List<string> errorList)
         {
@@ -91,7 +96,7 @@ namespace Application.BackgroundJobs
                 }
             }).ToList();
 
-            subject = $"Synchronizacja Managerów!";
+            subject = $"Synchronizacja Stanowisk CoC";
             body = $@"
                 <!DOCTYPE html>
                 <html>
@@ -99,7 +104,7 @@ namespace Application.BackgroundJobs
                 </head>
                 <body>
                     <div class=""header"">
-                        <h1>Synchronizacja Managerów</h1>
+                        <h1>Synchronizacja Stanowisk CoC</h1>
                     </div>
                     <div>
                     </p>

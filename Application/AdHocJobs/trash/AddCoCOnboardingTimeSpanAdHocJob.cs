@@ -49,8 +49,8 @@ public class AddCoCOnboardingTimeSpanAdHocJob
     {
         int generated = 0;
 
-        MarkEmpCoCGroupByJobCodeAdHocJob job1 = new MarkEmpCoCGroupByJobCodeAdHocJob(_mediator);
-        await job1.Execute();
+        //MarkEmpCoCGroupByJobCodeAdHocJob job1 = new MarkEmpCoCGroupByJobCodeAdHocJob(_mediator);
+        //await job1.Execute();
 
 
         AddCoCOnboardingsAdHocJob job2 = new AddCoCOnboardingsAdHocJob(_mediator, From, To, _mailService, _configuration);

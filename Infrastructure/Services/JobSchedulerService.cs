@@ -110,5 +110,107 @@ public class JobSchedulerService : IJobSchedulerService
 
         await scheduler.TriggerJob(jobKey);
     }
+    public async Task<bool> RunJobManuallyAsyncBool(string jobClass, string assemblyName)
+    {
+        var scheduler = await _schedulerFactory.GetScheduler();
+
+        var jobClassFullName = $"{jobClass}, {assemblyName}";
+        var jobType = Type.GetType(jobClassFullName);
+
+        if (jobType == null)
+        {
+            _logger.LogWarning($"Job type {jobClass} not found.");
+            return false;
+        }
+
+        var jobKey = new JobKey(jobClass, "DEFAULT");
+        var jobDetail = await scheduler.GetJobDetail(jobKey);
+
+        if (jobDetail == null)
+        {
+            _logger.LogWarning($"Job {jobClass} not found in scheduler.");
+            return false;
+        }
+
+        _logger.LogInformation($"Triggering job {jobClass} manually.");
+
+        //await scheduler.TriggerJob(jobKey);
+
+        try
+        {
+            await scheduler.TriggerJob(jobKey);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Failed to trigger job {jobClass}: {ex.Message}");
+            return false;
+        }
+    }
+    public async Task RunJobManuallyAsyncWithDate(string jobClass, string assemblyName, DateTime? date)
+    {
+        var scheduler = await _schedulerFactory.GetScheduler();
+
+        var jobClassFullName = $"{jobClass}, {assemblyName}";
+        var jobType = Type.GetType(jobClassFullName);
+
+        if (jobType == null)
+        {
+            _logger.LogWarning($"Job type {jobClass} not found.");
+            return;
+        }
+
+        var jobKey = new JobKey(jobClass, "DEFAULT");
+        var jobDetail = await scheduler.GetJobDetail(jobKey);
+
+        if (jobDetail == null)
+        {
+            _logger.LogWarning($"Job {jobClass} not found in scheduler.");
+            return;
+        }
+
+        var jobDataMap = new JobDataMap();
+        if (date.HasValue)
+        {
+            jobDataMap.Put("targetDate", date.Value.ToString("yyyy-MM-dd"));
+        }
+
+        _logger.LogInformation($"Triggering job {jobClass} manually with date {date?.ToString("yyyy-MM-dd") ?? "not provided"}.");
+
+        await scheduler.TriggerJob(jobKey, jobDataMap);
+    }
+    public async Task RunJobManuallyAsyncWithDates(string jobClass, string assemblyName, DateTime? from, DateTime? to)
+    {
+        var scheduler = await _schedulerFactory.GetScheduler();
+
+        var jobClassFullName = $"{jobClass}, {assemblyName}";
+        var jobType = Type.GetType(jobClassFullName);
+
+        if (jobType == null)
+        {
+            _logger.LogWarning($"Job type {jobClass} not found.");
+            return;
+        }
+
+        var jobKey = new JobKey(jobClass, "DEFAULT");
+        var jobDetail = await scheduler.GetJobDetail(jobKey);
+
+        if (jobDetail == null)
+        {
+            _logger.LogWarning($"Job {jobClass} not found in scheduler.");
+            return;
+        }
+
+        var jobDataMap = new JobDataMap();
+        if (from.HasValue && to.HasValue)
+        {
+            jobDataMap.Put("targetFromDate", from.Value.ToString("yyyy-MM-dd"));
+            jobDataMap.Put("targetToDate", to.Value.ToString("yyyy-MM-dd"));
+        }
+
+        _logger.LogInformation($"Triggering job {jobClass} manually with date from: {from?.ToString("yyyy-MM-dd") ?? "not provided"} to: {to?.ToString("yyyy-MM-dd") ?? "not provided"}.");
+
+        await scheduler.TriggerJob(jobKey, jobDataMap);
+    }
 }
 

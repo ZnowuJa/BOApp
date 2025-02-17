@@ -16,7 +16,7 @@ public class PositionVm : IMapFrom<Position>
     public string Name { get; set; }
     public string Cat { get; set; } = string.Empty;
 
-    public int? GroupCoCId { get; set; }
+    public int? GroupCoCId { get; set; } = 0;
 
     public GroupCoCVm? GroupCoC { get; set; }
 

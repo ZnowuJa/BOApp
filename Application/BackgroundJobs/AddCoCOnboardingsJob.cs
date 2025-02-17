@@ -38,20 +38,47 @@ public class AddCoCOnboardingsJob : IJob
     }
     public async Task Execute(IJobExecutionContext context)
     {
-
         List<string> errorList = new();
-        var today = DateTime.Now.ToString("yyyy-MM-dd");
+        var emps = new List<EmployeeVm>();
+        DateTime fromDate;
+        DateTime toDate;
+
+        var jobDataMap = context.MergedJobDataMap; 
+        if(jobDataMap.Keys.Count() == 2)
+        {
+            fromDate = DateTime.Parse(jobDataMap.GetString("targetFromDate"));
+            toDate = DateTime.Parse(jobDataMap.GetString("targetToDate"));
+
+        } else
+        {
+            fromDate = DateTime.Now;
+            toDate = DateTime.Now;
+        }
+        errorList.Add($"Zadanie wykonane dla zakresu dat od: {fromDate.ToString("yyyy-MM-dd")} do: {toDate.ToString("yyyy-MM-dd")}");
+
+        if (fromDate <= toDate)
+        {
+            for (DateTime date = fromDate; date <= toDate; date = date.AddDays(1))
+            {
+                var dateToday = date.ToString("yyyy-MM-dd");
+                var tempemps = await _mediator.Send(new GetAllEmployeesByFTEStartDateQuery(dateToday));
+                emps.AddRange(tempemps.ToList());
+
+            }
+        }
+        else
+        {
+            errorList.Add("Invalid date range");
+        }
+
+
         
-        var empsTemp =  await _mediator.Send(new GetAllEmployeesByFTEStartDateQuery(today));
-        var emps = empsTemp.ToList();
+        
+        
         //var positions = await _mediator.Send(new GetAllPositionsQuery());
         var instructions = await _mediator.Send(new GetAllInstructionCoCsQuery());
         var organisations = await _mediator.Send(new GetAllOrganisationsQuery());
         var groups = await _mediator.Send(new GetAllGroupCoCsQuery());
-
-
-
-
 
         var onboardings = await _mediator.Send(new GetAllOnboardingsQuery());
         var excludedEmpIds = onboardings.Select(o => o.EmployeeId).ToHashSet();
@@ -148,11 +175,13 @@ public class AddCoCOnboardingsJob : IJob
         string body = string.Empty;
         string subject = string.Empty;
         string listHTML = string.Empty;
+        string subHeaderInfo = string.Empty;
         // Build the table of errors
         int idCounter = 1;
         listHTML = "<table style='border-collapse: collapse; width: 100%;'>"; // Start the table
         listHTML += "<tr><th style='border: 1px solid black; padding: 8px;'>ID</th><th style='border: 1px solid black; padding: 8px;'>Error</th></tr>"; // Table header
-
+        subHeaderInfo = errorList.First();
+        errorList.RemoveAt(0);
         foreach (var err in errorList)
         {
             listHTML += $"<tr><td style='border: 1px solid black; padding: 8px;'>{idCounter}</td><td style='border: 1px solid black; padding: 8px;'>{err}</td></tr>";
@@ -170,7 +199,7 @@ public class AddCoCOnboardingsJob : IJob
             }
         }).ToList();
 
-        subject = $"Wykryto błędy w generowaniu nowych formularzy OnBoarding!";
+        subject = $"Wydarzenia podczas generowania nowych formularzy OnBoarding!";
         body = $@"
                 <!DOCTYPE html>
                 <html>
@@ -178,13 +207,13 @@ public class AddCoCOnboardingsJob : IJob
                 </head>
                 <body>
                     <div class=""header"">
-                        <h1>Błędy w generowaniu nowych formularzy OnBoarding</h1>
+                        <h1>Wydarzenia podczas generowania nowych formularzy OnBoarding</h1>
                     </div>
                     <div>
+                    <h4>{subHeaderInfo}</h4>
                     </p>
-                        
-                        <p>Znaleziono poniższe błędy:</p>
-                        <p> Total errors: {errorList.Count()}</p>
+                        <p>Zarejestrowano poniższe wydarzenia:</p>
+
                         {listHTML}
   
                         <p>Pozdrawiamy!</p>
