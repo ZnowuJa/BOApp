@@ -5,7 +5,7 @@
 @using Application.ViewModels.General
 @using Microsoft.AspNetCore.Authorization
 
-@attribute [Authorize(Policy = "User")]
+@attribute [Authorize(Policy = "Technician")]
 
 @inject IMediator _mediator
 @inject IDialogService _dialogService
