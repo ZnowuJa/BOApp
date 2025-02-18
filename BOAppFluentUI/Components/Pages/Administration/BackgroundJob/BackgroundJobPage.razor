@@ -35,9 +35,19 @@ else
         @* Actions *@
 
         <TemplateColumn Title="Actions" Align="Align.End">
-            <FluentButton IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => EditItem(context))" />
-            <FluentButton IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" />
-            <FluentButton IconEnd="@(new Icons.Regular.Size20.PersonRunning())" OnClick="@(() => Run(context))" />
+            @{
+                var runId = $"viewid-{context.Id}";
+                var editId = $"editid-{context.Id}";
+                var deleteId = $"deleteid-{context.Id}";
+
+            }
+            <FluentButton Id="@editId" IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => EditItem(context))" />
+            <FluentButton Id="@deleteId" IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" />
+            <FluentButton Id="@runId" IconEnd="@(new Icons.Regular.Size20.PersonRunning())" OnClick="@(() => Run(context))" />
+
+            <FluentTooltip Anchor="@editId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Edycja zadania</FluentTooltip>
+            <FluentTooltip Anchor="@deleteId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Skasuj zadanie</FluentTooltip>
+            <FluentTooltip Anchor="@runId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Uruchom zadanie</FluentTooltip>
         </TemplateColumn>
 
     </FluentDataGrid>
@@ -186,5 +196,4 @@ else
         var item = new BackgroundJobVm();
         await EditItem(item);
     }
-
 }

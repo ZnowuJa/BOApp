@@ -37,7 +37,7 @@ public class GetAllEmployeesByFTEStartDateQueryHandler : IRequestHandler<GetAllE
             throw new InvalidOperationException("Employees DbSet is null");
         }
         
-        var result = await _appDbContext.Employees.Where(p => p.FTEStartDate == request._fteStartDate && p.IsActive == 1).Include(i => i.Type).ToListAsync(cancellationToken);
+        var result = await _appDbContext.Employees.Where(p => p.FTEStartDate == request._fteStartDate && p.IsActive == 1 && p.VcdCompanyNr != null).Include(i => i.Type).ToListAsync(cancellationToken);
 
         // Create a dictionary for quick lookup of managers by their EnovaEmpId
         var managerLookup = result.ToDictionary(e => e.EnovaEmpId, e => e);
