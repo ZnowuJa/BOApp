@@ -63,6 +63,12 @@ public class AddCoCOnboardingsJob : IJob
                 var dateToday = date.ToString("yyyy-MM-dd");
                 var tempemps = await _mediator.Send(new GetAllEmployeesByFTEStartDateQuery(dateToday));
                 emps.AddRange(tempemps.ToList());
+                var employeesToRemove = tempemps.Where(e => e.VcdCompanyNr == null || e.SapNumber == null).ToList();
+                foreach (var emp in employeesToRemove)
+                {
+                    emps.Remove(emp);
+                    errorList.Add($"Employee {emp.LongName} ({emp.EnovaEmpId}) has no VcdCompanyNr or SAP number");
+                }
 
             }
         }
