@@ -44,6 +44,7 @@ namespace Domain.Forms.Accounting
         public string RejectReason { get; set; } = string.Empty;
         #endregion
 
+        public string Objective { get; set; } = string.Empty;
         public decimal? AdvancePaymentAmount { get; set; } = 0;
         public string? AdvancePaymentCurrency { get; set; } = "PLN";
         public bool AdvancePaymentCash { get; set; } = false;

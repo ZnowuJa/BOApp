@@ -16,7 +16,7 @@ namespace Application.CQRS.AccountingCQRS.AdvancePayments.Queries
 
         public async Task<IQueryable<AdvancePaymentFormVm>> Handle(GetAllAdvancePaymentQuery request, CancellationToken cancellationToken)
         {
-            var queryResult = await _context.BusinessTravels.Where(ct => ct.StatusId == 1).AsNoTracking().ToListAsync(cancellationToken);
+            var queryResult = await _context.AdvancePayments.Where(ct => ct.StatusId == 1).AsNoTracking().ToListAsync(cancellationToken);
             var result = queryResult.Select(x => _mapper.Map<AdvancePaymentFormVm>(x)).AsQueryable();
 
             return result;

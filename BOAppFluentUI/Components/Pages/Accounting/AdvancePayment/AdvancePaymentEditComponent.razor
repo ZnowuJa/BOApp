@@ -1,8 +1,10 @@
 ﻿@page "/zaliczka/{id:int}"
+
 @using Application.CQRS.AccountingCQRS.AdvancePayments.Commands
 @using Application.CQRS.AccountingCQRS.AdvancePayments.Queries
 @using Application.CQRS.AccountingCQRS.CostCenters.Queries
 @using Application.CQRS.AccountingCQRS.GLAccounts.Queries
+@using Application.CQRS.General.ManagerDeputies.Queries
 @using Application.CQRS.ITWarehouseCQRS.Employees.Queries;
 @using Application.CQRS.General.Organisations.Queries;
 @using Application.Forms.Accounting;
@@ -12,6 +14,9 @@
 @using Infrastructure.Services;
 @using Application.Forms.Accounting.Enums
 @using Application.ViewModels.Accounting
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize(Policy = "User")]
 
 @inject IMediator _mediator
 @inject IToastService _toastService
@@ -24,7 +29,7 @@
     <FluentProgressRing />
 }else     
     {
-        if(showForm){
+        if(!showForm){
 <EditForm EditContext="_editContext" OnValidSubmit="HandleValidSubmit">
     <h3>@Title</h3>
     <table class="table-container">
@@ -39,7 +44,7 @@
                                   @bind-Value:after="@HandleStatusChange" />
                 </th>
                 <th style="text-align: right; border-left: none; font-size: large;" colspan="2">
-                    Status: @formItem.Status | Numer: 12345
+                    Status: @formItem.Status | Numer: @formItem.Number
                 </th>
             </tr>
             <tr class="table-header-left table-caption">
@@ -224,6 +229,15 @@
             </table>
         </div>
     }
+     <FluentButton IconEnd="@(new Icons.Regular.Size16.Save())"
+                        Appearance="Appearance.Outline"
+                        Id="SaveFormId"
+                        BackgroundColor="var(--accent-fill-rest)" 
+                        Style="width: 100px"> 
+        Zapisz
+     </FluentButton>
+                        <FluentSpacer Width="@buttonSpacer" />
+
     <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
                   Appearance="Appearance.Accent"
                   OnClick="@SendForm"
@@ -238,6 +252,7 @@
         <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
                       Appearance="Appearance.Accent"
                       OnClick="@ApproveForm"
+                      Id="ApproveFormId"
                       BackgroundColor="var(--success)"
                       Style="width: 100px"
                       Disabled="@DisableApproveButton">
@@ -248,6 +263,7 @@
 
         <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
                       Appearance="Appearance.Accent"
+                      Id = "RejectFormId"
                       OnClick="@RejectForm"
                       BackgroundColor="var(--error)"
                       Style="width: 100px">
@@ -258,17 +274,22 @@
 
     <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
                   Appearance="Appearance.Accent"
+                  Id = "CancelFormId"
                   OnClick="@CancelForm"
                   BackgroundColor="var(--info)"
                   Style="width: 100px">
         Anuluj
     </FluentButton>
-
+                <FluentTooltip Anchor="SaveFormId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Bottom Delay=50> Pozwala zapisać formularz do późniejszej edycji.</FluentTooltip>
+                <FluentTooltip Anchor="SendFormId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Bottom Delay=50> Wysła formularz do akceptacji.</FluentTooltip>
+                <FluentTooltip Anchor="ApproveFormId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Bottom Delay=50> Zatwierdza formularz.</FluentTooltip>
+                <FluentTooltip Anchor="RejectFormId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Bottom Delay=50> Odrzuca formularz.</FluentTooltip>
+                <FluentTooltip Anchor="CancelFormId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Bottom Delay=50> Zamyka formularz bez zapisywania zmian.</FluentTooltip>
 </EditForm>
         }
     }
 @code {
-    [Parameter] 
+    [Parameter]
     public int Id { get; set; }
     private string _srcPage;
     private EditContext _editContext;
@@ -410,6 +431,7 @@
 
     private async Task CancelForm()
     {
+        _navigationManager.NavigateTo($"/zaliczki/{_srcPage}");
     }
 
     private async Task RejectForm()
@@ -435,7 +457,7 @@
             var message = $"Formularz został wysłany do {formItem.EmployeeName} w celu poprawienia.";
             var intent = ToastIntent.Success;
             _toastService.ShowToast(intent, message, 3000);
-            _navigationManager.NavigateTo($"/delegacje/{_srcPage}");
+            _navigationManager.NavigateTo($"/zaliczki/{_srcPage}");
         }
         else
         {
@@ -449,10 +471,11 @@
         {
             formItem.Approvals.Add(approvalInfo);
             formItem.Status = GetNextStatus(formItem);
-            //await _mediator.Send(new Update(formItem));
+            await _mediator.Send(new UpdateAdvancePaymentCommand(formItem));
             var message = $"Zaliczka została zatwierdzona!";
             var intent = ToastIntent.Success;
             _toastService.ShowToast(intent, message, 3000);
+            _navigationManager.NavigateTo($"/zaliczki/{_srcPage}");
         }
     }
 
@@ -467,12 +490,10 @@
             //AssignStatusBool();
             var newId = await _mediator.Send(new CreateAdvanePaymentCommand(formItem));
             var saveResult = await _mediator.Send(new GetAdvancePaymentByIdQuery(newId));
-            // var newId = await _mediator.Send(new CreateBusinessTripCommand(formItem));
-            // var saveResult = await _mediator.Send(new GetBusinessTripByIdQuery(newId));
             // var message = $"Formularz został wysłany do {saveResult.LVL1_EmployeeName} w celu zatwierdzenia.";
             // var intent = ToastIntent.Success;
             // _toastService.ShowToast(intent, message, 3000);
-            // _navigationManager.NavigateTo($"/delegacje/{_srcPage}");
+            _navigationManager.NavigateTo($"/zaliczki/{_srcPage}");
         }
     }
 
@@ -544,9 +565,9 @@
         formItem.CashPoint = _selectedLocation.FirstOrDefault();
         var tempOrg = await _mediator.Send(new GetOrganisationByEmpSapNumberQuery(formItem.CashPoint.SapNumber));
         if(tempOrg != null){
-            formItem.Level2Approvers = SetApprovers(tempOrg.Role_Cashiers);
+            formItem.Level5Approvers = SetApprovers(tempOrg.Role_Cashiers);
         }
-        
+
     }
 
     private void AssignStatusBool()
@@ -597,7 +618,7 @@
 
         _editContext = new EditContext(formItem);
         await Utils.GetUserName(_authenticationStateProvider, _userContext, _mediator);
-        
+
         _employees = await _mediator.Send(new GetAllEmployeesQuery());
         _organisation = await _mediator.Send(new GetOrganisationByEmpSapNumberQuery(_userContext.Employee.SapNumber));
         _costCenters = await _mediator.Send(new GetAllCostCenterIEnumQuery());
@@ -606,9 +627,10 @@
         formItem.OrganisationSapNumber = _organisation.SapNumber;
         formItem.EmployeeName = _userContext.LongName;
         formItem.BankAccountNumber = _userContext.Employee.BankAccountNumber;
-        //AssignStatusBool();
         SetSrcPage();
         await GetAllowedPersons();
+
+        AssignStatusBool();
 
         approvalInfo = new ApprovalVm()
             {
@@ -681,7 +703,25 @@
     private async Task SetupFormRejestracja()
     {
         Title = "Wniosek o zaliczkę - Rejestracja";
+        await AddEmployee(_userContext.Employee);
         await AssignAllApprovers(_userContext.Employee);
+        formItem.EmployeeName = _userContext.LongName;
+        formItem.EnovaEmpId = _userContext.EnovaEmpId;
+        formItem.OrganisationSapNumber = _organisation.SapNumber;
+        StateHasChanged();
+    }
+
+    private async Task AddEmployee(EmployeeVm newEmployee)
+    {
+        formItem.EnovaEmpId = newEmployee.EnovaEmpId.ToString();
+        formItem.EmployeeName = newEmployee.LongName;
+        formItem.BankAccountNumber = newEmployee.BankAccountNumber;
+        UpdateBankTransferMappings(newEmployee);
+        var employeesList = new List<EmployeeVm>();
+
+        employeesList.Add(newEmployee);
+
+        SelectedEmpl = employeesList;
     }
 
     private async Task GetAllowedPersons()
@@ -705,22 +745,49 @@
 
     private async Task AssignAllApprovers(EmployeeVm emp)
     {
-        approverL1 = new()
-            {
-                IsDefault = true,
-                EmpId = emp.ManagerId,
-                LongName = emp.Manager.LongName
-            };
+        // approverL1 = new()
+        //     {
+        //         IsDefault = true,
+        //         EmpId = emp.ManagerId,
+        //         LongName = emp.Manager.LongName
+        //     };
 
         formItem.Level1Approvers.Clear();
-        formItem.Level1Approvers.Add(approverL1);
+        formItem.Level1Approvers = await SetManagerAndDeputies();
         formItem.LVL1_EnovaEmpId = emp.ManagerId.ToString();
         formItem.LVL1_EmployeeName = emp.Manager.LongName;
         formItem.Level2Approvers = SetApprovers(_organisation.Role_RegionDirector);
+        formItem.Level3Approvers = SetApprovers(_organisation.Role_Accountants);
+        formItem.Level4Approvers = SetApprovers(_organisation.Role_AccountantsTeamLeader);
+        formItem.Level5Approvers = SetApprovers(_organisation.Role_Cashiers);
         // formItem.Level2Approvers.Clear();
         // formItem.Level2Approvers.Add(approverL1);
         // formItem.LVL2_EnovaEmpId = emp.ManagerId.ToString();
         // formItem.LVL2_EmployeeName = emp.Manager.LongName;
+    }
+
+        private async Task <List<OrganisationRoleForFormVm>> SetManagerAndDeputies()
+    {
+        var empl = _employees.Where(e => e.EnovaEmpId == int.Parse(formItem.EnovaEmpId)).First();
+        approverL1 = new()
+            {
+                IsDefault = true,
+                EmpId = empl.ManagerId,
+                LongName = empl.Manager.LongName
+            };
+        var managers = await _mediator.Send(new GetManagerDeputyByManagerIdQuery(empl.ManagerId));
+        var managerDeputies = managers.Deputies;
+
+        var result = new List<OrganisationRoleForFormVm>();
+        foreach (var item in managerDeputies)
+        {
+            result.Add(new OrganisationRoleForFormVm(item));
+        }
+
+        result.Insert(0, approverL1);
+
+        return result;
+
     }
 
     private List<OrganisationRoleForFormVm> SetApprovers(List<OrganisationRoleVm> rolesIn)

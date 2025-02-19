@@ -4,15 +4,8 @@ using Application.Mappings;
 using Application.ViewModels.Accounting;
 using Application.ViewModels.General;
 using AutoMapper;
-using Domain.Entities.Accounting;
 using Domain.Forms.Accounting;
-using Microsoft.Kiota.Abstractions;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 
 namespace Application.Forms.Accounting
 {
@@ -77,8 +70,8 @@ namespace Application.Forms.Accounting
         public Application.ViewModels.General.Location CashPoint { get; set; } = new();
         public void Mapping(Profile profile)
         {
-            profile.CreateMap<AdvancePaymentForm, AdvancePaymentFormVm>().ReverseMap();
-/*            .ForMember(dest => dest.FormFiles, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<FormFileVm>>(src.FormFiles)))
+            profile.CreateMap<AdvancePaymentForm, AdvancePaymentFormVm>()
+            .ForMember(dest => dest.FormFiles, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<FormFileVm>>(src.FormFiles)))
             .ForMember(dest => dest.Approvals, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<ApprovalVm>>(src.Approvals)))
             .ForMember(dest => dest.Level1Approvers, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<OrganisationRoleForFormVm>>(src.Level1Approvers)))
             .ForMember(dest => dest.Level2Approvers, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<OrganisationRoleForFormVm>>(src.Level2Approvers)))
@@ -105,7 +98,7 @@ namespace Application.Forms.Accounting
             .ForMember(dest => dest.PayoutCashierEmpId, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.PayoutCashierEmpId)))
             .ForMember(dest => dest.BTMappingAdvancePayment, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.BTMappingAdvancePayment)))
             .ForMember(dest => dest.BTMappingPayout, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.BTMappingPayout)))
-            .ForMember(dest => dest.CashPoint, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.CashPoint)));*/
+            .ForMember(dest => dest.CashPoint, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.CashPoint)));
         }
     }
 }

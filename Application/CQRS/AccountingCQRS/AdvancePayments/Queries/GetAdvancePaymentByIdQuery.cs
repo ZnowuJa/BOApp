@@ -23,7 +23,7 @@ namespace Application.CQRS.AccountingCQRS.AdvancePayments.Queries
 
         public async Task<AdvancePaymentFormVm> Handle(GetAdvancePaymentByIdQuery request, CancellationToken cancellationToken)
         {
-            var queryResult = await _context.BusinessTravels.Where(ct => ct.StatusId == 1 && ct.Id == request.Id).AsNoTracking().FirstOrDefaultAsync(cancellationToken);
+            var queryResult = await _context.AdvancePayments.Where(ct => ct.StatusId == 1 && ct.Id == request.Id).AsNoTracking().FirstOrDefaultAsync(cancellationToken);
             var result = _mapper.Map<AdvancePaymentFormVm>(queryResult);
 
             return result;

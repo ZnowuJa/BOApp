@@ -81,16 +81,16 @@ public class BusinessTravelFormVm : IMapFrom<BusinessTravelForm>, IFormAccountin
         public List<OrganisationRoleForFormVm> Level5Approvers { get; set; } = new(); // drugi przełożony etapy: AprobataL12
         public List<OrganisationRoleForFormVm> Level6Approvers { get; set; } = new(); // Na razie nie wykorzystywany
     
-         public string LVL1_EnovaEmpId { get; set; } = string.Empty;
-        public string LVL1_EmployeeName { get; set; } = string.Empty; // manager of user
+        public string LVL1_EnovaEmpId { get; set; } = string.Empty;
+        public string LVL1_EmployeeName { get; set; } = string.Empty;
         public string LVL2_EnovaEmpId { get; set; } = string.Empty;
-        public string LVL2_EmployeeName { get; set; } = string.Empty; // some kind of Director
+        public string LVL2_EmployeeName { get; set; } = string.Empty;
         public string LVL3_EnovaEmpId { get; set; } = string.Empty;
-        public string LVL3_EmployeeName { get; set; } = string.Empty; // Cashier
+        public string LVL3_EmployeeName { get; set; } = string.Empty;
         public string LVL4_EnovaEmpId { get; set; } = string.Empty;
-        public string LVL4_EmployeeName { get; set; } = string.Empty; // Accountants
+        public string LVL4_EmployeeName { get; set; } = string.Empty;
         public string LVL5_EnovaEmpId { get; set; } = string.Empty;
-        public string LVL5_EmployeeName { get; set; } = string.Empty; // Accountants TLs
+        public string LVL5_EmployeeName { get; set; } = string.Empty;
         public string LVL6_EnovaEmpId { get; set; } = string.Empty;
         public string LVL6_EmployeeName { get; set; } = string.Empty;
     #endregion
