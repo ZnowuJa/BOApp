@@ -24,7 +24,7 @@ public class GetAllInstructionCoCsQueryHandler : IRequestHandler<GetAllInstructi
     public async Task<IQueryable<InstructionCoCVm>> Handle(GetAllInstructionCoCsQuery request, CancellationToken cancellationToken)
     {
 
-        var instructions = await _context.Instructions.Include(i => i.Groups).ToListAsync(cancellationToken);
+        var instructions = await _context.Instructions.Where(s => s.StatusId == 1).Include(i => i.Groups).ToListAsync(cancellationToken);
         var result = _mapper.Map<List<InstructionCoCVm>>(instructions).AsQueryable();
 
         return result;

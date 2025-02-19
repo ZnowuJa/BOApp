@@ -8,7 +8,7 @@
 @using Application.ViewModels.CoC
 @using Microsoft.AspNetCore.Authorization
 
-@attribute [Authorize(Policy = "Technician")]
+@attribute [Authorize(Policy = "Compliance")]
 
 @inject IMediator _mediator
 @inject ILogger<Positions_Page> _logger

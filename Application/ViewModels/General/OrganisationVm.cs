@@ -56,7 +56,7 @@ public class OrganisationVm : IMapFrom<Organisation>
 
     public void Mapping(Profile profile)
     {
-        profile.CreateMap<Organisation, Location>()
+        profile.CreateMap<Organisation, LocationVm>()
             .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
             .ForMember(dest => dest.SapNumber, opt => opt.MapFrom(src => src.SapNumber));
         
