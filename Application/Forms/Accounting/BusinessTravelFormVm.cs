@@ -71,7 +71,7 @@ public class BusinessTravelFormVm : IMapFrom<BusinessTravelForm>, IFormAccountin
         public string EmployeeName { get; set; } = string.Empty;
         public string EnovaEmpId { get; set; } = string.Empty;
         public CostCenterVm FormCostCenter { get; set; } = new CostCenterVm();
-        public Application.ViewModels.General.Location FormCostLocation { get; set; } = new ();
+        public LocationVm FormCostLocation { get; set; } = new ();
         public List<ApprovalVm>? Approvals { get; set; } = new();
     #region ApproversDetails
         public List<OrganisationRoleForFormVm> Level1Approvers { get; set; } = new(); // przełożony etapy: AprobataL1, AprobataL11
@@ -162,8 +162,8 @@ public class BusinessTravelFormVm : IMapFrom<BusinessTravelForm>, IFormAccountin
            
         }
     }
-    public Location CashPoint { get; set; } = new();
-    public Application.ViewModels.General.Location CashPointReceipt { get; set; } = new();
+    public LocationVm CashPoint { get; set; } = new();
+    public LocationVm CashPointReceipt { get; set; } = new();
     public decimal TotalBillsPL
     {
         get
@@ -232,7 +232,7 @@ public class BusinessTravelFormVm : IMapFrom<BusinessTravelForm>, IFormAccountin
             .ForMember(dest => dest.Level5Approvers, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<OrganisationRoleForFormVm>>(src.Level5Approvers)))
             .ForMember(dest => dest.Level6Approvers, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<OrganisationRoleForFormVm>>(src.Level6Approvers)))
             .ForMember(dest => dest.FormCostCenter, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<CostCenterVm>(src.FormCostCenter)))
-            .ForMember(dest => dest.FormCostLocation, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<Location>(src.FormCostLocation)))
+            .ForMember(dest => dest.FormCostLocation, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<LocationVm>(src.FormCostLocation)))
             .ForMember(dest => dest.PayoutCashier, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<EmployeeVm>(src.PayoutCashierEmpId)))
             .ForMember(dest => dest.ReceiptCashier, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<EmployeeVm>(src.ReceiptCashierEmpId)))
             //.ForMember(dest => dest.Files, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<FormFileVm>>(src.Files)))
@@ -245,8 +245,8 @@ public class BusinessTravelFormVm : IMapFrom<BusinessTravelForm>, IFormAccountin
             .ForMember(dest => dest.Bills, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<Bill>>(src.Bills)))
             .ForMember(dest => dest.BTMappingAdvancePayment, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<BankTransferMapping>(src.BTMappingAdvancePayment)))
             .ForMember(dest => dest.BTMappingPayout, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<BankTransferMapping>(src.BTMappingPayout)))
-            .ForMember(dest => dest.CashPoint, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<Location>(src.CashPoint)))
-            .ForMember(dest => dest.CashPointReceipt, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<Location>(src.CashPointReceipt)))
+            .ForMember(dest => dest.CashPoint, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<LocationVm>(src.CashPoint)))
+            .ForMember(dest => dest.CashPointReceipt, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<LocationVm>(src.CashPointReceipt)))
             .ForMember(dest => dest.MileageRegister, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<MileageRegister>(src.MileageRegister)));
 
         profile.CreateMap<BusinessTravelFormVm, BusinessTravelForm>()

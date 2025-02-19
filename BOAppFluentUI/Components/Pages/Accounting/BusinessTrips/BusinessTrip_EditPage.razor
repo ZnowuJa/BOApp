@@ -163,6 +163,46 @@
                         </tbody>
                     </table>
 
+                    <table class="table-container">
+                        <tbody>
+                            <tr>
+                                <td class="table-caption" style="width: 200px;">
+                                    Lokalizacja:
+                                </td>
+                                <td>
+                                    <FluentAutocomplete TOption="LocationVm"
+                                    Disabled="@IsControlFormCostCenterLocationDisabled()"
+                                    SelectValueOnTab="true"
+                                    AutoComplete="on"
+                                    OnOptionsSearch="@OnLocationSearch"
+                                    Placeholder="wybierz lokalizację..."
+                                    MaximumSelectedOptions="1"
+                                    OptionText="@(p => p.SapNumber + ' ' + p.DisplayName)"
+                                    @bind-SelectedOptions="@_selectedFormCostLocation"
+                                    @bind-SelectedOptions:after="@HandleFormCostLocationChange"
+                                    Width="180px" />
+                                    <FluentValidationMessage For="@(() => formItem.FormCostLocation.SapNumber)" class="validation-error" />
+                                </td>
+                                <td class="table-caption" style="width: 200px;">
+                                    Miejsce kosztowe:
+                                </td>
+                                <td>
+                                    <FluentAutocomplete TOption="CostCenterVm"
+                                                        Disabled="@IsControlFormCostCenterLocationDisabled()"
+                                    SelectValueOnTab="true"
+                                    AutoComplete="on"
+                                    OnOptionsSearch="@OnCostCenterSearch"
+                                    MaximumSelectedOptions="1"
+                                    OptionText="@(c => c.MPK)"
+                                    @bind-SelectedOptions="@_selectedCostCenter"
+                                    @bind-SelectedOptions:after="@HandleFormCostCenterChange"
+                                    Width="150px" />
+                                    <FluentValidationMessage For="@(() => formItem.FormCostCenter.MPK)" class="validation-error" />
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
                     @* Transportation *@
                     <table class="table-container">
                         <tbody>
@@ -302,7 +342,7 @@
                                     @if (!formItem.AdvancePaymentCash)
                                     {
                                         @*  <td style="text-align: left; width: 300px;">
-                                            <FluentSelect TOption="Location"
+                                            <FluentSelect TOption="LocationVm"
                                                 Items = "@_locations"
                                                 Width="200px"
                                                 Height="250px"
@@ -315,7 +355,7 @@
                                             </td> *@
 
                                         <td style="text-align: left; width: 300px;">
-                                            <FluentAutocomplete TOption="Location"
+                                            <FluentAutocomplete TOption="LocationVm"
                                             Disabled="@IsControlAdvancePaymentDisabled()"
                                             SelectValueOnTab="true"
                                             OnOptionsSearch="@OnLocationSearch"
@@ -823,10 +863,10 @@
                                         </td>
                                         <td style="width: 100px !important;">
                                             <FluentSelect TOption="string"
-                                                          Disabled="@IsControlBillEditDisabled()"
+                                            Disabled="@IsControlBillEditDisabled()"
                                             Items="@_billReasons"
                                             @bind-Value="@bill.Reason"
-                                                          @bind-Value:after="@(() => HandleBillReasonChange(bill))"
+                                            @bind-Value:after="@(() => HandleBillReasonChange(bill))"
                                             Placeholder="Wybierz uzasadnienie..."
                                             Width="120px" />
                                             @* <FluentCombobox Disabled="@IsControlBillEditDisabled()"
@@ -839,7 +879,7 @@
                                         </td>
                                         <td>
                                             <FluentSwitch Id="billInvoiceId"
-                                                          Disabled="@(bill.Reason == "Posiłek" || bill.Reason == "Bilet" || !stroz)"
+                                            Disabled="@(bill.Reason == "Posiłek" || bill.Reason == "Bilet" || !stroz)"
                                             @bind-Value="@bill.Invoice"
                                             @bind-Value:after="@(() => HandleBillInvoiceTitle(bill))" 
                                             />
@@ -930,15 +970,15 @@
                                         </td>
                                         <td colspan="2">
                                             <FluentLabel>Numer faktury: </FluentLabel>
-                                        <FluentTextField Disabled="@(!(IsControlBillEditDisabled() || stks || stkstl))"
-                                                         @bind-Value="@bill.InvoiceNumber" 
+                                            <FluentTextField Disabled="@(!(IsControlBillEditDisabled() || stks || stkstl))"
+                                            @bind-Value="@bill.InvoiceNumber" 
                                             @bind-Value:after="@(() => _editContext.Validate())"
                                             />
                                             <FluentValidationMessage For="@(() => bill.InvoiceNumber)" class="validation-error" />
                                         </td>
                                         <td>
                                             <FluentLabel>Data wystawienia: </FluentLabel>
-                                        <FluentDatePicker Disabled="@IsControlBillEditDisabled()" Value="@(bill.InvoiceDate)"
+                                            <FluentDatePicker Disabled="@IsControlBillEditDisabled()" Value="@(bill.InvoiceDate)"
                                             ValueChanged="@(e => HandleInvoiceDateChanged(bill, e.ToDateTime()))" />
                                             <FluentValidationMessage For="@(() => bill.InvoiceDate)" class="validation-error" />
                                         </td>
@@ -1164,8 +1204,6 @@
                                             Numer konta
                                         </th>
                                     }
-
-                                    <th>MPK</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -1190,7 +1228,7 @@
                                         @if (!formItem.ReceiptPaymentCash)
                                         {
                                             <td style="text-align: left; width: 300px;">
-                                                <FluentAutocomplete TOption="Location"
+                                                <FluentAutocomplete TOption="LocationVm"
                                                 Disabled="@IsControlReceiptPaymentDisabled()"
                                                 SelectValueOnTab="true"
                                                 AutoComplete="on"
@@ -1214,34 +1252,6 @@
                                                 <FluentValidationMessage For="@(() => formItem.ReceiptBankAccountNumber)" class="validation-error" />
                                             </td>
                                         }
-                                        <td>
-                                            <FluentAutocomplete TOption="Location"
-                                            Disabled="@IsControlReceiptPaymentDisabled()"
-                                            SelectValueOnTab="true"
-                                            AutoComplete="on"
-                                            OnOptionsSearch="@OnLocationSearch"
-                                            Placeholder="wybierz lokalizację..."
-                                            MaximumSelectedOptions="1"
-                                            OptionText="@(p => p.SapNumber + ' ' + p.DisplayName)"
-                                            @bind-SelectedOptions="@_selectedFormCostLocation"
-                                            @bind-SelectedOptions:after="@HandleFormCostLocationChange"
-                                            Width="180px" />
-                                            <FluentValidationMessage For="@(() => formItem.CashPoint.SapNumber)" class="validation-error" />
-                                            <FluentAutocomplete TOption="CostCenterVm"
-                                            Disabled="@IsControlReceiptPaymentDisabled()"
-                                            SelectValueOnTab="true"
-                                            AutoComplete="on"
-                                            OnOptionsSearch="@OnCostCenterSearch"
-                                            MaximumSelectedOptions="1"
-                                            OptionText="@(c => c.MPK)"
-                                            @bind-SelectedOptions="@_selectedCostCenter"
-                                            @bind-SelectedOptions:after="@HandleCostCenterChange"
-                                            Width="150px" />
-
-
-                                            <FluentValidationMessage For="@(() => formItem.FormCostCenter.MPK)" class="validation-error" />
-
-                                        </td>
 
                                     }
                                 </tr>
@@ -1250,7 +1260,7 @@
 
                         if ((stks || stkstl) && formItem.ReceiptPaymentCash)
                         {
-                            <BankTransferMappingEditComponent BTItem="@formItem.BTMappingPayout" CostCenters="@_costCenters" GLAccounts="@_glAccounts" />
+                            <BankTransferMappingEditComponent BTItem="@formItem.BTMappingPayout" CostCenters="@_costCenters" GLAccounts="@_glAccounts" FormStatus="@formItem.Status" UserContext="@_userContext" />
                         }
 
                     }
@@ -1484,10 +1494,10 @@
     private IEnumerable<CountryVm> SelectedCountry { get; set; }
     private IQueryable<CountryVm> Countries { get; set; }
     private CountryVm Origin { get; set; }
-    private List<Location> _locations { get; set; } = new List<Location>();
-    IEnumerable<Location> _selectedLocation = Array.Empty<Location>();
-    IEnumerable<Location> _selectedReceiptLocation = Array.Empty<Location>();
-    IEnumerable<Location> _selectedFormCostLocation = Array.Empty<Location>();
+    private List<LocationVm> _locations { get; set; } = new List<LocationVm>();
+    IEnumerable<LocationVm> _selectedLocation = Array.Empty<LocationVm>();
+    IEnumerable<LocationVm> _selectedReceiptLocation = Array.Empty<LocationVm>();
+    IEnumerable<LocationVm> _selectedFormCostLocation = Array.Empty<LocationVm>();
     private IEnumerable<CostCenterVm> _costCenters { get; set; }
     private IEnumerable<GLAccountVm> _glAccounts { get; set; }
     private IEnumerable<VATRateVm> _vatRates { get; set; }
@@ -1756,15 +1766,15 @@
             SelectedCompanyCar = new List<string> { formItem.CompanyVehicleNumber };
         }
         if(!string.IsNullOrEmpty(formItem.CashPoint.SapNumber)){
-            _selectedLocation = new List<Location> { formItem.CashPoint };
+            _selectedLocation = new List<LocationVm> { formItem.CashPoint };
         }
         if (!string.IsNullOrEmpty(formItem.CashPointReceipt.SapNumber))
         {
-            _selectedReceiptLocation = new List<Location> { formItem.CashPointReceipt };
+            _selectedReceiptLocation = new List<LocationVm> { formItem.CashPointReceipt };
         }
         if (!string.IsNullOrEmpty(formItem.FormCostLocation.SapNumber))
         {
-            _selectedFormCostLocation = new List<Location> { formItem.FormCostLocation };
+            _selectedFormCostLocation = new List<LocationVm> { formItem.FormCostLocation };
         }
         if (!string.IsNullOrEmpty(formItem.FormCostCenter.MPK))
         {
@@ -1945,7 +1955,7 @@
                 await SaveBillFiles();
             }
             if(strozk)
-            formItem.Approvals.Add(approvalInfo);
+                formItem.Approvals.Add(approvalInfo);
             formItem.Status = GetNextStatus(formItem);
             await _mediator.Send(new UpdateBusinessTripCommand(formItem));
             var message = $"Formularz został wysłany!";
@@ -1974,7 +1984,7 @@
             newStatus = "Rozliczenie";
         }
         else if (formItem.Status == "ZaliczkaKsiegowosc"){
-            newStatus = "ZaliczkaKsiegowoscTL";
+            newStatus = "WyslaneDoRobota";
         } 
         else if(formItem.Status == "Rozliczenie"){
             newStatus = "Ksiegowosc";
@@ -2025,7 +2035,7 @@
 
     #endregion
     #region OnSearch
-    private void OnLocationSearch(OptionsSearchEventArgs<Location> e)
+    private void OnLocationSearch(OptionsSearchEventArgs<LocationVm> e)
     {
         if (e.Text != null)
         {
@@ -2154,7 +2164,7 @@
                 formItem.Level2Approvers = SetApprovers(tempOrg.Role_Cashiers);
             }
         } else {
-            formItem.CashPoint = new Location();
+            formItem.CashPoint = new LocationVm();
         }
     }
     private async Task HandleFormCostLocationChange()
@@ -2168,7 +2178,7 @@
                 formItem.Level5Approvers = SetApprovers(tempOrg.Role_DealerDirector);
             }
         }else{
-            formItem.FormCostLocation = new Location();
+            formItem.FormCostLocation = new LocationVm();
         }
     }
     private async Task HandleLocationReceiptChange()
@@ -2179,7 +2189,7 @@
             var tempOrg = await _mediator.Send(new GetOrganisationByEmpSapNumberQuery(formItem.CashPointReceipt.SapNumber));
             formItem.Level2Approvers = SetApprovers(tempOrg.Role_Cashiers);
         } else {
-            formItem.CashPointReceipt = new Location();
+            formItem.CashPointReceipt = new LocationVm();
         }
     }
     private async Task HandleBillReasonChange(Bill bill)
@@ -2378,7 +2388,7 @@
 
         StateHasChanged();
     }
-    private async Task HandleCostCenterChange()
+    private async Task HandleFormCostCenterChange()
     {
         Console.WriteLine(_selectedCostCenter.Count());
 
@@ -2479,6 +2489,10 @@
     private async Task HandleAdvancePaymentPaidChanged(bool value)
     {
         formItem.AdvancePayment = value;
+        if (formItem.AdvancePayment)
+        {
+            // formItem.BTMappingAdvancePayment.
+        }
         // formItem.BankAccountNumber = 
         StateHasChanged();
     }
@@ -3195,6 +3209,7 @@
         formItem.EnovaEmpId = newEmployee.EnovaEmpId.ToString();
         formItem.EmployeeName = newEmployee.LongName;
         formItem.BankAccountNumber = newEmployee.BankAccountNumber;
+        formItem.ReceiptBankAccountNumber = newEmployee.BankAccountNumber;
         UpdateBankTransferMappings(newEmployee);
         var employeesList = new List<EmployeeVm>();
 
@@ -3592,7 +3607,18 @@
                 formItem.DestinationCountryCurrency = "PLN";
             }
 
-
+            formItem.FormCostLocation = _locations.Where(l => l.SapNumber == _userContext.Employee.SapNumber).FirstOrDefault();
+            formItem.FormCostCenter = _costCenters.Where(c => c.MPK == _userContext.Employee.DeptNumber).FirstOrDefault();
+            if (!string.IsNullOrEmpty(formItem.FormCostLocation.SapNumber))
+            {
+                var tempLoc = _locations.Where(l => l.SapNumber == formItem.FormCostLocation.SapNumber).FirstOrDefault();
+                _selectedFormCostLocation = new List<LocationVm>() { tempLoc };
+            }
+            if (!string.IsNullOrEmpty(formItem.FormCostCenter.MPK))
+            {
+                var tempCC = _costCenters.Where(l => l.MPK == formItem.FormCostCenter.MPK).FirstOrDefault();
+                _selectedCostCenter = new List<CostCenterVm>() { tempCC };
+            }
             Title = "Podróż służbowa - Rejestracja wniosku";
             await AddEmployee(_userContext.Employee);
             await AssignAllApprovers(_userContext.Employee);
@@ -3715,6 +3741,9 @@
     private async Task SetupFormKsiegowosc()
     {
         Title = "Podróż służbowa - Księgowość";
+
+        formItem.BTMappingPayout.BankTrasferTitle = $"DEL {formItem.Number} {formItem.EmployeeName}";
+
         ShowAccomodations = true;
         ShowMeals = true;
         ShowStages = true;
@@ -3844,7 +3873,7 @@
 
         if(formItem.AdvancePayment){
 
-            _selectedLocation = new List<Location> { formItem.CashPoint };
+            _selectedLocation = new List<LocationVm> { formItem.CashPoint };
 
         }
 
@@ -4192,6 +4221,19 @@
         }
         bool result = true;
         if (stroz )
+        {
+            result = false;
+        }
+        return result;
+    }
+    private bool IsControlFormCostCenterLocationDisabled(bool? b = null)
+    {
+        if (b.HasValue)
+        {
+            return b.Value;
+        }
+        bool result = true;
+        if (strej || stroz)
         {
             result = false;
         }

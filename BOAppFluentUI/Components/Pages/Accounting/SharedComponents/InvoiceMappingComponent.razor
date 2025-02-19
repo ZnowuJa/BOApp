@@ -9,7 +9,7 @@
     <tbody>
     <tr class="fluent-row">
         <td>
-            <FluentAutocomplete TOption="Location"
+                <FluentAutocomplete TOption="LocationVm"
                                 SelectValueOnTab="true"
                                 AutoComplete="on"
                                 Items="@_locations"
@@ -71,11 +71,11 @@
 @code {
     [Parameter] public InvoiceMapping Mapping { get; set; }
 
-    private IEnumerable<Location> _locations { get; set; }
+    private IEnumerable<LocationVm> _locations { get; set; }
     private IEnumerable<CostCenterVm> _costCenters { get; set; }
     private IEnumerable<GLAccountVm> _glAccounts { get; set; }
     private IEnumerable<VATRateVm> _vatRates { get; set; }
-    IEnumerable<Location> _selectedLocation = Array.Empty<Location>();
+    IEnumerable<LocationVm> _selectedLocation = Array.Empty<LocationVm>();
     IEnumerable<CostCenterVm> _selectedCostCenter = Array.Empty<CostCenterVm>();
     IEnumerable<GLAccountVm> _selectedGlAccount = Array.Empty<GLAccountVm>();
     IEnumerable<VATRateVm> _selectedVatRate = Array.Empty<VATRateVm>();
@@ -113,7 +113,7 @@
 
         Console.WriteLine();
     }
-    private void OnLocationSearch(OptionsSearchEventArgs<Location> e)
+    private void OnLocationSearch(OptionsSearchEventArgs<LocationVm> e)
     {
         e.Items = _locations.Where(g => g.Name.Contains(e.Text, StringComparison.OrdinalIgnoreCase)
                                         || g.SapNumber.Contains(e.Text, StringComparison.OrdinalIgnoreCase));

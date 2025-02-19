@@ -33,6 +33,11 @@ public class BusinessTravelFormVmValidator : AbstractValidator<BusinessTravelFor
         {
             RuleFor(x => x.CashPayoutNumber).NotEmpty().WithMessage("Wprowadź numer dokumentu kasowego z Austostacji!");
         });
+        When(form => form.Status == "Rejestracja" || form.Status == "Rozliczenie", () =>
+        {
+            RuleFor(x => x.FormCostLocation.SapNumber).NotEmpty().WithMessage("Proszę uzupełnić miejsce kosztowe!");
+            RuleFor(x => x.FormCostCenter.MPK).NotEmpty().WithMessage("Proszę uzupełnić lokalizację!");
+        });
         When(form => form.AdvancePayment, () => 
         {
             RuleFor(x => x.AdvancePaymentAmount).GreaterThan(0).WithMessage("Wprowadź kwotę zaliczki!");
