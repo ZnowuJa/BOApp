@@ -21,17 +21,17 @@
         <DataAnnotationsValidator />
 
             <div class="card">
-                <FluentTextField Id="MPK" @bind-Value="@Content.MPK" Placeholder="Enter MPK">MPK:</FluentTextField>
+                <FluentTextField Id="MPK" @bind-Value="@Content.MPK" Placeholder="Wpisz MPK">MPK:</FluentTextField>
                 <FluentValidationMessage For="@(() => Content.MPK)" />
             </div>
 
             <div class="card">
-                <FluentTextField Id="Description" @bind-Value="@Content.Description" Placeholder="Enter description">Description:</FluentTextField>
+                <FluentTextField Id="Description" @bind-Value="@Content.Description" Placeholder="Wpisz opis">Opis:</FluentTextField>
                 <FluentValidationMessage For="@(() => Content.Description)" />
             </div>
 
             <div class="card">
-                <FluentTextField Id="Text" @bind-Value="@Content.Text" Placeholder="Enter text">Text:</FluentTextField>
+                <FluentTextField Id="Text" @bind-Value="@Content.Text" Placeholder="Wpisz tekst">Tekst:</FluentTextField>
                 <FluentValidationMessage For="@(() => Content.Text)" />
             </div>
 
@@ -40,8 +40,8 @@
 
 <!-- Footer -->
 <FluentDialogFooter>
-    <FluentButton Appearance="Appearance.Accent" OnClick="@SaveAsync">Save</FluentButton>
-    <FluentButton Appearance="Appearance.Neutral" OnClick="@CancelAsync">Cancel</FluentButton>
+    <FluentButton Appearance="Appearance.Accent" OnClick="@SaveAsync">Zapisz</FluentButton>
+    <FluentButton Appearance="Appearance.Neutral" OnClick="@CancelAsync">Anuluj</FluentButton>
 </FluentDialogFooter>
 
 @code {

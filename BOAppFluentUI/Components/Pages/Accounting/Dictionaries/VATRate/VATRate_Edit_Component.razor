@@ -21,22 +21,22 @@
         <DataAnnotationsValidator />
 
         <div class="card">
-            <FluentTextField Id="Name" @bind-Value="@Content.Name" Placeholder="Enter Name">Name:</FluentTextField>
+            <FluentTextField Id="Name" @bind-Value="@Content.Name" Placeholder="Wpisz nazwę">Nazwa:</FluentTextField>
             <FluentValidationMessage For="@(() => Content.Name)" />
         </div>
 
         <div class="card">
-            <FluentNumberField Id="Percentage" @bind-Value="@Content.Percentage" HideStep=true Placeholder="Enter Percentage">Percentage:</FluentNumberField>
+            <FluentNumberField Id="Percentage" @bind-Value="@Content.Percentage" HideStep=true Placeholder="Wpisz procent">Procent:</FluentNumberField>
             <FluentValidationMessage For="@(() => Content.Percentage)" />
         </div>
 
         <div class="card">
-            <FluentTextField Id="Information" @bind-Value="@Content.Information" Placeholder="Enter Information">Information:</FluentTextField>
+            <FluentTextField Id="Information" @bind-Value="@Content.Information" Placeholder="Wpisz informacje">Informacje:</FluentTextField>
             <FluentValidationMessage For="@(() => Content.Information)" />
         </div>
 
         <div class="card">
-            <FluentNumberField Id="Order" @bind-Value="@Content.Order" HideStep=true Placeholder="Enter Order">Order:</FluentNumberField>
+            <FluentNumberField Id="Order" @bind-Value="@Content.Order" HideStep=true Placeholder="Wpisz kolejność">Kolejność:</FluentNumberField>
             <FluentValidationMessage For="@(() => Content.Order)" />
         </div>
     </EditForm>
@@ -44,12 +44,11 @@
 
 <!-- Footer -->
 <FluentDialogFooter>
-    <FluentButton Appearance="Appearance.Accent" OnClick="@SaveAsync">Save</FluentButton>
-    <FluentButton Appearance="Appearance.Neutral" OnClick="@CancelAsync">Cancel</FluentButton>
+    <FluentButton Appearance="Appearance.Accent" OnClick="@SaveAsync">Zapisz</FluentButton>
+    <FluentButton Appearance="Appearance.Neutral" OnClick="@CancelAsync">Anuluj</FluentButton>
 </FluentDialogFooter>
 
 @code {
-
     [Parameter]
     public VATRateVm Content { get; set; } = default!;
 
