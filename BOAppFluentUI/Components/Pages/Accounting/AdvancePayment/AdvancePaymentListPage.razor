@@ -116,12 +116,12 @@
         new FilterColumn<AdvancePaymentFormVm> { FirstRow = true, Label = "Zgłaszający", Property = c =>(c.EmployeeName.ToString()??string.Empty), IsVisible = false },
         new FilterColumn<AdvancePaymentFormVm> { FirstRow = true, Label = "Numer lok.", Property = c => c.OrganisationSapNumber, IsVisible = true },
         new FilterColumn<AdvancePaymentFormVm> { FirstRow = true, Label = "Przełożony", Property = c => c.LVL1_EmployeeName, IsVisible = true },
-        new FilterColumn<AdvancePaymentFormVm> { FirstRow = true, Label = "Przełożony2", Property = c => c.LVL2_EmployeeName, IsVisible = false }
+        new FilterColumn<AdvancePaymentFormVm> { FirstRow = true, Label = "Przełożony2", Property = c => c.LVL5_EmployeeName, IsVisible = true }
     };
 
     private static List<string> StatusesValues { get; set; } = new List<string>
     {
-        "Rejestracja", "AprobataL1", "AprobataL2", "Zakończone", "Odrzucone"
+        "Rejestracja", "AprobataL1", "AprobataL2", "Ksiegowosc", "KsiegowoscTL", "Kasa", "Zakonczone", "Odrzucone"
     };
 
     protected override async Task OnInitializedAsync()
@@ -149,7 +149,7 @@
         {
             "pracownik" or "employee" => items2load.Where(x => x.EnovaEmpId == _userContext.EnovaEmpId),
             "kierownikL1" or "managerL1" => items2load.Where(x => x.Level1Approvers.Any(approver => approver.EmpId == CurrentUserEnowaEmpId) && (x.Status == "AprobataL1" || x.Status == "AprobataL2")),
-            "kierownikL2" or "managerL2" => items2load.Where(x => x.Level1Approvers.Any(approver => approver.EmpId == CurrentUserEnowaEmpId) && (x.Status == "AprobataL1" || x.Status == "AprobataL2")),
+            "kierownikL2" or "managerL2" => items2load.Where(x => x.Level2Approvers.Any(approver => approver.EmpId == CurrentUserEnowaEmpId) && (x.Status == "AprobataL1" || x.Status == "AprobataL2")),
             "kasjer" or "cashier" => items2load.Where(x => x.Level2Approvers.Any(approver => approver.EmpId == CurrentUserEnowaEmpId) && (x.Status == "ZaliczkaKasa" || x.Status == "KasaRozliczenie")),
             "ksiegowe" or "accountants" => items2load,
             "zapisane" or "saved" => items2load.Where(x => x.Level2Approvers.Any(approver => approver.EmpId == CurrentUserEnowaEmpId)),
