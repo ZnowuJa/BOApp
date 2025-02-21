@@ -9,17 +9,18 @@ namespace Application.ViewModels.Accounting
     {
         public int Id { get; set; }
 
-        [Required(ErrorMessage = "Account Number is required.")]
-        [MinLength(3, ErrorMessage = "Account Number must be at least 3 characters long.")]
-        [MaxLength(50, ErrorMessage = "Account Number cannot exceed 50 characters.")]
+        [Required(ErrorMessage = "Numer konta jest wymagany.")]
+        [MinLength(3, ErrorMessage = "Numer konta musi mieć co najmniej 3 znaki.")]
+        [MaxLength(50, ErrorMessage = "Numer konta nie może przekraczać 50 znaków.")]
         public string AccountNumber { get; set; }
 
-        [Required(ErrorMessage = "Description is required.")]
-        [MinLength(3, ErrorMessage = "Description must be at least 3 characters long.")]
-        [MaxLength(250, ErrorMessage = "Description cannot exceed 250 characters.")]
+        [Required(ErrorMessage = "Opis jest wymagany.")]
+        [MinLength(3, ErrorMessage = "Opis musi mieć co najmniej 3 znaki.")]
+        [MaxLength(250, ErrorMessage = "Opis nie może przekraczać 250 znaków.")]
         public string Description { get; set; }
 
         public int? StatusId { get; set; }
+
         public void Mapping(Profile profile)
         {
             profile.CreateMap<GLAccount, GLAccountVm>().ReverseMap();

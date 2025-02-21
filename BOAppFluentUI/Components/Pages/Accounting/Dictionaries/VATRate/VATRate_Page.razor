@@ -20,17 +20,28 @@
 }
 else
 {
-    <FluentDataGrid Items="@vatrate" TGridItem="VATRateVm" GridTemplateColumns="50px 1fr 2fr 1fr">
-        <PropertyColumn Property="@(c => c.Id)" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.Name)" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.Percentage)" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.Information)" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.Order)" Sortable="true" Align="Align.Start" Tooltip="true" />
+    <FluentDataGrid Items="@vatrate" TGridItem="VATRateVm" GridTemplateColumns="50px 200px 200px 200px 200px">
+        <PropertyColumn Property="@(c => c.Id)" Title="Id" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.Name)" Title="Nazwa" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.Percentage)" Title="Procent" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.Information)" Title="Informacja" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.Order)" Title="Kolejność" Sortable="true" Align="Align.Start" Tooltip="true" />
 
-        <TemplateColumn Title="Actions" Align="Align.End">
-            <FluentButton IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" />
-            <FluentButton IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => EditItem(context))" />
-            <FluentButton IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" />
+        <TemplateColumn Title="Akcje" Align="Align.End">
+            @{
+                var viewId = $"viewid-{context.Id}";
+                var editId = $"editid-{context.Id}";
+                var deleteId = $"deleteid-{context.Id}";
+            }
+            <FluentButton Id="@viewId" IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" />
+            <FluentTooltip Anchor="@viewId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Szczegóły</FluentTooltip>
+
+            <FluentButton Id="@editId" IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => EditItem(context))" />
+            <FluentTooltip Anchor="@editId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Edytuj</FluentTooltip>
+
+            <FluentButton Id="@deleteId" IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" />
+            <FluentTooltip Anchor="@deleteId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Usuń</FluentTooltip>
+
         </TemplateColumn>
     </FluentDataGrid>
     <FluentButton IconStart="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddPanel())" />
@@ -92,8 +103,8 @@ else
 
         var dialog = await _dialogService.ShowDialogAsync<VATRate_Edit_Component>(item, new DialogParameters()
             {
-                Height = "500px",
-                Width = "400px",
+                Height = "450px",
+                Width = "450px",
                 Title = item.Id > 0 ? "Aktualizuj stawki VAT" : "Dodanie nowej stawki VAT",
                 PreventDismissOnOverlayClick = false,
                 PreventScroll = true,

@@ -21,15 +21,27 @@
 else
 {
     <FluentDataGrid Items="@glaccount" TGridItem="GLAccountVm" GridTemplateColumns="50px 1fr 2fr 1fr">
-        <PropertyColumn Property="@(c => c.Id)" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.AccountNumber)" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.Description)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.Id)" Title="Id" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.AccountNumber)" Title="KontoGl" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.Description)" Title="Opis" Sortable="true" Align="Align.Start" Tooltip="true" />
 
-        <TemplateColumn Title="Actions" Align="Align.End">
-            <FluentButton IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" />
-            <FluentButton IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => EditItem(context))" />
-            <FluentButton IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" />
+        <TemplateColumn Title="Akcje" Align="Align.End">
+            @{
+                var viewId = $"viewid-{context.Id}";
+                var editId = $"editid-{context.Id}";
+                var deleteId = $"deleteid-{context.Id}";
+            }
+            <FluentButton Id="@viewId" IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" />
+            <FluentTooltip Anchor="@viewId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Szczegóły</FluentTooltip>
+
+            <FluentButton Id="@editId" IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => EditItem(context))" />
+            <FluentTooltip Anchor="@editId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Edytuj</FluentTooltip>
+
+            <FluentButton Id="@deleteId" IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" />
+            <FluentTooltip Anchor="@deleteId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Usuń</FluentTooltip>
+
         </TemplateColumn>
+
     </FluentDataGrid>
     <FluentButton IconStart="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddPanel())" />
 
@@ -90,8 +102,8 @@ else
 
         var dialog = await _dialogService.ShowDialogAsync<GLAccount_Edit_Component>(item, new DialogParameters()
             {
-                Height = "500px",
-                Width = "400px",
+                Height = "330px",
+                Width = "450px",
                 Title = item.Id > 0 ? "Aktualizuj konto księgi głównej" : "Dodanie nowego konta księgi głównej",
                 PreventDismissOnOverlayClick = false,
                 PreventScroll = true,

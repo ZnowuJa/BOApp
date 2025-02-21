@@ -12,7 +12,7 @@
 @inject IDialogService _dialogService
 @inject IToastService _toastService
 
-<h3>CostCenters</h3>
+<h3>MPK</h3>
 
 @if (costCenter == null)
 {
@@ -25,14 +25,25 @@ else
     <FluentDataGrid Items="@costCenter" TGridItem="CostCenterVm" GridTemplateColumns="50px 1fr 1fr 1fr" AutoFit="true">
 
 
-        <PropertyColumn Property="@(c => c.Id)" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.MPK)" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.Description)" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.Text)" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <TemplateColumn Title="Actions" Align="Align.End">
-            <FluentButton IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" />
-            <FluentButton IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => EditItem(context))" />
-            <FluentButton IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" />
+        <PropertyColumn Property="@(c => c.Id)" Title="Id" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.MPK)" Title="MPK" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.Description)" Title="Opis" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.Text)" Title="Tekst" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <TemplateColumn Title="Akcje" Align="Align.End">
+            @{
+                var viewId = $"viewid-{context.Id}";
+                var editId = $"editid-{context.Id}";
+                var deleteId = $"deleteid-{context.Id}";
+            }
+            <FluentButton Id="@viewId" IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" />
+            <FluentTooltip Anchor="@viewId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Szczegóły</FluentTooltip>
+
+            <FluentButton Id="@editId" IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => EditItem(context))" />
+            <FluentTooltip Anchor="@editId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Edytuj</FluentTooltip>
+
+            <FluentButton Id="@deleteId" IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" />
+            <FluentTooltip Anchor="@deleteId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Usuń</FluentTooltip>
+
         </TemplateColumn>
     </FluentDataGrid>
     <FluentButton IconStart="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddPanel())" />
@@ -94,8 +105,8 @@ else
 
         var dialog = await _dialogService.ShowDialogAsync<CostCenter_Edit_Component>(item, new DialogParameters()
             {
-                Height = "500px",
-                Width = "400px",
+                Height = "370px",
+                Width = "450px",
                 Title = item.Id > 0 ? "Aktualizuj MPK" : "Dodanie nowego MPK",
                 PreventDismissOnOverlayClick = false,
                 PreventScroll = true,

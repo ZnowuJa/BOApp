@@ -31,21 +31,33 @@ else
                     Style="overflow:auto;"
                     ShowHover="true"
                     GridTemplateColumns="100px 200px 200px 200px 200px 200px 100px 100px 100px 100px">
-        <PropertyColumn Property="@(c => c.Id)" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.CountryCode)" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.Name)" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.IsEU)" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.IsPL)" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.CurrencyVmName)" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.Allowance)" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.MaxHotelCost)" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.TravelAllowance)" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.LocalTravelAllowance)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.Id)" Title="Id" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.CountryCode)" Title="Kod kraju" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.Name)" Title="Nazwa" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.IsEU)" Title="W UE" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.IsPL)" Title="W Polsce" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.CurrencyVmName)" Title="Waluta" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.Allowance)" Title="Dieta" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.MaxHotelCost)" Title="Maksymalny koszt hotelu" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.TravelAllowance)" Title="Dieta podróżna" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.LocalTravelAllowance)" Title="Lokalna dieta podróżna" Sortable="true" Align="Align.Start" Tooltip="true" />
 
-        <TemplateColumn Title="Actions" Align="Align.End">
-            <FluentButton IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" />
-            <FluentButton IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => EditItem(context))" />
-            <FluentButton IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" />
+
+        <TemplateColumn Title="Akcje" Align="Align.End">
+            @{
+                var viewId = $"viewid-{context.Id}";
+                var editId = $"editid-{context.Id}";
+                var deleteId = $"deleteid-{context.Id}";
+            }
+            <FluentButton Id="@viewId" IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" />
+            <FluentTooltip Anchor="@viewId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Szczegóły</FluentTooltip>
+
+            <FluentButton Id="@editId" IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => EditItem(context))" />
+            <FluentTooltip Anchor="@editId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Edytuj</FluentTooltip>
+
+            <FluentButton Id="@deleteId" IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" />
+            <FluentTooltip Anchor="@deleteId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Usuń</FluentTooltip>
+
         </TemplateColumn>
     </FluentDataGrid>
     <FluentButton IconStart="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddPanel())" />
@@ -117,8 +129,8 @@ else
 
         var dialog = await _dialogService.ShowDialogAsync<Country_Edit_Component>(item, new DialogParameters()
             {
-                Height = "400px",
-                Width = "500px",
+                Height = "500px",
+                Width = "900px",
                 Title = item.Id > 0 ? "Aktualizacja państwa" : "Dodanie nowego państwa",
                 PreventDismissOnOverlayClick = false,
                 PreventScroll = true,
