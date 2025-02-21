@@ -108,7 +108,7 @@
                     Kasa:
                 </td>
                 <td style="text-align: left;" colspan="5">
-                     <FluentAutocomplete TOption="Location"
+                     <FluentAutocomplete TOption="LocationVm"
                                             SelectValueOnTab="true"
                                             AutoComplete="on"
                                             OnOptionsSearch="@OnLocationSearch"
@@ -342,8 +342,8 @@
 
     private IEnumerable<CostCenterVm> _costCenters { get; set; }
     private IEnumerable<GLAccountVm> _glAccounts { get; set; }
-    private IEnumerable<Location> _locations { get; set; } = new List<Location>().AsQueryable();
-    private IEnumerable<Location> _selectedLocation = Array.Empty<Location>();
+    private IEnumerable<LocationVm> _locations { get; set; } = new List<LocationVm>().AsQueryable();
+    private IEnumerable<LocationVm> _selectedLocation = Array.Empty<LocationVm>();
 
     private bool IsCashPayment { get; set; } = false;
     private bool IsBankTransfer { get; set; } = false;
@@ -530,7 +530,7 @@
     }
 
     #region OnSearch
-    private void OnLocationSearch(OptionsSearchEventArgs<Location> e)
+    private void OnLocationSearch(OptionsSearchEventArgs<LocationVm> e)
     {
         if (e.Text != null)
         {

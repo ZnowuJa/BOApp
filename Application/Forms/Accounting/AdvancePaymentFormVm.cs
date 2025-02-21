@@ -41,7 +41,7 @@ namespace Application.Forms.Accounting
         public string EmployeeName { get; set; } = string.Empty;
         public string EnovaEmpId { get; set; } = string.Empty;
         public CostCenterVm FormCostCenter { get; set; } = new CostCenterVm();
-        public Application.ViewModels.General.Location FormCostLocation { get; set; } = new();
+        public Application.ViewModels.General.LocationVm FormCostLocation { get; set; } = new();
         public List<ApprovalVm>? Approvals { get; set; } = new();
 
         public List<OrganisationRoleForFormVm> Level1Approvers { get; set; } = new(); // przełożony użytkownika
@@ -67,7 +67,7 @@ namespace Application.Forms.Accounting
         public BankTransferMapping? BTMappingAdvancePayment { get; set; } = new();
         public BankTransferMapping? BTMappingPayout { get; set; } = new();
 
-        public Application.ViewModels.General.Location CashPoint { get; set; } = new();
+        public Application.ViewModels.General.LocationVm CashPoint { get; set; } = new();
         public void Mapping(Profile profile)
         {
             profile.CreateMap<AdvancePaymentForm, AdvancePaymentFormVm>()
@@ -79,11 +79,11 @@ namespace Application.Forms.Accounting
             .ForMember(dest => dest.Level4Approvers, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<OrganisationRoleForFormVm>>(src.Level4Approvers)))
             .ForMember(dest => dest.Level5Approvers, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<OrganisationRoleForFormVm>>(src.Level5Approvers)))
             .ForMember(dest => dest.FormCostCenter, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<CostCenterVm>(src.FormCostCenter)))
-            .ForMember(dest => dest.FormCostLocation, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<Location>(src.FormCostLocation)))
+            .ForMember(dest => dest.FormCostLocation, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<LocationVm>(src.FormCostLocation)))
             .ForMember(dest => dest.PayoutCashier, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<EmployeeVm>(src.PayoutCashierEmpId)))
             .ForMember(dest => dest.BTMappingAdvancePayment, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<BankTransferMapping>(src.BTMappingAdvancePayment)))
             .ForMember(dest => dest.BTMappingPayout, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<BankTransferMapping>(src.BTMappingPayout)))
-            .ForMember(dest => dest.CashPoint, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<Location>(src.CashPoint)));
+            .ForMember(dest => dest.CashPoint, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<LocationVm>(src.CashPoint)));
 
             profile.CreateMap<AdvancePaymentFormVm, AdvancePaymentForm>()
             .ForMember(dest => dest.FormFiles, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.FormFiles)))
