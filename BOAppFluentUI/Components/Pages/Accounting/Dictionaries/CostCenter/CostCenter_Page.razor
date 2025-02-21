@@ -12,7 +12,7 @@
 @inject IDialogService _dialogService
 @inject IToastService _toastService
 
-<h3>CostCenters</h3>
+<h3>MPK</h3>
 
 @if (costCenter == null)
 {
@@ -105,8 +105,8 @@ else
 
         var dialog = await _dialogService.ShowDialogAsync<CostCenter_Edit_Component>(item, new DialogParameters()
             {
-                Height = "500px",
-                Width = "400px",
+                Height = "370px",
+                Width = "450px",
                 Title = item.Id > 0 ? "Aktualizuj MPK" : "Dodanie nowego MPK",
                 PreventDismissOnOverlayClick = false,
                 PreventScroll = true,

@@ -4,6 +4,10 @@
 @inject IMediator _mediator
 @implements IDialogContentComponent<VATRateVm>
 
+<head>
+    <link href="forms-tables.css" rel="stylesheet" />
+</head>
+
 <!-- Header -->
 <FluentDialogHeader ShowDismiss="true">
     <FluentStack VerticalAlignment="VerticalAlignment.Center">
@@ -20,25 +24,39 @@
         @* <FluentValidationValidator @ref="_fluentValidator" /> *@
         <DataAnnotationsValidator />
 
-        <div class="card">
-            <FluentTextField Id="Name" @bind-Value="@Content.Name" Placeholder="Wpisz nazwę">Nazwa:</FluentTextField>
-            <FluentValidationMessage For="@(() => Content.Name)" />
-        </div>
+        <table class="table-container">
+            <tbody>
+                <tr>
+                    <td class="table-caption" style="text-align: left; border-right: none;">Nazwa:</td>
+                    <td>
+                        <FluentTextField Id="Name" @bind-Value="@Content.Name" Placeholder="Wpisz nazwę" style="width: 200px;"></FluentTextField>
+                        <FluentValidationMessage For="@(() => Content.Name)" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="table-caption" style="text-align: left; border-right: none;">Procent:</td>
+                    <td>
+                        <FluentNumberField Id="Percentage" @bind-Value="@Content.Percentage" HideStep=true Placeholder="Wpisz procent" style="width: 200px;"></FluentNumberField>
+                        <FluentValidationMessage For="@(() => Content.Percentage)" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="table-caption" style="text-align: left; border-right: none;">Informacje:</td>
+                    <td>
+                        <FluentTextField Id="Information" @bind-Value="@Content.Information" Placeholder="Wpisz informacje" style="width: 200px;"></FluentTextField>
+                        <FluentValidationMessage For="@(() => Content.Information)" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="table-caption" style="text-align: left; border-right: none;">Kolejność:</td>
+                    <td>
+                        <FluentNumberField Id="Order" @bind-Value="@Content.Order" HideStep=true Placeholder="Wpisz kolejność" style="width: 200px;"></FluentNumberField>
+                        <FluentValidationMessage For="@(() => Content.Order)" />
+                    </td>
+                </tr>
+            </tbody>
+        </table>
 
-        <div class="card">
-            <FluentNumberField Id="Percentage" @bind-Value="@Content.Percentage" HideStep=true Placeholder="Wpisz procent">Procent:</FluentNumberField>
-            <FluentValidationMessage For="@(() => Content.Percentage)" />
-        </div>
-
-        <div class="card">
-            <FluentTextField Id="Information" @bind-Value="@Content.Information" Placeholder="Wpisz informacje">Informacje:</FluentTextField>
-            <FluentValidationMessage For="@(() => Content.Information)" />
-        </div>
-
-        <div class="card">
-            <FluentNumberField Id="Order" @bind-Value="@Content.Order" HideStep=true Placeholder="Wpisz kolejność">Kolejność:</FluentNumberField>
-            <FluentValidationMessage For="@(() => Content.Order)" />
-        </div>
     </EditForm>
 </FluentDialogBody>
 

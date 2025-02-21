@@ -4,6 +4,10 @@
 @inject IMediator _mediator
 @implements IDialogContentComponent<GLAccountVm>
 
+<head>
+    <link href="forms-tables.css" rel="stylesheet" />
+</head>
+
 <!-- Header -->
 <FluentDialogHeader ShowDismiss="true">
     <FluentStack VerticalAlignment="VerticalAlignment.Center">
@@ -19,10 +23,25 @@
     <EditForm EditContext="_editContext">
         @* <FluentValidationValidator @ref="_fluentValidator" /> *@
         <DataAnnotationsValidator />
-            <FluentTextField Id="AccountNumber" @bind-Value="@Content.AccountNumber" Placeholder="Wpisz KontoGl">KontoGl:</FluentTextField>
-            <FluentValidationMessage For="@(() => Content.AccountNumber)" />
-            <FluentTextField Id="Description" @bind-Value="@Content.Description" Placeholder="Wpisz opis">Opis:</FluentTextField>
-            <FluentValidationMessage For="@(() => Content.Description)" />
+        <table class="table-container">
+            <tbody>
+                <tr>
+                    <td class="table-caption" style="text-align: left; border-right: none;">KontoGl:</td>
+                    <td>
+                        <FluentTextField Id="AccountNumber" @bind-Value="@Content.AccountNumber" Placeholder="Wpisz KontoGl" style="width: 200px;"></FluentTextField>
+                        <FluentValidationMessage For="@(() => Content.AccountNumber)" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="table-caption" style="text-align: left; border-right: none;">Opis:</td>
+                    <td>
+                        <FluentTextField Id="Description" @bind-Value="@Content.Description" Placeholder="Wpisz opis" style="width: 200px;"></FluentTextField>
+                        <FluentValidationMessage For="@(() => Content.Description)" />
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
     </EditForm>
 </FluentDialogBody>
 

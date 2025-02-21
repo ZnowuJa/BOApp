@@ -4,6 +4,10 @@
 @inject IMediator _mediator
 @implements IDialogContentComponent<CostCenterVm>
 
+<head>
+    <link href="forms-tables.css" rel="stylesheet" />
+</head>
+
 <!-- Header -->
 <FluentDialogHeader ShowDismiss="true">
     <FluentStack VerticalAlignment="VerticalAlignment.Center">
@@ -20,20 +24,32 @@
         @* <FluentValidationValidator @ref="_fluentValidator" /> *@
         <DataAnnotationsValidator />
 
-            <div class="card">
-                <FluentTextField Id="MPK" @bind-Value="@Content.MPK" Placeholder="Wpisz MPK">MPK:</FluentTextField>
-                <FluentValidationMessage For="@(() => Content.MPK)" />
-            </div>
+        <table class="table-container">
+            <tbody>
+                <tr>
+                    <td class="table-caption" style="text-align: left; border-right: none;">MPK:</td>
+                    <td>
+                        <FluentTextField Id="MPK" @bind-Value="@Content.MPK" Placeholder="Wpisz MPK" style="width: 200px;"></FluentTextField>
+                        <FluentValidationMessage For="@(() => Content.MPK)" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="table-caption" style="text-align: left; border-right: none;">Opis:</td>
+                    <td>
+                        <FluentTextField Id="Description" @bind-Value="@Content.Description" Placeholder="Wpisz opis" style="width: 200px;"></FluentTextField>
+                        <FluentValidationMessage For="@(() => Content.Description)" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="table-caption" style="text-align: left; border-right: none;">Tekst:</td>
+                    <td>
+                        <FluentTextField Id="Text" @bind-Value="@Content.Text" Placeholder="Wpisz tekst" style="width: 200px;"></FluentTextField>
+                        <FluentValidationMessage For="@(() => Content.Text)" />
+                    </td>
+                </tr>
+            </tbody>
+        </table>
 
-            <div class="card">
-                <FluentTextField Id="Description" @bind-Value="@Content.Description" Placeholder="Wpisz opis">Opis:</FluentTextField>
-                <FluentValidationMessage For="@(() => Content.Description)" />
-            </div>
-
-            <div class="card">
-                <FluentTextField Id="Text" @bind-Value="@Content.Text" Placeholder="Wpisz tekst">Tekst:</FluentTextField>
-                <FluentValidationMessage For="@(() => Content.Text)" />
-            </div>
 
     </EditForm>
 </FluentDialogBody>
