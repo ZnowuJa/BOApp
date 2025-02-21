@@ -3,10 +3,12 @@
 @page "/delegacja/{id:int}"
 @using System.Diagnostics;
 @using System.Globalization
+@using Application.AdHocJobs
 @using Application.CQRS.General.ManagerDeputies.Queries
 @using Application.Validation.Accounting
 @using BOAppFluentUI.Components.Pages.Accounting.Settlements
 @using Blazored.FluentValidation
+@using System.Text.Json.Serialization
 @using Application.CQRS.AccountingCQRS.BusinessTravels.Commands
 @using Application.CQRS.AccountingCQRS.BusinessTravels.Queries
 @using Application.CQRS.AccountingCQRS.CostCenters.Queries
@@ -188,7 +190,7 @@
                                 </td>
                                 <td>
                                     <FluentAutocomplete TOption="CostCenterVm"
-                                                        Disabled="@IsControlFormCostCenterLocationDisabled()"
+                                    Disabled="@IsControlFormCostCenterLocationDisabled()"
                                     SelectValueOnTab="true"
                                     AutoComplete="on"
                                     OnOptionsSearch="@OnCostCenterSearch"
@@ -2278,7 +2280,7 @@
         else
         {
             // AbroadCurrencyExchangeRate = await _mediator.Send(new GetNbpCurrencyRateByDateAndCodeQuery(DateOnly.FromDateTime(DateTime.Today.AddDays(-1)), newCountry.CurrencyVmName));
-
+            _logger.LogError($"BusinessTrip, User {_userContext.LongName} | New Country, Name {newCountry.Name}, currCode {newCountry.CountryCode}, currVMName {newCountry.CurrencyVmName}, currency {AppUtils.SafeSerialize<CountryVm>(newCountry)}");
             AbroadCurrencyExchangeRate = NbpCurrencies.Where(c => c.Code == newCountry.CurrencyVmName ).First();
 
         }
@@ -2294,7 +2296,7 @@
             formItem.Meals.RemoveRange(1, formItem.Meals.Count - 1);
             formItem.LocalTravels.RemoveRange(1, formItem.LocalTravels.Count - 1);
 
-            formItem.AdvancePayment = false;
+            // formItem.AdvancePayment = false;
 
         }
 
