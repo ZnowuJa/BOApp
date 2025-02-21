@@ -20,26 +20,60 @@
 }
 else
 {
-    <FluentDataGrid Items="@vatrate" TGridItem="VATRateVm" GridTemplateColumns="50px 1fr 2fr 1fr">
-        <PropertyColumn Property="@(c => c.Id)" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.Name)" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.Percentage)" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.Information)" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.Order)" Sortable="true" Align="Align.Start" Tooltip="true" />
+    <FluentDataGrid Items="@filteredVatrate" Pagination="@pagination" TGridItem="VATRateVm" GridTemplateColumns="50px 200px 100px 200px 100px">
+        @foreach (var column in filterColumns.Where(c => c.IsVisible))
+        {
+            <PropertyColumn TGridItem="VATRateVm" TProp="string" Property="@(Utils.GetPropertyExpression(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label" Filtered="!string.IsNullOrWhiteSpace(column.Filter)">
+                <ColumnOptions>
+                    <div class="search-box">
+                        <FluentSearch type="search" Autofocus="true" @bind-Value="column.Filter" @oninput="(args) => Utils.HandleFilterDebounced(column, args, debounceDispatcher, () => InvokeAsync(StateHasChanged))" Placeholder="@($"{column.Label.ToLower()}...")" />
+                    </div>
+                </ColumnOptions>
+            </PropertyColumn>
+        }
 
-        <TemplateColumn Title="Actions" Align="Align.End">
-            <FluentButton IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" />
-            <FluentButton IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => EditItem(context))" />
-            <FluentButton IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" />
+        <TemplateColumn Title="Akcje" Align="Align.End">
+            @{
+                var viewId = $"viewid-{context.Id}";
+                var editId = $"editid-{context.Id}";
+                var deleteId = $"deleteid-{context.Id}";
+            }
+            <FluentButton Id="@viewId" IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" />
+            <FluentTooltip Anchor="@viewId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Szczegóły</FluentTooltip>
+
+            <FluentButton Id="@editId" IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => EditItem(context))" />
+            <FluentTooltip Anchor="@editId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Edytuj</FluentTooltip>
+
+            <FluentButton Id="@deleteId" IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" />
+            <FluentTooltip Anchor="@deleteId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Usuń</FluentTooltip>
+
         </TemplateColumn>
     </FluentDataGrid>
+    <FluentPaginator State="@pagination" />
     <FluentButton IconStart="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddPanel())" />
 
 }
 
 @code {
     private IQueryable<VATRateVm> vatrate;
+    private IQueryable<VATRateVm> filteredVatrate => vatrate.Where(x =>
+    filterColumns.All(column => string.IsNullOrWhiteSpace(column.Filter) ||
+    column.Property(x).Contains(column.Filter, StringComparison.CurrentCultureIgnoreCase)));
+
     private bool deleteConfirm = false;
+    PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
+    private DebounceDispatcher debounceDispatcher = new DebounceDispatcher();
+
+    private List<FilterColumn<VATRateVm>> filterColumns = new List<FilterColumn<VATRateVm>>
+    {
+        new FilterColumn<VATRateVm> { FirstRow = true, Label = "ID", Property = c => c.Id.ToString(), IsVisible = true, Width = "80px" },
+        new FilterColumn<VATRateVm> { FirstRow = true, Label = "KontoGl", Property = c => c.Name, IsVisible = true, Width = "1FR" },
+        new FilterColumn<VATRateVm> { FirstRow = true, Label = "Procent", Property = c => c.Percentage.ToString(), IsVisible = true , Width = "1FR" },
+        new FilterColumn<VATRateVm> { FirstRow = true, Label = "Informacja", Property = c => c.Information, IsVisible = true , Width = "1FR" },
+        new FilterColumn<VATRateVm> { FirstRow = true, Label = "Kolejność", Property = c => c.Order.ToString(), IsVisible = true , Width = "1FR" },
+
+    };
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -92,8 +126,8 @@ else
 
         var dialog = await _dialogService.ShowDialogAsync<VATRate_Edit_Component>(item, new DialogParameters()
             {
-                Height = "500px",
-                Width = "400px",
+                Height = "450px",
+                Width = "450px",
                 Title = item.Id > 0 ? "Aktualizuj stawki VAT" : "Dodanie nowej stawki VAT",
                 PreventDismissOnOverlayClick = false,
                 PreventScroll = true,

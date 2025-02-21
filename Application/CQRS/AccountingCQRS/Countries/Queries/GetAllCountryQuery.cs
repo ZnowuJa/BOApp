@@ -22,7 +22,7 @@ namespace Application.CQRS.AccountingCQRS.Countries.Queries
         public async Task<IQueryable<CountryVm>> Handle(GetAllCountryQuery request, CancellationToken cancellationToken)
         {
             var listItems = new List<CountryVm>();
-            var currencies = await _appDbContext.Currencies.ToListAsync(cancellationToken);
+            var currencies = await _appDbContext.Currencies.ToListAsync();
             List<Country>? countries = await _appDbContext.Countries
                                                .Where(ct => ct.StatusId == 1)
                                                .ToListAsync(cancellationToken);

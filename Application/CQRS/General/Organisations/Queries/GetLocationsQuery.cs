@@ -9,11 +9,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Application.CQRS.General.Organisations.Queries;
 
-public class GetLocationsQuery : IRequest<IEnumerable<Location>>
+public class GetLocationsQuery : IRequest<IEnumerable<LocationVm>>
 {
 }
 
-public class GetLocationsQueryHandler : IRequestHandler<GetLocationsQuery, IEnumerable<Location>>
+public class GetLocationsQueryHandler : IRequestHandler<GetLocationsQuery, IEnumerable<LocationVm>>
 {
     private readonly IAppDbContext _appDbContext;
     private readonly IMapper _mapper;
@@ -24,7 +24,7 @@ public class GetLocationsQueryHandler : IRequestHandler<GetLocationsQuery, IEnum
         _mapper = mapper;
     }
 
-    public async Task<IEnumerable<Location>> Handle(GetLocationsQuery request, CancellationToken cancellationToken)
+    public async Task<IEnumerable<LocationVm>> Handle(GetLocationsQuery request, CancellationToken cancellationToken)
     {
         var organisations = await _appDbContext.Organisations
             .Where(p => p.StatusId == 1)
@@ -35,7 +35,7 @@ public class GetLocationsQueryHandler : IRequestHandler<GetLocationsQuery, IEnum
             .Select(g => g.First())
             .OrderBy(o => o.SapNumber)
             .ToList();
-        var locations = _mapper.Map<List<Location>>(uniqueOrganisations);
+        var locations = _mapper.Map<List<LocationVm>>(uniqueOrganisations);
 
         return locations;
     }

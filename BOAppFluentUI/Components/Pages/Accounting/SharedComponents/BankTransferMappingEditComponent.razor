@@ -19,32 +19,34 @@
         <tbody>
             <tr >
                 <td>
-                    <FluentDatePicker @bind-Value="@BTItem.PostingDate" Style="width: 200px;" />
+                    <FluentDatePicker  Disabled="@DisabledPostingDate"
+                        @bind-Value="@BTItem.PostingDate" 
+                        Style="width: 200px;" />
                 </td>
                 <td>
-                    <FluentDatePicker  
+                    <FluentDatePicker  Disabled = "@DisabledCurrencyExchangeDate"
                         @bind-Value="@BTItem.CurrencyExchangeDate"
-                                      Style="width: 200px;"
-                         />
-                    
+                        Style="width: 200px;"
+                    />
+
                 </td>
                 <td>
                     <FluentAutocomplete TOption="string"
-                        Disabled="@Disabled"
-                        SelectValueOnTab="true"
-                        AutoComplete="on"
-                        OnOptionsSearch="@OnSapFormTypeSearch"
-                        Placeholder="..."
-                        MaximumSelectedOptions="1"
+                    Disabled="@DisabledSapFormType"
+                    SelectValueOnTab="true"
+                    AutoComplete="on"
+                    OnOptionsSearch="@OnSapFormTypeSearch"
+                    Placeholder="..."
+                    MaximumSelectedOptions="1"
 
-                        @bind-SelectedOptions="@_selectedSapFormType"
-                        @bind-SelectedOptions:after="@HandleSapFormTypeChange"
-                        Width="200px"
+                    @bind-SelectedOptions="@_selectedSapFormType"
+                    @bind-SelectedOptions:after="@HandleSapFormTypeChange"
+                    Width="200px"
                     class="left-align-text" />
                 </td>
                 <td>
                     <FluentAutocomplete TOption="CostCenterVm"
-                    Disabled="@Disabled"
+                    Disabled="@DisabledCostCenter"
                     SelectValueOnTab="true"
                     AutoComplete="on"
                     OnOptionsSearch="@OnCostCenterSearch"
@@ -58,7 +60,7 @@
                 </td>
                 <td>
                     <FluentAutocomplete TOption="GLAccountVm"
-                    Disabled="@Disabled"
+                    Disabled="@DisabledGlAccount"
                     SelectValueOnTab="true"
                     AutoComplete="on"
                     OnOptionsSearch="@OnGLAccountSearch"
@@ -74,9 +76,9 @@
             </tr>
         </tbody>
     </table>
-    <table class="tableBT-container">
+    <table class="table-container">
         <thead>
-            <tr class="tableBT-header-left">
+            <tr class="table-header-left">
                 <th style="width: 150px;">Wprowadzone do SAP</th>
                 <th style="width: 150px;">Sprawdzone</th>
                 <th style="width: 150px;">Numer dokumentu SAP</th>
@@ -104,9 +106,9 @@
             </tr>
         </tbody>
     </table>
-    <table class="tableBT-container" style="width = 500px">
+    <table class="table-container" style="width = 500px">
         <thead>
-            <tr class="tableBT-header-left">
+            <tr class="table-header-left">
                 <th style="width = 200px">Tytuł przelewu </th>
                 <th style="width = 200px">Księgowa </th>
                 <th style="width = 125px">Data </th>
@@ -120,16 +122,16 @@
                     <FluentTextField @bind-Value="@BTItem.BankTrasferTitle" Disabled="true" Style = "width: 200px;"/>
                 </td>
                 <td>
-                    <FluentTextField @bind-Value="@BTItem.AccountantName" Style="width: 200px;" />
+                    <FluentTextField @bind-Value="@BTItem.AccountantName" Disabled="true" Style="width: 200px;" />
                 </td>
                 <td>
-                    <FluentTextField @bind-Value="@_accountantTime" Style="width: 200px;" />
+                    <FluentTextField @bind-Value="@_accountantTime" Disabled="true" Style="width: 200px;" />
                 </td>
                 <td>
-                    <FluentTextField @bind-Value="@BTItem.AccountantTLName" Style="width: 200px;" />
+                    <FluentTextField @bind-Value="@BTItem.AccountantTLName" Disabled="true" Style="width: 200px;" />
                 </td>
                 <td>
-                    <FluentTextField @bind-Value="@_accountantTLTime" Style="width: 200px;" />
+                    <FluentTextField @bind-Value="@_accountantTLTime" Disabled="true" Style="width: 200px;" />
                 </td>
             </tr>
         </tbody>
@@ -143,7 +145,7 @@
     [Parameter] public IEnumerable<GLAccountVm> GLAccounts { get; set; }
     [Parameter] public string FormStatus { get; set; } = string.Empty;
     [Parameter] public FormUserContext UserContext { get; set; }
-  
+
     IEnumerable<CostCenterVm> _selectedCostCenter = Array.Empty<CostCenterVm>();
     IEnumerable<GLAccountVm> _selectedGlAccount = Array.Empty<GLAccountVm>();
     private IQueryable<string> _sapformtypes = Enum.GetValues(typeof(SapFormType))
@@ -153,10 +155,16 @@
     private bool _accountantTL = false;
     private string _accountantTime { get; set; } = string.Empty;
     private string _accountantTLTime { get; set; } = string.Empty;
+    private bool DisabledPostingDate = false;
+    private bool DisabledCurrencyExchangeDate = false;
+    private bool DisabledSapFormType = false;
+    private bool DisabledCostCenter = false;
+    private bool DisabledGlAccount = false;
 
 
     protected override async Task OnInitializedAsync()
     {
+
         if (FormStatus == "ZaliczkaKsiegowosc" || FormStatus == "Ksiegowosc")
         {
             _accountant = true;
@@ -164,6 +172,9 @@
             BTItem.AccountantName = UserContext.LongName;
             BTItem.AccountantTime = DateTime.Now;
             _accountantTime = BTItem.AccountantTime.HasValue ? BTItem.AccountantTime.Value.ToString() : string.Empty;
+
+            DisabledPostingDate = true;
+            DisabledCurrencyExchangeDate = true;
         }
         if (FormStatus == "ZaliczkaKsiegowoscTL" || FormStatus == "KsiegowoscTL")
         {
@@ -173,6 +184,9 @@
             BTItem.AccountantTLName = UserContext.LongName;
             BTItem.AccountantTLTime = DateTime.Now;
             _accountantTLTime = BTItem.AccountantTLTime.HasValue ? BTItem.AccountantTLTime.Value.ToString() : string.Empty;
+
+            DisabledPostingDate = true;
+            DisabledCurrencyExchangeDate = true;
         }
         if(BTItem.SapFormType != null){
             _selectedSapFormType = new List<string>() { BTItem.SapFormType };

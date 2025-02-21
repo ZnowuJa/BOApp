@@ -35,8 +35,19 @@ else
         @* Actions *@
 
         <TemplateColumn Title="Actions" Align="Align.End">
-            <FluentButton IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => EditItem(context))" />
-            <FluentButton IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" />
+            @{
+                var runId = $"viewid-{context.Id}";
+                var editId = $"editid-{context.Id}";
+                var deleteId = $"deleteid-{context.Id}";
+
+            }
+            <FluentButton Id="@editId" IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => EditItem(context))" />
+            <FluentButton Id="@deleteId" IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" />
+            <FluentButton Id="@runId" IconEnd="@(new Icons.Regular.Size20.PersonRunning())" OnClick="@(() => Run(context))" />
+
+            <FluentTooltip Anchor="@editId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Edycja zadania</FluentTooltip>
+            <FluentTooltip Anchor="@deleteId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Skasuj zadanie</FluentTooltip>
+            <FluentTooltip Anchor="@runId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Uruchom zadanie</FluentTooltip>
         </TemplateColumn>
 
     </FluentDataGrid>
@@ -58,7 +69,7 @@ else
     private List<FilterColumn<BackgroundJobVm>> filterColumns = new List<FilterColumn<BackgroundJobVm>>
     {
         new FilterColumn<BackgroundJobVm> { FirstRow = true, Label = "Id", Property = c => c.Id.ToString(), IsVisible = true, Width = "200px" },
-        new FilterColumn<BackgroundJobVm> { FirstRow = true, Label = "JobClass", Property = c => c.JobClass, IsVisible = true, Width = "200px" },
+        new FilterColumn<BackgroundJobVm> { FirstRow = true, Label = "JobClass", Property = c => c.JobClass.Split('.').Last(), IsVisible = true, Width = "200px" },
         new FilterColumn<BackgroundJobVm> { FirstRow = true, Label = "JobMethod", Property = c => c.JobMethod, IsVisible = true, Width = "200px" },
         new FilterColumn<BackgroundJobVm> { FirstRow = true, Label = "CronExpression", Property = c => c.CronExpression, IsVisible = true, Width = "200px" },
         new FilterColumn<BackgroundJobVm> { FirstRow = true, Label = "Enabled", Property = c => c.IsEnabled, IsVisible = true, Width = "200px" },
@@ -100,6 +111,29 @@ else
         }
 
         _toastService.ShowToast(intent, message, 3000);
+        await Load();
+    }
+    private async Task Run(BackgroundJobVm item)
+    {
+        var dialog = await _dialogService.ShowConfirmationAsync(
+                $"Czy na pewno chcesz uruchomić teraz: {item.JobClass}?",
+                "Uruchom",
+                "Anuluj",
+                "Potwierdź uruchomienie");
+        var result = await dialog.Result;
+        deleteConfirm = result.Cancelled;
+     
+        string message = string.Empty;
+
+        if (deleteConfirm)
+        {
+            
+        }
+        else
+        {
+            await _jobSchedulerService.RunJobManuallyAsync(item.JobClass, item.AssemblyName);
+        }
+
         await Load();
     }
     private async Task EditItem(BackgroundJobVm item)
@@ -162,5 +196,4 @@ else
         var item = new BackgroundJobVm();
         await EditItem(item);
     }
-
 }

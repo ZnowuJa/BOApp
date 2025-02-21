@@ -1,7 +1,8 @@
 ﻿namespace Application.ViewModels.General;
 
-public class Location()
+public class LocationVm()
 {
     public string Name { get; set; } = string.Empty;
     public string SapNumber { get; set; } = string.Empty;
+    public string DisplayName { get; set; } = string.Empty;
 }

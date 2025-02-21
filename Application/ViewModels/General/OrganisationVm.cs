@@ -13,6 +13,7 @@ public class OrganisationVm : IMapFrom<Organisation>
     public string Name { get; set; }
     public string Make { get; set; }
     public string Description { get; set; }
+    public string DisplayName { get; set; }
     public string SapNumber { get; set; }
     public List<OrganisationRoleVm> Role_SalesManager { get; set; }
     public List<OrganisationRoleVm> Role_ServiceManager { get; set; }
@@ -55,7 +56,7 @@ public class OrganisationVm : IMapFrom<Organisation>
 
     public void Mapping(Profile profile)
     {
-        profile.CreateMap<Organisation, Location>()
+        profile.CreateMap<Organisation, LocationVm>()
             .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
             .ForMember(dest => dest.SapNumber, opt => opt.MapFrom(src => src.SapNumber));
         

@@ -12,7 +12,7 @@
         <tbody>
             <tr class="fluent-row">
                 <td>
-                    <FluentAutocomplete TOption="Location"
+                    <FluentAutocomplete TOption="LocationVm"
                     Disabled="@Disabled"
                     SelectValueOnTab="true"
                     AutoComplete="on"
@@ -91,17 +91,17 @@
 @code {
     [Parameter] public InvoiceMapping InvoiceMapping { get; set; }
     [Parameter] public bool Disabled { get; set; } = false;
-    [Parameter] public IEnumerable<Location> Locations { get; set; }
+    [Parameter] public IEnumerable<LocationVm> Locations { get; set; }
     [Parameter] public IEnumerable<CostCenterVm> CostCenters { get; set; }
     [Parameter] public IEnumerable<GLAccountVm> GLAccounts { get; set; }
     [Parameter] public IEnumerable<VATRateVm> VatRates { get; set; }
     [Parameter] public CostCenterVm? settledCostCenter { get; set; }
-    [Parameter] public Location? settledLocation { get; set; }
+    [Parameter] public LocationVm? settledLocation { get; set; }
     [Parameter] public GLAccountVm? settledGLAccount { get; set; }
     [Parameter] public VATRateVm? settledVatRate { get; set; }
     [Parameter] public EditContext ParentEditContext { get; set; }
 
-    IEnumerable<Location> _selectedLocation = Array.Empty<Location>();
+    IEnumerable<LocationVm> _selectedLocation = Array.Empty<LocationVm>();
     IEnumerable<CostCenterVm> _selectedCostCenter = Array.Empty<CostCenterVm>();
     IEnumerable<GLAccountVm> _selectedGlAccount = Array.Empty<GLAccountVm>();
     IEnumerable<VATRateVm> _selectedVatRate = Array.Empty<VATRateVm>();
@@ -122,7 +122,7 @@
         }
         if (InvoiceMapping.Location != null)
         {
-            _selectedLocation = new List<Location> { InvoiceMapping.Location };
+            _selectedLocation = new List<LocationVm> { InvoiceMapping.Location };
         }
         if (InvoiceMapping.VATRate != null){
             _selectedVatRate = new List<VATRateVm> { InvoiceMapping.VATRate };
@@ -155,7 +155,7 @@
 
         Console.WriteLine();
     }
-    private void OnLocationSearch(OptionsSearchEventArgs<Location> e)
+    private void OnLocationSearch(OptionsSearchEventArgs<LocationVm> e)
     {
         e.Items = Locations.Where(g => g.Name.Contains(e.Text, StringComparison.OrdinalIgnoreCase)
         || g.SapNumber.Contains(e.Text, StringComparison.OrdinalIgnoreCase));

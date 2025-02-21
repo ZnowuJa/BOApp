@@ -33,6 +33,11 @@ public class BusinessTravelFormVmValidator : AbstractValidator<BusinessTravelFor
         {
             RuleFor(x => x.CashPayoutNumber).NotEmpty().WithMessage("Wprowadź numer dokumentu kasowego z Austostacji!");
         });
+        When(form => form.Status == "Rejestracja" || form.Status == "Rozliczenie", () =>
+        {
+            RuleFor(x => x.FormCostLocation.SapNumber).NotEmpty().WithMessage("Proszę uzupełnić miejsce kosztowe!");
+            RuleFor(x => x.FormCostCenter.MPK).NotEmpty().WithMessage("Proszę uzupełnić lokalizację!");
+        });
         When(form => form.AdvancePayment, () => 
         {
             RuleFor(x => x.AdvancePaymentAmount).GreaterThan(0).WithMessage("Wprowadź kwotę zaliczki!");
@@ -88,7 +93,7 @@ public class BusinessTravelFormVmValidator : AbstractValidator<BusinessTravelFor
             });
             RuleFor(x => x.MileageRegister).ChildRules(register =>
             {
-                register.RuleFor(r => r.PrivateCarEngineSize).Must(size => size == "do 900 cm3" || size == "powyej 900 cm3").WithMessage("Proszę wybrać pojemność silnika!");
+                register.RuleFor(r => r.PrivateCarEngineSize).Must(size => size == "do 900 cm3" || size == "powyżej 900 cm3").WithMessage("Proszę wybrać pojemność silnika!");
             });
         });
         When(form => form.Transportation == "Samochód służbowy", () =>
@@ -113,8 +118,19 @@ public class BusinessTravelFormVmValidator : AbstractValidator<BusinessTravelFor
         When(form => form.Status == "Rozliczenie" && form.Bills.Count > 0, () =>
         {
             RuleForEach(x => x.Bills).SetValidator(new BillValidator());
-
+            //RuleForEach(x => x.Bills).SetValidator(new BillValidator(x.StartDate, x.EndDate));
         });
+        //When(form => form.Status == "Rozliczenie" && form.Bills.Count > 0, () =>
+        //{
+        //    RuleForEach(x => x.Bills).SetValidator(new BillValidator());
+        //    RuleForEach(x => x.Bills).ChildRules(bill =>
+        //    {
+        //        bill.RuleFor(b => b.InvoiceDate)
+        //            .GreaterThanOrEqualTo(x => x.Form.StartDate)
+        //            .LessThanOrEqualTo(x => x.Form.EndDate)
+        //            .WithMessage("Data faktury powinna być między {PropertyValue} a {ComparisonValue}.");
+        //    });
+        //});
         RuleSet("MainDates", () =>
         {
            

@@ -10,6 +10,10 @@
 @inject IMediator _mediator
 @implements IDialogContentComponent<BackgroundJobVm>
 
+<head>
+    <link href="~/forms-tables.css" rel="stylesheet" />
+</head>
+
 <!-- Header -->
 <FluentDialogHeader ShowDismiss="true">
     <FluentStack VerticalAlignment="VerticalAlignment.Center">
@@ -103,9 +107,9 @@
     {
         _editContext = new EditContext(Content);
         classNames = GetClassNames();
-        if (!string.IsNullOrWhiteSpace(Content.JobClass) && Content.JobClass.StartsWith("Application.BackgroundJobs."))
+        if (!string.IsNullOrWhiteSpace(Content.JobClass))
         {
-            Content.JobClass = Content.JobClass.Replace("Application.BackgroundJobs.", "");
+            Content.JobClass = Content.JobClass.Split('.').Last();
         }
         base.OnInitialized();
     }

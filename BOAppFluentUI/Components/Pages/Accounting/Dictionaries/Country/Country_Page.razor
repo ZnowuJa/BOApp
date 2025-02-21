@@ -25,39 +25,71 @@ else
         <FluentCheckbox @bind-Value="showTravelAndAccommodation">Travel and Accommodation Allowances</FluentCheckbox>
 
     </p> *@
-    <FluentDataGrid Items="@country"
+    <FluentDataGrid Items="@filteredCountry"
                     TGridItem="CountryVm"
                     ResizableColumns=true
+                    Pagination="@pagination"
                     Style="overflow:auto;"
                     ShowHover="true"
-                    GridTemplateColumns="100px 200px 200px 200px 200px 200px 100px 100px 100px 100px">
-        <PropertyColumn Property="@(c => c.Id)" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.CountryCode)" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.Name)" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.IsEU)" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.IsPL)" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.CurrencyVmName)" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.Allowance)" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.MaxHotelCost)" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.TravelAllowance)" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.LocalTravelAllowance)" Sortable="true" Align="Align.Start" Tooltip="true" />
+                    GridTemplateColumns="50px 100px 200px 100px 100px 200px 200px 200px 200px">
+        @foreach (var column in filterColumns.Where(c => c.IsVisible))
+        {
+            <PropertyColumn TGridItem="CountryVm" TProp="string" Property="@(Utils.GetPropertyExpression(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label" Filtered="!string.IsNullOrWhiteSpace(column.Filter)">
+                <ColumnOptions>
+                    <div class="search-box">
+                        <FluentSearch type="search" Autofocus="true" @bind-Value="column.Filter" @oninput="(args) => Utils.HandleFilterDebounced(column, args, debounceDispatcher, () => InvokeAsync(StateHasChanged))" Placeholder="@($"{column.Label.ToLower()}...")" />
+                    </div>
+                </ColumnOptions>
+            </PropertyColumn>
+        }
 
-        <TemplateColumn Title="Actions" Align="Align.End">
-            <FluentButton IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" />
-            <FluentButton IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => EditItem(context))" />
-            <FluentButton IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" />
+
+        <TemplateColumn Title="Akcje" Align="Align.End">
+            @{
+                var viewId = $"viewid-{context.Id}";
+                var editId = $"editid-{context.Id}";
+                var deleteId = $"deleteid-{context.Id}";
+            }
+            <FluentButton Id="@viewId" IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" />
+            <FluentTooltip Anchor="@viewId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Szczegóły</FluentTooltip>
+
+            <FluentButton Id="@editId" IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => EditItem(context))" />
+            <FluentTooltip Anchor="@editId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Edytuj</FluentTooltip>
+
+            <FluentButton Id="@deleteId" IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" />
+            <FluentTooltip Anchor="@deleteId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Usuń</FluentTooltip>
+
         </TemplateColumn>
     </FluentDataGrid>
+    <FluentPaginator State="@pagination" />
     <FluentButton IconStart="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddPanel())" />
 
 }
 
 @code {
     private IQueryable<CountryVm> country;
+    private IQueryable<CountryVm> filteredCountry => country.Where(x =>
+    filterColumns.All(column => string.IsNullOrWhiteSpace(column.Filter) ||
+    column.Property(x).Contains(column.Filter, StringComparison.CurrentCultureIgnoreCase)));
 
     private bool deleteConfirm = false;
-
     private bool showTravelAndAccommodation { get; set; } = false;
+    PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
+    private DebounceDispatcher debounceDispatcher = new DebounceDispatcher();
+
+    private List<FilterColumn<CountryVm>> filterColumns = new List<FilterColumn<CountryVm>>
+    {
+        new FilterColumn<CountryVm> { FirstRow = true, Label = "ID", Property = c => c.Id.ToString(), IsVisible = true, Width = "80px" },
+        new FilterColumn<CountryVm> { FirstRow = true, Label = "Kod kraju", Property = c => c.CountryCode, IsVisible = true, Width = "1FR" },
+        new FilterColumn<CountryVm> { FirstRow = true, Label = "Nazwa", Property = c => c.Name, IsVisible = true, Width = "1FR" },
+        new FilterColumn<CountryVm> { FirstRow = true, Label = "W EU", Property = c => c.IsEU ? "Tak" : "Nie", IsVisible = true , Width = "1FR" },
+        new FilterColumn<CountryVm> { FirstRow = true, Label = "W Polsce", Property = c => c.IsPL ? "Tak" : "Nie", IsVisible = true , Width = "1FR" },
+        new FilterColumn<CountryVm> { FirstRow = true, Label = "Waluta", Property = c => c.CurrencyVmName, IsVisible = true , Width = "1FR" },
+        new FilterColumn<CountryVm> { FirstRow = true, Label = "Dieta", Property = c => c.Allowance.ToString(), IsVisible = true , Width = "1FR" },
+        new FilterColumn<CountryVm> { FirstRow = true, Label = "Maksymalny koszt hotelu", Property = c => c.MaxHotelCost.ToString(), IsVisible = true , Width = "1FR" },
+        new FilterColumn<CountryVm> { FirstRow = true, Label = "Dieta podróżna", Property = c => c.TravelAllowance.ToString(), IsVisible = true , Width = "1FR" },
+        new FilterColumn<CountryVm> { FirstRow = true, Label = "Lokalna dieta podróżna", Property = c => c.LocalTravelAllowance.ToString(), IsVisible = true , Width = "1FR" },
+    };
 
     protected override async Task OnInitializedAsync()
     {
@@ -117,8 +149,8 @@ else
 
         var dialog = await _dialogService.ShowDialogAsync<Country_Edit_Component>(item, new DialogParameters()
             {
-                Height = "400px",
-                Width = "500px",
+                Height = "500px",
+                Width = "900px",
                 Title = item.Id > 0 ? "Aktualizacja państwa" : "Dodanie nowego państwa",
                 PreventDismissOnOverlayClick = false,
                 PreventScroll = true,

@@ -1,10 +1,11 @@
 ﻿@page "/accountingsettings"
+@page "/ksiegowoscustawienia"
 @using Microsoft.AspNetCore.Authorization
 @inject NavigationManager _navMan
 
 @attribute [Authorize(Policy = "Accountant")]
 
-<h3>Accounting Settings</h3>
+<h3>Księgowość Ustawienia</h3>
 
 <FluentGrid Justify="@Justification">
         <FluentGridItem xs="@xssize" sm="@smsize">
