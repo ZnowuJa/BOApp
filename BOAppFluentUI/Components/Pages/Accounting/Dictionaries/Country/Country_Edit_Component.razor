@@ -67,22 +67,22 @@
                     </td>
                 </tr>
                 <tr>
-                    <td class="table-caption" style="text-align: left; border-right: none;">Maksymalny koszt hotelu:</td>
-                    <td>
-                        <FluentNumberField Id="MaxHotelCost" @bind-Value="@Content.MaxHotelCost" style="width: 200px;"></FluentNumberField>
-                        <FluentValidationMessage For="@(() => Content.MaxHotelCost)" />
-                    </td>
                     <td class="table-caption" style="text-align: left; border-right: none;">Dieta podróżna:</td>
                     <td>
                         <FluentNumberField Id="TravelAllowance" @bind-Value="@Content.TravelAllowance" style="width: 200px;"></FluentNumberField>
                         <FluentValidationMessage For="@(() => Content.TravelAllowance)" />
                     </td>
-                </tr>
-                <tr>
                     <td class="table-caption" style="text-align: left; border-right: none;">Dieta za podróż lokalną:</td>
                     <td>
                         <FluentNumberField Id="LocalTravelAllowance" @bind-Value="@Content.LocalTravelAllowance" style="width: 200px;"></FluentNumberField>
                         <FluentValidationMessage For="@(() => Content.LocalTravelAllowance)" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="table-caption" style="text-align: left; border-right: none;">Maksymalny koszt hotelu:</td>
+                    <td>
+                        <FluentNumberField Id="MaxHotelCost" @bind-Value="@Content.MaxHotelCost" style="width: 200px;"></FluentNumberField>
+                        <FluentValidationMessage For="@(() => Content.MaxHotelCost)" />
                     </td>
                 </tr>
             </tbody>
