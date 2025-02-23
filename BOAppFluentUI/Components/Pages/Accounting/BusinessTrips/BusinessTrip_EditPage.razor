@@ -4,8 +4,10 @@
 @using System.Diagnostics;
 @using System.Globalization
 @using Application.AdHocJobs
+@using Application.CQRS.AccountingCQRS.SapCostCenters.Queries
 @using Application.CQRS.General.ManagerDeputies.Queries
 @using Application.Validation.Accounting
+@using BOAppFluentUI.Components.Pages.Accounting.Dictionaries.SapCostCenter
 @using BOAppFluentUI.Components.Pages.Accounting.Settlements
 @using Blazored.FluentValidation
 @using System.Text.Json.Serialization
@@ -85,6 +87,7 @@
                                     Disabled="@IsControlEmployeDisabled()"
                                     Class="bold-label"
                                     AutoComplete="on"
+                                    MaximumOptionsSearch="10"
                                     OnOptionsSearch="@OnAssigneeSearch"
                                     Placeholder="Select assignee..."
                                     MaximumSelectedOptions="1"
@@ -97,6 +100,7 @@
                                     <FluentAutocomplete TOption="CountryVm"
                                     Disabled="@IsControlCountryDisabled()"
                                     AutoComplete="on"
+                                    MaximumOptionsSearch="130"
                                     OnOptionsSearch="@OnCountrySearch"
                                     Placeholder="Wybierz kraj docelowy..."
                                     MaximumSelectedOptions="1"
@@ -125,7 +129,7 @@
                             </tr>
                         </tbody>
                     </table>
-                    @if (stodrz)
+                    @if (!string.IsNullOrEmpty(formItem.RejectReason) && (stroz || stodrz ))
                     {
                         <table class="table-container">
                             <tbody>
@@ -164,6 +168,20 @@
                             </tr>
                         </tbody>
                     </table>
+                    @* SAP COST CENTERS*@
+
+                    @*                     @foreach (var item in formItem.FormCostCenters)
+                    {
+                        var localItemArray = new SapCostCenterVm[] { item };
+                        <SapCostCenter_SelectComponent _SelectedSapCC="localItemArray" sapCostCenters="_sapCostCenters.ToList()" />
+                    }) 
+                    <SapCostCenter_SelectComponent _SelectedSapCC="formItem.FormCostCenters" sapCostCenters="_sapCostCenters.ToList()" RemoveSapCostCenter="RemoveSapCostCenter" />
+                    @foreach(var item in formItem.FormCostCenters){
+                        var localItemArray = new SapCostCenterVm[] { item };
+                        
+                        
+                    } *@
+                    <FluentButton Id="addSapCC" IconEnd="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddSapCostCenter())" Style="margin-bottom: 20px;" />
 
                     <table class="table-container">
                         <tbody>
@@ -314,7 +332,7 @@
                                 <td style="text-align: left;">
                                     <FluentSwitch Disabled="@IsControlAdvancePaymentDisabled()"
                                     @bind-Value:get="@formItem.AdvancePayment"
-                                    @bind-Value:set="@HandleAdvancePaymentPaidChanged" />
+                                    @bind-Value:set="@(value =>HandleAdvancePaymentSwitch(value))" />
                                 </td>
                                 @if (formItem.AdvancePayment)
                                 {
@@ -391,12 +409,12 @@
 
 
                     @*Cashier Advance Payment*@
-                    @if (stzk || ((stzks || stzkstl) && !formItem.AdvancePaymentCash))
+                    @if (((stzk || stzks || stzkstl || stroz || stks || stkstl || strozk || strozend) && !formItem.AdvancePaymentCash))
                     {
                         <table class="table-container">
                             <tbody>
                                 <tr>
-                                    <td class="table-caption">
+                                    <td class="table-caption" style="width: 250px;">
                                         Wypłata zaliczki
                                     </td>
                                     <td class="table-caption">
@@ -420,35 +438,64 @@
                         </table>
 
                     }
-                    @if ((stzks || stzkstl) && formItem.AdvancePaymentCash)
+                    @if ((stzks || stzkstl || stblad) && formItem.AdvancePaymentCash)
                     {
                         <BankTransferMappingEditComponent BTItem="@formItem.BTMappingAdvancePayment" CostCenters="@_costCenters" GLAccounts="@_glAccounts" FormStatus="@formItem.Status" UserContext="@_userContext" />
                     }
                     @*Cashier Reciept*@
-                    @if (strozk || strozend)
+                    @if ((strozk || strozend || stwys) && formItem.ReceiptPaymentCash)
                     {
-                        <div class="new-form-section @(strozk ? "kasa" : "ksiegowosc")">
+                        <table class="table-container">
+                            <thead>
+                                <tr class="table-header-left">
 
-                            <div>
-                                <FluentLabel><b>Rozliczenie zaliczki</b></FluentLabel>
-                            </div>
-                            <div>
-                                <FluentLabel><b>Kasjerka: </b></FluentLabel>
-                            </div>
-                            <div>
-                                <FluentTextField Disabled="true"
-                                @bind-Value="@formItem.ReceiptCashier.LongName" />
-                            </div>
+                                    @if (formItem.TotalPayOut >= 0)
+                                    {
+                                        <th>
+                                            Łącznie do wypłaty dla pracownika
+                                        </th>
+                                    }
+                                    else
+                                    {
+                                        <th>
+                                            Łącznie do zwrotu przez pracownika
+                                        </th>
+                                    }
 
-                            <div Style="width: 150px">
-                                <FluentTextField Label="KW: "
-                                Disabled="@(IsControlCashierReceiptDisabled())"
-                                Required="@strozk"
-                                @bind-Value="@formItem.CashReceiptNumber"
-                                Style="width: auto;" />
-                            </div>
 
-                        </div>
+                                    <th>@formItem.TotalPayOut.ToString("0.00") PLN</th>
+                                </tr>
+                            </thead>
+                        </table>
+                        <table class="table-container">
+                            <tbody>
+                                <tr>
+                                    <td class="table-caption" style="width: 250px;">
+                                        Rozliczenie delegacji
+                                    </td>
+                                    <td class="table-caption">
+                                        Kasjerka:
+                                    </td>
+                                    <td style="text-align: left;">
+                                        <FluentTextField Disabled="true"
+                                        @bind-Value="@formItem.ReceiptCashier.LongName" />
+                                    </td>
+                                    <td class="table-caption">
+                                        Dokument AS:
+                                    </td>
+                                    <td style="text-align: left;">
+                                        <FluentTextField Disabled="@(IsControlCashierReceiptDisabled())"
+                                        @bind-Value="@formItem.CashReceiptNumber"
+                                        Style="width: auto;" />
+                                        <FluentValidationMessage For="@(() => formItem.CashReceiptNumber)" class="validation-error" />
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        if ((stks || stkstl || stbladroz) && formItem.ReceiptPaymentCash)
+                        {
+                            <BankTransferMappingEditComponent BTItem="@formItem.BTMappingPayout" CostCenters="@_costCenters" GLAccounts="@_glAccounts" FormStatus="@formItem.Status" UserContext="@_userContext" />
+                        }
                     }
 
                     <hr>
@@ -972,7 +1019,7 @@
                                         </td>
                                         <td colspan="2">
                                             <FluentLabel>Numer faktury: </FluentLabel>
-                                            <FluentTextField Disabled="@(!(IsControlBillEditDisabled() || stks || stkstl))"
+                                            <FluentTextField Disabled="@(!(IsControlBillInvoiceNumberEditDisabled() || stks || stkstl))"
                                             @bind-Value="@bill.InvoiceNumber" 
                                             @bind-Value:after="@(() => _editContext.Validate())"
                                             />
@@ -1185,95 +1232,91 @@
                         </div>
 
                         @*Receipt decision*@
-                        <table class="table-container">
-                            <caption class="table-caption">
-                                Rozliczenie
-                            </caption>
-                            <thead>
-                                <tr class="table-header-left">
-                                    <th>Kwota</th>
-                                    <th>Wypłata</th>
+                        @if (!(stal11 || stal12 || stwysroz || stbladroz))
+                        {
+                            <table class="table-container">
+                                <caption class="table-caption">
+                                    Rozliczenie
+                                </caption>
+                                <thead>
+                                    <tr class="table-header-left">
+                                        <th>Kwota</th>
+                                        <th>Wypłata</th>
 
-                                    @if (!formItem.ReceiptPaymentCash)
-                                    {
-                                        <th>
-                                            Kasa
-                                        </th>
-                                    }
-                                    else
-                                    {
-                                        <th>
-                                            Numer konta
-                                        </th>
-                                    }
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr style="height: 40px;">
-
-                                    @if (stroz || stks || stkstl || strozk)
-                                    {
-                                        <td style="text-align: left;">
-                                            @formItem.TotalPayOut.ToString("0.00") PLN
-
-                                        </td>
-                                        <td style="text-align: left;">
-                                            <FluentSelect Disabled="@IsControlReceiptPaymentDisabled()"
-                                            Items=@AdvancePaymentMethodsInt
-                                            TOption="Option<int>"
-                                            OptionText="@(a => a.Text)"
-                                            OptionValue="@(a => a.Value.ToString())"
-                                            OptionSelected="@(a => a.Selected)"
-                                            @bind-Value="@ReceiptPaymentCashString"
-                                            Width="150px" />
-                                        </td>
                                         @if (!formItem.ReceiptPaymentCash)
                                         {
-                                            <td style="text-align: left; width: 300px;">
-                                                <FluentAutocomplete TOption="LocationVm"
-                                                Disabled="@IsControlReceiptPaymentDisabled()"
-                                                SelectValueOnTab="true"
-                                                AutoComplete="on"
-                                                OnOptionsSearch="@OnLocationSearch"
-                                                Placeholder="wybierz lokalizację..."
-                                                MaximumSelectedOptions="1"
-                                                OptionText="@(p => p.SapNumber + ' ' + p.DisplayName)"
-                                                @bind-SelectedOptions="@_selectedReceiptLocation"
-                                                @bind-SelectedOptions:after="@HandleLocationReceiptChange"
-                                                Width="180px" />
-                                                <FluentValidationMessage For="@(() => formItem.CashPointReceipt.SapNumber)" class="validation-error" />
-                                            </td>
+                                            <th>
+                                                Kasa
+                                            </th>
                                         }
-                                        @if (formItem.ReceiptPaymentCash)
+                                        else
                                         {
-                                            <td style="text-align: left; width: 300px;">
-                                                <FluentTextField Disabled="@IsControlReceiptPaymentDisabled()"
-                                                Placeholder="wprowadź numer konta"
-                                                @bind-Value="@formItem.ReceiptBankAccountNumber"
-                                                Style="width: 250px;" />
-                                                <FluentValidationMessage For="@(() => formItem.ReceiptBankAccountNumber)" class="validation-error" />
-                                            </td>
+                                            <th>
+                                                Numer konta
+                                            </th>
                                         }
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr style="height: 40px;">
 
-                                    }
-                                </tr>
-                            </tbody>
-                        </table>
+                                        @if (stroz || stks || stkstl || strozk)
+                                        {
+                                            <td style="text-align: left;">
+                                                @formItem.TotalPayOut.ToString("0.00") PLN
 
-                        if ((stks || stkstl) && formItem.ReceiptPaymentCash)
-                        {
-                            <BankTransferMappingEditComponent BTItem="@formItem.BTMappingPayout" CostCenters="@_costCenters" GLAccounts="@_glAccounts" FormStatus="@formItem.Status" UserContext="@_userContext" />
+                                            </td>
+                                            <td style="text-align: left;">
+                                                <FluentSelect Disabled="@IsControlReceiptPaymentDisabled()"
+                                                Items=@AdvancePaymentMethodsInt 
+                                                @*    
+                                                TUTAJ TRZEBA PODMIENIĆ jakoś tą wypłatę albo zrobić Kasa/Przelew.
+                                                *@
+                                                TOption="Option<int>"
+                                                OptionText="@(a => a.Text)"
+                                                OptionValue="@(a => a.Value.ToString())"
+                                                OptionSelected="@(a => a.Selected)"
+                                                @bind-Value="@ReceiptPaymentCashString"
+                                                Width="150px" />
+                                            </td>
+                                            @if (!formItem.ReceiptPaymentCash)
+                                            {
+                                                <td style="text-align: left; width: 300px;">
+                                                    <FluentAutocomplete TOption="LocationVm"
+                                                    Disabled="@IsControlReceiptPaymentDisabled()"
+                                                    SelectValueOnTab="true"
+                                                    AutoComplete="on"
+                                                    OnOptionsSearch="@OnLocationSearch"
+                                                    Placeholder="wybierz lokalizację..."
+                                                    MaximumSelectedOptions="1"
+                                                    OptionText="@(p => p.SapNumber + ' ' + p.DisplayName)"
+                                                    @bind-SelectedOptions="@_selectedReceiptLocation"
+                                                    @bind-SelectedOptions:after="@HandleLocationReceiptChange"
+                                                    Width="180px" />
+                                                    <FluentValidationMessage For="@(() => formItem.CashPointReceipt.SapNumber)" class="validation-error" />
+                                                </td>
+                                            }
+                                            @if (formItem.ReceiptPaymentCash)
+                                            {
+                                                <td style="text-align: left; width: 300px;">
+                                                    <FluentTextField Disabled="@IsControlReceiptPaymentDisabled()"
+                                                    Placeholder="wprowadź numer konta"
+                                                    @bind-Value="@formItem.ReceiptBankAccountNumber"
+                                                    Style="width: 250px;" />
+                                                    <FluentValidationMessage For="@(() => formItem.ReceiptBankAccountNumber)" class="validation-error" />
+                                                </td>
+                                            }
+
+                                        }
+                                    </tr>
+                                </tbody>
+                            </table>
                         }
 
                     }
-                    @*                     @if (hasValidationErrors)
-                    {
-                        <p class="validation-error">Formularz zawiera błędy. Proszę poprawić dane.</p>
-                    } *@
-
 
                     <FluentValidationSummary />
-                    @* Aptobaty i przyciski *@
+                    @* Aprobaty i przyciski *@
                     @if (strej || stroz || stal11)
                     {
                         <div>
@@ -1435,6 +1478,8 @@
     private bool strozend = false;
     private bool stzam = false;
     private bool stodrz = false;
+    private bool stwysroz = false;
+    private bool stbladroz = false;
     private bool DisableApproveButton = true;
     private bool DisableSaveButton = true;
     // private bool DisableSendButton = true;
@@ -1500,10 +1545,14 @@
     IEnumerable<LocationVm> _selectedLocation = Array.Empty<LocationVm>();
     IEnumerable<LocationVm> _selectedReceiptLocation = Array.Empty<LocationVm>();
     IEnumerable<LocationVm> _selectedFormCostLocation = Array.Empty<LocationVm>();
+    IEnumerable<SapCostCenterVm> _selecteSapCostCenter = Array.Empty<SapCostCenterVm>();
     private IEnumerable<CostCenterVm> _costCenters { get; set; }
+    private IEnumerable<SapCostCenterVm> _sapCostCenters{get; set;}
     private IEnumerable<GLAccountVm> _glAccounts { get; set; }
     private IEnumerable<VATRateVm> _vatRates { get; set; }
     private IEnumerable<CostCenterVm> _selectedCostCenter = Array.Empty<CostCenterVm>();
+    private List<SimpleLocation> simpleLocations { get; set; }
+    private List<SimpleDepartment> simpleDepartments { get; set; }
 
     #endregion
     #region DestinationsObjectivesMeans
@@ -1568,7 +1617,7 @@
     private bool IsMileageDisabled { get; set; } = true;
     private bool IsBillsDisabled { get; set; } = true; //wyłącza możliwość zmiany wprowadzonych rachunków
     private bool IsInvoiceMappingDisabled { get; set; } = true; //wyłącza możliwość edycji dekretacji faktury
-
+    private bool isManualSwitchToggle = false;
     private bool editControlDisabled = false;
     private bool controlTransportSelectDisabled = false;
     private bool canChangeApprover = false;
@@ -1599,6 +1648,13 @@
     // private bool SendButton = true;
     private bool hasValidationErrors = false;
     #endregion
+
+    private void HandleAdvancePaymentSwitch(bool value){
+
+        formItem.AdvancePayment = value;
+        StateHasChanged();
+    }
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -1659,18 +1715,22 @@
         }
 
         _editContext = new EditContext(formItem);
+        if (formItem.Status == "Odrzucone") formItem.Status = "Rozliczenie";
         // _messageStore = new ValidationMessageStore(_editContext);
         await Utils.GetUserName(_authenticationStateProvider, _userContext, _mediator);
 
         _employees = await _mediator.Send(new GetAllEmployeesQuery());
         _costCenters = await _mediator.Send(new GetAllCostCenterIEnumQuery());
+        _sapCostCenters = await _mediator.Send(new GetAllSapCostCenterIEnumQuery());
+
         _glAccounts = await _mediator.Send(new GetAllGLAccountIEnumQuery());
-        var tempLocations = await _mediator.Send(new GetLocationsQuery());
+        var tempLocations = await _mediator.Send(new GetCashLocationsQuery());
         _locations = tempLocations.ToList();
         _vatRates = await _mediator.Send(new GetAllVatRateIEnumQuery());
         _organisation = await _mediator.Send(new GetOrganisationByEmpSapNumberQuery(_userContext.Employee.SapNumber));
         CompanyCarRegistrationNumbers = await _mediator.Send(new GetCompanyCarRegistrationNumbersQuery());
         SetSrcPage();
+
         Console.WriteLine(Id);
 
         AssignStatusBool();
@@ -1690,7 +1750,23 @@
             };
 
         LoadAutocompleteControls();
+        simpleLocations = _sapCostCenters
+    .GroupBy(s => s.LocationNumber)
+    .Select(g => new SimpleLocation
+        {
+            LocationNumber = g.Key,
+            LocationName = g.First().LocationName
+        })
+    .ToList();
 
+        simpleDepartments = _sapCostCenters
+            .Select(s => new SimpleDepartment
+                {
+                    DepartmentNumber = s.DepartmentNumber,
+                    DepartmentName = s.DepartmentName
+                })
+            .Distinct()
+            .ToList();
         await SetupForm(formItem.Status);
 
         // var stopWatch3 = Stopwatch.StartNew();
@@ -1700,6 +1776,83 @@
         // Console.WriteLine();
         // stopwatch.Stop();
         // _logger.LogWarning($"ONINIT took {stopwatch.ElapsedMilliseconds} ms");
+    }
+
+    private void OnLocationSearch(OptionsSearchEventArgs<SimpleLocation> e)
+    {
+        if (e.Text != null)
+        {
+            e.Items = simpleLocations
+                .Where(a => a.LocationNumber.Contains(e.Text, StringComparison.OrdinalIgnoreCase) || a.LocationName.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
+        }
+    }
+    private void OnDepartmentSearch(OptionsSearchEventArgs<SimpleDepartment> e)
+    {
+
+        if (e.Text != null)
+        {
+            e.Items = simpleDepartments
+                .Where(a => a.DepartmentNumber.Contains(e.Text, StringComparison.OrdinalIgnoreCase) || a.DepartmentName.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
+        }
+    }
+    private async Task HandleSCCLocationChange()
+    {
+
+        var tempLocation = SelectedLocation.FirstOrDefault();
+        if (tempLocation is null)
+        {
+            SelectedDepartment = new SimpleDepartment[] { new SimpleDepartment() };
+        }
+        else if (!string.IsNullOrEmpty(tempLocation.LocationNumber))
+        {
+            simpleDepartments = sapCostCenters
+            .Where(s => s.LocationNumber == tempLocation.LocationNumber)
+            .Select(s => new SimpleDepartment
+                {
+                    DepartmentNumber = s.DepartmentNumber,
+                    DepartmentName = s.DepartmentName
+                })
+                .Distinct()
+                .ToList();
+        }
+        else
+        {
+            _SelectedSapCC = new List<SapCostCenterVm>();
+            SelectedLocation = new SimpleLocation[] { new SimpleLocation() };
+            SelectedDepartment = new SimpleDepartment[] { new SimpleDepartment() };
+        }
+
+
+        StateHasChanged();
+    }
+    private async Task HandleSCCDepartmentChange()
+    {
+        var tempDepartment = SelectedDepartment.FirstOrDefault();
+        var tempLocation = SelectedLocation.FirstOrDefault();
+        if (tempDepartment is null)
+        {
+            _SelectedSapCC = new SapCostCenterVm[] { new SapCostCenterVm() };
+        }
+        else if (!string.IsNullOrEmpty(tempDepartment.DepartmentNumber))
+        {
+            var tempSAPCC = sapCostCenters.Where(s => s.LocationNumber == tempLocation.LocationNumber && s.DepartmentNumber == tempDepartment.DepartmentNumber).ToList();
+            if (tempSAPCC.Count() == 1)
+            {
+                _SelectedSapCC = tempSAPCC;
+                var scc = tempSAPCC.FirstOrDefault();
+                ManagerName = scc.ResponsibleManagerName;
+            }
+            else
+            {
+
+            }
+        }
+        else
+        {
+            var emp = SelectedDepartment.FirstOrDefault();
+        }
+
+        StateHasChanged();
     }
     private async Task<T> LogExecutionTime<T>(string instructionName, Func<Task<T>> func)
     {
@@ -2013,15 +2166,15 @@
             if(!formItem.ReceiptPaymentCash) {
                 newStatus = "KasaRozliczenie";
             } else {
-                newStatus = "WyslaneDoRobota";
-            } 
+                newStatus = "WyslaneDoRobotaRozliczenie";
+            }
         }
         else if (formItem.Status == "KasaRozliczenie"){
             newStatus = "Rozliczone";
         }
         else if (formItem.Status == "WyslaneDoRobota")
         {
-            newStatus = "Rozliczone";
+            newStatus = "ZaliczkaKsiegowoscTL";
         }
         else if (formItem.Status == "Odrzucone"){
             newStatus = "Ksiegowosc";
@@ -2030,7 +2183,10 @@
         {
             newStatus = "WyslaneDoRobota";
         }
-
+        else if (formItem.Status == "BladRobotaRozliczenie")
+        {
+            newStatus = "WyslaneDoRobotaRozliczenie";
+        }
 
         return newStatus;
     }
@@ -2271,6 +2427,9 @@
     }
     private async Task HandleCountryAdd()
     {
+        if(isManualSwitchToggle){
+            return;
+        }
         var newCountry = SelectedCountry.FirstOrDefault();
         if (newCountry == null)
         {
@@ -2296,7 +2455,7 @@
             formItem.Meals.RemoveRange(1, formItem.Meals.Count - 1);
             formItem.LocalTravels.RemoveRange(1, formItem.LocalTravels.Count - 1);
 
-            // formItem.AdvancePayment = false;
+            formItem.AdvancePayment = false;
 
         }
 
@@ -2436,6 +2595,10 @@
     }
     private async Task HandleConveyanceStringChange()
     {
+        if(stroz){
+
+
+        }
         SelectedConveyanceTxt = formItem.Transportation;
         formItem.MileageRegister = new MileageRegister
             {
@@ -2602,7 +2765,8 @@
             {
                 // Calculate duration and timespan
                 stage.Duration = Math.Round((decimal)(stage.EndDate.Value - stage.StartDate.Value).TotalDays, 2);
-                stage.TimeSpan = TimeSpan.FromHours(Math.Floor((stage.EndDate.Value - stage.StartDate.Value).TotalHours));
+                stage.TimeSpan = stage.EndDate.Value - stage.StartDate.Value;
+                // stage.TimeSpan = TimeSpan.FromHours(Math.Floor((stage.EndDate.Value - stage.StartDate.Value).TotalHours));
 
                 // Reset Allowance values
                 stage.AllowanceOriginValue = 0;
@@ -3029,6 +3193,10 @@
             allowedEmp.AddRange(formItem.Level2Approvers.Select(l => l.EmpId.ToString()));
         }
 
+        if(_userContext.isFormAdmin){
+            allowedEmp.Add(_userContext.EnovaEmpId);
+        }
+
         showForm = allowedEmp.Contains(_userContext.EnovaEmpId);
         isLoading = false;
         StateHasChanged();
@@ -3089,15 +3257,18 @@
         stal2 = formItem.Status == "AprobataL2";
         stzk = formItem.Status == "ZaliczkaKasa";
         stzks = formItem.Status == "ZaliczkaKsiegowosc";
+        stwys = formItem.Status == "WyslaneDoRobota";
+        stblad = formItem.Status == "BladRobota";
         stzkstl = formItem.Status == "ZaliczkaKsiegowoscTL";
+
         stroz = formItem.Status == "Rozliczenie";
         stks = formItem.Status == "Ksiegowosc";
         stkstl = formItem.Status == "KsiegowoscTL";
         stal11 = formItem.Status == "AprobataL11";
         stal12 = formItem.Status == "AprobataL12";
         strozk = formItem.Status == "KasaRozliczenie";
-        stwys = formItem.Status == "WyslaneDoRobota";
-        stblad = formItem.Status == "BladRobota";
+        stwysroz = formItem.Status == "WyslaneDoRobotaRozliczenie";
+        stbladroz = formItem.Status == "BladRobotaRozliczenie";
         strozend = formItem.Status == "Rozliczone";
         stodrz = formItem.Status == "Odrzucone";
         stzam = formItem.Status == "Zamkniete";
@@ -3192,8 +3363,9 @@
     }
     private async Task UpdateBankTransferMappings(EmployeeVm newEmployee)
     {
+        var shortEmpSapNumber = newEmployee.SapNumber.Substring(0, 4);
         var tglaccount = _glAccounts.Where(g => g.AccountNumber == "24000").FirstOrDefault();
-        var tlocation = _locations.Where(l => l.SapNumber == formItem.OrganisationSapNumber).FirstOrDefault();
+        var tlocation = _locations.Where(l => l.SapNumber == shortEmpSapNumber).FirstOrDefault();
         var tcostcenter = _costCenters.Where(c => c.MPK == _userContext.Employee.DeptNumber).FirstOrDefault();
 
         formItem.BTMappingAdvancePayment.SapFormType = "FreeForm";
@@ -3212,6 +3384,7 @@
         formItem.EmployeeName = newEmployee.LongName;
         formItem.BankAccountNumber = newEmployee.BankAccountNumber;
         formItem.ReceiptBankAccountNumber = newEmployee.BankAccountNumber;
+
         UpdateBankTransferMappings(newEmployee);
         var employeesList = new List<EmployeeVm>();
 
@@ -3228,6 +3401,15 @@
 
         formItem.Bills.Remove(bill);
     }
+    //
+    private async Task AddSapCostCenter()
+    {
+        formItem.FormCostCenters.Add(new SapCostCenterVm());
+        StateHasChanged();
+    }
+    private async Task RemoveSapCostCenter(SapCostCenterVm scc){
+        formItem.FormCostCenters.Remove(scc);
+    }
     private async Task AddBill()
     {
         var billId = Id = formItem.Bills.Count() + 1;
@@ -3241,7 +3423,7 @@
     }
     private async Task AddInvoiceMapping(Bill bill){
         var tglaccount = _glAccounts.Where(g => g.AccountNumber == "24000").FirstOrDefault();
-        var tlocation = _locations.Where(l => l.SapNumber == formItem.OrganisationSapNumber).FirstOrDefault();
+        var tlocation = _locations.Where(l => l.SapNumber == formItem.OrganisationSapNumber.Substring(0, 4)).FirstOrDefault();
         var tcostcenter = _costCenters.Where(c => c.MPK == _userContext.Employee.DeptNumber).FirstOrDefault();
 
         var newInvoiceMapping = new InvoiceMapping
@@ -3409,7 +3591,7 @@
             DisableSaveButton = true;
             DisableSendButton = false;
         }
-        if (stzk || strozk || stzks || stzkstl || stks || stkstl || stblad)
+        if (stzk || strozk || stzks || stzkstl || stks || stkstl || stblad || stbladroz)
         {
             DisableApproveButton = false;
             DisableRejectButton = false;
@@ -3430,41 +3612,21 @@
         AssignStatusBool();
         AssignTransportation();
         ResetForm();
-        // DisableForm();
-        // switch (formItem.Transportation)
-        // {
-        //     case "Samochód służbowy":
-        //         IsCompanyCar = true;
-        //         IsPrivateCar = false;
-        //         IsPublicTransport = false;
-        //         break;
-        //     case "Samochód prywatny":
-        //         IsCompanyCar = false;
-        //         IsPrivateCar = true;
-        //         IsPublicTransport = false;
-        //         break;
-        //     case "Transport publiczny":
-        //         IsCompanyCar = false;
-        //         IsPrivateCar = false;
-        //         IsPublicTransport = true;
-        //         break;
-        //     default:
-        //         Console.WriteLine("Other");
-        //         break;
-        // }
-        // if (formItem.Transportation == "Samochód służbowy") IsCompanyCar = true;
 
         #region GoToStatus
-        if (status == "Rejestracja" || stodrz) await SetupFormRejestracja();
+        if (status == "Rejestracja") await SetupFormRejestracja();
         else if (stal1 || stal2 || stal11 || stal12) await SetupFormAprobata(status); //po etapie al11 i al12 zrobic sprawdzenie czy kasa czy przelew i wysl
         else if (stzk) await SetupFormKasa();
         else if (stzks) await SetupFormZaliczkaKsiegowosc(); //zrobić SetupFormZaliczkaKsiegowosc
         else if (stzkstl) await SetupFormZaliczkaKsiegowoscTL(); //zrobić SetupFormZaliczkaKsiegowoscTL
+        else if (stwys) await SetupFormWyslaneDoRobota(); //zrobić SetupFormWyslaneDoRobota
+        else if (stblad) await SetupFormBladRobota();
         else if (stroz || stodrz) await SetupFormRozliczenie();
         else if (stks) await SetupFormKsiegowosc(); //zrobić SetupFormKsiegowosc - komponentustawień mpk
         else if (stkstl) await SetupFormKsiegowoscTL(); //zrobić SetupFormKsiegowoscTL
         else if (strozk) await SetupFormKasaRozliczenie();
-        else if (stwys) await SetupFormWyslaneDoRobota(); //zrobić SetupFormWyslaneDoRobota
+        else if (stwysroz) await SetupFormWyslaneDoRobotaRozliczenie(); //zrobić SetupFormWyslaneDoRobota
+        else if (stbladroz) await SetupFormBladRobotaRozliczenie();
         else if (strozend) await SetupFormRozliczone();
         else if (stzam) await SetupFormZamkniete();
         #endregion
@@ -3587,6 +3749,27 @@
         DisableSaveButton = true;
         DisableSendButton = true;
     }
+    private async Task SetupFormBladRobota()
+    {
+        DisableApproveButton = false;
+        DisableRejectButton = false;
+        DisableSaveButton = true;
+        DisableSendButton = true;
+    }
+    private async Task SetupFormWyslaneDoRobotaRozliczenie()
+    {
+        DisableApproveButton = true;
+        DisableRejectButton = true;
+        DisableSaveButton = true;
+        DisableSendButton = true;
+    }
+    private async Task SetupFormBladRobotaRozliczenie()
+    {
+        DisableApproveButton = false;
+        DisableRejectButton = false;
+        DisableSaveButton = true;
+        DisableSendButton = true;
+    }
     private async Task SetupFormRejestracja()
     {
         if (formItem.Stages.Count == 0)
@@ -3608,8 +3791,8 @@
                 formItem.DestinationCountry = SelectedCountry.First();
                 formItem.DestinationCountryCurrency = "PLN";
             }
-
-            formItem.FormCostLocation = _locations.Where(l => l.SapNumber == _userContext.Employee.SapNumber).FirstOrDefault();
+            var shortSapNumber = _userContext.Employee.SapNumber.Substring(0, 4);
+            formItem.FormCostLocation = _locations.Where(l => l.SapNumber == shortSapNumber).FirstOrDefault();
             formItem.FormCostCenter = _costCenters.Where(c => c.MPK == _userContext.Employee.DeptNumber).FirstOrDefault();
             if (!string.IsNullOrEmpty(formItem.FormCostLocation.SapNumber))
             {
@@ -3622,7 +3805,12 @@
                 _selectedCostCenter = new List<CostCenterVm>() { tempCC };
             }
             Title = "Podróż służbowa - Rejestracja wniosku";
-            await AddEmployee(_userContext.Employee);
+
+            var tempEmp = _userContext.Employee;
+            if(!string.IsNullOrEmpty(formItem.EnovaEmpId)){
+                tempEmp = _employees.Where(e => e.EnovaEmpId.ToString() == formItem.EnovaEmpId).FirstOrDefault();
+            }
+            await AddEmployee(tempEmp);
             await AssignAllApprovers(_userContext.Employee);
             await AddStage(Origin);
             // await RecalculateStages(firstStage.Id, nameof(firstStage.EndDate));
@@ -3737,6 +3925,12 @@
         DisableRejectButton = true;
         DisableSaveButton = false;
         DisableSendButton = false;
+        if (formItem.Transportation != "Samochód prywatny")
+            Conveyances = new List<string>
+            {
+                "Samochód służbowy",
+                "Transport publiczny"
+            }.AsQueryable();
         #endregion
 
     }
@@ -4083,7 +4277,7 @@
             return b.Value;
         }
         bool result = true;
-        if (strej )
+        if (strej || stroz )
         {
             result = false;
         }
@@ -4228,6 +4422,21 @@
         }
         return result;
     }
+    private bool IsControlBillInvoiceNumberEditDisabled(bool? b = null)
+    {
+        if (b.HasValue)
+        {
+            return b.Value;
+        }
+        bool result = true;
+        if (stroz || stks)
+        {
+            result = false;
+        }
+        return result;
+    }
+    
+
     private bool IsControlFormCostCenterLocationDisabled(bool? b = null)
     {
         if (b.HasValue)
