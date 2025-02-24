@@ -22,7 +22,7 @@ namespace Application.CQRS.AccountingCQRS.CostCenters.Queries
                 .AsNoTracking()
                 .ToListAsync(cancellationToken);
 
-            var costCenterVms = _mapper.Map<List<CostCenterVm>>(costCenters);
+            var costCenterVms = _mapper.Map<List<CostCenterVm>>(costCenters).AsEnumerable();
             return costCenterVms;
         }
     }

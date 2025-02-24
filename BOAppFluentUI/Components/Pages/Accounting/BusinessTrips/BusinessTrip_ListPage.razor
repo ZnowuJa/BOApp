@@ -87,12 +87,12 @@
         }
         <FluentButton Id="@editId" IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => Edit(context))" Disabled="@Utils.IsAccEditDisabled(context, _userContext)" />
         @*WARNING it is not tested if isEditDisabled works*@
-        <FluentTooltip Anchor="@editId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Edit form</FluentTooltip>
+        <FluentTooltip Anchor="@editId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Edycja</FluentTooltip>
         <FluentButton Id="@viewId" IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" Disabled="false" />
         @*WARNING it is not tested if isEditDisabled works*@
-        <FluentTooltip Anchor="@viewId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>View form</FluentTooltip>
+        <FluentTooltip Anchor="@viewId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Podgląd</FluentTooltip>
         <FluentButton Id="@deleteId" IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" Disabled="@actionsDisabled" />
-        <FluentTooltip Anchor="@deleteId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Delete form</FluentTooltip>
+        <FluentTooltip Anchor="@deleteId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Skasuj</FluentTooltip>
 
     </TemplateColumn>
 </FluentDataGrid>
@@ -116,6 +116,8 @@
         new FilterColumn<BusinessTravelFormVm> { FirstRow = true, Label = "ID", Property = c => c.Id.ToString(), IsVisible = false },
         new FilterColumn<BusinessTravelFormVm> { FirstRow = true, Label = "Numer", Property = c => c.Number.ToString()??string.Empty, IsVisible = true },
         new FilterColumn<BusinessTravelFormVm> { FirstRow = true, Label = "Status", Property = c => c.Status.ToString()??string.Empty, IsVisible = true, IsDropdown = true, DropdownValues = StatusesValues, SelectedValues = new List<string> ()},
+        new FilterColumn<BusinessTravelFormVm> { FirstRow = true, Label = "Miasto", Property = c => c.Destination.ToString()??string.Empty, IsVisible = true, IsDropdown = true, DropdownValues = StatusesValues, SelectedValues = new List<string> ()},
+        new FilterColumn<BusinessTravelFormVm> { FirstRow = true, Label = "Powód Odrzucenia.", Property = c => c.RejectReason, IsVisible = false },
         new FilterColumn<BusinessTravelFormVm> { FirstRow = true, Label = "Zgłaszający", Property = c =>(c.EmployeeName.ToString()??string.Empty), IsVisible = false },
         new FilterColumn<BusinessTravelFormVm> { FirstRow = true, Label = "Kraj", Property = c => c.DestinationCountry.Name, IsVisible = false },
         new FilterColumn<BusinessTravelFormVm> { FirstRow = true, Label = "Numer lok.", Property = c => c.OrganisationSapNumber, IsVisible = true },

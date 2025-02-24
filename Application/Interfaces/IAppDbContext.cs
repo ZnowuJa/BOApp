@@ -58,6 +58,7 @@ public interface IAppDbContext
     DbSet<CompanyCarRegistrationNumber> CompanyCarRegistrationNumbers { get; set; }
     DbSet<NbpCurrencyRate> NbpCurrencyRates { get; set; }
     DbSet<BusinessTravelForm> BusinessTravels { get; set; }
+    DbSet<SapCostCenter> SapCostCenters { get; set; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default);

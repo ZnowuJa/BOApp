@@ -72,6 +72,7 @@ public class BusinessTravelFormVm : IMapFrom<BusinessTravelForm>, IFormAccountin
         public string EnovaEmpId { get; set; } = string.Empty;
         public CostCenterVm FormCostCenter { get; set; } = new CostCenterVm();
         public LocationVm FormCostLocation { get; set; } = new ();
+        public List<SapCostCenterVm> FormCostCenters = new();
         public List<ApprovalVm>? Approvals { get; set; } = new();
     #region ApproversDetails
         public List<OrganisationRoleForFormVm> Level1Approvers { get; set; } = new(); // przełożony etapy: AprobataL1, AprobataL11
