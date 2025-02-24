@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 using Application.Mappings;
@@ -22,6 +23,49 @@ public class SapCostCenterVm : IMapFrom<SapCostCenter>
     public int? ResponsibleManagerSSFId { get; set; }
     public int? StatusId { get; set; }
 
+    [JsonIgnore]
+    public SimpleLocation Location
+    {
+        get
+        {
+            var simplLoc = new SimpleLocation()
+            {
+                SAPLocationNumber = LocationNumber,
+                SAPLocationName = LocationName
+            };
+            return simplLoc;
+        }
+        set
+        {
+            LocationNumber = value.SAPLocationNumber;
+            LocationName = value.SAPLocationName;
+        }
+    }
+
+    [JsonIgnore]
+    public SimpleDepartment Department
+    {
+        get
+        {
+            var simpleDept = new SimpleDepartment
+            {
+                SAPDepartmentNumber = DepartmentNumber,
+                SAPDepartmentName = DepartmentName
+            };
+            return simpleDept;
+        }
+        set
+        {
+            DepartmentNumber = value.SAPDepartmentNumber;
+            DepartmentName = value.SAPDepartmentName;
+
+        }
+    }
+    [JsonIgnore]
+    public List<SimpleLocation> SelectedLocations { get; set; } = new List<SimpleLocation>();
+    [JsonIgnore]
+    public List<SimpleDepartment> SelectedDepartments { get; set; } = new List<SimpleDepartment>();
+
     public void Mapping(Profile profile)
     {
         profile.CreateMap<SapCostCenter, SapCostCenterVm>().ReverseMap();
@@ -31,12 +75,12 @@ public class SapCostCenterVm : IMapFrom<SapCostCenter>
 
 public class SimpleLocation()
 {
-    public string LocationNumber { get; set; }
-    public string LocationName { get; set; }
+    public string SAPLocationNumber { get; set; }
+    public string SAPLocationName { get; set; }
 }
 public class SimpleDepartment()
 {
-    public string DepartmentNumber { get; set; }
-    public string DepartmentName { get; set; }
+    public string SAPDepartmentNumber { get; set; }
+    public string SAPDepartmentName { get; set; }
 }
 

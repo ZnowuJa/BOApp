@@ -27,9 +27,9 @@
                                         OnOptionsSearch="@OnLocationSearch"
                                         Placeholder="wybierz..."
                                         MaximumSelectedOptions="1"
-                                        OptionText="@(p => p.LocationNumber + ' ' + p.LocationName)"
+                                        OptionText="@(p => p.SAPLocationNumber + ' ' + p.SAPLocationName)"
                                         @bind-SelectedOptions="@SelectedLocation"
-                                        @bind-SelectedOptions:after="@HandleLocationChange"
+                                        @bind-SelectedOptions:after="@HandleSCCLocationChange"
                                         Width="300px" />
                 </td>
                 <td>
@@ -41,9 +41,9 @@
                                         OnOptionsSearch="@OnDepartmentSearch"
                                         Placeholder="wybierz..."
                                         MaximumSelectedOptions="1"
-                                        OptionText="@(p => p.DepartmentNumber + ' ' + p.DepartmentName)"
+                                        OptionText="@(p => p.SAPDepartmentNumber + ' ' + p.SAPDepartmentName)"
                                         @bind-SelectedOptions="@SelectedDepartment"
-                                        @bind-SelectedOptions:after="@HandleDepartmentChange"
+                                        @bind-SelectedOptions:after="@HandleSCCDepartmentChange"
                                         Width="300px" />
                 </td>
                 <td>
@@ -80,16 +80,16 @@
             .GroupBy(s => s.LocationNumber)
             .Select(g => new SimpleLocation
                 {
-                    LocationNumber = g.Key,
-                    LocationName = g.First().LocationName
+                    SAPLocationNumber = g.Key,
+                    SAPLocationName = g.First().LocationName
                 })
             .ToList();
 
         simpleDepartments = sapCostCenters
             .Select(s => new SimpleDepartment
                 {
-                    DepartmentNumber = s.DepartmentNumber,
-                    DepartmentName = s.DepartmentName
+                    SAPDepartmentNumber = s.DepartmentNumber,
+                    SAPDepartmentName = s.DepartmentName
                 })
             .Distinct()
             .ToList();
@@ -102,7 +102,7 @@
         if (e.Text != null)
         {
             e.Items = simpleLocations
-                .Where(a => a.LocationNumber.Contains(e.Text, StringComparison.OrdinalIgnoreCase) || a.LocationName.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
+                .Where(a => a.SAPLocationNumber.Contains(e.Text, StringComparison.OrdinalIgnoreCase) || a.SAPLocationName.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
         }
     }
     private void OnDepartmentSearch(OptionsSearchEventArgs<SimpleDepartment> e)
@@ -111,7 +111,7 @@
         if (e.Text != null)
         {
             e.Items = simpleDepartments
-                .Where(a => a.DepartmentNumber.Contains(e.Text, StringComparison.OrdinalIgnoreCase) || a.DepartmentName.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
+                .Where(a => a.SAPDepartmentNumber.Contains(e.Text, StringComparison.OrdinalIgnoreCase) || a.SAPDepartmentName.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
         }
     }
     private async Task HandleSCCLocationChange()
@@ -122,14 +122,14 @@
         {
             SelectedDepartment = new SimpleDepartment[] { new SimpleDepartment() };
         }
-        else if (!string.IsNullOrEmpty(tempLocation.LocationNumber))
+        else if (!string.IsNullOrEmpty(tempLocation.SAPLocationNumber))
         {
             simpleDepartments = sapCostCenters
-            .Where(s => s.LocationNumber == tempLocation.LocationNumber)
+            .Where(s => s.LocationNumber == tempLocation.SAPLocationNumber)
             .Select(s => new SimpleDepartment
                 {
-                    DepartmentNumber = s.DepartmentNumber,
-                    DepartmentName = s.DepartmentName
+                    SAPDepartmentNumber = s.DepartmentNumber,
+                    SAPDepartmentName = s.DepartmentName
                 })
                 .Distinct()
                 .ToList();
@@ -152,9 +152,9 @@
         {
             _SelectedSapCC = new SapCostCenterVm[] { new SapCostCenterVm() };
         }
-        else if (!string.IsNullOrEmpty(tempDepartment.DepartmentNumber))
+        else if (!string.IsNullOrEmpty(tempDepartment.SAPDepartmentNumber))
         {
-            var tempSAPCC = sapCostCenters.Where(s => s.LocationNumber == tempLocation.LocationNumber && s.DepartmentNumber == tempDepartment.DepartmentNumber).ToList();
+            var tempSAPCC = sapCostCenters.Where(s => s.LocationNumber == tempLocation.SAPLocationNumber && s.DepartmentNumber == tempDepartment.SAPDepartmentNumber).ToList();
             if (tempSAPCC.Count() == 1)
             {
                 _SelectedSapCC = tempSAPCC;
