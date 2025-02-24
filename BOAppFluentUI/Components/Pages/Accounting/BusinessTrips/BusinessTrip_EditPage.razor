@@ -178,10 +178,10 @@
                     <SapCostCenter_SelectComponent _SelectedSapCC="formItem.FormCostCenters" sapCostCenters="_sapCostCenters.ToList()" RemoveSapCostCenter="RemoveSapCostCenter" />
                     @foreach(var item in formItem.FormCostCenters){
                         var localItemArray = new SapCostCenterVm[] { item };
-                        
-                        
+
+
                     } *@
-@*                     <table class="table-container">
+                    @*                     <table class="table-container">
                         <thead>
                             <tr class="table-caption">
                                 <th>
@@ -204,7 +204,7 @@
                                             @bind-Value="item.Location"
 
                                             />
-                                            
+
                                     </td>
                                     <td>
                                         <FluentAutocomplete TOption="SimpleDepartment"
@@ -215,11 +215,11 @@
                                                             OnOptionsSearch="@OnDepartmentSearch"
                                                             Placeholder="wybierz..."
                                                             MaximumSelectedOptions="1"
-                                                            
+
                                                             OptionText="@(p => p.SAPDepartmentNumber + ' ' + p.SAPDepartmentName)"
                                                             @bind-SelectedOptions:get="() => GetSelectedDepartments(item)"
                                                             @bind-SelectedOptions:set="(value) => SetSelectedDepartments(item, value)"
-                                                            
+
                                                             Width="300px" />
                                     </td>
                                     <td>
@@ -227,14 +227,14 @@
                                     </td>
                                     <td>
                                        @*  <FluentButton IconStart="@(new Icons.Regular.Size16.Delete())" OnClick="() => RemoveSapCostCenter.InvokeAsync(item)" /> *@
-                                   @* </td>
+                    @* </td>
                                 </tr>
                             }
 
                         </tbody>
 
                     </table>
-                    
+
                     <FluentButton Id="addSapCC" IconEnd="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddSapCostCenter())" Style="margin-bottom: 20px;" /> *@
 
                     <table class="table-container">
@@ -548,7 +548,7 @@
                         </table>
 
                     }
-                    
+
                     <hr>
                     @if (ShowStages)
                     {
@@ -1703,6 +1703,7 @@
     private void HandleAdvancePaymentSwitch(bool value){
 
         formItem.AdvancePayment = value;
+        isManualSwitchToggle = true;
         StateHasChanged();
     }
 
