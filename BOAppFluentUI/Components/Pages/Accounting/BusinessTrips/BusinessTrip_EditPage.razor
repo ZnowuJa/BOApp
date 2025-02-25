@@ -1,4 +1,5 @@
 ﻿@page "/create-business-travel/{id:int}"
+
 @page "/nowadelegacja/{id:int}"
 @page "/delegacja/{id:int}"
 @using System.Diagnostics;
@@ -168,6 +169,44 @@
                             </tr>
                         </tbody>
                     </table>
+
+
+                    <table class="table-container">
+                        <thead>
+                            <tr class="table-caption">
+                                <th>
+                                    Wybierz MPK X
+                                </th>
+                            </tr>
+                            <tr class="table-header-left table-caption">
+                                <th style="width: 130px;">Lokalizacja</th>
+                                <th style="width: 150px;">Dział</th>
+                                <th style="width: 130px;">Odpowiedzialny</th>
+                                <th style="width: 130px;">Akcje</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{
+                                int a = 0;
+                                @foreach (var item in formItem.FormCostCenters)
+                                {
+                                    var index = a;
+                                    <SapCostCenter_SelectComponent 
+                                    _content="@item"
+                                    sapCostCenters="_sapCostCenters.ToList()"
+                                    RemoveSapCostCenter="@(scc => RemoveSapCC(scc))"
+                                    OnSapCostCenterChanged="@(scc => HandleSapCostCenterChanged(index, scc))"
+                                    @key="@item.formId" />
+                                    a++;
+                                }
+                            }
+
+
+                        </tbody>
+
+                    </table>
+                    <FluentButton Id="addSapCC" IconEnd="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddSapCostCenter())" Style="margin-bottom: 20px;" />
+
                     @* SAP COST CENTERS*@
 
                     @*                     @foreach (var item in formItem.FormCostCenters)
@@ -181,62 +220,9 @@
 
 
                     } *@
-                    @*                     <table class="table-container">
-                        <thead>
-                            <tr class="table-caption">
-                                <th>
-                                    Wybierz MPK
-                                </th>
-                            </tr>
-                            <tr class="table-header-left table-caption">
-                                <th style="width: 130px;">Lokalizacja</th>
-                                <th style="width: 150px;">Dział</th>
-                                <th style="width: 130px;">Odpowiedzialny</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var item in formItem.FormCostCenters)
-                            {
-                                <tr>
-                                    <td>
-                                        <FluentCombobox TOption ="SimpleLocation"
-                                            Items="@simpleLocations"
-                                            @bind-Value="item.Location"
 
-                                            />
 
-                                    </td>
-                                    <td>
-                                        <FluentAutocomplete TOption="SimpleDepartment"
-                                                            Disabled="false"
-                                                            Class="bold-label"
-                                                            AutoComplete="on"
-                                                            MaximumOptionsSearch="10"
-                                                            OnOptionsSearch="@OnDepartmentSearch"
-                                                            Placeholder="wybierz..."
-                                                            MaximumSelectedOptions="1"
-
-                                                            OptionText="@(p => p.SAPDepartmentNumber + ' ' + p.SAPDepartmentName)"
-                                                            @bind-SelectedOptions:get="() => GetSelectedDepartments(item)"
-                                                            @bind-SelectedOptions:set="(value) => SetSelectedDepartments(item, value)"
-
-                                                            Width="300px" />
-                                    </td>
-                                    <td>
-                                        <FluentTextField @bind-Value="@item.ResponsibleManagerName" Disabled="true" />
-                                    </td>
-                                    <td>
-                                       @*  <FluentButton IconStart="@(new Icons.Regular.Size16.Delete())" OnClick="() => RemoveSapCostCenter.InvokeAsync(item)" /> *@
-                    @* </td>
-                                </tr>
-                            }
-
-                        </tbody>
-
-                    </table>
-
-                    <FluentButton Id="addSapCC" IconEnd="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddSapCostCenter())" Style="margin-bottom: 20px;" /> *@
-
+                    @*OLD COST CENTER TABLE*@
                     <table class="table-container">
                         <tbody>
                             <tr>
@@ -1612,8 +1598,6 @@
     private IQueryable<string> _cities = Enum.GetValues(typeof(Cities))
         .Cast<Cities>().Select(c => c.ToString()).AsQueryable();
     private IEnumerable<string> SelectedObjective { get; set; }
-    // private IQueryable<string> _objectives = Enum.GetValues(typeof(Objectives))
-    // .Cast<Objectives>().Select(c => c.ToString()).AsQueryable();
     private IQueryable<string> _objectives = new List<string>
     {
         "audyt",
@@ -1698,6 +1682,7 @@
     // private FluentValidationValidator? _fluentValidator;
     // private bool SendButton = true;
     private bool hasValidationErrors = false;
+
     #endregion
 
     private void HandleAdvancePaymentSwitch(bool value){
@@ -1710,52 +1695,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        #region SpeedTest
-        // var stopwatch = Stopwatch.StartNew();
 
-        // if (Id != 0)
-        // {
-        //     formItem = await LogExecutionTime("GetBusinessTripByIdQuery",
-        //         () => _mediator.Send(new GetBusinessTripByIdQuery(Id)));
-
-        //     if (formItem == null)
-        //     {
-        //         showForm = false;
-        //         isLoading = false;
-        //         return;
-        //     }
-        // }
-
-        // _editContext = new EditContext(formItem);
-
-        // var stopWatch2 = Stopwatch.StartNew();
-        // await Utils.GetUserName(_authenticationStateProvider, _userContext, _mediator);
-        // stopWatch2.Stop();
-        // _logger.LogWarning($"GetUserName took {stopWatch2.ElapsedMilliseconds} ms");
-        // // await LogExecutionTime("GetUserName",
-        // // () => Utils.GetUserName(_authenticationStateProvider, _userContext, _mediator));
-
-        // _employees = await LogExecutionTime("GetAllEmployeesQuery",
-        //     () => _mediator.Send(new GetAllEmployeesQuery()));
-
-        // _costCenters = await LogExecutionTime("GetAllCostCenterIEnumQuery",
-        //     () => _mediator.Send(new GetAllCostCenterIEnumQuery()));
-
-        // _glAccounts = await LogExecutionTime("GetAllGLAccountIEnumQuery",
-        //     () => _mediator.Send(new GetAllGLAccountIEnumQuery()));
-
-        // _locations = await LogExecutionTime("GetLocationsQuery",
-        //     () => _mediator.Send(new GetLocationsQuery()));
-
-        // _vatRates = await LogExecutionTime("GetAllVatRateIEnumQuery",
-        //     () => _mediator.Send(new GetAllVatRateIEnumQuery()));
-
-        // _organisation = await LogExecutionTime("GetOrganisationByEmpSapNumberQuery",
-        //     () => _mediator.Send(new GetOrganisationByEmpSapNumberQuery(_userContext.Employee.SapNumber)));
-
-        // CompanyCarRegistrationNumbers = await LogExecutionTime("GetCompanyCarRegistrationNumbersQuery",
-        //     () => _mediator.Send(new GetCompanyCarRegistrationNumbersQuery()));
-        #endregion
         if (Id != 0)
         {
             formItem = await _mediator.Send(new GetBusinessTripByIdQuery(Id));
@@ -1830,7 +1770,15 @@
         // _logger.LogWarning($"ONINIT took {stopwatch.ElapsedMilliseconds} ms");
     }
 
-    private void OnLocationSearch(OptionsSearchEventArgs<SimpleLocation> e)
+    // private void OnLocationSearch(OptionsSearchEventArgs<LocationVm> e)
+    // {
+    //     if (e.Text != null)
+    //     {
+    //         e.Items = _locations
+    //             .Where(a => a.SapNumber.Contains(e.Text, StringComparison.OrdinalIgnoreCase) || a.Name.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
+    //     }
+    // }
+    private void OnSimpleLocationSearch(OptionsSearchEventArgs<SimpleLocation> e)
     {
         if (e.Text != null)
         {
@@ -1852,7 +1800,7 @@
 
     private List<SimpleDepartment> GetSelectedDepartments(SapCostCenterVm item) => item.SelectedDepartments;
     private void SetSelectedDepartments(SapCostCenterVm item, List<SimpleDepartment> value) => item.SelectedDepartments = value;
-    // private async Task HandleSCCLocationChange()
+    // private async Task HandleSCCLocationChange(SapCostCenterVm scc)
     // {
 
     //     var tempLocation = SelectedLocation.FirstOrDefault();
@@ -2315,6 +2263,7 @@
         formItem.LVL5_EnovaEmpId = tempEmp.EnovaEmpId.ToString();
         formItem.LVL5_EmployeeName = tempEmp.LongName;
     }
+
     private void HandleBillChange(Bill bill, string curr)
     {
         bill.Currency = curr;
@@ -2327,20 +2276,9 @@
     private void HandlePrivateVehicleMileageChanged(int value)
     {
         formItem.PrivateVehicleMilage = value;
-
-        // if (formItem.PrivateVehicleEngineSize == "do 900 cm3")
-        // {
-        //     formItem.SumPrivateVehicleAllowance = formItem.PrivateVehicleMilage * Dictionary.MileageAllowance[900];
-        // }
-        // else if (formItem.PrivateVehicleEngineSize == "powyej 900 cm3")
-        // {
-        //     formItem.SumPrivateVehicleAllowance = formItem.PrivateVehicleMilage * Dictionary.MileageAllowance[901];
-        // }
-
     }
     private void HandlePrivateVehicleRegistrationChanged(){
         formItem.MileageRegister.PrivateCarRegistration = formItem.MileageRegister.PrivateCarRegistration?.Trim();
-        // ValidateField<BusinessTravelFormVm>(formItem, nameof(formItem.MileageRegister.PrivateCarRegistration), Validator, _editContext);
         _editContext.Validate();
     }
     private void HandlePrivateVehicleEngineSizeChanged(string value)
@@ -3461,12 +3399,51 @@
     //
     private async Task AddSapCostCenter()
     {
-        formItem.FormCostCenters.Add(new SapCostCenterVm());
+        var tempSCC = new SapCostCenterVm{formId = Guid.NewGuid()};
+
+        formItem.FormCostCenters.Add(tempSCC);
         StateHasChanged();
     }
-    private async Task RemoveSapCostCenter(SapCostCenterVm scc){
-        formItem.FormCostCenters.Remove(scc);
+    private void RemoveSapCC(SapCostCenterVm removed)
+    {
+        formItem.FormCostCenters = formItem.FormCostCenters.Where(x => x != removed).ToList();
+        StateHasChanged();
     }
+    private void RemoveSapCostCenter(int index, SapCostCenterVm removed)
+    {
+        if (index >= 0 && index < formItem.FormCostCenters.Count)
+        {
+            var listSCC = new List<SapCostCenterVm>();
+            formItem.FormCostCenters.Remove(removed);
+            foreach(var scc in formItem.FormCostCenters) {
+                listSCC.Add(scc);
+            }
+            formItem.FormCostCenters.Clear();
+            foreach(var scc in listSCC){
+                formItem.FormCostCenters.Add(scc);
+            }
+
+            StateHasChanged();
+        }
+
+    }
+    private void HandleSapCostCenterChanged(int index, SapCostCenterVm updatedSapCC)
+    {
+        if (index >= 0 && index < formItem.FormCostCenters.Count)
+        {
+            formItem.FormCostCenters[index].LocationNumber = updatedSapCC.LocationNumber;
+            formItem.FormCostCenters[index].LocationName = updatedSapCC.LocationName;
+            formItem.FormCostCenters[index].DepartmentNumber = updatedSapCC.DepartmentNumber;
+            formItem.FormCostCenters[index].DepartmentName = updatedSapCC.DepartmentName;
+            formItem.FormCostCenters[index].ResponsibleManagerName = updatedSapCC.ResponsibleManagerName;
+            formItem.FormCostCenters[index].ResponsibleManagerEnovaId = updatedSapCC.ResponsibleManagerEnovaId;
+            formItem.FormCostCenters[index].ResponsibleManagerSSFId = updatedSapCC.ResponsibleManagerSSFId;
+            formItem.FormCostCenters[index].StatusId = updatedSapCC.StatusId;
+            formItem.FormCostCenters[index].Id = updatedSapCC.Id;
+            StateHasChanged();
+        }
+    }
+
     private async Task AddBill()
     {
         var billId = Id = formItem.Bills.Count() + 1;
@@ -3848,6 +3825,15 @@
                 formItem.DestinationCountry = SelectedCountry.First();
                 formItem.DestinationCountryCurrency = "PLN";
             }
+
+            // var userSapCostCenter = new SapCostCenterVm { formId = Guid.NewGuid() };
+            // var userSapNumber = _userContext.Employee.SapNumber.Substring(0, 4);
+            // var userDepartmentNumber = _userContext.Employee.DeptNumber;
+            // userSapCostCenter = _sapCostCenters.Where(s => s.LocationNumber == userSapNumber && s.DepartmentNumber == userDepartmentNumber).First();
+            // if(userSapCostCenter.Id > 0){
+            //     formItem.FormCostCenters.Add(userSapCostCenter);
+            // }
+            
             var shortSapNumber = _userContext.Employee.SapNumber.Substring(0, 4);
             formItem.FormCostLocation = _locations.Where(l => l.SapNumber == shortSapNumber).FirstOrDefault();
             formItem.FormCostCenter = _costCenters.Where(c => c.MPK == _userContext.Employee.DeptNumber).FirstOrDefault();

@@ -14,6 +14,8 @@ namespace Application.ViewModels.Accounting;
 public class SapCostCenterVm : IMapFrom<SapCostCenter>
 {
     public int Id { get; set; }
+    [JsonIgnore]
+    public Guid formId { get; set; } 
     public string? LocationNumber { get; set; } = string.Empty;
     public string? LocationName { get; set; } = string.Empty;
     public string? DepartmentNumber { get; set; } = string.Empty;

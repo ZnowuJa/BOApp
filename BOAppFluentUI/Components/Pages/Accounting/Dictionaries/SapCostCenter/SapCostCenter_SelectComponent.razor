@@ -1,81 +1,65 @@
 ﻿@*SELECT SAPCostCenter Component*@
 @using Application.ViewModels.Accounting
 
-<table class="table-container">
-    <thead>
-        <tr class="table-caption">
-            <th>
-                Wybierz MPK
-            </th>
-        </tr>
-        <tr class="table-header-left table-caption">
-            <th style="width: 130px;">Lokalizacja</th>
-            <th style="width: 150px;">Dział</th>
-            <th style="width: 130px;">Odpowiedzialny</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in _SelectedSapCC)
-        {
+
+
             <tr>
                 <td>
                     <FluentAutocomplete TOption="SimpleLocation"
-                                        Disabled="false"
-                                        Class="bold-label"
-                                        AutoComplete="on"
-                                        MaximumOptionsSearch="10"
-                                        OnOptionsSearch="@OnLocationSearch"
-                                        Placeholder="wybierz..."
-                                        MaximumSelectedOptions="1"
-                                        OptionText="@(p => p.SAPLocationNumber + ' ' + p.SAPLocationName)"
-                                        @bind-SelectedOptions="@SelectedLocation"
-                                        @bind-SelectedOptions:after="@HandleSCCLocationChange"
-                                        Width="300px" />
+                    Disabled="false"
+                    Class="bold-label"
+                    AutoComplete="on"
+                    MaximumOptionsSearch="10"
+                    OnOptionsSearch="@OnLocationSearch"
+                    Placeholder="wybierz..."
+                    MaximumSelectedOptions="1"
+                    OptionText="@(p => p.SAPLocationNumber + ' ' + p.SAPLocationName)"
+                    @bind-SelectedOptions="@SelectedLocation"
+                    @bind-SelectedOptions:after="@HandleSCCLocationChange"
+                    Width="250px" />
                 </td>
                 <td>
                     <FluentAutocomplete TOption="SimpleDepartment"
-                                        Disabled="false"
-                                        Class="bold-label"
-                                        AutoComplete="on"
-                                        MaximumOptionsSearch="10"
-                                        OnOptionsSearch="@OnDepartmentSearch"
-                                        Placeholder="wybierz..."
-                                        MaximumSelectedOptions="1"
-                                        OptionText="@(p => p.SAPDepartmentNumber + ' ' + p.SAPDepartmentName)"
-                                        @bind-SelectedOptions="@SelectedDepartment"
-                                        @bind-SelectedOptions:after="@HandleSCCDepartmentChange"
-                                        Width="300px" />
+                    Disabled="false"
+                    Class="bold-label"
+                    AutoComplete="on"
+                    MaximumOptionsSearch="10"
+                    OnOptionsSearch="@OnDepartmentSearch"
+                    Placeholder="wybierz..."
+                    MaximumSelectedOptions="1"
+                    OptionText="@(p => p.SAPDepartmentNumber + ' ' + p.SAPDepartmentName)"
+                    @bind-SelectedOptions="@SelectedDepartment"
+                    @bind-SelectedOptions:after="@HandleSCCDepartmentChange"
+                    Width="270px" />
                 </td>
                 <td>
-                    <FluentTextField @bind-Value="@_SelectedSapCC.First().ResponsibleManagerName" Disabled="true" />
+                    <FluentTextField @bind-Value="@ManagerName" Disabled="true" style="width: 200px;"/>
                 </td>
-                <td>
-                    <FluentButton IconStart="@(new Icons.Regular.Size16.Delete())" OnClick="() => RemoveSapCostCenter.InvokeAsync(item)" />
+                <td style="width: 200px;">
+                    <FluentButton IconStart="@(new Icons.Regular.Size16.Delete())" OnClick="() => RemoveSapCostCenter.InvokeAsync(_content)" />
+
                 </td>
             </tr>
-        }
-
-    </tbody>
-
-</table>
 
 <div style="display: flex; align-items: center;">
 </div>
 
 
 @code {
-    [Parameter] public IEnumerable<SapCostCenterVm> _SelectedSapCC { get; set; }
+    [Parameter] public SapCostCenterVm _content { get; set; }
     [Parameter] public List<SapCostCenterVm> sapCostCenters { get; set; }
     [Parameter] public EventCallback<SapCostCenterVm> RemoveSapCostCenter { get; set; }
-
+    [Parameter] public EventCallback<SapCostCenterVm> OnSapCostCenterChanged { get; set; }
     private List<SimpleLocation> simpleLocations { get; set; }
     private List<SimpleDepartment> simpleDepartments { get; set; }
 
+    IEnumerable<SapCostCenterVm> _SelectedSapCC { get; set; }
     private IEnumerable<SimpleLocation> SelectedLocation { get; set; }
     private IEnumerable<SimpleDepartment> SelectedDepartment { get; set; }
     private string ManagerName = string.Empty;
-    protected override Task OnInitializedAsync()
+    protected override async Task OnInitializedAsync()
     {
+        _SelectedSapCC = new SapCostCenterVm[] { _content };
         simpleLocations = sapCostCenters
             .GroupBy(s => s.LocationNumber)
             .Select(g => new SimpleLocation
@@ -93,9 +77,15 @@
                 })
             .Distinct()
             .ToList();
-        SelectedLocation = new SimpleLocation[] { new SimpleLocation() };
-        SelectedDepartment = new SimpleDepartment[] { new SimpleDepartment() };
-        return base.OnInitializedAsync();
+        // SelectedLocation = new SimpleLocation[] { new SimpleLocation() };
+        // SelectedDepartment = new SimpleDepartment[] { new SimpleDepartment() };
+        ManagerName = _SelectedSapCC.FirstOrDefault().ResponsibleManagerName;
+        if(! string.IsNullOrEmpty(ManagerName)){
+            SelectedLocation = _SelectedSapCC.FirstOrDefault().SelectedLocations;
+            SelectedDepartment = _SelectedSapCC.FirstOrDefault().SelectedDepartments;
+        }
+        StateHasChanged();
+        // return base.OnInitializedAsync();
     }
     private void OnLocationSearch(OptionsSearchEventArgs<SimpleLocation> e)
     {
@@ -158,8 +148,11 @@
             if (tempSAPCC.Count() == 1)
             {
                 _SelectedSapCC = tempSAPCC;
-                var scc = tempSAPCC.FirstOrDefault();
-                ManagerName = scc.ResponsibleManagerName;
+                _content = tempSAPCC.FirstOrDefault();
+                ManagerName = _content.ResponsibleManagerName;
+               
+                await OnSapCostCenterChanged.InvokeAsync(_content);
+                
             }
             else
             {
@@ -173,9 +166,6 @@
 
         StateHasChanged();
     }
-
-
-
 
 }
 <style>
