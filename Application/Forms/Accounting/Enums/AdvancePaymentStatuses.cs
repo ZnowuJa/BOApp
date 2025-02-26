@@ -15,7 +15,7 @@ namespace Application.Forms.Accounting.Enums
         WyslaneDoRobota, // BOT
         KsiegowoscTL, // Accountants TLs
         Kasa, // Cashier
-        Zamkniete, //
-        Odrzucone, // 
+        Zamkniete, // close
+        Odrzucone, // reject
     }
 }
