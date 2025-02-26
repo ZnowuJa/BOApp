@@ -3,6 +3,7 @@ using Application.Interfaces;
 using BackOfficeApp_Domain.Common;
 using Domain.Entities.Accounting;
 using Domain.Entities.Administration;
+using Domain.Entities.BNP;
 using Domain.Entities.BusinessOperations;
 using Domain.Entities.CoC;
 using Domain.Entities.Common;
@@ -16,6 +17,7 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Storage;
+using System.Reflection.Emit;
 
 namespace Persistance;
 public class AppDbContext : IdentityDbContext<AppUser>, IAppDbContext
@@ -67,6 +69,8 @@ public class AppDbContext : IdentityDbContext<AppUser>, IAppDbContext
     public DbSet<NbpCurrencyRate> NbpCurrencyRates {  get; set; }
     public DbSet<BusinessTravelForm> BusinessTravels { get; set; }
     public DbSet<SapCostCenter> SapCostCenters { get; set; }
+    public DbSet<Bnp20> Bnp20s { get; set; }
+    public DbSet<Bnp55> Bnp55s { get; set; }
 
 
 
@@ -135,6 +139,12 @@ public class AppDbContext : IdentityDbContext<AppUser>, IAppDbContext
         builder.Entity<NbpCurrencyRate>()
             .Property(c => c.RateDate)
             .HasColumnName("Rate_date");
+        builder.Entity<Bnp20>()
+           .ToView("v_BNP20")
+           .HasNoKey();
+        builder.Entity<Bnp55>()
+           .ToView("v_BNP55")
+           .HasNoKey();
 
         builder.Entity<ManagerDeputy>()
         .HasIndex(m => m.ManagerId)
