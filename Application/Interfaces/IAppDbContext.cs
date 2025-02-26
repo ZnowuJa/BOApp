@@ -1,5 +1,6 @@
 ﻿using Domain.Entities.Accounting;
 using Domain.Entities.Administration;
+using Domain.Entities.BNP;
 using Domain.Entities.BusinessOperations;
 using Domain.Entities.CoC;
 using Domain.Entities.Common;
@@ -58,6 +59,8 @@ public interface IAppDbContext
     DbSet<CompanyCarRegistrationNumber> CompanyCarRegistrationNumbers { get; set; }
     DbSet<NbpCurrencyRate> NbpCurrencyRates { get; set; }
     DbSet<BusinessTravelForm> BusinessTravels { get; set; }
+    DbSet<Bnp20> Bnp20s { get; set; }
+    DbSet<Bnp55> Bnp55s { get; set; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default);

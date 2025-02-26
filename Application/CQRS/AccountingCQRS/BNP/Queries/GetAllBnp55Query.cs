@@ -11,14 +11,14 @@ namespace Application.CQRS.AccountingCQRS.BNP.Queries
         public DateOnly StartDate { get; set; } = startDate;
         public DateOnly EndDate { get; set; } = endDate;
     }
-    public class GetAllBnp55QueryHandler(IBNPDbContext bnpDbContext, IMapper mapper) : IRequestHandler<GetAllBnp55Query, IQueryable<Bnp55Vm>>
+    public class GetAllBnp55QueryHandler(IAppDbContext appDbContext, IMapper mapper) : IRequestHandler<GetAllBnp55Query, IQueryable<Bnp55Vm>>
     {
-        private readonly IBNPDbContext _bnpDbContext = bnpDbContext;
+        private readonly IAppDbContext _appDbContext = appDbContext;
         private readonly IMapper _mapper = mapper;
 
         public async Task<IQueryable<Bnp55Vm>> Handle(GetAllBnp55Query request, CancellationToken cancellationToken)
         {
-            var bnp55s = await _bnpDbContext.Bnp55s.Where(i => i.Data >= request.StartDate && i.Data <= request.EndDate)
+            var bnp55s = await _appDbContext.Bnp55s.Where(i => i.Data >= request.StartDate && i.Data <= request.EndDate)
                                             .AsNoTracking()
                                             .ToListAsync(cancellationToken);
 
