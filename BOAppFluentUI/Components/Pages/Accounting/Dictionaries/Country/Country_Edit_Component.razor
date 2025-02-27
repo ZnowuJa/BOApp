@@ -77,7 +77,7 @@
                 </div>
 
                 <div class="card">
-                    <FluentNumberField Id="MaxHotelCost" @bind-Value="@Content.MaxHotelCost">
+                    <FluentNumberField Id="MaxHotelCost" @bind-value="@Content.MaxHotelCost">
                         Maksymalny koszt hotelu:
                     </FluentNumberField>
                     <FluentValidationMessage For="@(() => Content.MaxHotelCost)" />
@@ -89,12 +89,12 @@
                     </FluentNumberField>
                     <FluentValidationMessage For="@(() => Content.TravelAllowance)" />
                 </div>
-                <div class="card">
-                    <FluentNumberField Id="LocalTravelAllowance" @bind-Value="@Content.LocalTravelAllowance">
+@*                 <div class="card">
+                    <FluentNumberField Id="LocalTravelAllowance" @bind-Value:get="@Content.LocalTravelAllowance">
                         Dieta za podróż lokalną:
                     </FluentNumberField>
                     <FluentValidationMessage For="@(() => Content.LocalTravelAllowance)" />
-                </div>
+                </div> *@
             </FluentGridItem>
 
         </FluentGrid>
@@ -189,14 +189,14 @@
         {
             Console.WriteLine("Using PL rules");
             Content.TravelAllowance = Content.Allowance * 0;
-            Content.LocalTravelAllowance = Content.Allowance * 0.2m;
+            // Content.LocalTravelAllowance = Content.Allowance * 0.2m;
             isCalculated = false;
         }
         else if (!Content.IsPL)
         {
             Console.WriteLine("Using EU rules");
             Content.TravelAllowance = Content.Allowance * 0.5m;
-            Content.LocalTravelAllowance = Content.Allowance * 0.1m;
+            // Content.LocalTravelAllowance = Content.Allowance * 0.1m;
             isCalculated = false;
         }
         else
@@ -209,7 +209,7 @@
     private void Clear()
     {
         Content.TravelAllowance = 0;
-        Content.LocalTravelAllowance = 0;
+        // Content.LocalTravelAllowance = 0;
     }
 
     private async Task SaveAsync()

@@ -3,43 +3,43 @@
 
 
 
-            <tr>
-                <td>
-                    <FluentAutocomplete TOption="SimpleLocation"
-                    Disabled="false"
-                    Class="bold-label"
-                    AutoComplete="on"
-                    MaximumOptionsSearch="10"
-                    OnOptionsSearch="@OnLocationSearch"
-                    Placeholder="wybierz..."
-                    MaximumSelectedOptions="1"
-                    OptionText="@(p => p.SAPLocationNumber + ' ' + p.SAPLocationName)"
-                    @bind-SelectedOptions="@SelectedLocation"
-                    @bind-SelectedOptions:after="@HandleSCCLocationChange"
-                    Width="250px" />
-                </td>
-                <td>
-                    <FluentAutocomplete TOption="SimpleDepartment"
-                    Disabled="false"
-                    Class="bold-label"
-                    AutoComplete="on"
-                    MaximumOptionsSearch="10"
-                    OnOptionsSearch="@OnDepartmentSearch"
-                    Placeholder="wybierz..."
-                    MaximumSelectedOptions="1"
-                    OptionText="@(p => p.SAPDepartmentNumber + ' ' + p.SAPDepartmentName)"
-                    @bind-SelectedOptions="@SelectedDepartment"
-                    @bind-SelectedOptions:after="@HandleSCCDepartmentChange"
-                    Width="270px" />
-                </td>
-                <td>
-                    <FluentTextField @bind-Value="@ManagerName" Disabled="true" style="width: 200px;"/>
-                </td>
-                <td style="width: 200px;">
-                    <FluentButton IconStart="@(new Icons.Regular.Size16.Delete())" OnClick="() => RemoveSapCostCenter.InvokeAsync(_content)" />
+<tr>
+    <td>
+        <FluentAutocomplete TOption="SimpleLocation"
+        Disabled="false"
+        Class="bold-label"
+        AutoComplete="on"
+        MaximumOptionsSearch="10"
+        OnOptionsSearch="@OnLocationSearch"
+        Placeholder="wybierz..."
+        MaximumSelectedOptions="1"
+        OptionText="@(p => p.SAPLocationNumber + ' ' + p.SAPLocationName)"
+        @bind-SelectedOptions="@SelectedLocation"
+        @bind-SelectedOptions:after="@HandleSCCLocationChange"
+        Width="250px" />
+    </td>
+    <td>
+        <FluentAutocomplete TOption="SimpleDepartment"
+        Disabled="false"
+        Class="bold-label"
+        AutoComplete="on"
+        MaximumOptionsSearch="10"
+        OnOptionsSearch="@OnDepartmentSearch"
+        Placeholder="wybierz..."
+        MaximumSelectedOptions="1"
+        OptionText="@(p => p.SAPDepartmentNumber + ' ' + p.SAPDepartmentName)"
+        @bind-SelectedOptions="@SelectedDepartment"
+        @bind-SelectedOptions:after="@HandleSCCDepartmentChange"
+        Width="270px" />
+    </td>
+    <td>
+        <FluentTextField @bind-Value="@ManagerName" Disabled="true" style="width: 200px;"/>
+    </td>
+    <td style="width: 200px;">
+        <FluentButton IconStart="@(new Icons.Regular.Size16.Delete())" OnClick="() => RemoveSapCostCenter.InvokeAsync(_content)" />
 
-                </td>
-            </tr>
+    </td>
+</tr>
 
 <div style="display: flex; align-items: center;">
 </div>
@@ -81,8 +81,21 @@
         // SelectedDepartment = new SimpleDepartment[] { new SimpleDepartment() };
         ManagerName = _SelectedSapCC.FirstOrDefault().ResponsibleManagerName;
         if(! string.IsNullOrEmpty(ManagerName)){
-            SelectedLocation = _SelectedSapCC.FirstOrDefault().SelectedLocations;
-            SelectedDepartment = _SelectedSapCC.FirstOrDefault().SelectedDepartments;
+            var tempSimpleLoc = new SimpleLocation()
+                {
+                    SAPLocationName = _content.LocationName,
+                    SAPLocationNumber = _content.LocationNumber
+                };
+            SelectedLocation = new List<SimpleLocation> { new SimpleLocation()
+                {
+                    SAPLocationName = _content.LocationName,
+                    SAPLocationNumber = _content.LocationNumber
+                } };
+
+            SelectedDepartment = new List<SimpleDepartment>{ new SimpleDepartment(){
+                SAPDepartmentName = _content.DepartmentName,
+                SAPDepartmentNumber = _content.DepartmentNumber
+            }};
         }
         StateHasChanged();
         // return base.OnInitializedAsync();

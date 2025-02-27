@@ -74,6 +74,7 @@ public class BusinessTravelFormVm : IMapFrom<BusinessTravelForm>, IFormAccountin
         public LocationVm FormCostLocation { get; set; } = new ();
         public List<SapCostCenterVm> FormCostCenters = new();
         public List<ApprovalVm>? Approvals { get; set; } = new();
+        public List<RejectReason> RejectReasons { get; set; } = new();
     #region ApproversDetails
         public List<OrganisationRoleForFormVm> Level1Approvers { get; set; } = new(); // przełożony etapy: AprobataL1, AprobataL11
         public List<OrganisationRoleForFormVm> Level2Approvers { get; set; } = new(); // Kasa etapy: ZaliczkaKasa, RozliczenieKasa
@@ -247,6 +248,8 @@ public class BusinessTravelFormVm : IMapFrom<BusinessTravelForm>, IFormAccountin
             .ForMember(dest => dest.BTMappingAdvancePayment, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<BankTransferMapping>(src.BTMappingAdvancePayment)))
             .ForMember(dest => dest.BTMappingPayout, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<BankTransferMapping>(src.BTMappingPayout)))
             .ForMember(dest => dest.CashPoint, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<LocationVm>(src.CashPoint)))
+            .ForMember(dest => dest.RejectReasons, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<RejectReason>>(src.RejectReasons)))
+            .ForMember(dest => dest.FormCostCenters, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<SapCostCenterVm>>(src.FormCostCenters)))
             .ForMember(dest => dest.CashPointReceipt, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<LocationVm>(src.CashPointReceipt)))
             .ForMember(dest => dest.MileageRegister, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<MileageRegister>(src.MileageRegister)));
 
@@ -279,7 +282,9 @@ public class BusinessTravelFormVm : IMapFrom<BusinessTravelForm>, IFormAccountin
             .ForMember(dest => dest.BTMappingPayout, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.BTMappingPayout)))
             .ForMember(dest => dest.CashPoint, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.CashPoint)))
             .ForMember(dest => dest.CashPointReceipt, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.CashPointReceipt)))
-            .ForMember(dest => dest.MileageRegister, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.MileageRegister)));
+            .ForMember(dest => dest.MileageRegister, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.MileageRegister)))
+            .ForMember(dest => dest.RejectReasons, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.RejectReasons)))
+            .ForMember(dest => dest.FormCostCenters, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.FormCostCenters)));
     }
 
 }
