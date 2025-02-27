@@ -178,7 +178,7 @@
                             </tbody>
                         </table>
     }
-    @if (stks || stkstl || strozk)
+    @if (stks || stkstl || stwys || stblad)
     {
         <BankTransferMappingEditComponent BTItem="@formItem.BTMappingAdvancePayment" CostCenters="@_costCenters" GLAccounts="@_glAccounts" FormStatus="@formItem.Status" UserContext="@_userContext" />
     }
@@ -211,7 +211,7 @@
         </table>
     }
     <hr />
-    @if (strej)
+    @if (strej || stal1 || stal2)
     {
         <div>
             <table class="table-container" style="width: 100%; max-width: 400px;">
@@ -335,7 +335,7 @@
     </FluentButton>
 }
 
-@if (strej || stks || stwys || stkstl || strozk)
+@if (strej || stks || stwys || stkstl || strozk || stblad)
 {
     <FluentSpacer Width="@buttonSpacer" />
 
@@ -389,9 +389,11 @@
     private bool stal2 = false;
     private bool stks = false;
     private bool stwys = false;
+    private bool stblad = true;
     private bool stkstl = false;
     private bool strozk = false;
-    private bool stzam = false;
+    private bool stroz = false;
+    private bool stwyp = false;
     private bool stodrz = false;
 
     private bool DisableApproveButton = true; //TODO
@@ -548,77 +550,86 @@
     }
 
     private async Task ApproveOrSendForm()
-{
-    if (_editContext.Validate())
     {
-        isLoading = true;
-        showForm = false;
-        formItem.Approvals.Add(approvalInfo);
-
-        // Sprawdzamy, czy jest to status strej (nowe zgłoszenie)
-        if (strej)
+        if (_editContext.Validate())
         {
-            formItem.Status = GetNextStatus(formItem);
-            var newId = await _mediator.Send(new CreateAdvanePaymentCommand(formItem));
-            var saveResult = await _mediator.Send(new GetAdvancePaymentByIdQuery(newId));
-        }
-        else // Inne statusy jak stks, stwys, stkstl, strozk
-        {
-            formItem.Status = GetNextStatus(formItem);
-            await _mediator.Send(new UpdateAdvancePaymentCommand(formItem));
-        }
+            isLoading = true;
+            showForm = false;
+            formItem.Approvals.Add(approvalInfo);
 
-        var message = $"Formularz został wysłany!";
-        var intent = ToastIntent.Success;
-        _toastService.ShowToast(intent, message, 3000);
+            // Sprawdzamy, czy jest to status strej (nowe zgłoszenie)
+            if (strej)
+            {
+                formItem.Status = GetNextStatus(formItem);
+                var newId = await _mediator.Send(new CreateAdvanePaymentCommand(formItem));
+                var saveResult = await _mediator.Send(new GetAdvancePaymentByIdQuery(newId));
+            }
+            else // Inne statusy jak stks, stwys, stkstl, strozk
+            {
+                formItem.Status = GetNextStatus(formItem);
+                await _mediator.Send(new UpdateAdvancePaymentCommand(formItem));
+            }
 
-        _navigationManager.NavigateTo($"/zaliczki/{_srcPage}");
+            var message = $"Formularz został wysłany!";
+            var intent = ToastIntent.Success;
+            _toastService.ShowToast(intent, message, 3000);
+
+            _navigationManager.NavigateTo($"/zaliczki/{_srcPage}");
+        }
     }
-}
 
 
-    private string GetNextStatus(AdvancePaymentFormVm form)
+    private string GetNextStatus(AdvancePaymentFormVm formItem)
     {
+
         string newStatus = string.Empty;
-        if (formItem.Status == "Rejestracja")
+
+        switch (formItem.Status)
         {
-            newStatus = "AprobataL1";
+            case "Rejestracja":
+                newStatus = "AprobataL1";
+                break;
+
+            case "AprobataL1":
+                newStatus = formItem.AdvancePaymentCash ? "AprobataL2" : "ZaliczkaKasa";
+                break;
+
+            case "AprobataL2":
+                newStatus = "ZaliczkaKsiegowosc";
+                break;
+
+            case "ZaliczkaKsiegowosc":
+                newStatus = "WyslaneDoRobota";
+                break;
+
+            case "WyslaneDoRobota":
+                newStatus = "Wyplacone"; // Jeśli nie było błędu robota
+                break;
+
+            case "BladRobota":
+                newStatus = "ZaliczkaKsiegowosc";
+                break;
+
+            case "ZaliczkaKsiegowoscTL":
+                newStatus = "Rozliczone";
+                break;
+
+            case "ZaliczkaKasa":
+                newStatus = "Wyplacone";
+                break;
+
+            case "Wyplacone":
+                newStatus = "Rozliczone";
+                break;
+
+            case "Odrzucone":
+                newStatus = "Odrzucone"; // Status końcowy, brak zmiany
+                break;
+
+            default:
+                throw new InvalidOperationException("Nieznany status: " + formItem.Status);
         }
-        else if (formItem.Status == "AprobataL1")
-        {
-            if (!formItem.AdvancePaymentCash)
-            {
-                newStatus = "Ksiegowosc";
-            }
-            else
-            {
-                newStatus = "AprobataL2";
-            }
-        }
-        else if (formItem.Status == "AprobataL2")
-        {
-            newStatus = "Ksiegowosc";
-        }
-        else if (formItem.Status == "Ksiegowosc")
-        {
-            newStatus = "WyslaneDoRobota";
-        }
-        else if (formItem.Status == "WyslaneDoRobota")
-        {
-            newStatus = "KsiegowoscTL";
-        }
-        else if (formItem.Status == "KsiegowoscTL")
-        {
-            newStatus = "Kasa";
-        }
-        else if (formItem.Status == "Kasa")
-        {
-            newStatus = "Zamkniete";
-        }
-        else if (formItem.Status == "Odrzucone")
-        {
-            newStatus = "Odrzucone";
-        }
+
         return newStatus;
     }
 
@@ -664,12 +675,14 @@
         strej = formItem.Status == "Rejestracja";
         stal1 = formItem.Status == "AprobataL1";
         stal2 = formItem.Status == "AprobataL2";
-        stks = formItem.Status == "Ksiegowosc";
+        strozk = formItem.Status == "ZaliczkaKasa";
+        stks = formItem.Status == "ZaliczkaKsiegowosc";
         stwys = formItem.Status == "WyslaneDoRobota";
-        stkstl = formItem.Status == "KsiegowoscTL";
-        strozk = formItem.Status == "Kasa";
+        stblad = formItem.Status == "BladRobota";
+        stkstl = formItem.Status == "ZaliczkaKsiegowoscTL";
         stodrz = formItem.Status == "Odrzucone";
-        stzam = formItem.Status == "Zamkniete";
+        stwyp = formItem.Status == "Wyplacone";
+        stroz = formItem.Status == "Rozliczone";
     }
 
     private async Task HandleChangeApproverL1(ChangeEventArgs e)
@@ -716,7 +729,7 @@
 
         SetSrcPage();
 
-        if (stzam)
+        if (stroz)
         {
             DisableApproveButton = true;
         }
@@ -746,7 +759,7 @@
         else if (stkstl) await SetupFormKsiegowoscTL();
         else if (stwys) await SetupFormWyslaneDoRobota();
         else if (strozk) await SetupFormKasa();
-        else if (stzam) await SetupFormZamkniete();
+        else if (stroz) await SetupFormZamkniete();
 
         DisableApproveButton = false;
         StateHasChanged();
