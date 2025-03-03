@@ -27,7 +27,7 @@ namespace Application.Validation.Accounting
                 });
 
             });
-
+/*
             When(form => form.AdvancePaymentCash == true, () =>
             {
                 RuleFor(x => x.BankAccountNumber)
@@ -38,9 +38,9 @@ namespace Application.Validation.Accounting
                         context.AddFailure("Wprowadź poprawny numer konta!");
                     }
                 });
-            });
+            });*/
 
-                When(form => form.Status == "Kasa", () =>
+                When(form => form.Status == "ZaliczkaKasa", () =>
             {
                 RuleFor(x => x.CashPayoutNumber).NotEmpty().WithMessage("Wprowadź numer dokumentu kasowego z Austostacji!");
             });

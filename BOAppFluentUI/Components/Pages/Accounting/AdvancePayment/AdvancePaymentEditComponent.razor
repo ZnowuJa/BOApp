@@ -178,12 +178,12 @@
                             </tbody>
                         </table>
     }
-    @if (stks || stkstl || stwys || stblad)
+    @if (stks || stkstl || stwys || stblad || stwyp)
     {
         <BankTransferMappingEditComponent BTItem="@formItem.BTMappingAdvancePayment" CostCenters="@_costCenters" GLAccounts="@_glAccounts" FormStatus="@formItem.Status" UserContext="@_userContext" />
     }
     @*Cashier Advance Payment*@
-    @if (strozk)
+    @if (strozk || stwyp)
     {
         <table class="table-container">
             <tbody>
@@ -211,7 +211,7 @@
         </table>
     }
     <hr />
-    @if (strej || stal1 || stal2)
+    @if (strej || stal1 || stal2 || stodrz)
     {
         <div>
             <table class="table-container" style="width: 100%; max-width: 400px;">
@@ -220,7 +220,7 @@
                         Aprobujący:
                     </td>
                     <td>
-                        @if (strej)
+                        @if (strej || stal1 || stal2 || stodrz)
                         {
                             <FluentSelect TOption="OrganisationRoleForFormVm"
                                           Id="AL1Id"
@@ -309,7 +309,7 @@
         Anuluj
     </FluentButton> *@
 
-    @if (stal1 || stal2)
+    @if (stal1 || stal2 || stwyp)
 {
     <FluentSpacer Width="@buttonSpacer" />
 
@@ -335,7 +335,7 @@
     </FluentButton>
 }
 
-@if (strej || stks || stwys || stkstl || strozk || stblad)
+@if (strej || stks || stwys || stkstl || strozk || stblad || stodrz)
 {
     <FluentSpacer Width="@buttonSpacer" />
 
@@ -603,7 +603,7 @@
                 break;
 
             case "WyslaneDoRobota":
-                newStatus = "Wyplacone"; // Jeśli nie było błędu robota
+                newStatus = "ZaliczkaKsiegowoscTL"; // Jeśli nie było błędu robota
                 break;
 
             case "BladRobota":
@@ -611,7 +611,7 @@
                 break;
 
             case "ZaliczkaKsiegowoscTL":
-                newStatus = "Rozliczone";
+                newStatus = "Wyplacone";
                 break;
 
             case "ZaliczkaKasa":
@@ -623,7 +623,7 @@
                 break;
 
             case "Odrzucone":
-                newStatus = "Odrzucone"; // Status końcowy, brak zmiany
+                newStatus = "AprobataL1"; // Status końcowy, brak zmiany
                 break;
 
             default:
@@ -711,11 +711,17 @@
         if (Id != 0)
         {
             formItem = await _mediator.Send(new GetAdvancePaymentByIdQuery(Id));
-            if(formItem == null){
+            if(formItem == null)
+            {
                 showForm = false;
                 isLoading = false;
                 return;
             }
+            if(!string.IsNullOrEmpty(formItem.CashPoint.SapNumber))
+            {
+            _selectedLocation = new List<LocationVm> { formItem.CashPoint };
+            }
+
         }
 
         _editContext = new EditContext(formItem);
@@ -886,10 +892,8 @@
         approverL2 = formItem.Level5Approvers[0];
         formItem.LVL5_EnovaEmpId = approverL2.EmpId.ToString();
         formItem.LVL5_EmployeeName = approverL2.LongName;
-        // formItem.Level2Approvers.Clear();
-        // formItem.Level2Approvers.Add(approverL1);
-        // formItem.LVL2_EnovaEmpId = emp.ManagerId.ToString();
-        // formItem.LVL2_EmployeeName = emp.Manager.LongName;
+
+        StateHasChanged();
     }
 
         private async Task <List<OrganisationRoleForFormVm>> SetManagerAndDeputies(int manId)
