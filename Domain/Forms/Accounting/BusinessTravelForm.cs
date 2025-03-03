@@ -59,6 +59,8 @@ namespace Domain.Forms.Accounting
         public string LVL6_EnovaEmpId { get; set; } = string.Empty;
         public string LVL6_EmployeeName { get; set; } = string.Empty;
         public string RejectReason { get; set; } = string.Empty;
+        public string RejectReasons { get; set; } = string.Empty;
+        public string FormCostCenters { get; set; } = string.Empty;
         #endregion
 
         #region AdvancePayment
@@ -88,6 +90,7 @@ namespace Domain.Forms.Accounting
         public string Stages { get; set; } = string.Empty;
         public string Accommodations { get; set; } = string.Empty;
         public string Meals { get; set; } = string.Empty;
+        public string DailyMeals { get; set; } = string.Empty;
         public string LocalTravels { get; set; } = string.Empty;
         public string Transit { get; set; } = string.Empty;
         public string Bills { get; set; } = string.Empty;

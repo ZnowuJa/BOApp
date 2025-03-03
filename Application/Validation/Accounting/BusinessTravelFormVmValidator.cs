@@ -108,12 +108,7 @@ public class BusinessTravelFormVmValidator : AbstractValidator<BusinessTravelFor
         {
             RuleFor(s => s.FormCostCenter.MPK).NotEmpty().WithMessage("Wybierz MPK w sekcji Rozliczenie!");
             RuleForEach(s => s.Stages).SetValidator(new StageValidator());
-            //RuleForEach(x => x.Stages).ChildRules(stage =>
-            //{
-            //    stage.RuleFor(s => s.StartDate).NotEmpty().WithMessage("Uzupenij czas pobytu na poszczeglnych etapach");
-            //    stage.RuleFor(s => s.EndDate).NotEmpty().WithMessage("Uzupenij czas pobytu na poszczeglnych etapach");
-            //    stage.RuleFor(s=>s).Must(s => s.EndDate > s.StartDate).WithMessage("Rozpoczęcie etapu nie może być wcześniejsze niż jego zakończenie.");
-            //});
+            RuleFor(s => s.FormCostCenters.Count()).GreaterThan(0).WithMessage("Wybierz MPK!");
         });
         When(form => form.Status == "Rozliczenie" && form.Transportation == "Samochód prywatny", () =>
         {
@@ -124,17 +119,7 @@ public class BusinessTravelFormVmValidator : AbstractValidator<BusinessTravelFor
             RuleForEach(x => x.Bills).SetValidator(new BillValidator());
             //RuleForEach(x => x.Bills).SetValidator(new BillValidator(x.StartDate, x.EndDate));
         });
-        //When(form => form.Status == "Rozliczenie" && form.Bills.Count > 0, () =>
-        //{
-        //    RuleForEach(x => x.Bills).SetValidator(new BillValidator());
-        //    RuleForEach(x => x.Bills).ChildRules(bill =>
-        //    {
-        //        bill.RuleFor(b => b.InvoiceDate)
-        //            .GreaterThanOrEqualTo(x => x.Form.StartDate)
-        //            .LessThanOrEqualTo(x => x.Form.EndDate)
-        //            .WithMessage("Data faktury powinna być między {PropertyValue} a {ComparisonValue}.");
-        //    });
-        //});
+
         RuleSet("MainDates", () =>
         {
            

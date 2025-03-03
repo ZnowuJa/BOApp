@@ -43,7 +43,7 @@ namespace Application.CQRS.AccountingCQRS.Countries.Queries
                 // newItem.CurrencyId = item.CurrencyId;
                 newItem.Allowance = item.Allowance;
                 newItem.TravelAllowance = item.TravelAllowance;
-                newItem.LocalTravelAllowance = item.LocalTravelAllowance;
+                //newItem.LocalTravelAllowance = item.LocalTravelAllowance;
                 newItem.MaxHotelCost = item.MaxHotelCost;
 
 
