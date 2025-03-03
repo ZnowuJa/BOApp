@@ -90,6 +90,7 @@ namespace Domain.Forms.Accounting
         public string Stages { get; set; } = string.Empty;
         public string Accommodations { get; set; } = string.Empty;
         public string Meals { get; set; } = string.Empty;
+        public string DailyMeals { get; set; } = string.Empty;
         public string LocalTravels { get; set; } = string.Empty;
         public string Transit { get; set; } = string.Empty;
         public string Bills { get; set; } = string.Empty;

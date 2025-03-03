@@ -593,7 +593,8 @@
                                             @(stage.AllowanceOrigin + stage.AllowanceAbroad)
                                         </td>
                                         <td>
-                                            @stage.TimeSpan
+                                            @($"{(int)stage.TimeSpan.TotalDays:D2}:{stage.TimeSpan.Hours:D2}:{stage.TimeSpan.Minutes:D2}")
+
                                         </td>
                                         <td>
                                             @(stage.AllowanceOriginValue + stage.AllowanceAbroadValue) @(stage.CountryCurrency)
@@ -609,7 +610,7 @@
                             </tbody>
                         </table>
                         <FluentTooltip Anchor="StagesInfoId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50> Informacja o etapach podróży.</FluentTooltip>
-                        <FluentTooltip Anchor="AccomodationRateId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50> AccomodationRateId | Dieta nalezna za etap podróży.</FluentTooltip>
+                        <FluentTooltip Anchor="AccomodationRateId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50> Dieta nalezna za etap podróży.</FluentTooltip>
                         @* @if (!string.IsNullOrEmpty(StagesDatesErrorMessage))
                     {
                         foreach (var error in StagesDatesErrorMessages)
@@ -704,84 +705,10 @@
                     @if (ShowMeals)
                     {
 
-                        <hr>
-                        <table class="table-container">
-                            @* <caption class="table-caption">Zapewnione posiłki: <FluentIcon Id="BillsInfoId" Value="@(new Icons.Regular.Size16.Info())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" /> </caption> *@
-
-                            <thead>
-                                <tr class="table-caption">
-                                    <th style="text-align: left; border-right: none; font-size: large;" colspan="7">
-                                        Zapewnione posiłki: 
-                                        <FluentIcon Id="MealsInfoId" 
-                                        Value="@(new Icons.Regular.Size16.Info())"
-                                        Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" />
-                                    </th>
-                                    <th style="text-align: right; border-left: none; font-size: large;" colspan="1">
-                                        <FluentIcon Id="MealsInfoPictureId" Value="@(new Icons.Regular.Size24.SpatulaSpoon())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" />
-                                    </th>
-                                </tr>
-                                <tr class="table-header-left">
-                                    <th>Etap</th>
-                                    <th>Państwo</th>
-                                    <th>Śniadania</th>
-                                    <th>Obiady</th>
-                                    <th> Kolacje</th>
-                                    <th>
-                                        Potrącenie <FluentIcon Id="MealsTotalDeductionId" Value="@(new Icons.Regular.Size16.Info())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" />
-                                    </th>
-                                    <th>Waluta</th>
-                                    <th>Maks. dni</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var meal in formItem.Meals)
-                                {
-                                    @if (meal.Duration > 0)
-                                    {
-                                        <tr>
-
-                                            <td>@meal.StageId</td>
-                                            <td>@meal.CountryName</td>
-                                            <td>
-
-                                                <div Style="min-width: 100px;">
-                                                    <FluentNumberField 
-                                                        Min="0"
-                                                    Max="@meal.Duration.ToString()"
-                                                    @bind-Value="@meal.CoveredBreakfasts"
-                                                     />
-                                                </div>
-
-                                            </td>
-                                            <td>
-                                                <div Style="min-width: 100px;">
-                                                    <FluentNumberField 
-                                                        Min="0"
-                                                    Max="@meal.Duration.ToString()"
-                                                    @bind-Value="@meal.CoveredLunches"
-                                                    />
-                                                </div>
+                        
+                        <DailyMeal_EditComponent_InputNumber _content="formItem.DailyMeals" OnDailyMealChanged="HandleDailyMealChanged" Disabled="!stroz" />
 
 
-                                            </td>
-                                            <td>
-                                                <div Style="min-width: 100px;">
-                                                    <FluentNumberField Min="0"
-                                                                       Max="@meal.Duration.ToString()"
-                                                                       @bind-Value="@meal.CoveredDinners" />
-                                                </div>
-                                            </td>
-                                            <td>@meal.Total</td>
-                                            <td>@meal.AllowanceRateCurrency</td>
-                                            <td>@meal.Duration</td>
-                                        </tr>
-                                    }
-
-                                }
-                            </tbody>
-                        </table>
-                        <FluentTooltip Anchor="MealsToDeductionId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top MaxWidth="250px" Delay=50> Proszę podać ilość zapewnionych posiłków na poszczególnych etapach podróży.</FluentTooltip>
-                        <FluentTooltip Anchor="MealsTotalDeductionId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right MaxWidth="250px" Delay=50> Kwota do potrącenia z diety.</FluentTooltip>
                     }
                     @if (IsPrivateCar && (stroz || stks || stkstl || stal11 || stal12))
                     {
@@ -1086,7 +1013,7 @@
                                 <!-- Left table -->
                                 <div>
                                     <table class="table-container">
-                                        <thead>
+                                        <thead> 
                                             <tr class="table-header-left">
                                                 <th>Podsumowanie - dieta krajowa</th>
                                                 <th>Wartość</th>
@@ -1094,7 +1021,7 @@
                                         </thead>
                                         <tbody>
                                             <tr>
-                                                <td>Pobrana zaliczka</td>
+                                                <td style="text-align: left;">Pobrana zaliczka</td>
                                                 <td>@formItem.AdvancePaymentAmount @formItem.AdvancePaymentCurrency</td>
                                             </tr>
                                             @* <tr>
@@ -1102,38 +1029,38 @@
                                                 <td>@formItem.AllowancePL PLN</td>
                                             </tr> *@
                                             <tr>
-                                                <td>Należna dieta krajowa</td>
-                                                <td>@(formItem.SumAllowancePL + formItem.DeductionMealsPL)PLN</td>
+                                                <td style="text-align: left;">Należna dieta krajowa</td>
+                                                <td>@Math.Max(0, formItem.SumAllowancePL.GetValueOrDefault() + formItem.DeductionMealsPL.GetValueOrDefault()).ToString("0.00") PLN</td>
                                             </tr>
                                             @* <tr>
                                                 <td>Potrącenie za posiłki</td>
                                                 <td>@formItem.DeductionMealsPL PLN</td>
                                             </tr> *@
                                             <tr>
-                                                <td>Ryczałt za nocleg</td>
-                                                <td>@formItem.AccomodationAllowanceSumPL PLN</td>
+                                                <td style="text-align: left;">Ryczałt za nocleg</td>
+                                                <td>@formItem.AccomodationAllowanceSumPL.GetValueOrDefault().ToString("0.00") PLN</td>
                                             </tr>
                                             <tr>
-                                                <td>Ryczałt dojazdy lokalne</td>
-                                                <td>@formItem.SumLocalTravelAllowancePL.ToString() PLN</td>
+                                                <td style="text-align: left;">Ryczałt dojazdy lokalne</td>
+                                                <td>@formItem.SumLocalTravelAllowancePL.GetValueOrDefault().ToString("0.00") PLN</td>
                                             </tr>
                                             @if (IsPrivateCar)
                                             {
 
 
                                                 <tr>
-                                                    <td>Kilometrówka</td>
+                                                    <td style="text-align: left;">Kilometrówka</td>
                                                     <td>@formItem.SumPrivateVehicleAllowance PLN</td>
                                                 </tr>
                                             }
                                             <tr>
-                                                <td>Pozostałe faktury i bilety</td>
-                                                <td>@formItem.TotalBillsPL PLN</td>
+                                                <td style="text-align: left;">Pozostałe faktury i bilety</td>
+                                                <td>@formItem.TotalBillsPL.ToString("0.00") PLN</td>
                                             </tr>
 
                                             <tr>
                                                 <td>Razem w PLN</td>
-                                                <td>@formItem.TotalAllowancePL PLN</td>
+                                                <td>@formItem.TotalAllowancePL.ToString("0.00") PLN</td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -1152,41 +1079,17 @@
                                                 </tr>
                                             </thead>
                                             <tbody>
+
                                                 <tr>
-                                                    <td>Dieta dzienna</td>
+                                                    <td style="text-align: left;">Należna dieta zagraniczna</td>
                                                     <td>
-                                                        @(formItem.AllowanceNotPL != null ? ((decimal)formItem.AllowanceNotPL).ToString("0.00") : "0.00")
-                                                        @if (formItem.DestinationCountry.CurrencyVmName != "PLN")
-                                                        {
-                                                            var currency = $" {formItem.DestinationCountry.CurrencyVmName}";
-                                                            @currency
-                                                        }
+                                                        @Math.Max(formItem.SumAllowanceNotPL.GetValueOrDefault() * 0.25m, formItem.SumAllowanceNotPL.GetValueOrDefault() + formItem.DeductionMealsNotPL.GetValueOrDefault()).ToString("0.00") @formItem.DestinationCountry.CurrencyVmName
+
                                                     </td>
                                                 </tr>
+
                                                 <tr>
-                                                    <td>Należna dieta zagraniczna</td>
-                                                    <td>
-                                                        @(formItem.SumAllowanceNotPL != null ? ((decimal)formItem.SumAllowanceNotPL).ToString("0.00") : "0.00")
-                                                        @if (formItem.DestinationCountry.CurrencyVmName != "PLN")
-                                                        {
-                                                            var currency = $" {formItem.DestinationCountry.CurrencyVmName}";
-                                                            @currency
-                                                        }
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td>Potrącenie za posiłki</td>
-                                                    <td>
-                                                        @(formItem.DeductionMealsNotPL != null ? ((decimal)formItem.DeductionMealsNotPL).ToString("0.00") : "0.00")
-                                                        @if (formItem.DestinationCountry.CurrencyVmName != "PLN")
-                                                        {
-                                                            var currency = $" {formItem.DestinationCountry.CurrencyVmName}";
-                                                            @currency
-                                                        }
-                                                    </td>
-                                                </tr>
-                                                <tr>
-                                                    <td>Ryczałt za nocleg</td>
+                                                    <td style="text-align: left;">Ryczałt za nocleg</td>
                                                     <td>
                                                         @(formItem.AccomodationAllowanceSumNotPL != null ? ((decimal)formItem.AccomodationAllowanceSumNotPL).ToString("0.00") : "0.00")
                                                         @if (formItem.DestinationCountry.CurrencyVmName != "PLN")
@@ -1197,7 +1100,7 @@
                                                     </td>
                                                 </tr>
                                                 <tr>
-                                                    <td>Ryczałt dojazdy lokalne</td>
+                                                    <td style="text-align: left;">Ryczałt dojazdy lokalne</td>
                                                     <td>
                                                         @(formItem.SumLocalTravelAllowanceNotPL != null ? ((decimal)formItem.SumLocalTravelAllowanceNotPL).ToString("0.00") : "0.00")
                                                         @if (formItem.DestinationCountry.CurrencyVmName != "PLN")
@@ -1208,7 +1111,7 @@
                                                     </td>
                                                 </tr>
                                                 <tr>
-                                                    <td>Tranzyt</td>
+                                                    <td style="text-align: left;">Tranzyt</td>
                                                     <td>
                                                         @(formItem.Transit.Total != null ? ((decimal)formItem.Transit.Total).ToString("0.00") : "0.00")
                                                         @if (formItem.DestinationCountry.CurrencyVmName != "PLN")
@@ -1219,18 +1122,18 @@
                                                     </td>
                                                 </tr>
                                                 <tr>
-                                                    <td>Faktury zagraniczne</td>
-                                                    <td>@formItem.TotalBillsNotPL @formItem.DestinationCountryCurrency</td>
+                                                    <td style="text-align: left;">Faktury zagraniczne</td>
+                                                    <td>@formItem.TotalBillsNotPL.ToString("0.00")  @formItem.DestinationCountryCurrency</td>
                                                 </tr>
                                                 <tr>
-                                                    <td>Kurs waluty @formItem.DestinationCountryCurrency z dnia @formItem.CurrencyExchangeRateDate</td>
+                                                    <td style="text-align: left;">Kurs waluty @formItem.DestinationCountryCurrency z dnia @formItem.CurrencyExchangeRateDate</td>
                                                     <td>
                                                         @formItem.CurrencyExchangeRate.ToString("0.0000") PLN
                                                     </td>
                                                 </tr>
                                                 <tr>
                                                     <td>Razem w PLN</td>
-                                                    <td>@totalNotPLinPLN PLN </td>
+                                                    <td>@totalNotPLinPLN  PLN </td>
                                                 </tr>
                                             </tbody>
                                         </table>
@@ -1483,7 +1386,7 @@
 </div>
 @code {
     #region Declarations
-
+    private Timer _debounceTimer;
     [Parameter] public int Id { get; set; }
     private EditContext _editContext;
     private FluentValidationValidator? _fluentValidationValidator;
@@ -2393,10 +2296,30 @@
         //     property.SetValue(m, v);
         // }
 
-        RecalculateMeals();
+        // RecalculateMeals();
     }
-    private async Task HandleMealBreakfastChanged(int v)
+    private async Task HandleMealBreakfastChanged(ChangeEventArgs e, Meals meal, string p)
     {
+
+        if (int.TryParse(e.Value.ToString(), out int newValue))
+        {
+            var property = meal.GetType().GetProperty(p);
+            if (property != null && property.CanWrite)
+            {
+                var currentValue = property.GetValue(meal);
+                if (!currentValue.Equals(newValue))
+                {
+                    Console.WriteLine($"cur: {currentValue}, new: {newValue}");
+                    property.SetValue(meal, newValue);
+                    Console.WriteLine($"Updated value of {p}: {newValue}");
+                }
+            }
+            // if(int.Parse(property.GetValue(meal)) != meal.CoveredBreakfasts){
+            //     meal.CoveredBreakfasts = newValue;
+            // }
+
+            // Additional logic if needed
+        }
         // if (m.CoveredBreakfasts != v)
         // {
         //     m.CoveredBreakfasts = v;
@@ -2416,6 +2339,41 @@
 
         // RecalculateMeals();
     }
+    private void HandleDebouncedChange(ChangeEventArgs e, Meals meal, string propertyName)
+    {
+        if (_debounceTimer != null)
+        {
+            _debounceTimer.Dispose();
+        }
+
+        _debounceTimer = new Timer(async _ =>
+        {
+            await InvokeAsync(() => HandleMealPropertyChange(e, meal, propertyName));
+        }, null, 50, Timeout.Infinite);
+    }
+
+    private async Task HandleMealPropertyChange(ChangeEventArgs e, Meals meal, string propertyName)
+    {
+        if (int.TryParse(e.Value.ToString(), out int newValue))
+        {
+            var property = meal.GetType().GetProperty(propertyName);
+            if (property != null && property.CanWrite)
+            {
+                var currentValue = property.GetValue(meal);
+                if (!currentValue.Equals(newValue))
+                {
+                    property.SetValue(meal, newValue);
+                    Console.WriteLine($"Updated value of {propertyName}: {newValue}");
+                }
+            }
+        }
+    }
+    private void HandleDailyMealChanged(List<DailyMeal> updatedMeals)
+    {
+        formItem.DailyMeals = updatedMeals;
+        Console.WriteLine(formItem.DeductionMealsNotPL);
+        Console.WriteLine(formItem.DeductionMealsPL);
+    }
     private async Task HandleMealLunchChanged(int v)
     {
         // if(m.CoveredLunches != v){
@@ -2432,18 +2390,18 @@
         //     m.CoveredDinners = v;
         //     // RecalculateMeals();
         // }
-        
+
 
         // RecalculateMeals();
     }
-    private async Task HandleStageIncluded(Stage stage, bool value)
-    {
-        stage.Included = value;
-        formItem.Accommodations[stage.Id - 1].Included = value;
-        formItem.Meals[stage.Id - 1].Included = value;
+    // private async Task HandleStageIncluded(Stage stage, bool value)
+    // {
+    //     stage.Included = value;
+    //     formItem.Accommodations[stage.Id - 1].Included = value;
+    //     formItem.Meals[stage.Id - 1].Included = value;
 
-        RecalculateAccomodations();
-    }
+    //     RecalculateAccomodations();
+    // }
     private async Task HandleAccommodationInvoicesAmount(Accommodation accommodation, decimal? value)
     {
         accommodation.InvoicesAmount = accommodation.Total = value;
@@ -2509,6 +2467,7 @@
         {
             formItem.Stages.RemoveRange(1, formItem.Stages.Count - 1);
             formItem.Accommodations.RemoveRange(1, formItem.Accommodations.Count - 1);
+            formItem.DailyMeals.RemoveRange(1, formItem.Meals.Count - 1);
             formItem.Meals.RemoveRange(1, formItem.Meals.Count - 1);
             formItem.LocalTravels.RemoveRange(1, formItem.LocalTravels.Count - 1);
 
@@ -2541,7 +2500,7 @@
             formItem.DestinationCountryCurrency = AbroadCurrencyExchangeRate.Code;
         }
 
-        StateHasChanged();
+        // StateHasChanged();
     }
 
     private async Task HandleObjectiveChange()
@@ -2762,6 +2721,7 @@
                 // Update formItem.EndDate to the EndDate of the last stage
                 formItem.StartDate = stage.StartDate;
             }
+            await RecalculateAdjacentTime(stageId, nameof(stage.StartDate));
         }
         else if (propertyName == nameof(stage.EndDate))
         {
@@ -2771,47 +2731,77 @@
                 // Update formItem.EndDate to the EndDate of the last stage
                 formItem.EndDate = stage.EndDate;
             }
-
+            await RecalculateAdjacentTime(stageId, nameof(stage.EndDate));
         }
         stage.TimeSpanOK = stage.EndDate < stage.StartDate;
         // _editContext.NotifyFieldChanged(new FieldIdentifier(stage, propertyName));
-        ValidateDates();
+        // ValidateDates();
+
         RecalculateForm();
         _editContext.Validate();
         StateHasChanged();
     }
-    private async Task RecalculateStages(int? stageId, string? propertyName)
-    {
+    private async Task RecalculateAdjacentTime(int stageId, string propertyName){
 
-        if (!(stageId == 0 && propertyName == "skip"))
+        var updatedStageIndex = formItem.Stages.FindIndex(s => s.Id == stageId);
+        if (updatedStageIndex == -1) return;
+        var updatedStage = formItem.Stages[updatedStageIndex];
+        if (propertyName == nameof(updatedStage.EndDate) && updatedStage.EndDate.HasValue)
         {
-            var updatedStageIndex = formItem.Stages.FindIndex(s => s.Id == stageId);
-            if (updatedStageIndex == -1) return;
-            var updatedStage = formItem.Stages[updatedStageIndex];
-            if (propertyName == nameof(updatedStage.EndDate) && updatedStage.EndDate.HasValue)
+            // Update the next stage's StartDate if it exists
+            if (updatedStageIndex + 1 < formItem.Stages.Count)
             {
-                // Update the next stage's StartDate if it exists
-                if (updatedStageIndex + 1 < formItem.Stages.Count)
-                {
-                    var nextStage = formItem.Stages[updatedStageIndex + 1];
+                var nextStage = formItem.Stages[updatedStageIndex + 1];
 
-                    // Set the next stage's StartDate to be one minute after the current EndDate
-                    nextStage.StartDate = updatedStage.EndDate.Value.AddMinutes(1);
-                }
-            }
-
-            if (propertyName == nameof(updatedStage.StartDate) && updatedStage.StartDate.HasValue)
-            {
-                // Update the previous stage's EndDate if it exists
-                if (updatedStageIndex > 0)
-                {
-                    var previousStage = formItem.Stages[updatedStageIndex - 1];
-
-                    // Set the previous stage's EndDate to be one minute before the current StartDate
-                    previousStage.EndDate = updatedStage.StartDate.Value.AddMinutes(-1);
-                }
+                // Set the next stage's StartDate to be one minute after the current EndDate
+                nextStage.StartDate = updatedStage.EndDate.Value.AddMinutes(1);
             }
         }
+
+        if (propertyName == nameof(updatedStage.StartDate) && updatedStage.StartDate.HasValue)
+        {
+            // Update the previous stage's EndDate if it exists
+            if (updatedStageIndex > 0)
+            {
+                var previousStage = formItem.Stages[updatedStageIndex - 1];
+
+                // Set the previous stage's EndDate to be one minute before the current StartDate
+                previousStage.EndDate = updatedStage.StartDate.Value.AddMinutes(-1);
+            }
+        }
+    }
+    private async Task RecalculateStages()
+    {
+
+        // if (!(stageId == 0 && propertyName == "skip"))
+        // {
+        //     var updatedStageIndex = formItem.Stages.FindIndex(s => s.Id == stageId);
+        //     if (updatedStageIndex == -1) return;
+        //     var updatedStage = formItem.Stages[updatedStageIndex];
+        //     if (propertyName == nameof(updatedStage.EndDate) && updatedStage.EndDate.HasValue)
+        //     {
+        //         // Update the next stage's StartDate if it exists
+        //         if (updatedStageIndex + 1 < formItem.Stages.Count)
+        //         {
+        //             var nextStage = formItem.Stages[updatedStageIndex + 1];
+
+        //             // Set the next stage's StartDate to be one minute after the current EndDate
+        //             nextStage.StartDate = updatedStage.EndDate.Value.AddMinutes(1);
+        //         }
+        //     }
+
+        //     if (propertyName == nameof(updatedStage.StartDate) && updatedStage.StartDate.HasValue)
+        //     {
+        //         // Update the previous stage's EndDate if it exists
+        //         if (updatedStageIndex > 0)
+        //         {
+        //             var previousStage = formItem.Stages[updatedStageIndex - 1];
+
+        //             // Set the previous stage's EndDate to be one minute before the current StartDate
+        //             previousStage.EndDate = updatedStage.StartDate.Value.AddMinutes(-1);
+        //         }
+        //     }
+        // }
 
         // Recalculate the duration for all stages
         formItem.SumAllowancePL = 0;
@@ -2823,6 +2813,7 @@
                 // Calculate duration and timespan
                 stage.Duration = Math.Round((decimal)(stage.EndDate.Value - stage.StartDate.Value).TotalDays, 2);
                 stage.TimeSpan = stage.EndDate.Value - stage.StartDate.Value;
+                stage.TimeSpan = TimeSpan.FromMinutes(Math.Round(stage.TimeSpan.TotalMinutes));
                 // stage.TimeSpan = TimeSpan.FromHours(Math.Floor((stage.EndDate.Value - stage.StartDate.Value).TotalHours));
 
                 // Reset Allowance values
@@ -2937,72 +2928,73 @@
 
             }
             formItem.Meals[stage.Id - 1].Duration = (int)Math.Ceiling(stage.AllowanceOrigin.GetValueOrDefault() + stage.AllowanceAbroad.GetValueOrDefault()); 
-          
+            formItem.DailyMeals[stage.Id - 1].Duration = (int)Math.Ceiling(stage.AllowanceOrigin.GetValueOrDefault() + stage.AllowanceAbroad.GetValueOrDefault());
+
             Console.WriteLine();
 
         }
 
     }
-    private void RecalculateMeals()
-    {
-        formItem.DeductionMealsPL = 0;
-        formItem.DeductionMealsNotPL = 0;
-        foreach (var meal in formItem.Meals)
-        {
-            // meal.Total = 0;
-            // if (meal.CountryCode != "PL")
-            // {
-            //     meal.Total -= (meal.CoveredBreakfasts * meal.AllowanceRate * 0.15m);
-            //     meal.Total -= (meal.CoveredLunches * meal.AllowanceRate * 0.3m);
-            //     meal.Total -= (meal.CoveredDinners * meal.AllowanceRate * 0.3m);
-            //     formItem.DeductionMealsNotPL += meal.Total;
-            // }
-            // else
-            // {
-            //     meal.Total -= (meal.CoveredBreakfasts * meal.AllowanceRate / 4);
-            //     meal.Total -= (meal.CoveredLunches * meal.AllowanceRate / 2);
-            //     meal.Total -= (meal.CoveredDinners * meal.AllowanceRate / 4);
-            //     formItem.DeductionMealsPL += meal.Total;
-            // }
-            // meal.Duration = 0;
-            // var stage = formItem.Stages[meal.StageId - 1];
-            // if (stage != null)
-            // {
-            //     // if(stage.Duration == 0){
-            //     //     meal.Duration = 0;
-            //     // } else if(stage.Duration > 0){
+    // private void RecalculateMeals()
+    // {
+    //     // formItem.DeductionMealsPL = 0;
+    //     // formItem.DeductionMealsNotPL = 0;
+    //     foreach (var meal in formItem.Meals)
+    //     {
+    //         // meal.Total = 0;
+    //         // if (meal.CountryCode != "PL")
+    //         // {
+    //         //     meal.Total -= (meal.CoveredBreakfasts * meal.AllowanceRate * 0.15m);
+    //         //     meal.Total -= (meal.CoveredLunches * meal.AllowanceRate * 0.3m);
+    //         //     meal.Total -= (meal.CoveredDinners * meal.AllowanceRate * 0.3m);
+    //         //     formItem.DeductionMealsNotPL += meal.Total;
+    //         // }
+    //         // else
+    //         // {
+    //         //     meal.Total -= (meal.CoveredBreakfasts * meal.AllowanceRate / 4);
+    //         //     meal.Total -= (meal.CoveredLunches * meal.AllowanceRate / 2);
+    //         //     meal.Total -= (meal.CoveredDinners * meal.AllowanceRate / 4);
+    //         //     formItem.DeductionMealsPL += meal.Total;
+    //         // }
+    //         // meal.Duration = 0;
+    //         // var stage = formItem.Stages[meal.StageId - 1];
+    //         // if (stage != null)
+    //         // {
+    //         //     // if(stage.Duration == 0){
+    //         //     //     meal.Duration = 0;
+    //         //     // } else if(stage.Duration > 0){
 
-            //     // }
-            //     // int newDuration = (int)Math.Ceiling(stage.AllowanceOrigin.GetValueOrDefault() + stage.AllowanceAbroad.GetValueOrDefault());
-            //     // if (meal.Duration != newDuration) {
-            //     //     meal.Duration = newDuration;
-            //     // }
-            //     // // meal.Included = (stage.AllowanceOriginValue + stage.AllowanceAbroadValue) == 0 ? false : stage.Included;
-            //     // // meal.Total = (stage.AllowanceOrigin.GetValueOrDefault() + stage.AllowanceAbroad.GetValueOrDefault()) * meal.AllowanceRate;
-                
-            //     // if(stage.StartDate.HasValue && stage.EndDate.HasValue){
-            //     //     meal.Nights = CalculateNights(stage.StartDate.Value, stage.EndDate.Value);
-            //     // } else {
-            //     //     meal.Nights = 0;
-            //     // }
+    //         //     // }
+    //         //     // int newDuration = (int)Math.Ceiling(stage.AllowanceOrigin.GetValueOrDefault() + stage.AllowanceAbroad.GetValueOrDefault());
+    //         //     // if (meal.Duration != newDuration) {
+    //         //     //     meal.Duration = newDuration;
+    //         //     // }
+    //         //     // // meal.Included = (stage.AllowanceOriginValue + stage.AllowanceAbroadValue) == 0 ? false : stage.Included;
+    //         //     // // meal.Total = (stage.AllowanceOrigin.GetValueOrDefault() + stage.AllowanceAbroad.GetValueOrDefault()) * meal.AllowanceRate;
 
-            //     // var num = meal.Total;
-            //     // meal.Total = Math.Round(meal.Total, 2);
-            // }
+    //         //     // if(stage.StartDate.HasValue && stage.EndDate.HasValue){
+    //         //     //     meal.Nights = CalculateNights(stage.StartDate.Value, stage.EndDate.Value);
+    //         //     // } else {
+    //         //     //     meal.Nights = 0;
+    //         //     // }
 
-            // Console.WriteLine();
-        }
+    //         //     // var num = meal.Total;
+    //         //     // meal.Total = Math.Round(meal.Total, 2);
+    //         // }
 
-        // if (Math.Abs(formItem.DeductionMealsPL.GetValueOrDefault()) > Math.Abs(formItem.SumAllowancePL.GetValueOrDefault()))
-        // {
-        //     formItem.DeductionMealsPL = -1 * formItem.SumAllowancePL;
-        // }
-        // if (Math.Abs(formItem.DeductionMealsNotPL.GetValueOrDefault()) > Math.Abs(formItem.SumAllowanceNotPL.GetValueOrDefault()))
-        // {
-        //     formItem.DeductionMealsNotPL = -1 * formItem.SumAllowanceNotPL;
-        // }
+    //         // Console.WriteLine();
+    //     }
 
-    }
+    //     // if (Math.Abs(formItem.DeductionMealsPL.GetValueOrDefault()) > Math.Abs(formItem.SumAllowancePL.GetValueOrDefault()))
+    //     // {
+    //     //     formItem.DeductionMealsPL = -1 * formItem.SumAllowancePL;
+    //     // }
+    //     // if (Math.Abs(formItem.DeductionMealsNotPL.GetValueOrDefault()) > Math.Abs(formItem.SumAllowanceNotPL.GetValueOrDefault()))
+    //     // {
+    //     //     formItem.DeductionMealsNotPL = -1 * formItem.SumAllowanceNotPL;
+    //     // }
+
+    // }
     private async Task RecalculateAccomodations()
     {
         formItem.AccomodationAllowanceSumPL = 0;
@@ -3071,9 +3063,9 @@
         }
     }
     private void RecalculateForm(){
-        RecalculateStages(0, "skip");
+        RecalculateStages();
         RecalculateAccomodations();
-        RecalculateMeals();
+        // RecalculateMeals();
         RecalculateLocalTravels();
         ValidateDates();
     }
@@ -3177,14 +3169,14 @@
             IsPrivateCar = true;
             IsCompanyCar = false;
             IsPublicTransport = false;
-            
+
         }
         else if (formItem.Transportation == "Samochód służbowy")
         {
             IsPrivateCar = false;
             IsCompanyCar = true;
             IsPublicTransport = false;
-            
+
 
         }
         else if (formItem.Transportation == "Transport publiczny")
@@ -3192,7 +3184,7 @@
             IsPrivateCar = false;
             IsCompanyCar = false;
             IsPublicTransport = true;
-            
+
         } 
         else {
             IsPrivateCar = false;
@@ -3397,6 +3389,16 @@
                     Duration = (int)Math.Ceiling(newStage.AllowanceOrigin.GetValueOrDefault() + newStage.AllowanceAbroad.GetValueOrDefault())
                 };
             formItem.Meals.Add(firstMeal);
+            var dailyMeal = new DailyMeal()
+                {
+                    StageId = newStage.Id,
+                    CountryCode = country.CountryCode,
+                    CountryName = country.Name,
+                    AllowanceRate = country.Allowance,
+                    AllowanceRateCurrency = country.CurrencyVmName,
+                    Duration = (int)Math.Ceiling(newStage.AllowanceOrigin.GetValueOrDefault() + newStage.AllowanceAbroad.GetValueOrDefault())
+                };
+            formItem.DailyMeals.Add(dailyMeal);
 
             var firstLocalTravel = new LocalTravel()
                 {
@@ -3422,9 +3424,10 @@
                 await RecalculateTransit();
             }
 
-            await RecalculateStages(newStage.Id, nameof(newStage.EndDate));
+            // await RecalculateStages(newStage.Id, nameof(newStage.EndDate));
+            await RecalculateStages();
             await RecalculateAccomodations();
-             RecalculateMeals();
+             // RecalculateMeals();
             await RecalculateLocalTravels();
             await RecalculateTransit();
         }
@@ -3938,7 +3941,7 @@
             await AddStage(Origin);
             // await RecalculateStages(firstStage.Id, nameof(firstStage.EndDate));
             await RecalculateAccomodations();
-             RecalculateMeals();
+             // RecalculateMeals();
             await RecalculateLocalTravels();
             await RecalculateTransit();
 

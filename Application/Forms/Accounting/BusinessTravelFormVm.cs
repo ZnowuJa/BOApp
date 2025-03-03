@@ -132,6 +132,7 @@ public class BusinessTravelFormVm : IMapFrom<BusinessTravelForm>, IFormAccountin
     public List<Stage> Stages { get; set; } = new();
     public List<Accommodation> Accommodations { get; set; } = new();
     public List<Meals> Meals { get; set; } = new();
+    public List<DailyMeal> DailyMeals { get; set; } = new();
     public List<LocalTravel> LocalTravels { get; set; } = new();
     public Transit Transit { get; set; } = new();
     public List<Bill> Bills { get; set; } = new();
@@ -143,8 +144,28 @@ public class BusinessTravelFormVm : IMapFrom<BusinessTravelForm>, IFormAccountin
     public decimal AllowanceNotPL { get; set; } = 0;
     public decimal? SumAllowancePL { get; set; } = 0;
     public decimal? SumAllowanceNotPL { get; set; } = 0;
-    public decimal? DeductionMealsPL { get; set; } = 0;
-    public decimal? DeductionMealsNotPL { get; set; } = 0;
+    public decimal? DeductionMealsPL
+    {
+        get
+        {
+            var sum = DailyMeals
+                .Where(meal => meal.CountryCode == "PL")
+                .Sum(meal => meal.Total);
+            return sum;
+        }
+    }
+    public decimal? DeductionMealsNotPL
+    {
+        get
+        {
+            var sum = DailyMeals
+                .Where(meal => meal.CountryCode != "PL")
+                .Sum(meal => meal.Total);
+            
+
+            return sum;
+        }
+    }
     public decimal? AccomodationAllowanceSumPL { get; set; } = 0;
     public decimal? AccomodationAllowanceSumNotPL { get; set; } = 0;
     public decimal? SumLocalTravelAllowancePL { get; set; } = 0;
@@ -182,12 +203,14 @@ public class BusinessTravelFormVm : IMapFrom<BusinessTravelForm>, IFormAccountin
     }
     public decimal TotalAllowancePL
     {
+        
         get
         {
-            return SumAllowancePL.GetValueOrDefault()
+            decimal allowanceAfterDeduction = Math.Max(0, SumAllowancePL.GetValueOrDefault() + DeductionMealsPL.GetValueOrDefault());
+
+            return allowanceAfterDeduction
                  + AccomodationAllowanceSumPL.GetValueOrDefault()
                  + SumLocalTravelAllowancePL.GetValueOrDefault()
-                 + DeductionMealsPL.GetValueOrDefault()
                  + SumPrivateVehicleAllowance.GetValueOrDefault()
                  + TotalBillsPL
                  - AdvancePaymentAmount.GetValueOrDefault()
@@ -242,6 +265,7 @@ public class BusinessTravelFormVm : IMapFrom<BusinessTravelForm>, IFormAccountin
             .ForMember(dest => dest.Stages, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<Stage>>(src.Stages)))
             .ForMember(dest => dest.Accommodations, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<Accommodation>>(src.Accommodations)))
             .ForMember(dest => dest.Meals, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<Meals>>(src.Meals)))
+            .ForMember(dest => dest.DailyMeals, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<DailyMeal>>(src.DailyMeals)))
             .ForMember(dest => dest.LocalTravels, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<LocalTravel>>(src.LocalTravels)))
             .ForMember(dest => dest.Transit, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<Transit>(src.Transit)))
             .ForMember(dest => dest.Bills, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<Bill>>(src.Bills)))
@@ -275,6 +299,7 @@ public class BusinessTravelFormVm : IMapFrom<BusinessTravelForm>, IFormAccountin
             .ForMember(dest => dest.Stages, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.Stages)))
             .ForMember(dest => dest.Accommodations, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.Accommodations)))
             .ForMember(dest => dest.Meals, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.Meals)))
+            .ForMember(dest => dest.DailyMeals, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.DailyMeals)))
             .ForMember(dest => dest.LocalTravels, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.LocalTravels)))
             .ForMember(dest => dest.Transit, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.Transit)))
             .ForMember(dest => dest.Bills, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.Bills)))
@@ -288,12 +313,4 @@ public class BusinessTravelFormVm : IMapFrom<BusinessTravelForm>, IFormAccountin
     }
 
 }
-
-
-
-
-#region Validations
-
-
-#endregion
 
