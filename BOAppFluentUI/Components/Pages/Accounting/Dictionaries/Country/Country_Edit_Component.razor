@@ -8,6 +8,10 @@
 @inject IMediator _mediator
 @implements IDialogContentComponent<CountryVm>
 
+<head>
+    <link href="forms-tables.css" rel="stylesheet" />
+</head>
+
 <!-- Header -->
 <FluentDialogHeader ShowDismiss="true">
     <FluentStack VerticalAlignment="VerticalAlignment.Center">
@@ -22,82 +26,67 @@
 <FluentDialogBody Orientation="Orientation.Horizontal">
     <EditForm EditContext="_editContext">
         <DataAnnotationsValidator />
-        <FluentGrid Justify="@Justification">
-            <FluentGridItem xs="6" sm="6">
-                <div class="card">
-                    <FluentTextField Id="Code" @bind-Value="@Content.CountryCode" Placeholder="Wpisz kod państwa">
-                        Kod państwa:
-                    </FluentTextField>
-                    <FluentValidationMessage For="@(() => Content.CountryCode)" />
-                </div>
 
-                <div class="card">
-                    <FluentTextField Id="Name" @bind-Value="@Content.Name" Placeholder="Wpisz nazwę państwa">
-                        Państwo:
-                    </FluentTextField>
-                    <FluentValidationMessage For="@(() => Content.Name)" />
-                </div>
+        <table class="table-container">
+            <tbody>
+                <tr>
+                    <td class="table-caption" style="text-align: left; border-right: none;">Państwo:</td>
+                    <td>
+                        <FluentTextField Id="Name" @bind-Value="@Content.Name" Placeholder="Wpisz nazwę państwa" style="width: 200px;"></FluentTextField>
+                        <FluentValidationMessage For="@(() => Content.Name)" />
+                    </td>
+                    <td class="table-caption" style="text-align: left; border-right: none;">Kod państwa:</td>
+                    <td>
+                        <FluentTextField Id="Code" @bind-Value="@Content.CountryCode" Placeholder="Wpisz kod państwa" style="width: 200px;"></FluentTextField>
+                        <FluentValidationMessage For="@(() => Content.CountryCode)" />
+                    </td>
+                </tr>
 
-                <div class="card">
-                    <FluentCheckbox Id="IsPL" Value="Content.IsPL" ValueChanged="@(e => OnCheckboxChange("IsPL", e))"
-                                    Label="Czy jest to Polska?"></FluentCheckbox>
-                    <FluentValidationMessage For="@(() => Content.IsPL)" />
-                </div>
-
-                <div class="card">
-                    <FluentCheckbox Id="IsEU" Value="@Content.IsEU" ValueChanged="@(e => OnCheckboxChange("IsEU", e))"
-                                    Label="Czy należy do UE?"></FluentCheckbox>
-                    <FluentValidationMessage For="@(() => Content.IsEU)" />
-                </div>
-
-
-                <div class="card">
-                    <FluentSelect TOption="CurrencyVm"
-                                  Label="Waluta:"
-                                  Items="@itemCurrencyList"
-                                  Id="CurrencyId"
-                                  Width="150px"
-                                  Height="250px"
-                                  OptionValue="@(p => p.Id.ToString())"
-                                  OptionText="@(p => p.Name)"
-                                  @bind-SelectedOption="@Content.currencyVm"
-                                  @onchange="onChangeCurrency" />
-                </div>
-            </FluentGridItem>
-
-            <FluentGridItem xs="6" sm="6">
-                <div class="card">
-                    <FluentNumberField Id="Allowance" 
-                                       Value="Content.Allowance"
-                                       ValueChanged="@((decimal e) => OnAmountChange(e))" 
-                                       Placeholder="Wpisz wysokość diety">
-                        Wysokość diety:
-                    </FluentNumberField>
-                    <FluentValidationMessage For="@(() => Content.Allowance)" />
-                </div>
-
-                <div class="card">
-                    <FluentNumberField Id="MaxHotelCost" @bind-value="@Content.MaxHotelCost">
-                        Maksymalny koszt hotelu:
-                    </FluentNumberField>
-                    <FluentValidationMessage For="@(() => Content.MaxHotelCost)" />
-                </div>
-
-                <div class="card">
-                    <FluentNumberField Id="TravelAllowance" @bind-Value="@Content.TravelAllowance">
-                        Dieta podróżna:
-                    </FluentNumberField>
-                    <FluentValidationMessage For="@(() => Content.TravelAllowance)" />
-                </div>
-@*                 <div class="card">
-                    <FluentNumberField Id="LocalTravelAllowance" @bind-Value:get="@Content.LocalTravelAllowance">
-                        Dieta za podróż lokalną:
-                    </FluentNumberField>
-                    <FluentValidationMessage For="@(() => Content.LocalTravelAllowance)" />
-                </div> *@
-            </FluentGridItem>
-
-        </FluentGrid>
+                <tr>
+                    <td class="table-caption" style="text-align: left; border-right: none;">Czy jest to Polska?</td>
+                    <td>
+                        <FluentCheckbox Id="IsPL" Value="@Content.IsPL" ValueChanged="@(e => OnCheckboxChange("IsPL", e))" />
+                        <FluentValidationMessage For="@(() => Content.IsPL)" />
+                    </td>
+                    <td class="table-caption" style="text-align: left; border-right: none;">Czy należy do UE?</td>
+                    <td>
+                        <FluentCheckbox Id="IsEU" Value="@Content.IsEU" ValueChanged="@(e => OnCheckboxChange("IsEU", e))" />
+                        <FluentValidationMessage For="@(() => Content.IsEU)" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="table-caption" style="text-align: left; border-right: none;">Waluta:</td>
+                    <td>
+                        <FluentSelect TOption="CurrencyVm" Items="@itemCurrencyList" Id="CurrencyId" Width="150px" Height="250px"
+                                      OptionValue="@(p => p.Id.ToString())" OptionText="@(p => p.Name)" @bind-SelectedOption="@Content.currencyVm" @onchange="onChangeCurrency" />
+                    </td>
+                    <td class="table-caption" style="text-align: left; border-right: none;">Wysokość diety:</td>
+                    <td>
+                        <FluentNumberField Id="Allowance" Value="@Content.Allowance" ValueChanged="@((decimal e) => OnAmountChange(e))" Placeholder="Wpisz wysokość diety" style="width: 200px;"></FluentNumberField>
+                        <FluentValidationMessage For="@(() => Content.Allowance)" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="table-caption" style="text-align: left; border-right: none;">Dieta podróżna:</td>
+                    <td>
+                        <FluentNumberField Id="TravelAllowance" @bind-Value="@Content.TravelAllowance" style="width: 200px;"></FluentNumberField>
+                        <FluentValidationMessage For="@(() => Content.TravelAllowance)" />
+                    </td>
+                    <td class="table-caption" style="text-align: left; border-right: none;">Dieta za podróż lokalną:</td>
+                    <td>
+                        <FluentNumberField Id="LocalTravelAllowance" @bind-Value="@Content.LocalTravelAllowance" style="width: 200px;"></FluentNumberField>
+                        <FluentValidationMessage For="@(() => Content.LocalTravelAllowance)" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="table-caption" style="text-align: left; border-right: none;">Maksymalny koszt hotelu:</td>
+                    <td>
+                        <FluentNumberField Id="MaxHotelCost" @bind-Value="@Content.MaxHotelCost" style="width: 200px;"></FluentNumberField>
+                        <FluentValidationMessage For="@(() => Content.MaxHotelCost)" />
+                    </td>
+                </tr>
+            </tbody>
+        </table>
 
     </EditForm>
 </FluentDialogBody>
@@ -189,14 +178,14 @@
         {
             Console.WriteLine("Using PL rules");
             Content.TravelAllowance = Content.Allowance * 0;
-            // Content.LocalTravelAllowance = Content.Allowance * 0.2m;
+            Content.LocalTravelAllowance = Content.Allowance * 0.2m;
             isCalculated = false;
         }
         else if (!Content.IsPL)
         {
             Console.WriteLine("Using EU rules");
             Content.TravelAllowance = Content.Allowance * 0.5m;
-            // Content.LocalTravelAllowance = Content.Allowance * 0.1m;
+            Content.LocalTravelAllowance = Content.Allowance * 0.1m;
             isCalculated = false;
         }
         else
@@ -209,7 +198,7 @@
     private void Clear()
     {
         Content.TravelAllowance = 0;
-        // Content.LocalTravelAllowance = 0;
+        Content.LocalTravelAllowance = 0;
     }
 
     private async Task SaveAsync()
