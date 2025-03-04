@@ -1,5 +1,6 @@
 ﻿using Application.Forms.Accounting;
 using FluentValidation;
+using Application.AdHocJobs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,18 +28,11 @@ namespace Application.Validation.Accounting
                 });
 
             });
-/*
-            When(form => form.AdvancePaymentCash == true, () =>
-            {
-                RuleFor(x => x.BankAccountNumber)
-                .Custom((bankAccountNumber, context) =>
-                {
-                    if (string.IsNullOrEmpty(bankAccountNumber) || !System.Text.RegularExpressions.Regex.IsMatch(bankAccountNumber, "^PL\\d{26}$"))
-                    {
-                        context.AddFailure("Wprowadź poprawny numer konta!");
-                    }
-                });
-            });*/
+
+            RuleFor(x => x.BankAccountNumber)
+                .NotEmpty().WithMessage("Numer konta jest wymagany")
+                .MustAsync(async (iban, cancellation) => await AppUtils.ValidateIbanAsync(iban))
+                .WithMessage("Nieprawidłowy numer IBAN.");
 
                 When(form => form.Status == "ZaliczkaKasa", () =>
             {

@@ -178,12 +178,12 @@
                             </tbody>
                         </table>
     }
-    @if (stks || stkstl || stwys || stblad || stwyp)
+    @if (stks || stkstl || stwys || stblad)
     {
         <BankTransferMappingEditComponent BTItem="@formItem.BTMappingAdvancePayment" CostCenters="@_costCenters" GLAccounts="@_glAccounts" FormStatus="@formItem.Status" UserContext="@_userContext" />
     }
     @*Cashier Advance Payment*@
-    @if (strozk || stwyp)
+    @if (strozk)
     {
         <table class="table-container">
             <tbody>
@@ -309,7 +309,7 @@
         Anuluj
     </FluentButton> *@
 
-    @if (stal1 || stal2 || stwyp)
+    @if (stal1 || stal2)
 {
     <FluentSpacer Width="@buttonSpacer" />
 
@@ -335,7 +335,7 @@
     </FluentButton>
 }
 
-@if (strej || stks || stwys || stkstl || strozk || stblad || stodrz)
+@if (strej || stks || stwys || stkstl || strozk || stblad || stodrz || stwyp)
 {
     <FluentSpacer Width="@buttonSpacer" />
 
