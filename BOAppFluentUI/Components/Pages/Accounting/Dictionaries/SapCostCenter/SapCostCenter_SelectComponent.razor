@@ -6,7 +6,7 @@
 <tr>
     <td>
         <FluentAutocomplete TOption="SimpleLocation"
-        Disabled="false"
+                            Disabled="@isEditable"
         Class="bold-label"
         AutoComplete="on"
         MaximumOptionsSearch="10"
@@ -16,11 +16,11 @@
         OptionText="@(p => p.SAPLocationNumber + ' ' + p.SAPLocationName)"
         @bind-SelectedOptions="@SelectedLocation"
         @bind-SelectedOptions:after="@HandleSCCLocationChange"
-        Width="250px" />
+        Width="200px" />
     </td>
     <td>
         <FluentAutocomplete TOption="SimpleDepartment"
-        Disabled="false"
+        Disabled="@isEditable"
         Class="bold-label"
         AutoComplete="on"
         MaximumOptionsSearch="10"
@@ -30,13 +30,24 @@
         OptionText="@(p => p.SAPDepartmentNumber + ' ' + p.SAPDepartmentName)"
         @bind-SelectedOptions="@SelectedDepartment"
         @bind-SelectedOptions:after="@HandleSCCDepartmentChange"
-        Width="270px" />
+        Width="220px" />
+    </td>
+    <td>
+        <InputNumber
+            style="width: 100px;"
+                Min = "0"
+                Max = "100"
+                @bind-Value="@_content.Share"
+                class="customFluentNumber" 
+                Disabled ="@isEditable"
+                />
+                %
     </td>
     <td>
         <FluentTextField @bind-Value="@ManagerName" Disabled="true" style="width: 200px;"/>
     </td>
     <td style="width: 200px;">
-        <FluentButton IconStart="@(new Icons.Regular.Size16.Delete())" OnClick="() => RemoveSapCostCenter.InvokeAsync(_content)" />
+        <FluentButton IconStart="@(new Icons.Regular.Size16.Delete())" OnClick="() => RemoveSapCostCenter.InvokeAsync(_content)" Disabled="@isEditable" />
 
     </td>
 </tr>
@@ -50,6 +61,7 @@
     [Parameter] public List<SapCostCenterVm> sapCostCenters { get; set; }
     [Parameter] public EventCallback<SapCostCenterVm> RemoveSapCostCenter { get; set; }
     [Parameter] public EventCallback<SapCostCenterVm> OnSapCostCenterChanged { get; set; }
+    [Parameter] public bool isEditable { get; set; }
     private List<SimpleLocation> simpleLocations { get; set; }
     private List<SimpleDepartment> simpleDepartments { get; set; }
 
