@@ -47,7 +47,8 @@
                             @bind-Value:get="@meal.CoveredBreakfasts"
                             @bind-Value:set="(value => HandleMealChanged(meal, value, nameof(meal.CoveredBreakfasts)))"
                             class="customFluentNumber" 
-                            Disabled = "@Disabled"/>
+                            Disabled = "@Disabled"
+                                         @oninput="@(e => HandleInputChange(e, meal))" />
                         </div>
                     </td>
                     <td>
@@ -57,8 +58,9 @@
                             Max="@meal.Duration.ToString()"
                             @bind-Value:get="@meal.CoveredLunches"
                             @bind-Value:set="(value => HandleMealChanged(meal, value, nameof(meal.CoveredLunches)))"
-                            class="customFluentNumber"
-                                         Disabled="@Disabled" />
+                            class=" alert"
+                                         Disabled="@Disabled"
+                                         @oninput="@(e => HandleInputChange(e, meal))" />
                         </div>
                     </td>
                     <td>
@@ -69,7 +71,8 @@
                             @bind-Value:get="@meal.CoveredDinners"
                             @bind-Value:set="(value => HandleMealChanged(meal, value, nameof(meal.CoveredDinners)))"
                             class="customFluentNumber"
-                                         Disabled="@Disabled" />
+                                         Disabled="@Disabled"
+                                         @oninput="@(e => HandleInputChange(e, meal))" />
                         </div>
                     </td>
                     <td>@meal.Total</td>
@@ -122,6 +125,17 @@
 
         }
 
+    }
+    private void HandleInputChange(ChangeEventArgs e, DailyMeal meal)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int result))
+        {
+            HandleMealChanged(meal, result, nameof(meal.CoveredLunches));
+        }
+        else
+        {
+            HandleMealChanged(meal, 0, nameof(meal.CoveredLunches));
+        }
     }
     private async Task HandleMealPropertyChange(ChangeEventArgs e, DailyMeal meal, string propertyName)
     {

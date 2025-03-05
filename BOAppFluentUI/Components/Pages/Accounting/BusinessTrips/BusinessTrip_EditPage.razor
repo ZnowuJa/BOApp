@@ -180,8 +180,9 @@
                             <tr class="table-header-left table-caption">
                                 <th style="width: 130px;">Lokalizacja</th>
                                 <th style="width: 150px;">Dział</th>
-                                <th style="width: 130px;">Odpowiedzialny</th>
-                                <th style="width: 130px;">Akcje</th>
+                                <th style="width: 50px;">Udział</th>
+                                <th style="width: 100px;">Odpowiedzialny</th>
+                                <th style="width: 100px;">Akcje</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -195,6 +196,7 @@
                                     sapCostCenters="_sapCostCenters.ToList()"
                                     RemoveSapCostCenter="@(scc => RemoveSapCC(scc))"
                                     OnSapCostCenterChanged="@(scc => HandleSapCostCenterChanged(index, scc))"
+                                    isEditable = "@(!(stroz || strej))"
                                     @key="@item.formId" />
                                     a++;
                                 }
@@ -204,6 +206,7 @@
                         </tbody>
 
                     </table>
+                    <FluentValidationMessage For="@(() => formItem.FormCostCenters)" class="validation-error" />
                     <FluentButton Id="addSapCC" IconEnd="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddSapCostCenter())" Style="margin-bottom: 20px;" />
 
                     @* SAP COST CENTERS*@
@@ -491,13 +494,13 @@
                                     @if (formItem.TotalPayOut >= 0)
                                     {
                                         <th>
-                                            Łącznie do wypłaty dla pracownika
+                                            Do wypłaty dla pracownika
                                         </th>
                                     }
                                     else
                                     {
                                         <th>
-                                            Łącznie do zwrotu przez pracownika
+                                            Do zwrotu przez pracownika
                                         </th>
                                     }
 
@@ -705,7 +708,7 @@
                     @if (ShowMeals)
                     {
 
-                        
+
                         <DailyMeal_EditComponent_InputNumber _content="formItem.DailyMeals" OnDailyMealChanged="HandleDailyMealChanged" Disabled="!stroz" />
 
 
@@ -2422,24 +2425,24 @@
         }
         RecalculateAccomodations();
     }
-    private async Task HandleCountryChange()
-    {
-        Console.WriteLine(SelectedCountry.Count());
+    // private async Task HandleCountryChange()
+    // {
+    //     Console.WriteLine(SelectedCountry.Count());
 
-        if (SelectedCountry.FirstOrDefault() == null)
-        {
+    //     if (SelectedCountry.FirstOrDefault() == null)
+    //     {
 
-        }
-        else
-        {
-            // formItem.Countries = SelectedCountry;
-            //
-            // formItem.Countries = SelectedEmpl.FirstOrDefault();
-            // Role.EmpId = SelectedEmpl.FirstOrDefault().EnovaEmpId;
-        }
+    //     }
+    //     else
+    //     {
+    //         // formItem.Countries = SelectedCountry;
+    //         //
+    //         // formItem.Countries = SelectedEmpl.FirstOrDefault();
+    //         // Role.EmpId = SelectedEmpl.FirstOrDefault().EnovaEmpId;
+    //     }
 
-        StateHasChanged();
-    }
+    //     StateHasChanged();
+    // }
     private async Task HandleCountryAdd()
     {
         if(isManualSwitchToggle){
@@ -2470,7 +2473,7 @@
             formItem.DailyMeals.RemoveRange(1, formItem.Meals.Count - 1);
             formItem.Meals.RemoveRange(1, formItem.Meals.Count - 1);
             formItem.LocalTravels.RemoveRange(1, formItem.LocalTravels.Count - 1);
-
+            formItem.Transit = new Transit(Origin);
             formItem.AdvancePayment = false;
 
         }
@@ -3162,7 +3165,17 @@
 
     #endregion OnChange
     #region Actions
+    private async Task GetNbpCurrencyRateVm(){
+        var tempCurrencies = await _mediator.Send(new GetNbpCurrencyRatesByDateQuery(DateOnly.FromDateTime(DateTime.Today)));
+        NbpCurrencies = tempCurrencies.ToList();
+        NbpCurrencies.Insert(0, OriginExchangeRate);
+        AbroadCurrencyExchangeRate = NbpCurrencies.Where(c => c.Code ==  formItem.DestinationCountryCurrency).First();
 
+        formItem.CurrencyExchangeRate = AbroadCurrencyExchangeRate.Mid;
+        formItem.CurrencyExchangeRateDate = AbroadCurrencyExchangeRate.RateDate;
+        formItem.DestinationCountryCurrency = AbroadCurrencyExchangeRate.Code;
+
+    }
     private void AssignTransportation(){
         if (formItem.Transportation == "Samochód prywatny")
         {
@@ -3413,7 +3426,7 @@
 
             if (newStage.CountryCode != "PL")
             {
-                formItem.Transit = new Transit()
+                formItem.Transit = new Transit(country)
                     {
                         StageId = newStage.Id,
                         CountryCode = country.CountryCode,
@@ -3427,7 +3440,7 @@
             // await RecalculateStages(newStage.Id, nameof(newStage.EndDate));
             await RecalculateStages();
             await RecalculateAccomodations();
-             // RecalculateMeals();
+            // RecalculateMeals();
             await RecalculateLocalTravels();
             await RecalculateTransit();
         }
@@ -3916,7 +3929,7 @@
             if(userSapCostCenter.Id > 0){
                 formItem.FormCostCenters.Add(userSapCostCenter);
             }
-            
+
             var shortSapNumber = _userContext.Employee.SapNumber.Substring(0, 4);
             formItem.FormCostLocation = _locations.Where(l => l.SapNumber == shortSapNumber).FirstOrDefault();
             formItem.FormCostCenter = _costCenters.Where(c => c.MPK == _userContext.Employee.DeptNumber).FirstOrDefault();
@@ -3941,7 +3954,7 @@
             await AddStage(Origin);
             // await RecalculateStages(firstStage.Id, nameof(firstStage.EndDate));
             await RecalculateAccomodations();
-             // RecalculateMeals();
+            // RecalculateMeals();
             await RecalculateLocalTravels();
             await RecalculateTransit();
 
@@ -3985,6 +3998,12 @@
     }
     private async Task SetupFormKasa()
     {
+        if (!formItem.DestinationCountry.IsPL && formItem.AdvancePayment)
+        {
+            await GetNbpCurrencyRateVm();
+        }
+
+
         Title = "Podróż służbowa - Kasa";
         ShowAccomodations = false;
         ShowMeals = false;
@@ -4022,12 +4041,14 @@
         Title = "Podróż służbowa - Rozliczenie";
 
         AssignTransportation();
-
+        if(!formItem.DestinationCountry.IsPL && !formItem.AdvancePayment){
+            await GetNbpCurrencyRateVm();
+        }
         #region SetBoolsOnStatus
         ShowAccomodations = true;
         ShowMeals = true;
         ShowStages = true;
-        
+
         ShowTransits = formItem.Stages.Count > 1;
         ShowCashier = true;
         ShowBills = true;
@@ -4069,12 +4090,13 @@
         ShowAccomodations = true;
         ShowMeals = true;
         ShowStages = true;
-        
+
         ShowTransits = formItem.Stages.Count > 1;
         ShowCashier = true;
         ShowBills = true;
         ShowMileageReport = true;
         ShowSummary = true;
+        ShowLocalTravels = true;
         EnterInvoiceMapping = true;
 
         IsAdvancedPaymentDisabled = true;

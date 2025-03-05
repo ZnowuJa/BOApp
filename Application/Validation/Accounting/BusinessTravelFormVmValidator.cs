@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 
 using Application.Forms.Accounting;
+using Application.Forms.Accounting.BuisnessTravelSmallClasses;
+
 using FluentValidation;
 
 namespace Application.Validation.Accounting;
@@ -39,8 +41,17 @@ public class BusinessTravelFormVmValidator : AbstractValidator<BusinessTravelFor
         });
         When(form => form.Status == "Rejestracja" || form.Status == "Rozliczenie", () =>
         {
-            RuleFor(x => x.FormCostLocation.SapNumber).NotEmpty().WithMessage("Proszę uzupełnić miejsce kosztowe!");
-            RuleFor(x => x.FormCostCenter.MPK).NotEmpty().WithMessage("Proszę uzupełnić lokalizację!");
+            //RuleFor(x => x.FormCostLocation.SapNumber).NotEmpty().WithMessage("Proszę uzupełnić miejsce kosztowe!");
+            //RuleFor(x => x.FormCostCenter.MPK).NotEmpty().WithMessage("Proszę uzupełnić lokalizację!");
+            RuleFor(x => x.FormCostCenters)
+                .Custom((costCenters, context) =>
+                {
+                    int totalShare = costCenters.Sum(cc => cc.Share.Value);
+                    if (totalShare != 100)
+                    {
+                        context.AddFailure("FormCostCenters", "Suma udziałów musi wynosić 100%.");
+                    }
+                });
         });
         When(form => form.AdvancePayment, () => 
         {
@@ -120,10 +131,44 @@ public class BusinessTravelFormVmValidator : AbstractValidator<BusinessTravelFor
             //RuleForEach(x => x.Bills).SetValidator(new BillValidator(x.StartDate, x.EndDate));
         });
 
+        When(form => form.Status == "Rozliczenie" && form.Stages.Count() > 1, () =>
+        {
+            RuleFor(x => x.Stages)
+            .Must(BeNonOverlapping)
+            .WithMessage("Etapy nie mogą na siebie nachodzić!");
+        });
+
+        
         RuleSet("MainDates", () =>
         {
            
         });
 
+    }
+
+    private bool BeNonOverlapping(List<Stage> stages)
+    {
+        if (stages == null || stages.Count == 0)
+            return true;
+
+        // Sort stages by StartDate to ensure we check consecutive periods
+        var sortedStages = stages
+            .Where(s => s.StartDate.HasValue && s.EndDate.HasValue)
+            .OrderBy(s => s.StartDate)
+            .ToList();
+
+        for (int i = 0; i < sortedStages.Count - 1; i++)
+        {
+            var current = sortedStages[i];
+            var next = sortedStages[i + 1];
+
+            // Check if current stage overlaps with the next stage
+            if (current.EndDate > next.StartDate)
+            {
+                return false; // Overlap detected
+            }
+        }
+
+        return true; // No overlap found
     }
 }

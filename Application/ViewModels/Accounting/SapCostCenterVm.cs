@@ -26,6 +26,8 @@ public class SapCostCenterVm : IMapFrom<SapCostCenter>
     public int? StatusId { get; set; }
 
     [JsonIgnore]
+    public int? Share { get; set; } = 100;
+    [JsonIgnore]
     public SimpleLocation Location
     {
         get
@@ -43,7 +45,6 @@ public class SapCostCenterVm : IMapFrom<SapCostCenter>
             LocationName = value.SAPLocationName;
         }
     }
-
     [JsonIgnore]
     public SimpleDepartment Department
     {
