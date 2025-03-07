@@ -4,7 +4,7 @@
     <thead>
         <tr class="table-caption">
             <th style="text-align: left; border-right: none; font-size: large;" colspan="7">
-                Zapewnione posiłki:
+                Zapewnione posiłki ki:
                 <FluentIcon Id="MealsInfoId"
                 Value="@(new Icons.Regular.Size16.Info())"
                 Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" />
@@ -48,7 +48,7 @@
                             @bind-Value:set="(value => HandleMealChanged(meal, value, nameof(meal.CoveredBreakfasts)))"
                             class="customFluentNumber" 
                             Disabled = "@Disabled"
-                                         @oninput="@(e => HandleInputChange(e, meal))" />
+                                         @oninput="@(e => HandleInputChange(e, meal, nameof(meal.CoveredBreakfasts)))" />
                         </div>
                     </td>
                     <td>
@@ -58,9 +58,9 @@
                             Max="@meal.Duration.ToString()"
                             @bind-Value:get="@meal.CoveredLunches"
                             @bind-Value:set="(value => HandleMealChanged(meal, value, nameof(meal.CoveredLunches)))"
-                            class=" alert"
+                                         class="customFluentNumber"
                                          Disabled="@Disabled"
-                                         @oninput="@(e => HandleInputChange(e, meal))" />
+                                         @oninput="@(e => HandleInputChange(e, meal, nameof(meal.CoveredLunches)))" />
                         </div>
                     </td>
                     <td>
@@ -72,7 +72,7 @@
                             @bind-Value:set="(value => HandleMealChanged(meal, value, nameof(meal.CoveredDinners)))"
                             class="customFluentNumber"
                                          Disabled="@Disabled"
-                                         @oninput="@(e => HandleInputChange(e, meal))" />
+                                         @oninput="@(e => HandleInputChange(e, meal, nameof(meal.CoveredDinners)))" />
                         </div>
                     </td>
                     <td>@meal.Total</td>
@@ -126,15 +126,15 @@
         }
 
     }
-    private void HandleInputChange(ChangeEventArgs e, DailyMeal meal)
+    private void HandleInputChange(ChangeEventArgs e, DailyMeal meal, string propertyName)
     {
         if (int.TryParse(e.Value?.ToString(), out int result))
         {
-            HandleMealChanged(meal, result, nameof(meal.CoveredLunches));
+            HandleMealChanged(meal, result, propertyName);
         }
         else
         {
-            HandleMealChanged(meal, 0, nameof(meal.CoveredLunches));
+            HandleMealChanged(meal, 0, propertyName);
         }
     }
     private async Task HandleMealPropertyChange(ChangeEventArgs e, DailyMeal meal, string propertyName)

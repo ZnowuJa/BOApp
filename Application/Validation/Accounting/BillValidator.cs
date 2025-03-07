@@ -35,6 +35,11 @@ public class BillValidator : AbstractValidator<Bill>
                 });
 
         });
+        When(b => b.isParking, () =>
+        {
+            RuleFor(b => b.ParkingAmount).GreaterThan(0).WithMessage("Wprowadź kwotę za parking!");
+        }
+            );
 
         //RuleForEach(x => x.InvoiceMappings).SetValidator(new InvoiceMappingValidator());
         
