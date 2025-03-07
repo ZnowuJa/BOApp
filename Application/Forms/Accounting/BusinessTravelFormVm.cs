@@ -11,6 +11,7 @@ using Application.ViewModels.General;
 using AutoMapper;
 
 using Domain.Forms.Accounting;
+using Microsoft.Graph.Models;
 
 namespace Application.Forms.Accounting;
 public class BusinessTravelFormVm : IMapFrom<BusinessTravelForm>, IFormAccounting
@@ -74,7 +75,7 @@ public class BusinessTravelFormVm : IMapFrom<BusinessTravelForm>, IFormAccountin
         public LocationVm FormCostLocation { get; set; } = new ();
         public List<ApprovalVm>? Approvals { get; set; } = new();
     #region ApproversDetails
-        public List<OrganisationRoleForFormVm> Level1Approvers { get; set; } = new(); // przełożony etapy: AprobataL1, AprobataL11
+    public List<OrganisationRoleForFormVm> Level1Approvers { get; set; } = new(); // przełożony etapy: AprobataL1, AprobataL11
         public List<OrganisationRoleForFormVm> Level2Approvers { get; set; } = new(); // Kasa etapy: ZaliczkaKasa, RozliczenieKasa
         public List<OrganisationRoleForFormVm> Level3Approvers { get; set; } = new(); // Księgowość etapy: ZaliczkaKsiegowosc, Ksiegowosc
         public List<OrganisationRoleForFormVm> Level4Approvers { get; set; } = new(); // Księgowość TeamLeader etapy: ZaliczkaKsiegowoscTL, KsiegowoscTL

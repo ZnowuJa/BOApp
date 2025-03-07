@@ -30,9 +30,10 @@ namespace Application.Validation.Accounting
             });
 
             RuleFor(x => x.BankAccountNumber)
-                .NotEmpty().WithMessage("Numer konta jest wymagany")
+                .NotEmpty()
                 .MustAsync(async (iban, cancellation) => await AppUtils.ValidateIbanAsync(iban))
-                .WithMessage("Nieprawidłowy numer IBAN.");
+                .WithMessage("Nieprawidłowy numer IBAN.")
+                .When(x => x.AdvancePaymentCash == true);
 
                 When(form => form.Status == "ZaliczkaKasa", () =>
             {

@@ -17,6 +17,7 @@
 @using Application.Forms.Accounting.Enums
 @using Application.ViewModels.Accounting
 @using Microsoft.AspNetCore.Authorization
+@using Application.Forms.Accounting.AdvancePaymenytSmallClasses
 
 @attribute [Authorize(Policy = "User")]
 
@@ -166,18 +167,33 @@
 
         </tbody>
     </table>
-    @if (stodrz)
-    {
+        @if (lastRejectReason != null && !string.IsNullOrEmpty(formItem.RejectReason) && (strej || stroz || stodrz ))
+                    { 
                         <table class="table-container">
                             <tbody>
                                 <tr>
-                                    <td class="table-caption" style="width: 1000px; align-items: center;">
-                                        <h2 style="color: red;">Powód odrzucenia: @formItem.RejectReason</h2>
+                                    <td class="table-caption">
+                                        Powód odrzucenia:
+                                    </td>
+                                    <td><h3 style="color: red;">@lastRejectReason.RejectReasonText</h3></td>
+                                </tr>
+                                <tr>
+                                    <td class="table-caption">
+                                        Odrzucone przez:
+                                    </td>
+                                    <td>
+                                         @lastRejectReason.ApproverName
+                                    </td>
+                                    <td class="table-caption">
+                                        Data:
+                                    </td>
+                                    <td>
+                                        @lastRejectReason.RejectTime
                                     </td>
                                 </tr>
                             </tbody>
                         </table>
-    }
+                    }
     @if (stks || stkstl || stwys || stblad)
     {
         <BankTransferMappingEditComponent BTItem="@formItem.BTMappingAdvancePayment" CostCenters="@_costCenters" GLAccounts="@_glAccounts" FormStatus="@formItem.Status" UserContext="@_userContext" />
@@ -421,6 +437,7 @@
     private bool IsRegistrationFormDisabledForOthers { get; set; } = true; // wyłącza wszystkie kontrolki do rejestracji dla osób innych niż rejestrujący użytkownik
 
     private ApprovalVm approvalInfo { get; set; }
+    private RejectReason lastRejectReason { get; set; }
 
     private void SetSrcPage()
     {
@@ -501,9 +518,18 @@
 
         if (!result.Cancelled && (result.Data != null || (string)result.Data != string.Empty))
         {
+            RejectReason rejreason = new() { 
+                RejectReasonText = (string)result.Data, 
+                ApproverName = _userContext.LongName,
+                ApproverEmpId = _userContext.EnovaEmpId,
+                RejectTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                RejectFormStatus = formItem.Status,
+            };
+            formItem.RejectReasons.Add(rejreason);
             approvalInfo.IsApproved = false;
             formItem.Approvals.Add(approvalInfo);
             formItem.RejectReason = (string)result.Data;
+            approvalInfo.IsApproved = false;
             formItem.Status = "Odrzucone";
             await _mediator.Send(new UpdateAdvancePaymentCommand(formItem));
             var message = $"Formularz został wysłany do {formItem.EmployeeName} w celu poprawienia.";
@@ -623,7 +649,7 @@
                 break;
 
             case "Odrzucone":
-                newStatus = "AprobataL1"; // Status końcowy, brak zmiany
+                newStatus = "AprobataL1";
                 break;
 
             default:
@@ -719,10 +745,19 @@
             }
             if(!string.IsNullOrEmpty(formItem.CashPoint.SapNumber))
             {
-            _selectedLocation = new List<LocationVm> { formItem.CashPoint };
+                _selectedLocation = new List<LocationVm> { formItem.CashPoint };
             }
 
         }
+
+        if (formItem.Status == "Odrzucone")
+        {
+            lastRejectReason = formItem.RejectReasons.Last();
+            if (new[] { "AprobataL1", "AprobataL2", "ZaliczkaKasa", "ZaliczkaKsiegowosc", "ZaliczkaKsiegowoscTL", "WyslaneDoRobota", "BladRobota" }.Contains(lastRejectReason.RejectFormStatus))
+            {
+                formItem.Status = "Odrzucone";
+            }
+        };
 
         _editContext = new EditContext(formItem);
         await Utils.GetUserName(_authenticationStateProvider, _userContext, _mediator);
@@ -759,16 +794,23 @@
     private async Task SetupForm(string status)
     {
         AssignStatusBool();
-        if (status == "Rejestracja" || stodrz) await SetupFormRejestracja();
+        if (status == "Rejestracja") await SetupFormRejestracja();
         else if (stal1 || stal2) await SetupFormAprobata(status);
         else if (stks) await SetupFormKsiegowosc();
         else if (stkstl) await SetupFormKsiegowoscTL();
         else if (stwys) await SetupFormWyslaneDoRobota();
         else if (strozk) await SetupFormKasa();
         else if (stroz) await SetupFormZamkniete();
+        else if (stodrz) await SetupFormOdrzucone();
 
         DisableApproveButton = false;
         StateHasChanged();
+    }
+
+    private async Task SetupFormOdrzucone()
+    {
+        Title = "Wniosek o zaliczkę - Odrzucony";
+        IsRegistrationFormDisabledForOthers = false;
     }
 
     private async Task SetupFormKasa()

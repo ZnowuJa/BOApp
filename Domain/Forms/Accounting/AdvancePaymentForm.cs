@@ -42,6 +42,7 @@ namespace Domain.Forms.Accounting
         public string LVL5_EmployeeName { get; set; } = string.Empty;
 
         public string RejectReason { get; set; } = string.Empty;
+        public string RejectReasons { get; set; } = string.Empty;
         #endregion
 
         public string Objective { get; set; } = string.Empty;
