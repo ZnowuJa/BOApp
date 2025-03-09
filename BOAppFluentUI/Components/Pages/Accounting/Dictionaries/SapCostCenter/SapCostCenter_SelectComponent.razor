@@ -6,10 +6,10 @@
 <tr>
     <td>
         <FluentAutocomplete TOption="SimpleLocation"
-                            Disabled="@isEditable"
+        Disabled="@isEditable"
         Class="bold-label"
         AutoComplete="on"
-        MaximumOptionsSearch="10"
+        MaximumOptionsSearch="40"
         OnOptionsSearch="@OnLocationSearch"
         Placeholder="wybierz..."
         MaximumSelectedOptions="1"
@@ -20,10 +20,10 @@
     </td>
     <td>
         <FluentAutocomplete TOption="SimpleDepartment"
-        Disabled="@isEditable"
+                            Disabled="@isDeptEditable"
         Class="bold-label"
         AutoComplete="on"
-        MaximumOptionsSearch="10"
+        MaximumOptionsSearch="80"
         OnOptionsSearch="@OnDepartmentSearch"
         Placeholder="wybierz..."
         MaximumSelectedOptions="1"
@@ -34,14 +34,14 @@
     </td>
     <td>
         <InputNumber
-            style="width: 100px;"
-                Min = "0"
-                Max = "100"
-                @bind-Value="@_content.Share"
-                class="customFluentNumber" 
-                Disabled ="@isEditable"
-                />
-                %
+        style="width: 100px;"
+        Min = "0"
+        Max = "100"
+        @bind-Value="@_content.Share"
+        class="customFluentNumber" 
+        Disabled ="@isEditable"
+        />
+        %
     </td>
     <td>
         <FluentTextField @bind-Value="@ManagerName" Disabled="true" style="width: 200px;"/>
@@ -62,6 +62,13 @@
     [Parameter] public EventCallback<SapCostCenterVm> RemoveSapCostCenter { get; set; }
     [Parameter] public EventCallback<SapCostCenterVm> OnSapCostCenterChanged { get; set; }
     [Parameter] public bool isEditable { get; set; }
+    private bool isDeptEditable
+    {
+        get
+        {
+            return isEditable || SelectedLocation == null;
+        }
+    }
     private List<SimpleLocation> simpleLocations { get; set; }
     private List<SimpleDepartment> simpleDepartments { get; set; }
 
@@ -69,6 +76,7 @@
     private IEnumerable<SimpleLocation> SelectedLocation { get; set; }
     private IEnumerable<SimpleDepartment> SelectedDepartment { get; set; }
     private string ManagerName = string.Empty;
+
     protected override async Task OnInitializedAsync()
     {
         _SelectedSapCC = new SapCostCenterVm[] { _content };
@@ -109,6 +117,8 @@
                 SAPDepartmentNumber = _content.DepartmentNumber
             }};
         }
+
+        // isDeptEditable = isEditable || SelectedLocation is null;
         StateHasChanged();
         // return base.OnInitializedAsync();
     }

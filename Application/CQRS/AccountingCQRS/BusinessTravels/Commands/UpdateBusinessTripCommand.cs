@@ -91,7 +91,7 @@ namespace Application.CQRS.AccountingCQRS.BusinessTravels.Commands
 
             if (status == "AprobataL1")
             {
-                subject = $"Wniosek o odroczoną płatność ({frmNumber}) oczekuje na aprobatę)";
+                subject = $"Nowy wniosek o Delegację ({frmNumber}))";
                 body = $@"
                 <!DOCTYPE html>
                 <html>
@@ -99,13 +99,13 @@ namespace Application.CQRS.AccountingCQRS.BusinessTravels.Commands
                 </head>
                 <body>
                     <div class=""header"">
-                        <h1>Wniosek o odroczoną płatność</h1>
+                        <h1>Wniosek o Delegację</h1>
                     </div>
                     <div>
-                        <p><h3>Nowy wniosek o odroczoną płatność numer {frmNumber} oczekuje na Twoją aprobatę.</h3></p>
-                        <p>Wniosek dotyczy klienta: <b>{custName}</b></p>
+                        <p><h3>Nowy wniosek o Delegację numer {frmNumber} oczekuje na Twoją aprobatę.</h3></p>
+                        <p>Wniosek dotyczy pracownika: <b>{senderName}</b></p>
                         <p>Uzasadnienie: <b>{reason}</b></p>
-                        <p>Zgłaszający: <b>{senderName}</b></p>
+                        <p>Miasto: <b>{custName}</b></p>
                     </div>
                     <div>
                         <p>Kliknij w link, aby przejść do wniosku: <a href=""{_baseUrl}/platnoscodroczona/{id}?srcPage=kierownik"">Przejdź do wniosku</a></p>
@@ -121,17 +121,17 @@ namespace Application.CQRS.AccountingCQRS.BusinessTravels.Commands
                 </body>
                 </html>";
             }
-            else if (status == "AprobataL2")
+            else if (status == "AprobataL11" || status == "AprobataL12" || status == "AprobataL12" || status == "AprobataL12" )
             {
                 recipients = new List<Recipient>
             {
                 new Recipient
                 {
-                    EmailAddress = new EmailAddress{ Address = "rozrachunki@porscheinterauto.pl" }
+                    EmailAddress = new EmailAddress{ Address = "backofficeapp@porscheinterauto.pl" }
                 }
 
             };
-                subject = $"Wniosek o odroczoną płatność ({frmNumber}) oczekuje na aprobatę)";
+                subject = $"Wniosek o Delegację ({frmNumber}) oczekuje na aprobatę)";
                 body = $@"
                 <!DOCTYPE html>
                 <html>
@@ -139,17 +139,17 @@ namespace Application.CQRS.AccountingCQRS.BusinessTravels.Commands
                 </head>
                 <body>
                     <div class=""header"">
-                        <h1>Wniosek o odroczoną płatność</h1>
+                        <h1>Wniosek o Delegację</h1>
                     </div>
                     <div>
-                        <p><h3>Nowy wniosek o odroczoną płatność numer {frmNumber} oczekuje na Twoją aprobatę.</h3></p>
-                        <p>Wniosek dotyczy klienta: <b>{custName}</b></p>
+                        <p><h3>Wniosek o Delegację numer {frmNumber} oczekuje na Twoją aprobatę.</h3></p>
+                        <p>Wniosek dotyczy pracownika: <b>{senderName}</b></p>
                         <p>Uzasadnienie: <b>{reason}</b></p>
-                        <p>Zgłaszający: <b>{senderName}</b></p>
+                        <p>Miasto: <b>{custName}</b></p>
                     </div>
                     <div>
-                        <p>Kliknij w link, aby przejść do wniosku: <a href=""{_baseUrl}/platnoscodroczona/{id}?srcPage=rozrachunki"">Przejdź do wniosku</a></p>
-                        <p>Przejdź do listy wniosków: <a href=""{_baseUrl}/platnosciodroczone/rozrachunki"">Lista wniosków</a></p>
+                        <p>Kliknij w link, aby przejść do wniosku: <a href=""{_baseUrl}/platnoscodroczona/{id}?srcPage=kierownik"">Przejdź do wniosku</a></p>
+                        <p>Przejdź do listy wniosków: <a href=""{_baseUrl}/platnosciodroczone/kierownik"">Lista wniosków</a></p>
                     </div>
                     <div>
                         <p>Pozdrawiamy!</p>
@@ -171,36 +171,34 @@ namespace Application.CQRS.AccountingCQRS.BusinessTravels.Commands
                 }
 
             };
-                subject = $"Wniosek o odroczoną płatność ({frmNumber}) został zaaprobowany)";
+                subject = $"Wniosek o Delegację ({frmNumber}))";
                 body = $@"
-                <!DOCTYPE html>
-                <html>
-                <head>
-                </head>
-                <body>
-                    <div class=""header"">
-                        <h1>Wniosek o odroczoną płatność</h1>
-                    </div>
-                    <div>
-                        <p><h3>Twój wniosek o odroczoną płatność numer {frmNumber} został zaaprobowany.</h3></p>
-                        <p><h3>Możesz już wystawić dokument z odroczoną płatnością</h3></p>
-                        <p>Wniosek dotyczy klienta: <b>{custName}</b></p>
-                        <p>Uzasadnienie: <b>{reason}</b></p>
-                        <p>Zgłaszający: <b>{senderName}</b></p>
-                    </div>
-                    <div>
-                        <p>Kliknij w link, aby przejść do wniosku: <a href=""{_baseUrl}/platnoscodroczona/{id}?srcPage=pracownik"">Przejdź do wniosku</a></p>
-                        <p>Przejdź do listy wniosków: <a href=""{_baseUrl}/platnosciodroczone/pracownik"">Lista wniosków</a></p>
-                    </div>
-                    <div>
-                        <p>Pozdrawiamy!</p>
-                        <p>Twój zespół Automatyzacji!</p>
-                    </div>
-                    <div class=""footer"">
-                        <p>© 2024 Porsche Inter Auto Polska Sp. z o.o.</p>
-                    </div>
-                </body>
-                </html>";
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                    </head>
+                    <body>
+                        <div class=""header"">
+                            <h1>Wniosek o Delegację</h1>
+                        </div>
+                        <div>
+                            <p><h3>Wniosek o Delegację numer {frmNumber} został zakończony.</h3></p>
+                            <p>Uzasadnienie: <b>{reason}</b></p>
+                            <p>Miasto: <b>{custName}</b></p>
+                        </div>
+                        <div>
+                            <p>Kliknij w link, aby przejść do wniosku: <a href=""{_baseUrl}//delegacja/{id}?srcPage=view"">Przejdź do wniosku</a></p>
+                            <p>Przejdź do aplikacji <a href=""{_baseUrl}/delegacje"">Lista wniosków</a></p>
+                        </div>
+                        <div>
+                            <p>Pozdrawiamy!</p>
+                            <p>Twój zespół Automatyzacji!</p>
+                        </div>
+                        <div class=""footer"">
+                            <p>© 2024 Porsche Inter Auto Polska Sp. z o.o.</p>
+                        </div>
+                    </body>
+                    </html>";
             }
             else if (status == "Odrzucone")
             {
@@ -212,7 +210,7 @@ namespace Application.CQRS.AccountingCQRS.BusinessTravels.Commands
                 }
 
             };
-                subject = $"Wniosek o odroczoną płatność ({frmNumber}) został odrzucony)";
+                subject = $"Wniosek o Delegację ({frmNumber})) został odrzucony";
                 body = $@"
                 <!DOCTYPE html>
                 <html>
@@ -220,17 +218,16 @@ namespace Application.CQRS.AccountingCQRS.BusinessTravels.Commands
                 </head>
                 <body>
                     <div class=""header"">
-                        <h1>Wniosek o odroczoną płatność</h1>
+                        <h1>Wniosek o Delegację</h1>
                     </div>
                     <div>
-                        <p><h3>Twój wniosek o odroczoną płatność numer {frmNumber} został odrzucony.</h3></p>
-                        
-                        <p>Wniosek dotyczy klienta: <b>{custName}</b></p>
+                        <p><h3>Wniosek o Delegację numer {frmNumber} został odrzucony.</h3></p>
+                        <p>Wniosek dotyczy pracownika: <b>{senderName}</b></p>
                         <p>Uzasadnienie: <b>{reason}</b></p>
-                        <p>Zgłaszający: <b>{senderName}</b></p>
-                        <p>Powód odrzucenia: <b>{rejectreason}</b></p>
+                        <p>Miasto: <b>{custName}</b></p>
                     </div>
                     <div>
+                        <p>Kliknij w link, aby przejść do wniosku i poprawić: <a href=""{_baseUrl}/platnoscodroczona/{id}?srcPage=pracownik"">Przejdź do wniosku</a></p>
                         <p>Przejdź do listy wniosków: <a href=""{_baseUrl}/platnosciodroczone/pracownik"">Lista wniosków</a></p>
                     </div>
                     <div>

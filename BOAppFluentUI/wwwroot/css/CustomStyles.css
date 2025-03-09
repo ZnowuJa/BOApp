@@ -23,3 +23,17 @@
     line-height: inherit;
     background: padding-box linear-gradient(var(--neutral-fill-input-rest),var(--neutral-fill-input-rest)),border-box var(--neutral-stroke-input-rest);
 }
+.validation-error {
+    color: red;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    white-space: normal; /* Allow wrapping */
+    word-wrap: break-word; /* Ensure long words break */
+    display: block; /* Ensure it takes full width */
+}
+
+    .validation-error::before {
+        font-size: 1.5em; /* Adjust size as needed */
+        margin-right: 5px; /* Space between icon and text */
+        vertical-align: middle; /* Align properly */
+    }

@@ -25,7 +25,6 @@ public class SapCostCenterVm : IMapFrom<SapCostCenter>
     public int? ResponsibleManagerSSFId { get; set; }
     public int? StatusId { get; set; }
 
-    [JsonIgnore]
     public int? Share { get; set; } = 100;
     [JsonIgnore]
     public SimpleLocation Location
