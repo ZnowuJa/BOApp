@@ -1003,32 +1003,32 @@
 
                                             <FluentValidationMessage For="@(() => bill.BusinessPartner.VatId)" class="validation-error" />
                                         </td>
-                                    <td colspan="2">
-                                        <div style="display: flex; align-items: start; justify-content: center; gap: 10px; width: 100%;">
+                                        <td colspan="2">
+                                            <div style="display: flex; align-items: start; justify-content: center; gap: 10px; width: 100%;">
 
-                                            <!-- Parking Label & Switch -->
-                                            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 80px; min-height: 50px; gap: 15px; flex-grow: 1;">
-                                                <FluentLabel>Parking</FluentLabel>
-                                                <FluentSwitch Disabled="@IsControlBillEditDisabled()"
-                                                              @bind-Value="@bill.isParking" />
-                                            </div>
+                                                <!-- Parking Label & Switch -->
+                                                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 80px; min-height: 50px; gap: 15px; flex-grow: 1;">
+                                                    <FluentLabel>Parking</FluentLabel>
+                                                    <FluentSwitch Disabled="@IsControlBillEditDisabled()"
+                                                    @bind-Value="@bill.isParking" />
+                                                </div>
 
                                                 @if (bill.isParking)
                                                 {
-                                                <!-- Kwota Label & Number Field -->
-                                                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 80px; min-height: 50px; gap: 10px; flex-grow: 1;">
-                                                    <FluentLabel>Kwota:</FluentLabel>
-                                                    <FluentNumberField @bind-Value="@bill.ParkingAmount"
-                                                                       Style="width: 80px;" />
-                                                </div>
+                                                    <!-- Kwota Label & Number Field -->
+                                                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 80px; min-height: 50px; gap: 10px; flex-grow: 1;">
+                                                        <FluentLabel>Kwota:</FluentLabel>
+                                                        <FluentNumberField @bind-Value="@bill.ParkingAmount"
+                                                        Style="width: 80px;" />
+                                                    </div>
                                                 }
 
-                                        </div>
+                                            </div>
 
-                                        <FluentValidationMessage For="@(() => bill.ParkingAmount)" class="validation-error" />
-                                    </td>
+                                            <FluentValidationMessage For="@(() => bill.ParkingAmount)" class="validation-error" />
+                                        </td>
 
-                                        
+
                                         <td >
                                             <FluentLabel>Numer faktury: </FluentLabel>
                                             <FluentTextField Disabled="@(IsControlBillInvoiceNumberEditDisabled())"
@@ -1968,6 +1968,7 @@
         // foreach(var stage in formItem.Stages){
         //     stage.TimeSpanOK = stage.EndDate < stage.StartDate;
         // }
+        formItem.SaveOnly = false;
         formItem.MileageRegister.PrivateCarRegistration = formItem.MileageRegister.PrivateCarRegistration?.Trim();
         if(formItem.Status == "Rejestracja"){
             if (_editContext.Validate())
@@ -2015,30 +2016,28 @@
             }
         }
 
-
-
     }
-    private async Task SendFormRoz()
-    {
-        //SENDFORMROZ jest tylko na Rozliczenie bo Update!
-        //sprawdzić czy to potrzebne
-        formItem.MileageRegister.PrivateCarRegistration = formItem.MileageRegister.PrivateCarRegistration?.Trim();
+    // private async Task SendFormRoz()
+    // {
+    //     //SENDFORMROZ jest tylko na Rozliczenie bo Update!
+    //     //sprawdzić czy to potrzebne
+    //     formItem.MileageRegister.PrivateCarRegistration = formItem.MileageRegister.PrivateCarRegistration?.Trim();
 
 
-        if(_editContext.Validate()){
-            isLoading = true;
-            showForm = false;
-            formItem.Approvals.Add(approvalInfo);
-            formItem.Status = GetNextStatus(formItem);
-            var updatedForm = await _mediator.Send(new UpdateBusinessTripCommand(formItem));
-            var saveResult = await _mediator.Send(new GetBusinessTripByIdQuery(updatedForm.Id));
-            var message = $"Formularz został wysłany do {saveResult.LVL1_EmployeeName} w celu zatwierdzenia.";
-            var intent = ToastIntent.Success;
-            _toastService.ShowToast(intent, message, 3000);
-            _navigationManager.NavigateTo($"/delegacje/{_srcPage}");
-        }
+    //     if(_editContext.Validate()){
+    //         isLoading = true;
+    //         showForm = false;
+    //         formItem.Approvals.Add(approvalInfo);
+    //         formItem.Status = GetNextStatus(formItem);
+    //         var updatedForm = await _mediator.Send(new UpdateBusinessTripCommand(formItem));
+    //         var saveResult = await _mediator.Send(new GetBusinessTripByIdQuery(updatedForm.Id));
+    //         var message = $"Formularz został wysłany do {saveResult.LVL1_EmployeeName} w celu zatwierdzenia.";
+    //         var intent = ToastIntent.Success;
+    //         _toastService.ShowToast(intent, message, 3000);
+    //         _navigationManager.NavigateTo($"/delegacje/{_srcPage}");
+    //     }
 
-    }
+    // }
     private async Task SaveForm()
     {
         //SENDFORMROZ jest tylko na Rozliczenie bo Update!
@@ -2135,8 +2134,6 @@
     }
     private async Task ApproveForm()
     {
-
-
         if(_editContext.Validate()){
             if(stroz){
                 await SaveBillFiles();
