@@ -114,7 +114,7 @@
                 </div>
             </FluentGridItem>
             @* Roles *@
-            <FluentGridItem xs="6" sm="4">
+            <FluentGridItem xs="12" sm="8">
                 @* ZASTĄPIĆ TO SWOIM KOMPONENTEM *@
                 
                 <div class="card">
@@ -129,6 +129,27 @@
                                   @bind-SelectedOptions="@selectedRoles" /> *@
                 </div>
                 
+            </FluentGridItem>
+            <p></p>
+            <FluentGridItem xs="6" sm="4">
+                <div class="card">
+
+                    <FluentTextField Id="PersonalDeptNumberId" @bind-Value="@Content.PersonalDeptNumber"
+                                     
+                                     Placeholder="Enter Personal DeptNumber"> Personal DeptNumber: </FluentTextField>
+                    <FluentValidationMessage For="@(() => Content.PersonalDeptNumber)" />
+                </div>
+            </FluentGridItem>
+            <FluentGridItem xs="6" sm="4">
+                </FluentGridItem>
+            <FluentGridItem xs="6" sm="4">
+                <div class="card">
+
+                    <FluentTextField Id="DeptNumberId" @bind-Value="@Content.DeptNumber"
+                                     
+                                     Placeholder="Enter DeptNumber"> DeptNumber: </FluentTextField>
+                    <FluentValidationMessage For="@(() => Content.DeptNumber)" />
+                </div>
             </FluentGridItem>
         </FluentGrid>
 
