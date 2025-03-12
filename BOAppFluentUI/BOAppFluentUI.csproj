@@ -9,21 +9,25 @@
 
   <ItemGroup>
 	<Compile Remove="Areas\**" />
+	<Compile Remove="Components\Pages\App\**" />
 	<Compile Remove="Components\Pages\ITWarehouse\**" />
 	<Compile Remove="Controllers\**" />
 	<Compile Remove="Pages\**" />
 	<Compile Remove="Shared\**" />
 	<Content Remove="Areas\**" />
+	<Content Remove="Components\Pages\App\**" />
 	<Content Remove="Components\Pages\ITWarehouse\**" />
 	<Content Remove="Controllers\**" />
 	<Content Remove="Pages\**" />
 	<Content Remove="Shared\**" />
 	<EmbeddedResource Remove="Areas\**" />
+	<EmbeddedResource Remove="Components\Pages\App\**" />
 	<EmbeddedResource Remove="Components\Pages\ITWarehouse\**" />
 	<EmbeddedResource Remove="Controllers\**" />
 	<EmbeddedResource Remove="Pages\**" />
 	<EmbeddedResource Remove="Shared\**" />
 	<None Remove="Areas\**" />
+	<None Remove="Components\Pages\App\**" />
 	<None Remove="Components\Pages\ITWarehouse\**" />
 	<None Remove="Controllers\**" />
 	<None Remove="Pages\**" />

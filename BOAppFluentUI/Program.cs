@@ -63,7 +63,8 @@ public class Program
         // app.Services.GetRequiredService<CircuitHandler>();
         app.UseRouting();
         app.UseAuthentication(); // Ensure this is called before UseAuthorization
-        app.UseAuthorization();  // Add this line
+        app.UseAuthorization();  
+
         app.UseAntiforgery();
         //app.MapRazorPages();
         //app.MapControllers();

@@ -81,28 +81,32 @@ public static class DiPersistance
             options.CallbackPath = "/authentication/login-callback";
             options.Events = new OpenIdConnectEvents
             {
+
+
                 OnTokenValidated = async context =>
                 {
-                    //var tokenValidatedHandler = context.HttpContext
-                    //.RequestServices
-                    //.GetRequiredService<ITokenValidatedHandlerService>();
+                    Console.WriteLine("OnTokenValidated event triggered.");
+                    Console.WriteLine("OnTokenValidated event triggered.");
+                    var tokenValidatedHandler = context.HttpContext
+                    .RequestServices
+                    .GetRequiredService<ITokenValidatedHandlerService>();
 
-                    //await tokenValidatedHandler.HandleTokenValidation(context);
+                    await tokenValidatedHandler.HandleTokenValidation(context);
 
 
-                    try
-                    {
-                        var tokenValidatedHandler = context.HttpContext
-                            .RequestServices
-                            .GetRequiredService<ITokenValidatedHandlerService>();
+                    //try
+                    //{
+                    //    var tokenValidatedHandler = context.HttpContext
+                    //        .RequestServices
+                    //        .GetRequiredService<ITokenValidatedHandlerService>();
 
-                        await tokenValidatedHandler.HandleTokenValidation(context);
-                        Console.WriteLine("Token validation handled successfully.");
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine($"Error during token validation: {ex.Message}");
-                    }
+                    //    await tokenValidatedHandler.HandleTokenValidation(context);
+                    //    Console.WriteLine("Token validation handled successfully.");
+                    //}
+                    //catch (Exception ex)
+                    //{
+                    //    Console.WriteLine($"Error during token validation: {ex.Message}");
+                    //}
 
 
 
@@ -126,7 +130,10 @@ public static class DiPersistance
 
             options.AddPolicy("Settlements", policy => policy
             .RequireRole("Settlement", "Technician", "Administrator", "AppAdmin"));
+            
             options.AddPolicy("ManagerSettlement", policy => policy.RequireRole("Manager", "Technician", "Administrator", "AppAdmin"));
+            options.AddPolicy("Cashier", policy => policy
+            .RequireRole("Cashier", "Technician", "Administrator", "AppAdmin"));
 
             options.AddPolicy("User", policy => policy
             .RequireRole("User", "Accountant", "AccountantTL", "Settlement", "Manager", "Technician", "Administrator", "AppAdmin"));

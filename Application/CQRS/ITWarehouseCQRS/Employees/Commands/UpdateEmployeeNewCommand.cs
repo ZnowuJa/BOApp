@@ -39,6 +39,7 @@ public class UpdateEmployeeNewCommandHandler : IRequestHandler<UpdateEmployeeNew
         item.MobileNumber = request.EmployeeVm.MobileNumber;
         item.PhoneNumber = request.EmployeeVm.PhoneNumber;
         item.ManagerId = request.EmployeeVm.ManagerId;
+        item.SapNumber = request.EmployeeVm.SapNumber;
         item.DeptNumber = request.EmployeeVm.DeptNumber;
         item.PersonalDeptNumber = request.EmployeeVm.PersonalDeptNumber;
 
