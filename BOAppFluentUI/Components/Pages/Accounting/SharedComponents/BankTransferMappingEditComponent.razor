@@ -20,13 +20,13 @@
             <tr >
                 <td>
                     <FluentDatePicker  Disabled="@DisabledPostingDate"
-                        @bind-Value="@BTItem.PostingDate" 
-                        Style="width: 200px;" />
+                    @bind-Value="@BTItem.PostingDate" 
+                    Style="width: 200px;" />
                 </td>
                 <td>
                     <FluentDatePicker  Disabled = "@DisabledCurrencyExchangeDate"
-                        @bind-Value="@BTItem.CurrencyExchangeDate"
-                        Style="width: 200px;"
+                    @bind-Value="@BTItem.CurrencyExchangeDate"
+                    Style="width: 200px;"
                     />
 
                 </td>
@@ -170,9 +170,10 @@
             _accountant = true;
             BTItem.AccountantEmpId = int.Parse(UserContext.EnovaEmpId);
             BTItem.AccountantName = UserContext.LongName;
+            BTItem.AccountantEmail = UserContext.Employee.Email;
             BTItem.AccountantTime = DateTime.Now;
             _accountantTime = BTItem.AccountantTime.HasValue ? BTItem.AccountantTime.Value.ToString() : string.Empty;
-
+            _selectedGlAccount = new[] { GLAccounts.Where(g => g.AccountNumber == "24000").First() };
             DisabledPostingDate = true;
             DisabledCurrencyExchangeDate = true;
         }
@@ -182,6 +183,7 @@
             _accountantTL = true;
             BTItem.AccountantTLEmpId = int.Parse(UserContext.EnovaEmpId);
             BTItem.AccountantTLName = UserContext.LongName;
+            BTItem.AccountantTLEmail = UserContext.Employee.Email;
             BTItem.AccountantTLTime = DateTime.Now;
             _accountantTLTime = BTItem.AccountantTLTime.HasValue ? BTItem.AccountantTLTime.Value.ToString() : string.Empty;
 

@@ -21,10 +21,12 @@ namespace Application.ViewModels.Accounting
         public string BankTrasferTitle { get; set; } = string.Empty;
         public int AccountantEmpId { get; set; } = 0;
         public string AccountantName { get; set; } = string.Empty;
+        public string AccountantEmail { get; set; } = string.Empty;
         public int AccountantTLEmpId { get; set; } = 0;
         public string AccountantTLName { get; set; } = string.Empty;
+        public string AccountantTLEmail { get; set; } = string.Empty;
         public DateTime? AccountantTime { get; set; } 
-        public DateTime? AccountantTLTime { get; set; }
+        public DateTime? AccountantTLTime { get; set; } 
         public CostCenterVm CostCenter { get; set; } = new();
         public GLAccountVm GLAccount { get; set; } = new();
         public bool BusinessTravel { get; set; } = false; //wyłącza pola jeśli true (np. datawaluta)
