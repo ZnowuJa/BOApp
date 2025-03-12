@@ -45,12 +45,12 @@ namespace Application.CQRS.AccountingCQRS.BusinessTravels.Commands
             string rcptEmail = manager.Email;
             string rcptName = manager.LongName;
             string custName = request.Item.Destination;
-            string frmNumber = request.Item.Number;
+            string frmNumber = item.Number;
             string reason = request.Item.Objective;
-            string id = request.Item.Id.ToString();
+            string id = item.Id.ToString();
             if (!request.Item.SaveOnly)
             {
-                //await SendEmail(senderName, rcptEmail, rcptName, custName, frmNumber, reason, id);
+                await SendEmail(senderName, rcptEmail, rcptName, custName, frmNumber, reason, id);
             }
 
             #endregion
@@ -76,8 +76,9 @@ namespace Application.CQRS.AccountingCQRS.BusinessTravels.Commands
                     <p>Miasto: <b>{custName}</b></p>
                 </div>
                 <div>
-                    <p>Kliknij w link, aby przejść do wniosku: <a href=""{_baseUrl}/platnoscodroczona/{id}?srcPage=kierownik"">Przejdź do wniosku</a></p>
-                    <p>Przejdź do listy wniosków: <a href=""{_baseUrl}/platnosciodroczone/kierownik"">Lista wniosków</a></p>
+
+                    <p>Kliknij w link, aby przejść do wniosku: <a href=""{_baseUrl}/delegacja/{id}?srcPage=kierownik"">Przejdź do wniosku</a></p>
+                    <p>Przejdź do listy wniosków: <a href=""{_baseUrl}/delegacje/kierownik"">Lista wniosków</a></p>
                 </div>
                 <div>
                     <p>Pozdrawiamy!</p>
@@ -103,7 +104,8 @@ namespace Application.CQRS.AccountingCQRS.BusinessTravels.Commands
                     {
                         EmailAddress = new EmailAddress
                         {
-                            Address = rcptEmail
+                            //Address = rcptEmail
+                            Address = "marcin.jarco@porscheinterauto.pl"
                         }
                     }
                 }

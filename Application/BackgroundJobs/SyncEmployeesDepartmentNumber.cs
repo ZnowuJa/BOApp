@@ -1,4 +1,5 @@
-﻿using Application.CQRS.ITWarehouseCQRS.Employees.Queries;
+﻿using Application.CQRS.ITWarehouseCQRS.Employees.Commands;
+using Application.CQRS.ITWarehouseCQRS.Employees.Queries;
 using Application.Interfaces;
 
 using MediatR;
@@ -95,6 +96,8 @@ public class SyncEmployeesDepartmentNumber : IJob
                 }
                 
             }
+
+            await _mediator.Send(new UpdateEmployeeNewCommand(emp));
 
         }
         errorList.Add($"Managerów: {isManager}");
