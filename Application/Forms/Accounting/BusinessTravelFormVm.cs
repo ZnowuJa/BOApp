@@ -83,7 +83,7 @@ public class BusinessTravelFormVm : IMapFrom<BusinessTravelForm>, IFormAccountin
         public List<OrganisationRoleForFormVm> Level5Approvers { get; set; } = new(); // drugi przełożony etapy: AprobataL12
         public List<OrganisationRoleForFormVm> Level6Approvers { get; set; } = new(); // Na razie nie wykorzystywany
     
-         public string LVL1_EnovaEmpId { get; set; } = string.Empty;
+        public string LVL1_EnovaEmpId { get; set; } = string.Empty;
         public string LVL1_EmployeeName { get; set; } = string.Empty; // manager of user
         public string LVL2_EnovaEmpId { get; set; } = string.Empty;
         public string LVL2_EmployeeName { get; set; } = string.Empty; // some kind of Director

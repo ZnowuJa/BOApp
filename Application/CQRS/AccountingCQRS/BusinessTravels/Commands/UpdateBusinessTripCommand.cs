@@ -150,7 +150,7 @@ namespace Application.CQRS.AccountingCQRS.BusinessTravels.Commands
                 }
 
 
-                await SendEmail(senderName, rcptEmail, rcptName, custName, frmNumber, reason, id, status, userEmail, rejectReason, environment);
+                //await SendEmail(senderName, rcptEmail, rcptName, custName, frmNumber, reason, id, status, userEmail, rejectReason, environment);
             }
 
             
