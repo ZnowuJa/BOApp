@@ -198,7 +198,7 @@
                         <thead>
                             <tr class="table-caption">
                                 <th>
-                                    Wybierz MPK X
+                                    Wybierz MPK  <FluentIcon Id="SelectMPKId" Value="@(new Icons.Regular.Size16.Info())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" />
                                 </th>
                             </tr>
                             <tr class="table-header-left table-caption">
@@ -232,6 +232,7 @@
                     </table>
                     <FluentValidationMessage For="@(() => formItem.FormCostCenters)" class="validation-error" />
                     <FluentButton Id="addSapCC" IconEnd="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddSapCostCenter())" Style="margin-bottom: 20px;" />
+                    <FluentTooltip Anchor="SelectMPKId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50> Sprawdź poprawność przypisania kosztów delegacji. Jeśli konieczny jest podział między kilka działów/oddziałów, dodaj kolejny zapis używając przycisku '+'. Pamiętaj również o odpowiednim rozdzieleniu procentowym..</FluentTooltip>
 
                     @* SAP COST CENTERS*@
 
@@ -305,7 +306,9 @@
                                     @bind-Value="@formItem.Transportation"
                                     @bind-Value:after="HandleConveyanceStringChange"
                                     Width="200px" />
+                                    <FluentIcon Id="SelectTransportationID" Value="@(new Icons.Regular.Size16.Info())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" />
                                     <FluentValidationMessage For="@(() => formItem.Transportation)" class="validation-error" />
+
                                 </td>
                                 @if (IsCompanyCar)
                                 {
@@ -342,6 +345,8 @@
                                         Disabled="@IsControlTransportDisabled()"
                                         @bind-Value:get="@formItem.PublicTransportPaid"
                                         @bind-Value:set="@HandlePublicTransportPaidChanged" />
+                                        <FluentIcon Id="TransportPaidByCompanyId" Value="@(new Icons.Regular.Size16.Info())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" />
+                                        <FluentTooltip Anchor="TransportPaidByCompanyId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50> Oznacz to pole, jeśli płatność za transport została zrealizowana przez WecoTravels.</FluentTooltip>
                                     </td>
                                 }
                             </tr>
@@ -370,6 +375,10 @@
                                         @bind-Value:get="@formItem.MileageRegister.PrivateCarEngineSize"
                                         SelectedOptionChanged="@(value => HandlePrivateVehicleEngineSizeChanged(value))"
                                         Width="150px" />
+                                        <FluentIcon Id="PrivateVehEngineSizeId" Value="@(new Icons.Regular.Size16.Info())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" />
+                                        <FluentTooltip Anchor="PrivateVehEngineSizeId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50> Proszę wskazać pojemność silnika samochodu prywarnego. Informacja ta jest niezbędna do prawidłowego rozliczenia kosztów użytkowania pojazdu.</FluentTooltip>
+
+
                                         <FluentValidationMessage For="@(() => formItem.MileageRegister.PrivateCarEngineSize)" />
                                     </td>
                                     <td class="table-caption" style="width: 150px">
@@ -381,13 +390,15 @@
                                             @bind-Value:get="@formItem.PrivateVehicleMilage"
                                             @bind-Value:set="@(value => HandlePrivateVehicleMileageChanged(value))"
                                             Style="width: 100px; margin-right: 4px;" /> km
+                                            <FluentIcon Id="PrivateVehDistanceId" Value="@(new Icons.Regular.Size16.Info())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" />
+                                            <FluentTooltip Anchor="PrivateVehDistanceId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50> Proszę wprowadzić planowany przebieg podróży. Informacja ta jest istotna do oszacowania kosztów podróży. Ostateczny przebieg należy uzupełnić podczas rozliczenia delegacji. </FluentTooltip>
                                         </span>
                                     </td>
                                 </tr>
                             }
                         </tbody>
                     </table>
-
+                    <FluentTooltip Anchor="SelectTransportationID" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50> Wybierz odpowiedni środek transportu dla swojej delegacji. Upewnij się, że wybrany środek transportu jest zgodny z polityką firmy.</FluentTooltip>
                     @* Advance Payment *@
 
                     <table class="table-container">
@@ -400,6 +411,8 @@
                                     <FluentSwitch Disabled="@IsControlAdvancePaymentDisabled()"
                                     @bind-Value:get="@formItem.AdvancePayment"
                                     @bind-Value:set="@(value =>HandleAdvancePaymentSwitch(value))" />
+                                    <FluentIcon Id="AdvPmntToolTipId" Value="@(new Icons.Regular.Size16.Info())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" />
+                                    <FluentTooltip Anchor="AdvPmntToolTipId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50> Oznacz to pole, jeśli potrzebujesz zaliczki na pokrycie kosztów podróży służbowej.</FluentTooltip>
                                 </td>
                                 @if (formItem.AdvancePayment)
                                 {
@@ -572,22 +585,33 @@
                             <thead>
                                 <tr class="table-caption">
                                     <th style="text-align: left; border-right: none; font-size: large;" colspan="6">
-                                        Etapy podróży słuzbowej <FluentIcon Id="StagesInfoId" Value="@(new Icons.Regular.Size16.Info())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" />
+                                        Etapy podróży słuzbowej 
+                                        <FluentIcon Id="StagesInfoId" Value="@(new Icons.Regular.Size16.Info())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" />
+                                        <FluentTooltip Anchor="StagesInfoId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50> Wprowadź szczegółowe informacje dotyczące poszczególnych etapów podróży. Formularz dynamicznie uzupełnia godzinę i datę kolejnego etapu.</FluentTooltip>
+                                        
                                     </th>
                                     <th style="text-align: right; border-left: none; font-size: large;" colspan="1">
                                         <FluentIcon Id="StagesInfoPictureId" Value="@(new Icons.Regular.Size24.Steps())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" />
+                                       
                                     </th>
                                 </tr>
                                 <tr class="table-header-left">
                                     <th>Lp.</th>
                                     <th>Kraj: </th>
-                                    <th>Od: </th>
-                                    <th>Do: </th>
-                                    <th>Diet: </th>
+                                    <th>Od:
+                                        <FluentIcon Id="StageFromID" Value="@(new Icons.Regular.Size16.Info())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" />
+                                        <FluentTooltip Anchor="StageFromID" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50>Uzupełnij dokładną datę i godzinę rozpoczęcia każdego etapu podróży. W przypadku podróży samolotem podaj godzinę wylotu.</FluentTooltip>
+                                    </th>
+                                    <th>Do: 
+                                        <FluentIcon Id="StageToID" Value="@(new Icons.Regular.Size16.Info())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" />
+                                        <FluentTooltip Anchor="StageToID" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50>Uzupełnij dokładną datę i godzinę zakończenia każdego etapu podróży. W przypadku podróży samolotem podaj godzinę przylotu.</FluentTooltip>
+                                    </th>
+                                    <th>Liczba diet: </th>
                                     <th>TimeSpan: </th>
                                     <th>
                                         Razem:
                                         <FluentIcon Id="AccomodationRateId" Value="@(new Icons.Regular.Size16.Info())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" />
+                                        <FluentTooltip Anchor="AccomodationRateId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50> Wysokość diety za etap podróży służbowej. Kwota diety zależy od kraju docelowego i jest określona w odpowiednich przepisach..</FluentTooltip>
 
                                     </th>
                                 </tr>
@@ -637,8 +661,7 @@
                                 }
                             </tbody>
                         </table>
-                        <FluentTooltip Anchor="StagesInfoId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50> Informacja o etapach podróży.</FluentTooltip>
-                        <FluentTooltip Anchor="AccomodationRateId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50> Dieta nalezna za etap podróży.</FluentTooltip>
+                       
                         @* @if (!string.IsNullOrEmpty(StagesDatesErrorMessage))
                     {
                         foreach (var error in StagesDatesErrorMessages)
@@ -660,7 +683,8 @@
                             <thead>
                                 <tr class="table-caption">
                                     <th style="text-align: left; border-right: none; font-size: large;" colspan="6">
-                                        Noclegi: <FluentIcon Id="AccId" Value="@(new Icons.Regular.Size16.Info())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" /> 
+                                        Noclegi: <FluentIcon Id="AccId" Value="@(new Icons.Regular.Size16.Info())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" />
+                                        <FluentTooltip Anchor="AccId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50>Informacja o noclegach </FluentTooltip>
                                     </th>
                                     <th style="text-align: right; border-left: none; font-size: large;" colspan="1">
                                         <FluentIcon Id="AccPictureId" 
@@ -672,11 +696,18 @@
                                     <th>Etap</th>
                                     <th>Państwo</th>
                                     <th>Noclegi</th>
-                                    <th>Faktura <FluentIcon Id="AccInvId" Value="@(new Icons.Regular.Size16.Info())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" /></th>
+                                    <th>Faktura 
+                                        <FluentIcon Id="AccInvId" Value="@(new Icons.Regular.Size16.Info())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" />
+                                        <FluentTooltip Anchor="AccInvId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right MaxWidth="250px" Delay=50>Zaznacz, jeśli noclegi były opłacone przez PIA lub jeśli noclegi opłacono ze swoich środków. Fakturę za noclegi opłacone ze swoich środków dodaj w sekcji 'Pozostałe faktury i bilety'. Odznacz jako niekatywne, jeśli nie korzystałeś z noclegu zapewnionego przez PIA oraz gdy nie masz rachunku ani faktury potwierdzającej pobyt – należy Ci się ryczałt. </FluentTooltip>
+                                    </th>
                                     <th>Ryczałt <FluentIcon Id="AccMaxRateId" Value="@(new Icons.Regular.Size16.Info())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" /></th>
+                                    <FluentTooltip Anchor="AccMaxRateId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right MaxWidth="250px" Delay=50> Wartość ryczałtu za nocleg – ryczałt należny, jeśli pracodawca nie zapewnia noclegu.</FluentTooltip>
                                     @* <th>Maks. stawka <FluentIcon Id="AccMaxCostId" Value="@(new Icons.Regular.Size16.Info())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" /></th> *@
                                     <th>Waluta</th>
-                                    <th>Razem <FluentIcon Id="AccTotalRateId" Value="@(new Icons.Regular.Size16.Info())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" /></th>
+                                    <th>Razem 
+                                        <FluentIcon Id="AccTotalRateId" Value="@(new Icons.Regular.Size16.Info())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" />
+                                        <FluentTooltip Anchor="AccTotalRateId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Left MaxWidth="250px" Delay=50> Ryczałt za nocleg do wypłaty dla pracownika</FluentTooltip>
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -722,12 +753,7 @@
 
                                 }
                             </tbody>
-                        </table>
-                        <FluentTooltip Anchor="AccId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50>Informacja o noclegach </FluentTooltip>
-                        <FluentTooltip Anchor="AccInvId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right MaxWidth="250px" Delay=50>Zaznacz, jeśli noclegi były opłacone przez PIA lub noclegi opłacono ze swoich środków. Fakturę za noclegi opłacone ze swoich środków dodaj w sekcji „Pozostałe faktury i bilety” </FluentTooltip>
-                        <FluentTooltip Anchor="AccMaxRateId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right MaxWidth="250px" Delay=50> Wartość ryczałtu za nocleg – ryczałt należny, jeśli pracodawca nie zapewnia noclegu.</FluentTooltip>
-                        <FluentTooltip Anchor="AccMaxCostId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50> Maksymalna stawka za Hotel.</FluentTooltip>
-                        <FluentTooltip Anchor="AccTotalRateId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Left MaxWidth="250px" Delay=50> Ryczałt za nocleg do wypłaty dla pracownika lub zwrot poniesionych kosztów.</FluentTooltip>
+                        </table>                        
 
                     }
                     @if (ShowMeals)
@@ -851,6 +877,7 @@
                                         <FluentIcon Id="BillsInfoId"
                                         Value="@(new Icons.Regular.Size16.Info())"
                                         Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" />
+                                        <FluentTooltip Anchor="BillsInfoId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50>Wprowadź informacje dotyczące zwrotu innych udokumentowanych i uzasadnionych wydatków, takich jak samodzielnie opłacone noclegi, bilety komunikacji miejskiej oraz posiłki. Upewnij się, że wszystkie wydatki są poparte odpowiednimi rachunkami lub fakturami, które należy dołączyć.</FluentTooltip>
                                     </th>
                                     <th style="text-align: right; border-left: none; font-size: large;" colspan="1">
                                         <FluentIcon Id="BillsInfoPictureId"
@@ -862,9 +889,21 @@
                                     <th style="width: 50px;">Lp.</th>
                                     <th style="width: 120px;">Kwota brutto</th>
                                     <th style="width: 120px;">Waluta</th>
-                                    <th style="width: 120px;">Uzasadnienie</th>
-                                    <th style="width: 80px;">Faktura</th>
-                                    <th>Załącznik</th>
+                                    <th style="width: 120px;">Rodzaj kosztu</th>
+                                    <th style="width: 80px;">Faktura
+                                        <FluentIcon Id="InvoiceInfoId"
+                                                    Value="@(new Icons.Regular.Size16.Info())"
+                                                    Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" />
+                                        <FluentTooltip Anchor="InvoiceInfoId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Left Delay=50>Zaznacz, jeśli faktura za nocleg jest na PIA (dodatkowo należy uzupełnić wystawcę faktury, nr NIP, nr faktury i datę wystawienia). Odznacz jako nieaktywne, jeśli faktura jest imienna.</FluentTooltip>
+
+                                    </th>
+                                    <th>Załącznik
+
+                                        <FluentIcon Id="AttachmentId"
+                                                    Value="@(new Icons.Regular.Size16.Info())"
+                                                    Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" />
+                                        <FluentTooltip Anchor="AttachmentId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Left Delay=50>Dołącz skan faktury za dokonane wydatki. W przypadku płatności kartą (płatność w walucie) dołącz dodatkowo potwierdzenie płatności z banku, a kwotę brutto podaj w PLN.</FluentTooltip>
+                                    </th>
                                     <th style="width: 160px;">Akcje</th>
                                 </tr>
                             </thead>
