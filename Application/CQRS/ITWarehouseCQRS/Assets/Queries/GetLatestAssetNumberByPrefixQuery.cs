@@ -19,6 +19,7 @@ public class GetLatestAssetNumberByPrefixHandler(IAppDbContext appDbContext) : I
     public async Task<string> Handle(GetLatestAssetNumberByPrefixQuery request, CancellationToken cancellationToken)
     {
         string prefix = request._prefix;
+        prefix = prefix + '0';
         var assetTagNumbers = await _appDbContext.Assets
             .Where(asset => asset.AssetTagNumber.StartsWith(prefix))
             .Select(asset => asset.AssetTagNumber)
