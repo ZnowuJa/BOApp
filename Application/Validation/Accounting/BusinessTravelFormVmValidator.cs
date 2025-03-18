@@ -117,7 +117,7 @@ public class BusinessTravelFormVmValidator : AbstractValidator<BusinessTravelFor
         });
         When(form => form.Status == "Rozliczenie", () =>
         {
-            RuleFor(s => s.FormCostCenter.MPK).NotEmpty().WithMessage("Wybierz MPK w sekcji Rozliczenie!");
+            //RuleFor(s => s.FormCostCenter.MPK).NotEmpty().WithMessage("Wybierz MPK w sekcji Rozliczenie!");
             RuleForEach(s => s.Stages).SetValidator(new StageValidator());
             RuleFor(s => s.FormCostCenters.Count()).GreaterThan(0).WithMessage("Wybierz MPK!");
         });
