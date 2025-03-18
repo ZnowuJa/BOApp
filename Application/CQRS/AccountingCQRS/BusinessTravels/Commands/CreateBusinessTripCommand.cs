@@ -48,9 +48,14 @@ namespace Application.CQRS.AccountingCQRS.BusinessTravels.Commands
             string frmNumber = item.Number;
             string reason = request.Item.Objective;
             string id = item.Id.ToString();
-            if (!request.Item.SaveOnly)
+            bool sendMail = _configuration.GetValue<bool>("SendEmail:BusinessTravel");
+
+            if (!request.Item.SaveOnly && sendMail)
             {
-                await SendEmail(senderName, rcptEmail, rcptName, custName, frmNumber, reason, id);
+                if (_configuration.GetValue<bool>("SendEmail:BusinessTravel"))
+                {
+                    await SendEmail(senderName, rcptEmail, rcptName, custName, frmNumber, reason, id);
+                }
             }
 
             #endregion
@@ -104,8 +109,8 @@ namespace Application.CQRS.AccountingCQRS.BusinessTravels.Commands
                     {
                         EmailAddress = new EmailAddress
                         {
-                            //Address = rcptEmail
-                            Address = "marcin.jarco@porscheinterauto.pl"
+                            Address = rcptEmail
+                            //Address = "marcin.jarco@porscheinterauto.pl"
                         }
                     }
                 }
