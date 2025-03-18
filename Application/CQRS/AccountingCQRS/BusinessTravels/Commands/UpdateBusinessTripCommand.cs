@@ -70,7 +70,9 @@ namespace Application.CQRS.AccountingCQRS.BusinessTravels.Commands
                 throw;
             }
 
-            if(!request.Item.SaveOnly)
+            bool sendMail = _configuration.GetValue<bool>("SendEmail:BusinessTravel");
+
+            if (!request.Item.SaveOnly && sendMail)
             {
                 //SET RECIPIENTS
                 if (status == "AprobataL1")
@@ -149,8 +151,10 @@ namespace Application.CQRS.AccountingCQRS.BusinessTravels.Commands
                     rcptEmail = employee.Email;
                 }
 
-
-                //await SendEmail(senderName, rcptEmail, rcptName, custName, frmNumber, reason, id, status, userEmail, rejectReason, environment);
+                
+                    await SendEmail(senderName, rcptEmail, rcptName, custName, frmNumber, reason, id, status, userEmail, rejectReason, environment);
+               
+                    
             }
 
             
