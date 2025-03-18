@@ -336,7 +336,7 @@
                         </tbody>
                     </table>
                     <FluentTooltip Anchor="SelectTransportationID" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50> Wybierz odpowiedni środek transportu dla swojej delegacji. Upewnij się, że wybrany środek transportu jest zgodny z polityką firmy.</FluentTooltip>
-                    
+
                     @* Advance Payment *@
 
                     <table class="table-container">
@@ -515,11 +515,11 @@
                                         Etapy podróży słuzbowej 
                                         <FluentIcon Id="StagesInfoId" Value="@(new Icons.Regular.Size16.Info())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" />
                                         <FluentTooltip Anchor="StagesInfoId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50> Wprowadź szczegółowe informacje dotyczące poszczególnych etapów podróży. Formularz dynamicznie uzupełnia godzinę i datę kolejnego etapu.</FluentTooltip>
-                                        
+
                                     </th>
                                     <th style="text-align: right; border-left: none; font-size: large;" colspan="1">
                                         <FluentIcon Id="StagesInfoPictureId" Value="@(new Icons.Regular.Size24.Steps())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" />
-                                       
+
                                     </th>
                                 </tr>
                                 <tr class="table-header-left">
@@ -588,7 +588,7 @@
                                 }
                             </tbody>
                         </table>
-                       
+
                     }
                     @if (ShowAccomodations)
                     {
@@ -791,16 +791,16 @@
                                     <th style="width: 120px;">Rodzaj kosztu</th>
                                     <th style="width: 80px;">Faktura
                                         <FluentIcon Id="InvoiceInfoId"
-                                                    Value="@(new Icons.Regular.Size16.Info())"
-                                                    Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" />
+                                        Value="@(new Icons.Regular.Size16.Info())"
+                                        Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" />
                                         <FluentTooltip Anchor="InvoiceInfoId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Left Delay=50>Zaznacz, jeśli faktura za nocleg jest na PIA (dodatkowo należy uzupełnić wystawcę faktury, nr NIP, nr faktury i datę wystawienia). Odznacz jako nieaktywne, jeśli faktura jest imienna.</FluentTooltip>
 
                                     </th>
                                     <th>Załącznik
 
                                         <FluentIcon Id="AttachmentId"
-                                                    Value="@(new Icons.Regular.Size16.Info())"
-                                                    Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" />
+                                        Value="@(new Icons.Regular.Size16.Info())"
+                                        Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" />
                                         <FluentTooltip Anchor="AttachmentId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Left Delay=50>Dołącz skan faktury za dokonane wydatki. W przypadku płatności kartą (płatność w walucie) dołącz dodatkowo potwierdzenie płatności z banku, a kwotę brutto podaj w PLN.</FluentTooltip>
                                     </th>
                                     <th style="width: 160px;">Akcje</th>
@@ -2279,7 +2279,7 @@
     }
     // private async Task HandleBillParkingChange(Bill bill)
     // {
-           
+
     // }
     private async Task HandleBillChanged(Bill bill, decimal v)
     {
@@ -2316,30 +2316,30 @@
     //                 Console.WriteLine($"Updated value of {p}: {newValue}");
     //             }
     //         }
-            // if(int.Parse(property.GetValue(meal)) != meal.CoveredBreakfasts){
-            //     meal.CoveredBreakfasts = newValue;
-            // }
+    // if(int.Parse(property.GetValue(meal)) != meal.CoveredBreakfasts){
+    //     meal.CoveredBreakfasts = newValue;
+    // }
 
-            // Additional logic if needed
-        // }
-        // if (m.CoveredBreakfasts != v)
-        // {
-        //     m.CoveredBreakfasts = v;
-        //     // RecalculateMeals();
-        // }
-        // m.CoveredBreakfasts = v;
-        // if(m.CountryCode == "PL"){
-        //     m.Total -= m.CoveredBreakfasts
-        // }
+    // Additional logic if needed
+    // }
+    // if (m.CoveredBreakfasts != v)
+    // {
+    //     m.CoveredBreakfasts = v;
+    //     // RecalculateMeals();
+    // }
+    // m.CoveredBreakfasts = v;
+    // if(m.CountryCode == "PL"){
+    //     m.Total -= m.CoveredBreakfasts
+    // }
 
 
-        // var property = m.GetType().GetProperty(p);
-        // if (property != null && property.CanWrite)
-        // {
-        //     property.SetValue(m, v);
-        // }
+    // var property = m.GetType().GetProperty(p);
+    // if (property != null && property.CanWrite)
+    // {
+    //     property.SetValue(m, v);
+    // }
 
-        // RecalculateMeals();
+    // RecalculateMeals();
     // }
     // private void HandleDebouncedChange(ChangeEventArgs e, Meals meal, string propertyName)
     // {
@@ -2378,23 +2378,23 @@
     }
     // private async Task HandleMealLunchChanged(int v)
     // {
-        // if(m.CoveredLunches != v){
-        //     m.CoveredLunches = v;
-        //     // RecalculateMeals();
-        // }
+    // if(m.CoveredLunches != v){
+    //     m.CoveredLunches = v;
+    //     // RecalculateMeals();
+    // }
 
 
-        // RecalculateMeals();
+    // RecalculateMeals();
     // }
     // private async Task HandleMealDinnerChanged(int v)
     // {
-        // if(m.CoveredDinners != v){
-        //     m.CoveredDinners = v;
-        //     // RecalculateMeals();
-        // }
+    // if(m.CoveredDinners != v){
+    //     m.CoveredDinners = v;
+    //     // RecalculateMeals();
+    // }
 
 
-        // RecalculateMeals();
+    // RecalculateMeals();
     // }
     // private async Task HandleStageIncluded(Stage stage, bool value)
     // {
@@ -3164,6 +3164,7 @@
 
     #endregion OnChange
     #region Actions
+
     private async Task GetNbpCurrencyRateVm(){
         var tempCurrencies = await _mediator.Send(new GetNbpCurrencyRatesByDateQuery(DateOnly.FromDateTime(DateTime.Today)));
         NbpCurrencies = tempCurrencies.ToList();
@@ -3780,7 +3781,8 @@
         Title = "Podróż służbowa - Księgowość";
 
         formItem.BTMappingAdvancePayment.BankTrasferTitle = $"ZAL {formItem.Number} {formItem.EmployeeName}";
-
+        formItem.BTMappingAdvancePayment.PostingDate = AppUtils.GetClosestWednesday(DateTime.Now);
+        formItem.BTMappingAdvancePayment.CurrencyExchangeDate = formItem.CurrencyExchangeRateDate.ToDateTime(TimeOnly.MinValue);
         ShowAccomodations = false;
         ShowMeals = false;
         ShowStages = false;
@@ -3790,19 +3792,6 @@
         ShowBills = false;
         ShowMileageReport = false;
         ShowSummary = false;
-
-        // EnterInvoiceMapping = false;
-
-        // IsAdvancedPaymentDisabled = true;
-        // IsDateTimeDisabled = true;
-        // IsDestinationDisabled = true;
-        // IsEmployeeDisabled = true;
-        // IsBillsDisabled = true;
-        // IsInvoiceMappingDisabled = false;
-
-        // IsTransportationDisabled = true;
-        // IsMileageDisabled = true;
-        // IsCashPayoutNumberDisabled = true;
 
         DisableApproveButton = false;
         DisableRejectButton = false;
@@ -4265,6 +4254,8 @@
         }
         else if (status == "AprobataL12")
         {
+            formItem.BTMappingPayout.PostingDate = AppUtils.GetClosestWednesday(DateTime.Now);
+            formItem.BTMappingPayout.CurrencyExchangeDate = formItem.CurrencyExchangeRateDate.ToDateTime(TimeOnly.MinValue);
             ShowAccomodations = false;
             ShowMeals = false;
             ShowStages = false;
