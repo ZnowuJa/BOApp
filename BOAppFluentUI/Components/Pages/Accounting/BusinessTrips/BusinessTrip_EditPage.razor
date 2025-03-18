@@ -4077,6 +4077,8 @@
         Title = "Podróż służbowa - Księgowość";
 
         formItem.BTMappingPayout.BankTrasferTitle = $"ROZ {formItem.Number} {formItem.EmployeeName}";
+        formItem.BTMappingPayout.PostingDate = AppUtils.GetClosestWednesday(DateTime.Now);
+        formItem.BTMappingPayout.CurrencyExchangeDate = formItem.CurrencyExchangeRateDate.ToDateTime(TimeOnly.MinValue);
 
         ShowAccomodations = true;
         ShowMeals = true;
@@ -4254,8 +4256,10 @@
         }
         else if (status == "AprobataL12")
         {
+            formItem.BTMappingPayout.BankTrasferTitle = $"ZAL {formItem.Number} {formItem.EmployeeName}";
             formItem.BTMappingPayout.PostingDate = AppUtils.GetClosestWednesday(DateTime.Now);
             formItem.BTMappingPayout.CurrencyExchangeDate = formItem.CurrencyExchangeRateDate.ToDateTime(TimeOnly.MinValue);
+
             ShowAccomodations = false;
             ShowMeals = false;
             ShowStages = false;
