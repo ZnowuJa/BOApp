@@ -18,9 +18,9 @@ public class StageValidator : AbstractValidator<Stage>
         //RuleFor(s => s).Must(s => s.EndDate > s.StartDate).WithMessage("Rozpoczęcie etapu nie może być wcześniejsze niż jego zakończenie.");
         RuleFor(s => s.EndDate)
             .NotEmpty().WithMessage("Wprowadź datę końcową etapu!");
-        RuleFor(s => s.TimeSpanOK)
-            .Must(timeSpanOK => !timeSpanOK)
-            .WithMessage("Rozpoczęcie etapu nie może być późniejsze niż jego zakończenie.");
+        //RuleFor(s => s.TimeSpanOK)
+            //.Must(timeSpanOK => !timeSpanOK)
+            //.WithMessage("Rozpoczęcie etapu nie może być późniejsze niż jego zakończenie.");
        
     }
     public StageValidator(List<Stage> stages)

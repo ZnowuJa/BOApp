@@ -27,7 +27,8 @@ namespace Application.ViewModels.Accounting
         public string AccountantTLEmail { get; set; } = string.Empty;
         public DateTime? AccountantTime { get; set; } 
         public DateTime? AccountantTLTime { get; set; } 
-        public CostCenterVm CostCenter { get; set; } = new();
+        //public CostCenterVm CostCenter { get; set; } = new();
+        public SapCostCenterVm? sapCostCenter { get; set; } = new();
         public GLAccountVm GLAccount { get; set; } = new();
         public bool BusinessTravel { get; set; } = false; //wyłącza pola jeśli true (np. datawaluta)
     }
