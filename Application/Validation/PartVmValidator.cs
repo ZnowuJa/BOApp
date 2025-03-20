@@ -6,7 +6,7 @@ public class PartVmValidator : AbstractValidator<PartVm>
 {
     public PartVmValidator()
     {
-        RuleFor(x => x.Name).MinimumLength(4).MaximumLength(20);
+        RuleFor(x => x.Name).MinimumLength(4).MaximumLength(25);
         RuleFor(x => x.Name).NotEqual("Select...");
         //RuleFor(x => x.CategoryVm).SetValidator(new CategoryVmValidator());
         //RuleFor(x => x.VendorVm).SetValidator(new VendorVmValidator());

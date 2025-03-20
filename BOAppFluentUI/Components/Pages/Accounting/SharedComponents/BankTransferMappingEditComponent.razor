@@ -6,13 +6,13 @@
 @using Application.ViewModels.Accounting
 @using Application.ViewModels.General
 <div class = "tableBT-wrapper" >
-    <table class="table-container">
+    <table class="table-container" style="width: 1000px;">
         <thead>
             <tr class="table-header-left">
                 <th style="width: 150px;">Data księgowania</th>
                 <th style="width: 150px;">Data waluta</th>
                 <th style="width: 150px;">Formularz SAP</th>
-                <th style="width: 150px;">MPK</th>
+                @* <th style="width: 150px;">MPK</th> *@
                 <th style="width: 150px;">KontoGL</th>
             </tr>
         </thead>
@@ -20,13 +20,13 @@
             <tr >
                 <td>
                     <FluentDatePicker  Disabled="@DisabledPostingDate"
-                        @bind-Value="@BTItem.PostingDate" 
-                        Style="width: 200px;" />
+                    @bind-Value="@BTItem.PostingDate" 
+                    Style="width: 200px;" />
                 </td>
                 <td>
                     <FluentDatePicker  Disabled = "@DisabledCurrencyExchangeDate"
-                        @bind-Value="@BTItem.CurrencyExchangeDate"
-                        Style="width: 200px;"
+                    @bind-Value="@BTItem.CurrencyExchangeDate"
+                    Style="width: 200px;"
                     />
 
                 </td>
@@ -44,7 +44,7 @@
                     Width="200px"
                     class="left-align-text" />
                 </td>
-                <td>
+@*                 <td>
                     <FluentAutocomplete TOption="CostCenterVm"
                     Disabled="@DisabledCostCenter"
                     SelectValueOnTab="true"
@@ -57,7 +57,7 @@
                     @bind-SelectedOptions:after="@HandleCostCenterChange"
                     Width="200px"
                     class="left-align-text" />
-                </td>
+                </td> *@
                 <td>
                     <FluentAutocomplete TOption="GLAccountVm"
                     Disabled="@DisabledGlAccount"
@@ -76,7 +76,7 @@
             </tr>
         </tbody>
     </table>
-    <table class="table-container">
+    <table class="table-container" style="width: 1000px;">
         <thead>
             <tr class="table-header-left">
                 <th style="width: 150px;">Wprowadzone do SAP</th>
@@ -106,7 +106,7 @@
             </tr>
         </tbody>
     </table>
-    <table class="table-container" style="width = 500px">
+    <table class="table-container" style="width: 1000px;">
         <thead>
             <tr class="table-header-left">
                 <th style="width = 200px">Tytuł przelewu </th>
@@ -141,12 +141,12 @@
 @code {
     [Parameter] public BankTransferMapping BTItem { get; set; }
     [Parameter] public bool Disabled { get; set; } = false;
-    [Parameter] public IEnumerable<CostCenterVm> CostCenters { get; set; }
+    // [Parameter] public IEnumerable<CostCenterVm> CostCenters { get; set; }
     [Parameter] public IEnumerable<GLAccountVm> GLAccounts { get; set; }
     [Parameter] public string FormStatus { get; set; } = string.Empty;
     [Parameter] public FormUserContext UserContext { get; set; }
 
-    IEnumerable<CostCenterVm> _selectedCostCenter = Array.Empty<CostCenterVm>();
+    // IEnumerable<CostCenterVm> _selectedCostCenter = Array.Empty<CostCenterVm>();
     IEnumerable<GLAccountVm> _selectedGlAccount = Array.Empty<GLAccountVm>();
     private IQueryable<string> _sapformtypes = Enum.GetValues(typeof(SapFormType))
     .Cast<SapFormType>().Select(c => c.ToString()).AsQueryable();
@@ -158,7 +158,7 @@
     private bool DisabledPostingDate = false;
     private bool DisabledCurrencyExchangeDate = false;
     private bool DisabledSapFormType = false;
-    private bool DisabledCostCenter = false;
+    // private bool DisabledCostCenter = false;
     private bool DisabledGlAccount = false;
 
 
@@ -170,9 +170,10 @@
             _accountant = true;
             BTItem.AccountantEmpId = int.Parse(UserContext.EnovaEmpId);
             BTItem.AccountantName = UserContext.LongName;
+            BTItem.AccountantEmail = UserContext.Employee.Email;
             BTItem.AccountantTime = DateTime.Now;
             _accountantTime = BTItem.AccountantTime.HasValue ? BTItem.AccountantTime.Value.ToString() : string.Empty;
-
+            _selectedGlAccount = new[] { GLAccounts.Where(g => g.AccountNumber == "24000").First() };
             DisabledPostingDate = true;
             DisabledCurrencyExchangeDate = true;
         }
@@ -182,6 +183,7 @@
             _accountantTL = true;
             BTItem.AccountantTLEmpId = int.Parse(UserContext.EnovaEmpId);
             BTItem.AccountantTLName = UserContext.LongName;
+            BTItem.AccountantTLEmail = UserContext.Employee.Email;
             BTItem.AccountantTLTime = DateTime.Now;
             _accountantTLTime = BTItem.AccountantTLTime.HasValue ? BTItem.AccountantTLTime.Value.ToString() : string.Empty;
 
@@ -191,21 +193,21 @@
         if(BTItem.SapFormType != null){
             _selectedSapFormType = new List<string>() { BTItem.SapFormType };
         }
-        if(BTItem.CostCenter != null){
-            _selectedCostCenter = new List<CostCenterVm> { BTItem.CostCenter };
-        }
+        // if(BTItem.CostCenter != null){
+        //     _selectedCostCenter = new List<CostCenterVm> { BTItem.CostCenter };
+        // }
         if(BTItem.GLAccount != null){
             _selectedGlAccount = new List<GLAccountVm> { BTItem.GLAccount };
         }
 
     }
 
-    private void HandleCostCenterChange()
-    {
-        BTItem.CostCenter = _selectedCostCenter.FirstOrDefault();
+    // private void HandleCostCenterChange()
+    // {
+    //     BTItem.CostCenter = _selectedCostCenter.FirstOrDefault();
 
-        // Console.WriteLine();
-    }
+    //     // Console.WriteLine();
+    // }
     private void HandleGlAccountChange()
     {
         BTItem.GLAccount = _selectedGlAccount.FirstOrDefault();
@@ -224,12 +226,12 @@
         e.Items = _sapformtypes
         .Where(g => g.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
     }
-    private void OnCostCenterSearch(OptionsSearchEventArgs<CostCenterVm> e)
-    {
-        e.Items = CostCenters
-        .Where(g => g.MPK.Contains(e.Text, StringComparison.OrdinalIgnoreCase)
-        || g.Description.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
-    }
+    // private void OnCostCenterSearch(OptionsSearchEventArgs<CostCenterVm> e)
+    // {
+    //     e.Items = CostCenters
+    //     .Where(g => g.MPK.Contains(e.Text, StringComparison.OrdinalIgnoreCase)
+    //     || g.Description.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
+    // }
     private void OnGLAccountSearch(OptionsSearchEventArgs<GLAccountVm> e)
     {
         e.Items = GLAccounts.Where(g => g.AccountNumber.Contains(e.Text, StringComparison.OrdinalIgnoreCase)

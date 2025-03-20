@@ -487,12 +487,12 @@
         var tcostcenter = _costCenters.Where(c => c.MPK == _userContext.Employee.DeptNumber).FirstOrDefault();
 
         formItem.BTMappingAdvancePayment.SapFormType = "FreeForm";
-        formItem.BTMappingAdvancePayment.CostCenter = tcostcenter;
+        //formItem.BTMappingAdvancePayment.CostCenter = tcostcenter;
         formItem.BTMappingAdvancePayment.GLAccount = tglaccount;
         formItem.BTMappingAdvancePayment.BusinessTravel = true;
 
         formItem.BTMappingPayout.SapFormType = "FreeForm";
-        formItem.BTMappingPayout.CostCenter = tcostcenter;
+        //formItem.BTMappingPayout.CostCenter = tcostcenter;
         formItem.BTMappingPayout.GLAccount = tglaccount;
 
     }

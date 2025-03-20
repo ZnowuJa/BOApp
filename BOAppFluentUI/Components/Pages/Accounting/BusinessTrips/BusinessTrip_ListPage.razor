@@ -1,6 +1,7 @@
 ﻿@page "/delegacje/{role}"
 @page "/businesstrips/{role}"
 
+@using Application.CQRS.AccountingCQRS.BusinessTravels.Commands
 @using Application.CQRS.AccountingCQRS.BusinessTravels.Queries
 @using Application.CQRS.AccountingCQRS.DeferralPayment.Queries
 @using Application.ExportModels
@@ -51,9 +52,9 @@
             <PropertyColumn TGridItem="BusinessTravelFormVm" TProp="string" Property="@(Utils.GetPropertyExpression<BusinessTravelFormVm>(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label" Filtered="column.SelectedValues.Any()">
                 <ColumnOptions>
                     <FluentSelect TOption="string"
-                                  Items="@(column.DropdownValues)"
-                                  Multiple="true"
-                                  SelectedOptionsChanged="@(e => Utils.OnSelectedOptionsChanged<BusinessTravelFormVm>(e, column))">
+                    Items="@(column.DropdownValues)"
+                    Multiple="true"
+                    SelectedOptionsChanged="@(e => Utils.OnSelectedOptionsChanged<BusinessTravelFormVm>(e, column))">
                         @foreach (var value in column.DropdownValues)
                         {
                             <FluentOption Value="@value">@value</FluentOption>
@@ -83,16 +84,16 @@
             var viewId = $"viewid-{context.Id}";
             var editId = $"editid-{context.Id}";
             var deleteId = $"deleteid-{context.Id}";
-            
+
         }
         <FluentButton Id="@editId" IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => Edit(context))" Disabled="@Utils.IsAccEditDisabled(context, _userContext)" />
         @*WARNING it is not tested if isEditDisabled works*@
-        <FluentTooltip Anchor="@editId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Edit form</FluentTooltip>
+        <FluentTooltip Anchor="@editId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Edycja</FluentTooltip>
         <FluentButton Id="@viewId" IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" Disabled="false" />
         @*WARNING it is not tested if isEditDisabled works*@
-        <FluentTooltip Anchor="@viewId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>View form</FluentTooltip>
+        <FluentTooltip Anchor="@viewId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Podgląd</FluentTooltip>
         <FluentButton Id="@deleteId" IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" Disabled="@actionsDisabled" />
-        <FluentTooltip Anchor="@deleteId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Delete form</FluentTooltip>
+        <FluentTooltip Anchor="@deleteId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Skasuj</FluentTooltip>
 
     </TemplateColumn>
 </FluentDataGrid>
@@ -116,6 +117,8 @@
         new FilterColumn<BusinessTravelFormVm> { FirstRow = true, Label = "ID", Property = c => c.Id.ToString(), IsVisible = false },
         new FilterColumn<BusinessTravelFormVm> { FirstRow = true, Label = "Numer", Property = c => c.Number.ToString()??string.Empty, IsVisible = true },
         new FilterColumn<BusinessTravelFormVm> { FirstRow = true, Label = "Status", Property = c => c.Status.ToString()??string.Empty, IsVisible = true, IsDropdown = true, DropdownValues = StatusesValues, SelectedValues = new List<string> ()},
+        new FilterColumn<BusinessTravelFormVm> { FirstRow = true, Label = "Miasto", Property = c => c.Destination.ToString()??string.Empty, IsVisible = true, IsDropdown = true, DropdownValues = StatusesValues, SelectedValues = new List<string> ()},
+        new FilterColumn<BusinessTravelFormVm> { FirstRow = true, Label = "Powód Odrzucenia.", Property = c => c.RejectReason, IsVisible = false },
         new FilterColumn<BusinessTravelFormVm> { FirstRow = true, Label = "Zgłaszający", Property = c =>(c.EmployeeName.ToString()??string.Empty), IsVisible = false },
         new FilterColumn<BusinessTravelFormVm> { FirstRow = true, Label = "Kraj", Property = c => c.DestinationCountry.Name, IsVisible = false },
         new FilterColumn<BusinessTravelFormVm> { FirstRow = true, Label = "Numer lok.", Property = c => c.OrganisationSapNumber, IsVisible = true },
@@ -144,25 +147,31 @@
 
         await Utils.GetUserName(AuthenticationStateProvider, _userContext, _mediator);
         CurrentUserEnowaEmpId = int.Parse(_userContext.EnovaEmpId);
-        items2load = await _mediator.Send(new GetAllBusinessTripQuery());
+        
         await Load();
 
     }
 
     private async Task Load()
     {
+        items2load = await _mediator.Send(new GetAllBusinessTripQuery());
 
         items = role switch
         {
             "pracownik" or "employee" => items2load.Where(x => x.EnovaEmpId == _userContext.EnovaEmpId),
-            "kierownikL1" or "managerL1" => items2load.Where(x => x.Level1Approvers.Any(approver => approver.EmpId == CurrentUserEnowaEmpId) &&  (x.Status == "AprobataL1" || x.Status == "AprobataL2" )),
-            "kierownikL11" or "managerL11" => items2load.Where(x => x.Level1Approvers.Any(approver => approver.EmpId == CurrentUserEnowaEmpId) && (x.Status == "AprobataL1" || x.Status == "AprobataL2")),
-            "kierownikL12" or "managerL12" => items2load.Where(x => x.Level1Approvers.Any(approver => approver.EmpId == CurrentUserEnowaEmpId) && (x.Status == "AprobataL1" || x.Status == "AprobataL2")),
+            // "kierownikL1" or "managerL1" => items2load.Where(x => x.Level1Approvers.Any(approver => approver.EmpId == CurrentUserEnowaEmpId) &&  (x.Status == "AprobataL1" || x.Status == "AprobataL2" )),
+            "kierownik" or "manager" => items2load.Where(x => x.Level1Approvers.Any(approver => approver.EmpId == CurrentUserEnowaEmpId) && (x.Status == "AprobataL1" || x.Status == "AprobataL11" || x.Status == "AprobataL12")),
+            // "kierownikL12" or "managerL12" => items2load.Where(x => x.Level1Approvers.Any(approver => approver.EmpId == CurrentUserEnowaEmpId) && (x.Status == "AprobataL1" || x.Status == "AprobataL2")),
             "kasjer" or "cashier" => items2load.Where(x => x.Level2Approvers.Any(approver => approver.EmpId == CurrentUserEnowaEmpId) && (x.Status == "ZaliczkaKasa" || x.Status == "KasaRozliczenie")),
             "ksiegowe" or "accountants" => items2load,
             "zapisane" or "saved" => items2load.Where(x => x.Level2Approvers.Any(approver => approver.EmpId == CurrentUserEnowaEmpId)),
             _ => throw new ArgumentException("Błędny adres strony!")
         };
+
+        if (_userContext.isFormAdmin)
+        {
+            actionsDisabled = false;
+        }
 
     }
     /*
@@ -221,7 +230,30 @@
     }
     private async Task Delete(BusinessTravelFormVm item = null)
     {
+        var dialog = await _dialogService.ShowConfirmationAsync("Kasowanie delegacji: " + item.Number + "\n Czy na pewno?", "TAK", "NIE", "Potwierdź operację kasowania");
+        var result = await dialog.Result;
+        bool deleteConfirm = result.Cancelled;
 
+        ToastIntent intent;
+        string message = string.Empty;
+
+        if (deleteConfirm)
+        {
+            intent = ToastIntent.Error;
+            message = $"Nie skasowano delegacji {item.Number}";
+
+        }
+        else
+        {
+            var i = await _mediator.Send(new DeleteBusinessTripCommand(item));
+            intent = ToastIntent.Success;
+            message = $"Skasowano delegację {item.Number}";
+
+        }
+
+        _toastService.ShowToast(intent, message, 3000);
+        await Load();
+        StateHasChanged();
     }
 
     private async Task DownloadCsv()

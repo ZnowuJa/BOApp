@@ -30,7 +30,7 @@ namespace Application.ViewModels.Accounting
         public CurrencyVm? currencyVm { get; set; }
         public decimal Allowance { get; set; }
         public decimal TravelAllowance { get; set; }
-        public decimal LocalTravelAllowance { get; set; }
+        public decimal LocalTravelAllowance => Allowance * 0.1m;
         public decimal MaxHotelCost { get; set; } = 200m;
 
         public void Mapping(Profile profile)

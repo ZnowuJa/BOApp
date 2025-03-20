@@ -17,7 +17,7 @@ namespace Persistance.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.10")
+                .HasAnnotation("ProductVersion", "8.0.13")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -386,6 +386,49 @@ namespace Persistance.Migrations
                     b.ToTable((string)null);
 
                     b.ToView("v_NBPExchangeRates", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Entities.Accounting.SapCostCenter", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("DepartmentName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DepartmentNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("Inactivated")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("InactivatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LocationName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LocationNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("ResponsibleManagerEnovaId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ResponsibleManagerName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("ResponsibleManagerSSFId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("StatusId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("SapCostCenters");
                 });
 
             modelBuilder.Entity("Domain.Entities.Accounting.VATRate", b =>
@@ -1409,6 +1452,10 @@ namespace Persistance.Migrations
                     b.Property<string>("Oeshort")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("PersonalDeptNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("PhoneNumber")
                         .HasColumnType("nvarchar(max)");
 
@@ -2101,6 +2148,10 @@ namespace Persistance.Migrations
                     b.Property<DateOnly>("CurrencyExchangeRateDate")
                         .HasColumnType("date");
 
+                    b.Property<string>("DailyMeals")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<decimal?>("DeductionMealsNotPL")
                         .HasColumnType("decimal(10,2)");
 
@@ -2135,6 +2186,10 @@ namespace Persistance.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("FormCostCenter")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FormCostCenters")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -2287,6 +2342,10 @@ namespace Persistance.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("RejectReason")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RejectReasons")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 

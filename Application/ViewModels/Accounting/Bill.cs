@@ -13,6 +13,8 @@ public class Bill
     public string InvoiceNumber { get; set; } = string.Empty;
     public DateTime InvoiceDate { get; set; } = DateTime.Now;
     public List<InvoiceMapping> InvoiceMappings { get; set; } = new();
+    public bool isParking { get; set; } = false;
+    public decimal ParkingAmount { get; set; }
 
 }
 

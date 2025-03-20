@@ -46,6 +46,7 @@ public class EmpInfoVm : IMapFrom<EmpInfo>
     public string? VcddeptNumber { get; set; }
 
     public string? SapnumberHr { get; set; }
+    public string PersonalDeptNumber { get; set; }
 
     public void Mapping(Profile profile)
     {

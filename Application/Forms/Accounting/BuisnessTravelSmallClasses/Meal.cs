@@ -21,7 +21,29 @@ namespace Application.Forms.Accounting.BuisnessTravelSmallClasses
         public int CoveredLunches { get; set; } = 0;
         public int CoveredDinners { get; set; } = 0;
         public int Nights { get; set; } = 0;
-        public decimal Total { get; set; } = 0;
+        //public decimal Total { get; set; } = 0;
+        public decimal Total
+        {
+            get
+            {
+                decimal total = 0;
+
+                if (CountryCode != "PL")
+                {
+                    total -= (CoveredBreakfasts * AllowanceRate * 0.15m);
+                    total -= (CoveredLunches * AllowanceRate * 0.3m);
+                    total -= (CoveredDinners * AllowanceRate * 0.3m);
+                }
+                else
+                {
+                    total -= (CoveredBreakfasts * AllowanceRate / 4);
+                    total -= (CoveredLunches * AllowanceRate / 2);
+                    total -= (CoveredDinners * AllowanceRate / 4);
+                }
+
+                return Math.Round(total, 2);
+            }
+        }
         public bool Included { get; set; } = true;
 
     }

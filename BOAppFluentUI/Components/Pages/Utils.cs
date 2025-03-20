@@ -46,6 +46,10 @@ public static class Utils
     }
     public static IQueryable<T> ApplyFilters<T>(IQueryable<T> items, List<FilterColumn<T>> filterColumns)
     {
+        if (items == null)
+        {
+            return Enumerable.Empty<T>().AsQueryable();
+        }
         var query = items;
 
         foreach (var column in filterColumns)
@@ -164,7 +168,7 @@ public static class Utils
             return false;
         }
 
-        if ((context.Status == "Rejestracja") || (context.Status == "Rozliczenie"))
+        if ((context.Status == "Rejestracja") || (context.Status == "Rozliczenie") || (context.Status == "Odrzucone"))
         {
             var test = context.EnovaEmpId == _userContext.EnovaEmpId.ToString();
             Console.WriteLine(test);

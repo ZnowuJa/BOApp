@@ -34,6 +34,7 @@ public class EmployeeVm : IMapFrom<Employee>, IAssigneeVm
     public string? FTEEndDate { get; set; }
     public string? ManagerEmail { get; set; }
     public string? DeptNumber { get; set; }
+    public string PersonalDeptNumber { get; set; }
     public string? AspNetUserId { get; set; }
     public string typeName { get; set; } = "EmployeeVm";
     public List<string> Roles { get; set; }
@@ -70,6 +71,7 @@ public class EmployeeVm : IMapFrom<Employee>, IAssigneeVm
         JobCode = string.Empty;
         CoCGroupId = 0;
         BankAccountNumber = string.Empty;
+        PersonalDeptNumber = string.Empty;
     }
     public void Mapping(Profile profile)
     {
