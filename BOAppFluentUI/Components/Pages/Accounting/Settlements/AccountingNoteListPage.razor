@@ -59,20 +59,22 @@ else
 
     private async Task EditItem(AccountingNoteFormVm item)
     {
-        ToastIntent intent;
-        string message = string.Empty;
-        int resultId = 0;
+        // ToastIntent intent;
+        // string message = string.Empty;
+        // int resultId = 0;
 
-        var dialog = await _dialogService.ShowDialogAsync<AccountingNoteEditComponent>(item, new DialogParameters()
-            {
-                Height = "500px",
-                Width = "400px",
-                Title = item.Id > 0 ? "Update Accounting Note..." : "Create New Accounting Note",
-                PreventDismissOnOverlayClick = false,
-                PreventScroll = true,
-            });
+        // var dialog = await _dialogService.ShowDialogAsync<AccountingNoteEditComponent>(item, new DialogParameters()
+        //     {
+        //         Height = "500px",
+        //         Width = "400px",
+        //         Title = item.Id > 0 ? "Update Accounting Note..." : "Create New Accounting Note",
+        //         PreventDismissOnOverlayClick = false,
+        //         PreventScroll = true,
+        //     });
 
-        var result = await dialog.Result;
+        // var result = await dialog.Result;
+
+        // ^ To działa ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
         // if (!result.Cancelled && result.Data != null)
         // {

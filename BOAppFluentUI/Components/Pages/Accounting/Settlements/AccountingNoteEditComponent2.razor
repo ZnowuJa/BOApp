@@ -1,4 +1,4 @@
-﻿@page "/accountingnote"
+﻿@page "/accountingnote2"
 @* Accounting Note Edit Component *@
 @using Application.CQRS.ITWarehouseCQRS.Companies.Queries
 @using Application.Forms
@@ -13,114 +13,134 @@
 @* @implements IDialogContentComponent<AccountingNoteFormVm> *@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
-<h3>Noty księgowe</h3>
+
 <EditForm EditContext="_editContext">
     <table class="table-container">
         <thead>
             <tr class="table-caption">
-                <th style="text-align: left; border-right: none; font-size: large;" colspan="2">
+                <th style="text-align: center; border-right: none; font-size: large;" colspan="2">Noty księgowe</th>
+            </tr>
+            <tr class="table-caption">
+                <th style="text-align: left; border-right: none; font-size: large;">
                     Informacje Ogólne
                 </th>
-                <th style="text-align: right; border-left: none; font-size: large;" colspan="2">
+                <th style="text-align: right; border-left: none; font-size: large;">
                     Status: @Content.Status | Numer: @Content.NoteNumber
                 </th>
-            </tr>
-            <tr class="table-header-left table-caption">
-                <th style="width: 130px;">Doradca serwisowy:</th>
-                <th style="width: 150px;">Dealer:</th>
-                <th style="width: 150px;">Ubezpieczyciel:</th>
-                <th style="width: 120px;">Data</th>
             </tr>
         </thead>
         <tbody>
             <tr>
-                <td>
-                    <FluentTextField @bind-Value="@Content.ServiceAdvisor"></FluentTextField>
-                </td>
-                <td>
+                <th class="table-header-left table-caption">Doradca serwisowy:</th>
+                <th>
+                    <FluentTextField @bind-Value="@Content.ServiceAdvisor"
+                                     Width="300px"
+                                     Height="250px"></FluentTextField>
+                </th>
+            </tr>
+            <tr>
+                <th class="table-header-left table-caption">Dealer:</th>
+                <th>
                     <FluentCombobox TOption="string"
                                     Items="@orgs"
                                     Id="OrgId"
-                                    Width="150px"
+                                    Width="300px"
                                     Height="250px"
                                     @bind-Value="@Content.Dealer" />
-                </td>
-                <td>
+                </th>
+            </tr>
+            <tr>
+                <th class="table-header-left table-caption">Ubezpieczyciel:</th>
+                <th>
                     <FluentCombobox TOption="string"
                                     Items="@insurer"
                                     Id="InsurerId"
-                                    Width="150px"
+                                    Width="300px"
                                     Height="250px"
                                     @bind-Value="@Content.Insurer" />
-                </td>
-                <td>
-                    <FluentDatePicker @bind-Value="@SelectedValue" />
-                </td>
-            </tr>
-
-            <tr class="table-header-left table-caption">
-                <th style="width: 130px;">VIN:</th>
-                <th style="width: 150px;">Rejestracja:</th>
-                <th style="width: 130px;">Numer zlecenia:</th>
-                <th style="width: 120px;">Numer szkody:</th>
+                </th>
             </tr>
             <tr>
-                <td>
+                <th class="table-header-left table-caption">Data</th>
+                <th><FluentDatePicker @bind-Value="@SelectedValue" /></th>
+
+            </tr>
+
+            <tr>
+                <th class="table-header-left table-caption">VIN:</th>
+                <th>
                     <FluentTextField Id="VIN"
                                      @bind-Value="@Content.VIN"
                                      Placeholder="Wpisz VIN" />
-                </td>
-                <td>
+                </th>
+            </tr>
+
+            <tr>
+                <th class="table-header-left table-caption">Rejestracja:</th>
+                <th>
                     <FluentTextField Id="Registration"
                                      @bind-Value="@Content.Registration"
                                      Placeholder="Wpisz rejestrację" />
+                </th>
+            </tr>
 
-                </td>
-                <td>
+            <tr>
+                <th class="table-header-left table-caption">Numer zlecenia:</th>
+                <th>
                     <FluentTextField Id="OrderNumber"
                                      @bind-Value="Content.OrderNumber"
                                      Placeholder="Wpisz numer zlecenia" />
+                </th>
+            </tr>
 
-                </td>
-                <td>
+            <tr>
+                <th class="table-header-left table-caption">Numer szkody:</th>
+                <th>
                     <FluentTextField Id="DamageNumber"
                                      @bind-Value="Content.DamageNumber"
                                      Placeholder="Wpisz numer szkody" />
+                </th>
+            </tr>
 
-                </td>
-            </tr>
-            <tr class="table-header-left table-caption">
-                <th>Metoda płatności:</th>
-                <th>Kwota:</th>
-                <th>Termin płatności:</th>
-            </tr>
             <tr>
-                <td>
+                <th class="table-header-left table-caption">Metoda płatności:</th>
+                <th>
                     <FluentSelect Items=@PaymentMethodsInt
                                   OptionText="@(i => i.Text)"
                                   OptionValue="@(a => a.Value.ToString())"
                                   OptionSelected="@(a => a.Selected)"
                                   @bind-Value="@PaymentCashString"
                                   @bind-Value:after="@OnPaymentChanged" />
-                </td>
-                <td>
+                </th>
+            </tr>
+
+            <tr>
+                <th class="table-header-left table-caption">Kwota:</th>
+                <th>
                     <FluentNumberField Id="Amount"
                                        @bind-Value="Content.Amount"
                                        Placeholder="Wpisz kwotę">
                     </FluentNumberField>
-
-                </td>
-                <td>
-                    <FluentDatePicker @bind-Value="@SelectedValueTo" />
-                </td>
+                </th>
             </tr>
+
+            <tr>
+                <th class="table-header-left table-caption">Termin płatności:</th>
+                <th>
+                    <FluentDatePicker @bind-Value="@SelectedValueTo" />
+                </th>
+            </tr>
+
             <tr>
                 <th class="table-header-left table-caption">Treść noty:</th>
-                <th colspan="3"> <FluentTextField /> </th>
+                <th>
+                    <FluentTextField />
+                </th>
             </tr>
+
             <tr>
                 <th class="table-header-left table-caption">Załącznik:</th>
-                <th colspan="3">
+                <th>
                     <FluentInputFile @ref="@myFileUploader"
                                      DragDropZoneVisible="false"
                                      Mode="InputFileMode.SaveToTemporaryFolder"
@@ -129,13 +149,12 @@
                                      MaximumFileSize="@(100 * 1024 * 1024)"
                                      Accept=".mp4, .mov, .avi"
                                      OnProgressChange="@(e =>
-                     {
-                         _formUploading = true;
-                         progressPercent = e.ProgressPercent;
-                         progressTitle = e.ProgressTitle;
-                     })"
+                                        {
+                                        _formUploading = true;
+                                        progressPercent = e.ProgressPercent;
+                                        progressTitle = e.ProgressTitle;
+                                        })"
                                      OnCompleted="@OnCompleted" />
-
                     <FluentProgress Min="0" Max="100" Visible="@(progressPercent > 0)" Value="@progressPercent" />
                     <FluentLabel Alignment="HorizontalAlignment.Center">
                         @progressTitle
@@ -144,25 +163,43 @@
                     <FluentButton Id="MyUploadLoadingButton" Loading="_formUploading" Appearance="Appearance.Accent">
                         Wybierz...
                     </FluentButton>
-
-                    @if (Files.Any())
-                    {
-                        <h4>Plik(i) przesłane:</h4>
-                        <ul>
-                            @foreach (var file in Files)
-                            {
-                                <li>
-                                    <b>@file.Name</b> 🔹
-                                    @($"{Decimal.Divide(file.Size, 1024):N} KB") 🔹
-                                    @file.ContentType 🔹
-                                    @file.LocalFile?.FullName
-                                    @file.ErrorMessage
-                                </li>
-                            }
-                        </ul>
-                    }
                 </th>
             </tr>
+            <tr colspan=2>
+                @if (Files.Any())
+                {
+                    <h4>Plik(i) przesłane:</h4>
+                    <ul>
+                        @foreach (var file in Files)
+                        {
+                            <li>
+                                <b>@file.Name</b> 🔹
+                                @($"{Decimal.Divide(file.Size, 1024):N} KB") 🔹
+                                @file.ContentType 🔹
+                                @file.LocalFile?.FullName
+                                @file.ErrorMessage
+                            </li>
+                        }
+                    </ul>
+                }
+            </tr>
+            @*
+            </td>
+            </tr>
+            <tr>
+            <th class="table-header-left table-caption"></th>
+            <th colspan="3">  </th>
+            </tr>
+            <tr>
+            <th class="table-header-left table-caption"></th>
+            <th colspan="3">
+
+
+
+
+            
+            </th>
+            </tr> *@
         </tbody>
     </table>
 </EditForm>
