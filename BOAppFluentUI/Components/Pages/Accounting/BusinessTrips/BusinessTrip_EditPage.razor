@@ -358,10 +358,16 @@
                                         Kwota:
                                     </td>
                                     <td style="text-align: left;">
-                                        <FluentNumberField Disabled="@IsControlAdvancePaymentDisabled()"
-                                        @bind-Value:get="@formItem.AdvancePaymentAmount"
-                                        @bind-Value:set="@(value => formItem.AdvancePaymentAmount = value)"
-                                        Style="width: 100px" /> PLN
+                                        <div style="width: 170px;">
+                                            <InputNumber Min="0"
+                                                
+                                                         @bind-Value:get="@formItem.AdvancePaymentAmount"
+                                                         @bind-Value:set="((value => formItem.AdvancePaymentAmount = value))"
+                                                         class="customFluentNumber"
+                                                         style="width: 120px;"
+                                                         Disabled="@IsControlAdvancePaymentDisabled()" /> PLN
+                                        </div>
+                                         
                                         <FluentValidationMessage For="@(() => formItem.AdvancePaymentAmount)" class="validation-error" />
                                     </td>
                                     <td class="table-caption" style="width: 100px">
@@ -2562,7 +2568,8 @@
             formItem.OrganisationSapNumber = _organisation.SapNumber;
             formItem.BankAccountNumber = emp.BankAccountNumber;
             formItem.ReceiptBankAccountNumber = emp.BankAccountNumber;
-            UpdateBankTransferMappings(emp);
+            await UpdateBankTransferMappings(emp);
+            await SetupUserSapCostCenter(emp);
             await AssignAllApprovers(emp);
         }
 
@@ -3916,6 +3923,17 @@
         DisableSaveButton = true;
         DisableSendButton = true;
     }
+    private async Task SetupUserSapCostCenter(EmployeeVm emp){
+        formItem.FormCostCenters.Clear();
+        var userSapCostCenter = new SapCostCenterVm { formId = Guid.NewGuid() };
+            var userSapNumber = emp.SapNumber.Substring(0, 4);
+            var userDepartmentNumber = emp.DeptNumber;
+            userSapCostCenter = _sapCostCenters.Where(s => s.LocationNumber == userSapNumber && s.DepartmentNumber == userDepartmentNumber).First();
+            if(userSapCostCenter.Id > 0){
+                userSapCostCenter.formId = Guid.NewGuid();
+                formItem.FormCostCenters.Add(userSapCostCenter);
+            }
+    }
     private async Task SetupFormRejestracja()
     {
         if (formItem.Stages.Count == 0)
@@ -3938,13 +3956,7 @@
                 formItem.DestinationCountryCurrency = "PLN";
             }
 
-            var userSapCostCenter = new SapCostCenterVm { formId = Guid.NewGuid() };
-            var userSapNumber = _userContext.Employee.SapNumber.Substring(0, 4);
-            var userDepartmentNumber = _userContext.Employee.DeptNumber;
-            userSapCostCenter = _sapCostCenters.Where(s => s.LocationNumber == userSapNumber && s.DepartmentNumber == userDepartmentNumber).First();
-            if(userSapCostCenter.Id > 0){
-                formItem.FormCostCenters.Add(userSapCostCenter);
-            }
+            await SetupUserSapCostCenter(_userContext.Employee);
 
             var shortSapNumber = _userContext.Employee.SapNumber.Substring(0, 4);
             formItem.FormCostLocation = _locations.Where(l => l.SapNumber == shortSapNumber).FirstOrDefault();
