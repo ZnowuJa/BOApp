@@ -200,14 +200,7 @@ else
             var final = (EmployeeVm)result.Data;
             if (final.Id > 0)
             {
-                i = await _mediator.Send(new UpdateEmployeeCommand(final.Id,
-                    final.FirstName,
-                    final.LastName,
-                    final.Email,
-                    final.MobileNumber,
-                    final.PhoneNumber,
-                    final.ManagerId,
-                    final.EmployeeTypeVm));
+                i = await _mediator.Send(new UpdateEmployeeNewCommand(final));
 
                 if (final.Roles.Count > 0)
                 {
