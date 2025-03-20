@@ -5,9 +5,7 @@ using Application.ViewModels.Accounting;
 using Application.ViewModels.General;
 using AutoMapper;
 using Domain.Forms.Accounting;
-using Microsoft.Graph.Models;
 using System.Text.Json.Serialization;
-using Application.Forms.Accounting.AdvancePaymenytSmallClasses;
 
 namespace Application.Forms.Accounting
 {
@@ -45,7 +43,7 @@ namespace Application.Forms.Accounting
         public CostCenterVm FormCostCenter { get; set; } = new CostCenterVm();
         public Application.ViewModels.General.LocationVm FormCostLocation { get; set; } = new();
         public List<ApprovalVm>? Approvals { get; set; } = new();
-        public List<AdvancePaymenytSmallClasses.RejectReason> RejectReasons { get; set; } = new();
+        //public List<RejectReason> RejectReasons { get; set; } = new();
 
         public List<OrganisationRoleForFormVm> Level1Approvers { get; set; } = new(); // przełożony użytkownika
         public List<OrganisationRoleForFormVm> Level2Approvers { get; set; } = new(); // przełożony przełożonego
@@ -86,8 +84,8 @@ namespace Application.Forms.Accounting
             .ForMember(dest => dest.PayoutCashier, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<EmployeeVm>(src.PayoutCashierEmpId)))
             .ForMember(dest => dest.BTMappingAdvancePayment, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<BankTransferMapping>(src.BTMappingAdvancePayment)))
             .ForMember(dest => dest.BTMappingPayout, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<BankTransferMapping>(src.BTMappingPayout)))
-            .ForMember(dest => dest.CashPoint, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<LocationVm>(src.CashPoint)))
-            .ForMember(dest => dest.RejectReasons, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<AdvancePaymenytSmallClasses.RejectReason>>(src.RejectReasons)));
+            .ForMember(dest => dest.CashPoint, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<LocationVm>(src.CashPoint)));
+            //.ForMember(dest => dest.RejectReasons, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<RejectReason>>(src.RejectReasons)));
 
             profile.CreateMap<AdvancePaymentFormVm, AdvancePaymentForm>()
             .ForMember(dest => dest.FormFiles, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.FormFiles)))
@@ -102,8 +100,8 @@ namespace Application.Forms.Accounting
             .ForMember(dest => dest.PayoutCashierEmpId, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.PayoutCashierEmpId)))
             .ForMember(dest => dest.BTMappingAdvancePayment, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.BTMappingAdvancePayment)))
             .ForMember(dest => dest.BTMappingPayout, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.BTMappingPayout)))
-            .ForMember(dest => dest.CashPoint, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.CashPoint)))
-            .ForMember(dest => dest.RejectReasons, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.RejectReasons)));
+            .ForMember(dest => dest.CashPoint, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.CashPoint)));
+            //.ForMember(dest => dest.RejectReasons, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.RejectReasons)));
         }
     }
 }
