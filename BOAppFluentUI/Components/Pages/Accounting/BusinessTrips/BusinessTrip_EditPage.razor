@@ -2502,6 +2502,7 @@
             formItem.DestinationCountryCurrency = AbroadCurrencyExchangeRate.Code;
         }
 
+        formItem.AdvancePaymentAmount = CalculateAdvPmntAmount();
         // StateHasChanged();
     }
 
@@ -2707,6 +2708,16 @@
         {
             AddStage(Origin);
         }
+
+        try{
+            // var x = CalculateAdvPmntAmount();
+            formItem.AdvancePaymentAmount = CalculateAdvPmntAmount();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInformation(ex.Message);
+        }
+
         // _fluentValidationValidator?.Validate(options => options.IncludeRuleSets("MainDates"));
         RecalculateForm();
     }
@@ -3164,7 +3175,21 @@
 
     #endregion OnChange
     #region Actions
+    private decimal CalculateAdvPmntAmount()
+    {
+        decimal days = 0;
+        decimal result = 0;
 
+        if(formItem.EndDate.HasValue && formItem.StartDate.HasValue && formItem.DestinationCountry.CountryCode != "PL")
+        {
+            TimeSpan difference = formItem.EndDate.Value - formItem.StartDate.Value;
+            days = (decimal)difference.Days;
+            result = formItem.DestinationCountry.Allowance * days * AbroadCurrencyExchangeRate.Mid;
+            result = Math.Round(result);
+        }
+
+        return result/4;
+    }
     private async Task GetNbpCurrencyRateVm(){
         var tempCurrencies = await _mediator.Send(new GetNbpCurrencyRatesByDateQuery(DateOnly.FromDateTime(DateTime.Today)));
         NbpCurrencies = tempCurrencies.ToList();
