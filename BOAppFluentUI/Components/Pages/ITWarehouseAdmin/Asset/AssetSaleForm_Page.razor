@@ -267,6 +267,13 @@
         }
         else
         {
+            foreach (var ass in item.Assets)
+            {
+                
+                ass.SaleFormId = null;
+                ass.StateVmId = 2;
+                await _mediator.Send(new UpdateAssetCommand(ass.Id, ass.PartVmId, ass.InvoiceVmId, ass.InvoiceItemID, ass.AssetTagNumber, ass.StateVmId, ass.SerialNumber, ass.LastSeen, ass.AssigneeVmId, ass.AssigneeVmType, ass.AssigneeVmName, ass.WarehouseVmId, ass.Price, ass.CurrencyVmId, DateTime.Now, ass.Leasing, ass.EndOfContract, ass.WarrantyUntil, ass.Imei, ass.Mac, ass.EndOfSupport, ass.ScrappingFormId, ass.SaleFormId, ass.ScrappingReason, _userContext.LongName));
+            }
             var i = await _mediator.Send(new DeleteITSaleFormCommand(item.Id));
             intent = ToastIntent.Success;
             message = $"Skasowano sprzedaż {item.Number}";
