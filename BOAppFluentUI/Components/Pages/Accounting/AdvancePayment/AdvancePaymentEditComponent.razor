@@ -10,6 +10,7 @@
 @using Application.CQRS.ITWarehouseCQRS.Employees.Queries;
 @using Application.CQRS.General.Organisations.Queries;
 @using Application.Forms.Accounting;
+@using Application.Forms.Accounting.BuisnessTravelSmallClasses
 @using Application.ViewModels.General;
 @using BOAppFluentUI.Components.Pages.Accounting.Settlements
 @using BOAppFluentUI.Components.Pages.Accounting.SharedComponents
@@ -166,7 +167,7 @@
 
         </tbody>
     </table>
-@*          @if (lastRejectReason != null && !string.IsNullOrEmpty(formItem.RejectReason) && (strej || stroz || stodrz ))
+         @if (lastRejectReason != null && !string.IsNullOrEmpty(formItem.RejectReason) && (strej || stroz || stodrz ))
                      { 
                          <table class="table-container">
                              <tbody>
@@ -192,7 +193,7 @@
                                  </tr>
                              </tbody>
                          </table>
-                     } *@
+                     }
     @if (stks || stkstl || stwys || stblad)
     {
         <BankTransferMappingEditComponent BTItem="@formItem.BTMappingAdvancePayment" CostCenters="@_costCenters" GLAccounts="@_glAccounts" FormStatus="@formItem.Status" UserContext="@_userContext" />
@@ -436,7 +437,7 @@
     private bool IsRegistrationFormDisabledForOthers { get; set; } = true; // wyłącza wszystkie kontrolki do rejestracji dla osób innych niż rejestrujący użytkownik
 
     private ApprovalVm approvalInfo { get; set; }
-    //private RejectReason lastRejectReason { get; set; }
+    private RejectReason lastRejectReason { get; set; }
 
     private void SetSrcPage()
     {
@@ -517,14 +518,14 @@
 
         if (!result.Cancelled && (result.Data != null || (string)result.Data != string.Empty))
         {
-            //RejectReason rejreason = new() { 
-            //     RejectReasonText = (string)result.Data, 
-            //     ApproverName = _userContext.LongName,
-            //     ApproverEmpId = _userContext.EnovaEmpId,
-            //     RejectTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
-            //     RejectFormStatus = formItem.Status,
-            // };
-            //formItem.RejectReasons.Add(rejreason);
+            RejectReason rejreason = new() { 
+                RejectReasonText = (string)result.Data, 
+                ApproverName = _userContext.LongName,
+                ApproverEmpId = _userContext.EnovaEmpId,
+                RejectTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                RejectFormStatus = formItem.Status,
+            };
+            formItem.RejectReasons.Add(rejreason);
             approvalInfo.IsApproved = false;
             formItem.Approvals.Add(approvalInfo);
             formItem.RejectReason = (string)result.Data;
@@ -648,7 +649,7 @@
                 break;
 
             case "Odrzucone":
-                newStatus = "AprobataL1";
+                newStatus = "Rejestracja";
                 break;
 
             default:
@@ -749,14 +750,14 @@
 
         }
 
-        // if (formItem.Status == "Odrzucone")
-        // {
-        //     lastRejectReason = formItem.RejectReasons.Last();
-        //     if (new[] { "AprobataL1", "AprobataL2", "ZaliczkaKasa", "ZaliczkaKsiegowosc", "ZaliczkaKsiegowoscTL", "WyslaneDoRobota", "BladRobota" }.Contains(lastRejectReason.RejectFormStatus))
-        //     {
-        //         formItem.Status = "Odrzucone";
-        //     }
-        // };
+        if (formItem.Status == "Odrzucone")
+        {
+            lastRejectReason = formItem.RejectReasons.Last();
+            if (new[] { "AprobataL1", "AprobataL2", "ZaliczkaKasa", "ZaliczkaKsiegowosc", "ZaliczkaKsiegowoscTL", "WyslaneDoRobota", "BladRobota" }.Contains(lastRejectReason.RejectFormStatus))
+            {
+                formItem.Status = "Odrzucone";
+            }
+        };
 
         _editContext = new EditContext(formItem);
         await Utils.GetUserName(_authenticationStateProvider, _userContext, _mediator);
