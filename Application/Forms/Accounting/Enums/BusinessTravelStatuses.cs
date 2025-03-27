@@ -14,14 +14,16 @@ namespace Application.Forms.Accounting.Enums
         ZaliczkaKasa, // Cashier
         ZaliczkaKsiegowosc, // Accountants
         ZaliczkaKsiegowoscTL, // Accountants TLs
+        WyslaneDoRobota, // BOT
+        BladRobota, // Księgowa
         Rozliczenie, // user or just employee
         Ksiegowosc, // Accountants
         KsiegowoscTL, // Accountants TLs
         AprobataL11, // manager of user
         AprobataL12, // some kind of Director
         KasaRozliczenie, // Cashier
-        WyslaneDoRobota, // BOT
-        BladRobota, // Księgowa
+        WyslaneDoRobotaRozliczenie, // BOT
+        BladRobotaRozliczenie, // Księgowa
         Rozliczone, // Read Every One
         Zamkniete // Probably not necessary
     }

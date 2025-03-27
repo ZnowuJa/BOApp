@@ -64,9 +64,9 @@ else
                 <PropertyColumn TGridItem="EmployeeVm" TProp="string" Property="@(Utils.GetPropertyExpression<EmployeeVm>(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label" Filtered="column.SelectedValues.Any()">
                     <ColumnOptions>
                         <FluentSelect TOption="string"
-                                      Items="@(column.DropdownValues)"
-                                      Multiple="true"
-                                      SelectedOptionsChanged="@(e => Utils.OnSelectedOptionsChanged<EmployeeVm>(e, column))">
+                        Items="@(column.DropdownValues)"
+                        Multiple="true"
+                        SelectedOptionsChanged="@(e => Utils.OnSelectedOptionsChanged<EmployeeVm>(e, column))">
                             @foreach (var value in column.DropdownValues)
                             {
                                 <FluentOption Value="@value">@value</FluentOption>
@@ -98,14 +98,19 @@ else
 
     <FluentButton IconStart="@(new Icons.Regular.Size24.Add())" OnClick="@(() => AddPanel())" />
     <FluentButton OnClick="DownloadCsv">Pobierz CSV</FluentButton>
+    @* <FluentCheckbox Id="ScrapId" @bind-Value="@manager" @ValueChanged="@ToggleManagerFilter" Label="Manager" /> *@
 }
 
 
 
 @code {
     private static IQueryable<EmployeeVm> items { get; set; }
+    // private static IQueryable<EmployeeVm> filteredItems => items.Where(x =>
+    //     filterColumns.All(column => string.IsNullOrWhiteSpace(column.Filter) ||
+    //                                 column.Property(x).Contains(column.Filter, StringComparison.CurrentCultureIgnoreCase)) &&
+    //     (x.IsManager = manager);
 
-    PaginationState pagination = new PaginationState { ItemsPerPage = 15 };
+    PaginationState pagination = new PaginationState { ItemsPerPage = 15};
 
     private List<FilterColumn<EmployeeVm>> filterColumns = new List<FilterColumn<EmployeeVm>>
     {
@@ -114,26 +119,33 @@ else
         new FilterColumn<EmployeeVm> { FirstRow = true, Label = "Email", Property = c => c.Email ?? string.Empty, IsVisible = false },
         new FilterColumn<EmployeeVm> { FirstRow = true, Label = "Manager", Property = c => c.Manager.LongName ?? string.Empty, IsVisible = true },
         new FilterColumn<EmployeeVm> { FirstRow = true, Label = "Position", Property = c => c.Position ?? string.Empty, IsVisible = true },
-        new FilterColumn<EmployeeVm> { FirstRow = true, Label = "SAPNumber", Property = c => c.SapNumber ?? string.Empty, IsVisible = true, IsDropdown = true, DropdownValues = SapNumberValues, SelectedValues = new List<string> () },
+        new FilterColumn<EmployeeVm> { FirstRow = true, Label = "SAPNumber", Property = c => c.SapNumber ?? string.Empty, IsVisible = true},
         new FilterColumn<EmployeeVm> { FirstRow = true, Label = "VCDCompany", Property = c => c.VcdCompanyNr ?? string.Empty, IsVisible = false },
         new FilterColumn<EmployeeVm> { FirstRow = false, Label = "VCDEmpId", Property = c => c.VcdempId ?? string.Empty, IsVisible = false },
         new FilterColumn<EmployeeVm> { FirstRow = false, Label = "VCDDept", Property = c => c.VcddeptNumber ?? string.Empty, IsVisible = true },
         new FilterColumn<EmployeeVm> { FirstRow = false, Label = "FTEStartDate", Property = c => c.FTEStartDate ?? string.Empty, IsVisible = false },
         new FilterColumn<EmployeeVm> { FirstRow = false, Label = "FTEEndDate", Property = c => c.FTEEndDate ?? string.Empty, IsVisible = false },
-        new FilterColumn<EmployeeVm> { FirstRow = false, Label = "DeptNumber", Property = c => c.DeptNumber ?? string.Empty, IsVisible = false }
+        new FilterColumn<EmployeeVm> { FirstRow = false, Label = "DeptNumber", Property = c => c.DeptNumber ?? string.Empty, IsVisible = false },
+        new FilterColumn<EmployeeVm> { FirstRow = false, Label = "PersonalDeptNum", Property = c => c.PersonalDeptNumber ?? string.Empty, IsVisible = false },
+        new FilterColumn<EmployeeVm> { FirstRow = false, Label = "IsManager", Property = c => c.IsManager.ToString() ?? string.Empty, IsVisible = false }
 
-
+        // , IsDropdown = true, DropdownValues = SapNumberValues, SelectedValues = new List<string> ()
     };
 
     private DebounceDispatcher debounceDispatcher = new DebounceDispatcher();
-
+    private bool manager { get; set; }
     private static List<string> SapNumberValues { get; set; } = new List<string> { "1556", "1557", "1558", "1559", "1561", "1562", "1563", "1565", "1571", "1573", "1574", "1575", "1576", "1578", "157891", "157892", "157893", "157894", "157895", "157896", "157899", "1581", "1582", "1583" };
 
     protected override async Task OnInitializedAsync()
     {
         await Load();
     }
-
+    private void ToggleManagerFilter()
+    {
+        manager = !manager;
+        // if (!isSold && !isScrapped) isAll = false;
+        InvokeAsync(StateHasChanged);
+    }
     private async Task Load()
     {
         items = await _mediator.Send(new GetAllEmployeesQuery());
@@ -188,14 +200,7 @@ else
             var final = (EmployeeVm)result.Data;
             if (final.Id > 0)
             {
-                i = await _mediator.Send(new UpdateEmployeeCommand(final.Id,
-                    final.FirstName,
-                    final.LastName,
-                    final.Email,
-                    final.MobileNumber,
-                    final.PhoneNumber,
-                    final.ManagerId,
-                    final.EmployeeTypeVm));
+                i = await _mediator.Send(new UpdateEmployeeNewCommand(final));
 
                 if (final.Roles.Count > 0)
                 {

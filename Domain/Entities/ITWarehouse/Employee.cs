@@ -30,6 +30,7 @@ public class Employee : AuditableEntity, IAssignee
     public string? FTEEndDate {  get; set; }
     public string? ManagerEmail { get; set; }  
     public string? DeptNumber {  get; set; }
+    public string PersonalDeptNumber { get; set; }
     public string? AspNetUserId { get; set; }
     public string? Oeshort {  get; set; }
     public string? JobCode { get; set; }

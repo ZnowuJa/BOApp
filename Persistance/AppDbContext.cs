@@ -68,10 +68,12 @@ public class AppDbContext : IdentityDbContext<AppUser>, IAppDbContext
     public DbSet<CompanyCarRegistrationNumber> CompanyCarRegistrationNumbers { get ; set; }
     public DbSet<NbpCurrencyRate> NbpCurrencyRates {  get; set; }
     public DbSet<BusinessTravelForm> BusinessTravels { get; set; }
-    public virtual DbSet<Bnp20> Bnp20s { get; set; }
-    public virtual DbSet<Bnp55> Bnp55s { get; set; }
+    public DbSet<SapCostCenter> SapCostCenters { get; set; }
+    public DbSet<Bnp20> Bnp20s { get; set; }
+    public DbSet<Bnp55> Bnp55s { get; set; }
 
 
+    public DbSet<AdvancePaymentForm> AdvancePayments { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

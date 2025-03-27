@@ -75,9 +75,7 @@ public static class AppUtils
     {
         return string.IsNullOrEmpty(json) ? new List<OrganisationRoleForFormVm>() : JsonSerializer.Deserialize<List<OrganisationRoleForFormVm>>(json);
     }
-
     private static readonly HttpClient httpClient = new();
-
     public static async Task<bool> ValidateIbanAsync(string iban)
     {
         if (string.IsNullOrWhiteSpace(iban)) { return false; }
@@ -103,6 +101,11 @@ public static class AppUtils
         {
             return false;
         }
+    }
+    public static DateTime GetClosestWednesday(DateTime today)
+    {
+        int daysUntilWednesday = ((int)DayOfWeek.Wednesday - (int)today.DayOfWeek + 7) % 7;
+        return today.AddDays(daysUntilWednesday);
     }
 }
 

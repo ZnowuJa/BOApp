@@ -56,14 +56,15 @@
 
     private async Task HandleEmployeeChange()
     {
+
         Console.WriteLine(SelectedEmpl.Count());
 
         if(SelectedEmpl.FirstOrDefault() == null)
         {
+            Console.WriteLine(SelectedEmpl.Count());
 
         } else
         {
-            
             Role.Employee = SelectedEmpl.FirstOrDefault();
             Role.EmpId = SelectedEmpl.FirstOrDefault().EnovaEmpId;
         }

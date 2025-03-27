@@ -22,13 +22,17 @@
 else
 {
 
-    <FluentDataGrid Items="@costCenter" TGridItem="CostCenterVm" GridTemplateColumns="50px 1fr 1fr 1fr" AutoFit="true">
-
-
-        <PropertyColumn Property="@(c => c.Id)" Title="Id" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.MPK)" Title="MPK" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.Description)" Title="Opis" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.Text)" Title="Tekst" Sortable="true" Align="Align.Start" Tooltip="true" />
+    <FluentDataGrid Items="@filteredCostCenter" Pagination="@pagination" TGridItem="CostCenterVm" GridTemplateColumns="50px 200px 200px 200px">
+        @foreach (var column in filterColumns.Where(c => c.IsVisible))
+        {
+            <PropertyColumn TGridItem="CostCenterVm" TProp="string" Property="@(Utils.GetPropertyExpression(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label" Filtered="!string.IsNullOrWhiteSpace(column.Filter)">
+                <ColumnOptions>
+                    <div class="search-box">
+                        <FluentSearch type="search" Autofocus="true" @bind-Value="column.Filter" @oninput="(args) => Utils.HandleFilterDebounced(column, args, debounceDispatcher, () => InvokeAsync(StateHasChanged))" Placeholder="@($"{column.Label.ToLower()}...")" />
+                    </div>
+                </ColumnOptions>
+            </PropertyColumn>
+        }
         <TemplateColumn Title="Akcje" Align="Align.End">
             @{
                 var viewId = $"viewid-{context.Id}";
@@ -46,13 +50,28 @@ else
 
         </TemplateColumn>
     </FluentDataGrid>
+    <FluentPaginator State="@pagination" />
     <FluentButton IconStart="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddPanel())" />
 }
 
 
 @code {
     private IQueryable<CostCenterVm> costCenter;
+    private IQueryable<CostCenterVm> filteredCostCenter => costCenter.Where(x =>
+    filterColumns.All(column => string.IsNullOrWhiteSpace(column.Filter) ||
+    column.Property(x).Contains(column.Filter, StringComparison.CurrentCultureIgnoreCase)));
+
     private bool deleteConfirm = false;
+    PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
+    private DebounceDispatcher debounceDispatcher = new DebounceDispatcher();
+
+    private List<FilterColumn<CostCenterVm>> filterColumns = new List<FilterColumn<CostCenterVm>>
+    {
+        new FilterColumn<CostCenterVm> { FirstRow = true, Label = "ID", Property = c => c.Id.ToString(), IsVisible = true, Width = "80px" },
+        new FilterColumn<CostCenterVm> { FirstRow = true, Label = "MPK", Property = c => c.MPK, IsVisible = true, Width = "1FR" },
+        new FilterColumn<CostCenterVm> { FirstRow = true, Label = "Opis", Property = c => c.Description, IsVisible = true , Width = "1FR" },
+        new FilterColumn<CostCenterVm> { FirstRow = true, Label = "Tekst", Property = c => c.Text, IsVisible = true , Width = "1FR" },
+    };
 
     protected override async Task OnInitializedAsync()
     {

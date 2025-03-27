@@ -39,24 +39,17 @@ public class ValidateEmployeesForCoC : IJob
         {
             if (employee.SapNumber == null || !sapRegex.IsMatch(employee.SapNumber))
             { 
-                errors.Add($"Problem with SAPNumber for EnovaId: {employee.EnovaEmpId} - either null or not martching pattern");
+                errors.Add($"Problem with SAPNumber for EnovaId: {employee.EnovaEmpId} - either null or not matching pattern");
             }
             if (employee.Email == null || !emailRegex.IsMatch(employee.Email))
             {
-                errors.Add($"Problem with Email for EnovaId: {employee.EnovaEmpId} - either null or not martching pattern");
+                errors.Add($"Problem with Email for EnovaId: {employee.EnovaEmpId} - either null or not matching pattern");
             }
             if (employee.Position == null || !positionsNames.Contains(employee.Position.ToLower()))
             {
                 errors.Add($"Problem with Position for EnovaId: {employee.EnovaEmpId}  - either null or not defined in Positions table | src: {employee.Position}");
             }
-            //if (emps.All(emp => emps.Any(e => e.EnovaEmpId == emp.ManagerId)))
-            //{
-            //    errors.Add($"Problem with ManagerId for Employee: {employee.EnovaEmpId}  - either null or not defined in Employee table");
-            //}
-
-
         }
-
 
         string rcptemail = "marcin.jarco@porscheinterauto.pl";
         await SendEmail(rcptemail, errors);

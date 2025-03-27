@@ -1,0 +1,245 @@
+﻿@page "/sapcostcenters"
+@page "/sapmpk"
+@using Application.CQRS.AccountingCQRS.CostCenters.Queries
+@using Application.CQRS.AccountingCQRS.CostCenters.Commands
+@using Application.CQRS.AccountingCQRS.SapCostCenters.Commands
+@using Application.CQRS.AccountingCQRS.SapCostCenters.Queries
+@using Application.ViewModels.Accounting
+@using AutoMapper
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize(Policy = "Accountant")]
+
+@inject IMediator _mediator
+@inject ILogger<SapCostCenter_ListPage> _logger
+@inject IDialogService _dialogService
+@inject IToastService _toastService
+@inject IJSRuntime JS
+@inject IMapper _mapper
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager _navigationManager
+
+<FluentStack Orientation="Orientation.Horizontal">
+    <FluentLabel Typo="Typography.Subject"> Show columns:  </FluentLabel>
+    @foreach (var column in filterColumns)
+    {
+        if (column.FirstRow)
+        {
+            <FluentCheckbox @bind-Value="column.IsVisible" Label="@column.Label" />
+        }
+    }
+</FluentStack>
+<p></p>
+<FluentStack Orientation="Orientation.Horizontal">
+    @foreach (var column in filterColumns)
+    {
+        if (!column.FirstRow)
+        {
+            <FluentCheckbox @bind-Value="column.IsVisible" Label="@column.Label" />
+        }
+    }
+</FluentStack>
+
+<FluentDataGrid Items="@Utils.ApplyFilters(items, filterColumns)" Pagination="@pagination" TGridItem="SapCostCenterVm" GridTemplateColumns="80px repeat(7, 1fr)" AutoFit="true" ResizableColumns="true">
+    @foreach (var column in filterColumns.Where(c => c.IsVisible))
+    {
+        if (column.IsDropdown)
+        {
+            <PropertyColumn TGridItem="SapCostCenterVm" TProp="string" Property="@(Utils.GetPropertyExpression<SapCostCenterVm>(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label" Filtered="column.SelectedValues.Any()">
+                <ColumnOptions>
+                    <FluentSelect TOption="string"
+                                  Items="@(column.DropdownValues)"
+                                  Multiple="true"
+                                  SelectedOptionsChanged="@(e => Utils.OnSelectedOptionsChanged<SapCostCenterVm>(e, column))">
+                        @foreach (var value in column.DropdownValues)
+                        {
+                            <FluentOption Value="@value">@value</FluentOption>
+                        }
+                    </FluentSelect>
+                </ColumnOptions>
+            </PropertyColumn>
+        }
+        else
+        {
+            <PropertyColumn TGridItem="SapCostCenterVm" TProp="string" Property="@(Utils.GetPropertyExpression<SapCostCenterVm>(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label" Filtered="!string.IsNullOrWhiteSpace(column.Filter)">
+                <ColumnOptions>
+                    <div class="search-box">
+                        <FluentSearch type="search" Autofocus="true" @bind-Value="column.Filter" @oninput="(args) => Utils.HandleFilterDebounced(column, args, debounceDispatcher, () => InvokeAsync(StateHasChanged))" Placeholder="@($"{column.Label.ToLower()}...")" />
+                    </div>
+                </ColumnOptions>
+            </PropertyColumn>
+        }
+    }
+
+
+    @* Actions *@
+    <TemplateColumn Title="Actions" Align="Align.End">
+
+        @{
+            var viewId = $"viewid-{context.Id}";
+            var editId = $"editid-{context.Id}";
+            var deleteId = $"deleteid-{context.Id}";
+            // var addId = $"addid-{context.Id}";
+        }
+        <FluentButton Id="@viewId" IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" Disabled="@viewDisabled" />
+        <FluentTooltip Anchor="@viewId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Left Delay=50>View form</FluentTooltip>
+
+        <FluentButton Id="@editId" IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => Edit(context))" Disabled="false" />
+        @*WARNING it is not tested if isEditDisabled works*@
+        <FluentTooltip Anchor="@editId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Edit form</FluentTooltip>
+
+        <FluentButton Id="@deleteId" IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" Disabled="@actionsDisabled" />
+        <FluentTooltip Anchor="@deleteId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Delete form</FluentTooltip>
+
+    </TemplateColumn>
+</FluentDataGrid>
+<FluentPaginator State="@pagination" />
+<FluentButton IconStart="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddPanel())" />
+<FluentButton OnClick="DownloadCsv">Pobierz CSV</FluentButton>
+
+
+
+
+@code {
+    private IQueryable<SapCostCenterVm> items;
+    private bool deleteConfirm = false;
+    private FormUserContext _userContext = new FormUserContext("Accountant", "Technician");
+    private List<FilterColumn<SapCostCenterVm>> filterColumns = new List<FilterColumn<SapCostCenterVm>>
+    {
+        new FilterColumn<SapCostCenterVm> { FirstRow = true, Label = "ID", Property = c => c.Id.ToString(), IsVisible = false },
+        new FilterColumn<SapCostCenterVm> { FirstRow = true, Label = "DG", Property = c => c.LocationNumber.ToString()??string.Empty, IsVisible = true, IsDropdown = true, DropdownValues = Locations, SelectedValues = new List<string> ()},
+        new FilterColumn<SapCostCenterVm> { FirstRow = true, Label = "DG Nazwa", Property = c => c.LocationName.ToString()??string.Empty, IsVisible = true },
+
+        new FilterColumn<SapCostCenterVm> { FirstRow = true, Label = "Dział", Property = c => c.DepartmentNumber.ToString(), IsVisible = true },
+        new FilterColumn<SapCostCenterVm> { FirstRow = true, Label = "Dział Nazwa", Property = c => c.DepartmentName.ToString(), IsVisible = true },
+        new FilterColumn<SapCostCenterVm> { FirstRow = true, Label = "Manager", Property = c => c.ResponsibleManagerName.ToString(), IsVisible = true },
+
+    };
+
+    private static List<string> Locations { get; set; } = new List<string>();
+
+    private DebounceDispatcher debounceDispatcher = new DebounceDispatcher();
+    private PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
+    private bool actionsDisabled = false;
+    private bool viewDisabled = false;
+    private bool editDisabled = false;
+    private ToastIntent intent { get; set; }
+    private string toastMessage { get; set; } = string.Empty;
+
+    private void HandleClearFilter(ref string filter) => filter = string.IsNullOrWhiteSpace(filter) ? string.Empty : filter;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Utils.GetUserName(AuthenticationStateProvider, _userContext, _mediator);
+        await Load();
+    }
+    private async Task Load()
+    {
+        items = await _mediator.Send(new GetAllSapCostCenterQuery());
+        Locations = items.Select(x => x.LocationName).Distinct().ToList();
+    }
+    private async Task View(SapCostCenterVm item)
+    {
+        await _dialogService.ShowInfoAsync(message: $"Id: {item.Id}, MPK: {item.LocationNumber}, opis: {item.DepartmentNumber}, tekst: {item.LocationName} {item.DepartmentName}");
+    }
+    private async Task Delete(SapCostCenterVm item)
+    {
+        var dialog = await _dialogService.ShowConfirmationAsync(
+            $"Czy na pewno chcesz usunąć MPK: {item.LocationNumber} {item.DepartmentNumber}?",
+            "Usuń",
+            "Anuluj",
+            "Potwierdź usunięcie");
+        var result = await dialog.Result;
+        deleteConfirm = result.Cancelled;
+        ToastIntent intent;
+        string message = string.Empty;
+
+        if (deleteConfirm)
+        {
+            intent = ToastIntent.Error;
+            message = "Operacja anulowana";
+        }
+        else
+        {
+            var i = await _mediator.Send(new DeleteSapCostCenterCommand(item.Id));
+            intent = ToastIntent.Success;
+            message = "MPK zostało usunięte!";
+        }
+
+        _toastService.ShowToast(intent, message, 3000);
+        await Load();
+    }
+    private async Task Edit(SapCostCenterVm item)
+    {
+        ToastIntent intent;
+        string message = string.Empty;
+        int resultId = 0;
+
+        var dialog = await _dialogService.ShowDialogAsync<SapCostCenter_EditComponent>(item, new DialogParameters()
+            {
+                Height = "450px",
+                Width = "450px",
+                Title = item.Id > 0 ? "Aktualizuj MPK" : "Nowy MPK",
+                PreventDismissOnOverlayClick = false,
+                PreventScroll = true,
+            });
+
+        var result = await dialog.Result;
+
+        if (!result.Cancelled && result.Data != null)
+        {
+            var final = (SapCostCenterVm)result.Data;
+
+            if (final.Id > 0)
+            {
+                resultId = await _mediator.Send(new UpdateSapCostCenterCommand(final));
+                intent = ToastIntent.Success;
+                message = "MPK zostało zaktualizowane!";
+            }
+            else if (final.Id == 0)
+            {
+                resultId = await _mediator.Send(new CreateSapCostCenterCommand(final));
+                intent = ToastIntent.Success;
+                message = "MPK zostało utworzone!";
+            }
+            else
+            {
+                intent = ToastIntent.Warning;
+                message = "Coś poszło źle!";
+            }
+        }
+        else if (result.Cancelled)
+        {
+            intent = ToastIntent.Info;
+            message = "Operacja anulowana";
+        }
+        else
+        {
+            intent = ToastIntent.Error;
+            message = "Coś poszło źle!";
+        }
+
+        await Load();
+        _toastService.ShowToast(intent, message, 3000);
+    }
+    private async Task AddPanel()
+    {
+        var item = new SapCostCenterVm();
+        await Edit(item);
+    }
+
+    private async Task DownloadCsv()
+    {
+        var selectedItems = @Utils.ApplyFilters(items, filterColumns);
+        IQueryable<SapCostCenterVm> exportModels = selectedItems.ProjectTo<SapCostCenterVm, SapCostCenterVm>(_mapper);
+
+        var csvContent = Utils.GenerateCsvPL(exportModels);
+        var base64csv = Convert.ToBase64String(csvContent);
+
+        string date = DateTime.Now.ToString("yyyyMMdd");
+        string filename = $"{date}_lista.csv";
+
+        // Invoke the JavaScript method to download the CSV
+        await JS.InvokeVoidAsync("downloadFilePL", filename, base64csv);
+    }
+}

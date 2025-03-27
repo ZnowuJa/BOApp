@@ -35,10 +35,22 @@ public class BillValidator : AbstractValidator<Bill>
                 });
 
         });
+        When(b => b.isParking, () =>
+        {
+            RuleFor(b => b.ParkingAmount).GreaterThan(0).WithMessage("Wprowadź kwotę za parking!");
+        }
+            );
 
         //RuleForEach(x => x.InvoiceMappings).SetValidator(new InvoiceMappingValidator());
         
     }
+    //public BillValidator(DateTime? start, DateTime? end)
+    //{
+    //    RuleFor(x => x.InvoiceDate).GreaterThanOrEqualTo(start.Value)
+    //                .LessThanOrEqualTo(end.Value)
+    //                .WithMessage("Data faktury powinna być między {PropertyValue} a {ComparisonValue}.");
+
+    //}
 }
 
 public class BillFileValidator : AbstractValidator<BillFile>

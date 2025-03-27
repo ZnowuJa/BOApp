@@ -28,7 +28,14 @@ public class GetAllPositionsQueryHandler : IRequestHandler<GetAllPositionsQuery,
             .Where(p => p.StatusId == 1)
             .ToListAsync(cancellationToken);
         var result = _mapper.Map<List<PositionVm>>(positions);
-
+        foreach (var positionVm in result)
+        {
+            if (positionVm.GroupCoCId == 0 || positionVm.GroupCoCId == null)
+            {
+                positionVm.GroupCoCId = 0;
+                positionVm.GroupCoC = new GroupCoCVm();
+            }
+        }
         return result.AsQueryable();
     }
 }

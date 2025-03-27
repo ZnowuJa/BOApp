@@ -3,6 +3,7 @@
 @using Application.BackgroundJobs
 @using Application.Interfaces
 @using Application.ViewModels.General
+
 @using Microsoft.AspNetCore.Authorization
 @using Application.AdHocJobs
 
@@ -10,17 +11,18 @@
 @attribute [Authorize(Policy = "Technician")]
 
 @inject IMediator _mediator
-@inject ILogger<AddOnboardingsTimeSpan> _logger
+@inject ILogger<AddOnboardingsTimeSpanComponent> _logger
 @inject IDialogService _dialogService
 @inject IToastService _toastService
 @inject IEmailService _mailService;
 @inject IConfiguration _configuration;
+@inject IJobSchedulerService _jobSchedulerService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @implements IDialogContentComponent<string>
 
 <FluentDatePicker Label="Od"
                   @bind-Value="@FromFTEDate"
-                  
+
                   Style="width: 130px" />
 <FluentDatePicker Label="Do"
                   @bind-Value="@ToFTEDate"
@@ -31,6 +33,7 @@
     Generuj
 </FluentButton>
 <p></p>
+<p>AddOnboardingsTimeSpanAction</p>
 @if(isBusy){
     <FluentProgressRing />
 }
@@ -56,17 +59,17 @@
     #endregion
 
     private async Task AddOnboardingsTimeSpanAction(){
-        
+
         isBusy = true;
         if (FromFTEDate.HasValue && ToFTEDate.HasValue)
         {
+            string className = "Application.BackgroundJobs.AddCoCOnboardingsJob";
+            string assembly = "Application";
+
+            await _jobSchedulerService.RunJobManuallyAsyncWithDates(className, assembly, FromFTEDate.Value, ToFTEDate.Value);
+
             
-            AddCoCOnboardingTimeSpanAdHocJob job = new AddCoCOnboardingTimeSpanAdHocJob(_mediator, FromFTEDate.Value, ToFTEDate.Value, _mailService, _configuration);
-            generated = await job.Execute();
-            if (generated.HasValue)
-            {
-                isBusy = false;
-            }
+            isBusy = false;
         };
 
     }

@@ -5,7 +5,7 @@
 @using Application.ViewModels.General
 @using Microsoft.AspNetCore.Authorization
 
-@attribute [Authorize(Policy = "User")]
+@attribute [Authorize(Policy = "Technician")]
 
 @inject IMediator _mediator
 @inject IDialogService _dialogService
@@ -35,9 +35,19 @@ else
         @* Actions *@
 
         <TemplateColumn Title="Actions" Align="Align.End">
-            <FluentButton IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => EditItem(context))" />
-            <FluentButton IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" />
-            <FluentButton IconEnd="@(new Icons.Regular.Size20.PersonRunning())" OnClick="@(() => Run(context))" />
+            @{
+                var runId = $"viewid-{context.Id}";
+                var editId = $"editid-{context.Id}";
+                var deleteId = $"deleteid-{context.Id}";
+
+            }
+            <FluentButton Id="@editId" IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => EditItem(context))" />
+            <FluentButton Id="@deleteId" IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" />
+            <FluentButton Id="@runId" IconEnd="@(new Icons.Regular.Size20.PersonRunning())" OnClick="@(() => Run(context))" />
+
+            <FluentTooltip Anchor="@editId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Edycja zadania</FluentTooltip>
+            <FluentTooltip Anchor="@deleteId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Skasuj zadanie</FluentTooltip>
+            <FluentTooltip Anchor="@runId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Uruchom zadanie</FluentTooltip>
         </TemplateColumn>
 
     </FluentDataGrid>
@@ -109,7 +119,7 @@ else
                 $"Czy na pewno chcesz uruchomić teraz: {item.JobClass}?",
                 "Uruchom",
                 "Anuluj",
-                "Potwierdź usunięcie");
+                "Potwierdź uruchomienie");
         var result = await dialog.Result;
         deleteConfirm = result.Cancelled;
      
@@ -186,5 +196,4 @@ else
         var item = new BackgroundJobVm();
         await EditItem(item);
     }
-
 }
