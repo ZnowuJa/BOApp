@@ -183,11 +183,11 @@
         //     {"UserContext", _userContext},
         //     {"Content", item}
         // };
-        var dialog = await _dialogService.ShowPanelAsync<AssetSaleForm_Edit_Component>(item, new DialogParameters()
+        var dialog = await _dialogService.ShowDialogAsync<AssetSaleForm_Edit_Component>(item, new DialogParameters()
                     {
-                        Height = "240px",
-                        Width = "850px",
-                        Title = item.Id > 0 ? "IT Sale Form" : "New IT Sale Form",
+                        Height = "750px",
+                        Width = "1050px",
+                        Title = item.Id > 0 ? $"IT Sale Form | {item.Number}" : "New IT Sale Form",
                         PreventDismissOnOverlayClick = false,
                         PreventScroll = true
                     });
@@ -252,7 +252,36 @@
     }
     private async Task Delete(ITSaleFormVm item = null)
     {
+        var dialog = await _dialogService.ShowConfirmationAsync("Kasowanie Sprzedaży: " + item.Number + "\n Czy na pewno?", "TAK", "NIE", "Potwierdź operację kasowania");
+        var result = await dialog.Result;
+        bool deleteConfirm = result.Cancelled;
 
+        ToastIntent intent;
+        string message = string.Empty;
+
+        if (deleteConfirm)
+        {
+            intent = ToastIntent.Error;
+            message = $"Nie skasowano sprzedaży {item.Number}";
+
+        }
+        else
+        {
+            foreach (var ass in item.Assets)
+            {
+                
+                ass.SaleFormId = null;
+                ass.StateVmId = 2;
+                await _mediator.Send(new UpdateAssetCommand(ass.Id, ass.PartVmId, ass.InvoiceVmId, ass.InvoiceItemID, ass.AssetTagNumber, ass.StateVmId, ass.SerialNumber, ass.LastSeen, ass.AssigneeVmId, ass.AssigneeVmType, ass.AssigneeVmName, ass.WarehouseVmId, ass.Price, ass.CurrencyVmId, DateTime.Now, ass.Leasing, ass.EndOfContract, ass.WarrantyUntil, ass.Imei, ass.Mac, ass.EndOfSupport, ass.ScrappingFormId, ass.SaleFormId, ass.ScrappingReason, _userContext.LongName));
+            }
+            var i = await _mediator.Send(new DeleteITSaleFormCommand(item.Id));
+            intent = ToastIntent.Success;
+            message = $"Skasowano sprzedaż {item.Number}";
+
+        }
+
+        _toastService.ShowToast(intent, message, 3000);
+        await Load();
     }
     private async Task View(ITSaleFormVm item = null)
     {

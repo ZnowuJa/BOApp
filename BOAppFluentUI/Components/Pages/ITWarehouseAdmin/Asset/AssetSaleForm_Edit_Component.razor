@@ -55,7 +55,7 @@
 </FluentDialogHeader>
 
 @* Body *@
-<FluentDialogBody>
+<FluentDialogBody Style="overflow-y: auto; overflow-x: hidden;">
     <h5>Assets to sale: </h5>
     <FluentDataGrid Items="@AssetsList" TGridItem="AssetDTO" Pagination="@pagination" AutoFit="true"
                     ResizableColumns="true">
@@ -77,12 +77,13 @@
     <FluentPaginator State="@pagination"/>
     <div>
         <FluentStack Orientation="Orientation.Horizontal">
-            <FluentLabel Typo="Typography.Subject"> Add another Asset:</FluentLabel>
+            <FluentLabel Typo="Typography.Subject"> Add Asset:</FluentLabel>
             <FluentAutocomplete TOption="AssetVm"
                                 AutoComplete="on"
 
                                 OnOptionsSearch="OnAssetSearch"
                                 Placeholder="Select asset..."
+                                MaximumOptionsSearch="100"
                                 MaximumSelectedOptions="1"
                                 OptionText="@(p => p.AssetTagNumber)"
                                 @bind-SelectedOptions="@SelectedAsset"
@@ -195,6 +196,7 @@
 
     private IQueryable<AssetDTO>? AssetsList { get; set; }
     private IQueryable<AssetVm>? AssetsListAll { get; set; }
+    private List<AssetVm>? FilteredAssetsListAll { get; set; }
     private IEnumerable<AssetVm> SelectedAsset = Array.Empty<AssetVm>();
     private IQueryable<EmployeeVm>? itemEmployeesList { get; set; }
     private IQueryable<IAssigneeVm>? itemAssigneesList { get; set; }
@@ -247,6 +249,7 @@
         }
 
         AssetsListAll = await _mediator.Send(new GetAllAssetsQuery());
+        FilteredAssetsListAll = AssetsListAll.Where(a => a.StateVmId != 5 && a.StateVmId != 7).ToList();
         formFiles = Content.FormFiles.AsQueryable();
         CanCloseCheck();
         await LoadAssets();
@@ -422,7 +425,7 @@
     }
     private void OnAssetSearch(OptionsSearchEventArgs<AssetVm> e)
     {
-        e.Items = AssetsListAll.Where(a => a.AssetTagNumber.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
+        e.Items = FilteredAssetsListAll.Where(a => a.AssetTagNumber.Contains(e.Text, StringComparison.OrdinalIgnoreCase) );
     }
     private async Task OnFileUploadedAsync(FluentInputFileEventArgs file)
     {
