@@ -44,20 +44,20 @@
                 <th style="text-align: left; border-right: none; font-size: large;" colspan="2">
                     Informacje Ogólne
                 </th>
-                <th>
+@*                 <th>
                     <FluentSelect Items="@_Statuses"
                                   @bind-Value="@formItem.Status"
                                   @bind-Value:after="@HandleStatusChange" />
-                </th>
+                </th> *@
                 <th style="text-align: right; border-left: none; font-size: large;" colspan="2">
                     Status: @formItem.Status | Numer: @formItem.Number
                 </th>
             </tr>
             <tr class="table-header-left table-caption">
-                <th style="width: 130px;">Zgłaszający</th>
-                <th style="width: 150px;">Oddział</th>
-                <th style="width: 130px;">Cel</th>
-                <th style="width: 120px;">Kwota</th>
+                <th>Zgłaszający</th>
+                @* <th style="width: 150px;">Oddział</th> *@
+                <th style="width: 250px;" colspan="2">Cel</th>
+                <th>Kwota</th>
             </tr>
         </thead>
         <tbody>
@@ -65,26 +65,26 @@
                 <td>
                     @formItem.EmployeeName
                 </td>
-                <td>
-                    @* <FluentAutocomplete TOption="OrganisationVm"
+                 @* <td> *@
+@*                     <FluentAutocomplete TOption="LocationVm"
                             SelectValueOnTab="true"
                             AutoComplete="on"
-                            OnOptionsSearch="@OnLocationSearch"
+                            OnOptionsSearch="@OnOrganisationSearch"
                             Placeholder="Wybierz lokalizację..."
                             MaximumSelectedOptions="1"
-                            OptionText="@(p => p.Description)"
-                            @bind-SelectedOptions="@_selectedLocation"
-                            @bind-SelectedOptions:after="@HandleLocationChange"
+                            OptionText="@(p => p.SapNumber + ' ' + p.Description)"
                             Width="180px" /> *@
-                    Warszawa HQ IT
-                </td>
-                <td>
+
+                @* </td> *@
+                <td colspan="2"> 
                     <FluentTextField TOption="string"
                                   Placeholder="Wpisz cel zaliczki..."
                                   Disabled="IsRegistrationFormDisabledForOthers"
-                                  @bind-Value="@formItem.Objective" />
+                                  @bind-Value="@formItem.Objective"
+                                  Style="width: 250px"/>
                                   <FluentValidationMessage For="@(() => formItem.Objective)" class="validation-error" />
                 </td>
+
                 <td>
                     <FluentNumberField @bind-Value:get="@formItem.AdvancePaymentAmount"
                                        @bind-Value:set="@(value => formItem.AdvancePaymentAmount = value)"
@@ -145,7 +145,7 @@
                         Numer konta bankowego:
                     </td>
                     <td>
-                        <FluentTextField Placeholder="wprowadź numer konta"
+                        <FluentTextField Placeholder="Wprowadź numer konta"
                                          @bind-Value="@formItem.BankAccountNumber"
                                          Style="width: 250px;"
                                          Disabled="IsRegistrationFormDisabledForOthers"/>
@@ -167,7 +167,7 @@
 
         </tbody>
     </table>
-         @if (lastRejectReason != null && !string.IsNullOrEmpty(formItem.RejectReason) && (strej || stroz || stodrz ))
+         @if (lastRejectReason != null && !string.IsNullOrEmpty(formItem.RejectReason) && (strej || stodrz ))
                      { 
                          <table class="table-container">
                              <tbody>
@@ -666,7 +666,17 @@
         {
             e.Items = _locations.Where(a =>
                 a.Name.Contains(e.Text, StringComparison.OrdinalIgnoreCase) ||
-                a.SapNumber.Contains(e.Text, StringComparison.OrdinalIgnoreCase)).ToList();
+                a.SapNumber.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
+        }
+    }
+
+    private void OnOrganisationSearch(OptionsSearchEventArgs<LocationVm> e)
+    {
+        if (e.Text != null)
+        {
+            e.Items = _locations.Where(a =>
+            a.Name.Contains(e.Text, StringComparison.OrdinalIgnoreCase) ||
+            a.SapNumber.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
         }
     }
     #endregion
