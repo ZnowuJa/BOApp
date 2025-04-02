@@ -535,6 +535,90 @@ namespace Persistance.Migrations
                     b.ToTable("ManagerDeputies");
                 });
 
+            modelBuilder.Entity("Domain.Entities.BNP.Bnp20", b =>
+                {
+                    b.Property<string>("Adres")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Cdtdbtind")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateOnly?>("Data")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Iban")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Instrid")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Kwota")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Nazwa")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Panstwo")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Txid")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Tytul")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Waluta")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.ToTable((string)null);
+
+                    b.ToView("v_BNP20", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Entities.BNP.Bnp55", b =>
+                {
+                    b.Property<string>("Adres")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Cdtdbtind")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateOnly?>("Data")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Iban")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Instrid")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Kwota")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Nazwa")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Panstwo")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Txid")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Tytul")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Waluta")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.ToTable((string)null);
+
+                    b.ToView("v_BNP55", (string)null);
+                });
+
             modelBuilder.Entity("Domain.Entities.BusinessOperations.CompanyCarRegistrationNumber", b =>
                 {
                     b.Property<string>("RegistrationNumber")
@@ -1850,7 +1934,7 @@ namespace Persistance.Migrations
                     b.ToTable("Warehouses");
                 });
 
-            modelBuilder.Entity("Domain.Forms.Accounting.AdvancePaymentForm", b =>
+            modelBuilder.Entity("Domain.Forms.Accounting.BankTransferForm", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1858,36 +1942,15 @@ namespace Persistance.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<decimal?>("AdvancePaymentAmount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<bool>("AdvancePaymentCash")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("AdvancePaymentCurrency")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateOnly?>("AdvancePaymentDate")
-                        .HasColumnType("date");
-
                     b.Property<string>("Approvals")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("BTMappingAdvancePayment")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("BTMappingPayout")
+                    b.Property<string>("BankTransferMapping")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("BankAccountNumber")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("CashPayoutNumber")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("CashPoint")
+                    b.Property<string>("BankTransferTitle")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -1901,7 +1964,15 @@ namespace Persistance.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Document")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("EmployeeName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EmployeeSapCostCenterVm")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -1912,14 +1983,6 @@ namespace Persistance.Migrations
                     b.Property<string>("FolderName")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("FormCostCenter")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("FormCostLocation")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("FormFiles")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -1928,6 +1991,10 @@ namespace Persistance.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("InactivatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("InvoiceMappings")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("LVL1_EmployeeName")
@@ -1996,14 +2063,14 @@ namespace Persistance.Migrations
                     b.Property<string>("ModifiedBy")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Notes")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Number")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("NumberPrefix")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Objective")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -2012,9 +2079,7 @@ namespace Persistance.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("OrganisationSapNumber")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PayoutCashierEmpId")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("RejectReason")
@@ -2024,6 +2089,9 @@ namespace Persistance.Migrations
                     b.Property<string>("RejectReasons")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("SplitPayment")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Status")
                         .HasColumnType("nvarchar(max)");
@@ -2044,7 +2112,7 @@ namespace Persistance.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("AdvancePayments");
+                    b.ToTable("BankTransfers");
                 });
 
             modelBuilder.Entity("Domain.Forms.Accounting.BusinessTravelForm", b =>
