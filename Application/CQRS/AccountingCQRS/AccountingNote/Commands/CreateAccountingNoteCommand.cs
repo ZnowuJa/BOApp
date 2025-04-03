@@ -4,11 +4,6 @@ using AutoMapper;
 using Domain.Entities.Accounting;
 using MediatR;
 using Microsoft.Extensions.Configuration;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application.CQRS.AccountingCQRS.AccountingNote.Commands
 {

@@ -1,17 +1,7 @@
-﻿using Application.Interfaces;
-using Application.Mappings;
+﻿using Application.Mappings;
 using Application.ViewModels;
-using Application.ViewModels.Accounting;
 using AutoMapper;
 using Domain.Entities.Accounting;
-using Domain.Entities.ITWarehouse;
-using Domain.Forms;
-using Microsoft.Graph.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application.Forms
 {

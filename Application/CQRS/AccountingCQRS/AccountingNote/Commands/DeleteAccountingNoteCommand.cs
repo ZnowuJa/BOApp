@@ -1,13 +1,7 @@
-﻿using Application.CQRS.AccountingCQRS.AdvancePayments.Commands;
-using Application.Forms;
-using Application.Forms.Accounting;
+﻿using Application.Forms;
 using Application.Interfaces;
 using MediatR;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 
 namespace Application.CQRS.AccountingCQRS.AccountingNote.Commands
 {

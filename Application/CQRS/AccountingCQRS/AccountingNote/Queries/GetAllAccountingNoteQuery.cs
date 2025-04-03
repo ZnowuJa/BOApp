@@ -1,9 +1,5 @@
-﻿using Application.CQRS.AccountingCQRS.AdvancePayments.Queries;
-using Application.Forms;
-using Application.Forms.Accounting;
+﻿using Application.Forms;
 using Application.Interfaces;
-using Application.ViewModels;
-using Application.ViewModels.Accounting;
 using AutoMapper;
 using MediatR;
 using Microsoft.EntityFrameworkCore;

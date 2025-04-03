@@ -6,7 +6,6 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Graph.Models;
-using Microsoft.Graph.Models.Security;
 
 namespace Application.CQRS.AccountingCQRS.AdvancePayments.Commands
 {
