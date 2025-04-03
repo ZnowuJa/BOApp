@@ -50,19 +50,20 @@ public interface IAppDbContext
     public DbSet<OnboardingForm> OnboardingForms { get; set; }
     public DbSet<ITScrappingForm> ITScrappingForms { get; set; }
     public DbSet<ITSaleForm> ITSaleForms { get; set; }
-    DbSet<CostCenter> CostCenters { get; set; }
-    DbSet<Country> Countries { get; set; }
-    DbSet<GLAccount> GLAccounts { get; set; }
-    DbSet<VATRate> VATRates { get; set; }
-    DbSet<AccountingNoteForm> AccountingNotes { get; set; }
-    DbSet<ManagerDeputy> ManagerDeputies { get; set; }
-    DbSet<CompanyCarRegistrationNumber> CompanyCarRegistrationNumbers { get; set; }
-    DbSet<NbpCurrencyRate> NbpCurrencyRates { get; set; }
-    DbSet<BusinessTravelForm> BusinessTravels { get; set; }
-    DbSet<AdvancePaymentForm> AdvancePayments { get; set; }
-    DbSet<Bnp20> Bnp20s { get; set; }
-    DbSet<Bnp55> Bnp55s { get; set; }
-    DbSet<SapCostCenter> SapCostCenters { get; set; }
+    public DbSet<CostCenter> CostCenters { get; set; }
+    public DbSet<Country> Countries { get; set; }
+    public DbSet<GLAccount> GLAccounts { get; set; }
+    public DbSet<VATRate> VATRates { get; set; }
+    public DbSet<AccountingNoteForm> AccountingNotes { get; set; }
+    public DbSet<ManagerDeputy> ManagerDeputies { get; set; }
+    public DbSet<CompanyCarRegistrationNumber> CompanyCarRegistrationNumbers { get; set; }
+    public DbSet<NbpCurrencyRate> NbpCurrencyRates { get; set; }
+    public DbSet<BusinessTravelForm> BusinessTravels { get; set; }
+    public DbSet<AdvancePaymentForm> AdvancePayments { get; set; }
+    public DbSet<Bnp20> Bnp20s { get; set; }
+    public DbSet<Bnp55> Bnp55s { get; set; }
+    public DbSet<SapCostCenter> SapCostCenters { get; set; }
+    public DbSet<BankTransferForm> BankTransfers{ get; set; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default);

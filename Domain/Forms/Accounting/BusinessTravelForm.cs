@@ -8,8 +8,6 @@ namespace Domain.Forms.Accounting
         {
             Statuses = GetDefaultStatuses();
         }
-        
-        public int Id { get; set; } = 0;
         public string FormFiles { get; set; } = string.Empty;
         public string? Number { get; set; } = "brak numeru";
         public DateTime? StartDate { get; set; } = DateTime.Now;
