@@ -31,32 +31,11 @@ public class CreateITSaleFormCommandHandler : IRequestHandler<CreateITSaleFormCo
         var employees = _appDbContext.Employees.Where(e => e.IsActive == 1);
         var companies = _appDbContext.Companies.Where(c => c.StatusId == 1);
         var assets = _appDbContext.Assets.Where(a => a.StatusId == 1);
-        
-        //var form = new ITSaleForm();
-        //try
-        //{
-        //    form = _mapper.Map<ITSaleForm>(command.Form);
-        //    Console.WriteLine();
 
-        //} catch (Exception ex)
-        //{
-        //    Console.WriteLine(ex.Message);
-        //}
         var form = _mapper.Map<ITSaleForm>(command.Form);
-
-
 
         _appDbContext.ITSaleForms.Add(form);
         await _appDbContext.SaveChangesAsync(cancellationToken);
-        //foreach (var asset in form.Assets)
-        //{
-        //    var existingAsset = _appDbContext.Assets.Local.FirstOrDefault(e => e.Id == asset.Id);
-        //    if (existingAsset != null)
-        //    {
-        //        _appDbContext.Entry(existingAsset).State = EntityState.Detached;
-        //    }
-        //}
-
 
         command.Form.Id = form.Id;
         form.Number = command.Form.Number = $"{command.Form.NumberPrefix}{command.Form.Id.ToString("D6")}";
