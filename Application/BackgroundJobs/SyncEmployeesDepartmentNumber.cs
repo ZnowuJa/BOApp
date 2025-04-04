@@ -76,12 +76,7 @@ public class SyncEmployeesDepartmentNumber : IJob
                 continue;
             }
 
-            if (emp.IsManager)
-            {
-                isManager++;
-                continue;
-            }
-            else
+            if (!emp.IsManager)
             {
                 try
                 {
@@ -89,12 +84,20 @@ public class SyncEmployeesDepartmentNumber : IJob
                     emp.DeptNumber = man.DeptNumber;
                     counter++;
 
-                } catch (Exception ex)
+                }
+                catch (Exception ex)
                 {
                     errorList.Add($"Błąd podczas przetwarzania id {emp.EnovaEmpId}. Nie odnaleziono przełożonego o id: {emp.ManagerId}. Błąd: {ex.Message}");
                     continue;
                 }
                 
+                
+            }
+            else
+            {
+
+                isManager++;
+
             }
 
             await _mediator.Send(new UpdateEmployeeNewCommand(emp));

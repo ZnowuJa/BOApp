@@ -360,14 +360,14 @@
                                     <td style="text-align: left;">
                                         <div style="width: 170px;">
                                             <InputNumber Min="0"
-                                                
-                                                         @bind-Value:get="@formItem.AdvancePaymentAmount"
-                                                         @bind-Value:set="((value => formItem.AdvancePaymentAmount = value))"
-                                                         class="customFluentNumber"
-                                                         style="width: 120px;"
-                                                         Disabled="@IsControlAdvancePaymentDisabled()" /> PLN
+
+                                            @bind-Value:get="@formItem.AdvancePaymentAmount"
+                                            @bind-Value:set="((value => formItem.AdvancePaymentAmount = value))"
+                                            class="customFluentNumber"
+                                            style="width: 120px;"
+                                            Disabled="@IsControlAdvancePaymentDisabled()" /> PLN
                                         </div>
-                                         
+
                                         <FluentValidationMessage For="@(() => formItem.AdvancePaymentAmount)" class="validation-error" />
                                     </td>
                                     <td class="table-caption" style="width: 100px">
@@ -1393,9 +1393,9 @@
 
 </div>
 @code {
-    #region Declarations
-    // private Timer _debounceTimer;
-    [Parameter] public int Id { get; set; }
+        #region Declarations
+        // private Timer _debounceTimer;
+        [Parameter] public int Id { get; set; }
     private EditContext _editContext;
     private FluentValidationValidator? _fluentValidationValidator;
     private string _srcPage;
@@ -3926,13 +3926,28 @@
     private async Task SetupUserSapCostCenter(EmployeeVm emp){
         formItem.FormCostCenters.Clear();
         var userSapCostCenter = new SapCostCenterVm { formId = Guid.NewGuid() };
-            var userSapNumber = emp.SapNumber.Substring(0, 4);
-            var userDepartmentNumber = emp.DeptNumber;
+        var userSapNumber = emp.SapNumber.Substring(0, 4);
+        var userDepartmentNumber = emp.DeptNumber;
+        try{
             userSapCostCenter = _sapCostCenters.Where(s => s.LocationNumber == userSapNumber && s.DepartmentNumber == userDepartmentNumber).First();
-            if(userSapCostCenter.Id > 0){
+            if (userSapCostCenter.Id > 0)
+            {
                 userSapCostCenter.formId = Guid.NewGuid();
                 formItem.FormCostCenters.Add(userSapCostCenter);
             }
+        } catch (Exception ex)
+        {
+            string messageMPK = "mesydż od funkcji";
+            var dialog = await _dialogService.ShowDialogAsync<InformationDialogComponent>(messageMPK, new DialogParameters()
+                {
+                    Height = "240px",
+                    Width = "600px",
+                    PreventDismissOnOverlayClick = true,
+                    PreventScroll = true,
+                });
+            
+        }
+
     }
     private async Task SetupFormRejestracja()
     {

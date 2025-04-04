@@ -6,6 +6,7 @@ public abstract class FormTemplate : AuditableEntity
 {
     public string Title { get; private set; }
     public string Description { get; private set; }
+    public string? Number { get; set; } = "brak numeru"; //Just a next number/identifier of request
     public string OperationArea { get; private set; } //Accounting, IT, Settlements etc...
     public string? FolderName { get; private set; } //Folder name for storing files
     public string NumberPrefix { get; private set; } //Defined prefix for custom number of document
