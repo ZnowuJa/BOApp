@@ -22,7 +22,7 @@ namespace Application.CQRS.AccountingCQRS.AccountingNote.Commands
             var item = _mapper.Map<AccountingNoteForm>(request.Item);
             _appDbContext.AccountingNotes.Add(item);
             await _appDbContext.SaveChangesAsync(cancellationToken);
-            item.Number = $"{item.NumberPrefix}{item.Id.ToString("D8")}";
+            item.NoteNumber = $"{item.NumberPrefix}{item.Id:D8}";
             _appDbContext.AccountingNotes.Update(item);
             await _appDbContext.SaveChangesAsync(cancellationToken);
 

@@ -10,39 +10,39 @@ namespace Application.Forms
         // Properties from FormTemplate
         public int Id { get; set; }
         public string Name { get; set; } = "Formularz Nota Księgowa";
-        public string Description { get; set; } = "Formularz do stworzenia Noty Księgowej";
+        public string Description { get; set; } = "Formularz Noty Księgowej";
         public string FolderName { get; set; } = "accountingNoteForm";
         public string NumberPrefix { get; set; } = "NK";
         public string Status { get; set; } = "Rejestracja";
-        public List<string> Statuses { get; set; } = ["Rejestracja", "W trakcie", "Zakończony"];
+        public List<string> Statuses { get; set; } = ["Rejestracja", "Otwarte", "Zamkniete"];
         public int WorkflowTemplateId { get; set; }
 
         //Properties specific to SmallAuditableEntity
         public string CreatedBy { get; set; }
 
         //Properties specific to AccountingNoteForm
-        public string DG { get; set; }
+        public string DG { get; set; } = string.Empty;
         public decimal AmountPaid { get; set; }
-        public decimal AmountRemaining { get; set; }
-        public string NotesOrPayments { get; set; }
-        public bool Exported { get; set; }
-        public string MPK { get; set; }
-        public string NoteNumber { get; set; }
-        public DateTime Date { get; set; }
-        public string ServiceAdvisor { get; set; }
+        public decimal AmountRemaining { get; set; } = 0;
+        public string NotesOrPayments { get; set; } = string.Empty;
+        public bool Exported { get; set; } = false;
+        public string MPK { get; set; } = string.Empty;
+        public string NoteNumber { get; set; } = string.Empty;
+        public DateTime Date { get; set; } 
+        public string ServiceAdvisor { get; set; } = string.Empty;
         public int CompanyId { get; set; }
-        public string Dealer { get; set; }
-        public string Insurer { get; set; }
-        public string VIN { get; set; }
-        public string Registration { get; set; }
-        public string OrderNumber { get; set; }
-        public string DamageNumber { get; set; }
+        public string Dealer { get; set; } = string.Empty;
+        public string Insurer { get; set; } = string.Empty;
+        public string VIN { get; set; } = string.Empty;
+        public string Registration { get; set; } = string.Empty;
+        public string OrderNumber { get; set; } = string.Empty;
+        public string DamageNumber { get; set; } = string.Empty;
         public decimal Amount { get; set; }
         public DateTime PaymentDeadline { get; set; }
-        public string PaymentMethod { get; set; }
-        public string DealerName { get; set; }
-        public string NoteContent { get; set; }
-        public string Attachment { get; set; }
+        public string PaymentMethod { get; set; } = string.Empty;
+        public string DealerName { get; set; } = string.Empty;
+        public string NoteContent { get; set; } = string.Empty;
+        public string Attachment { get; set; } = string.Empty;
 
         //
         public string? CompanyVmName { get; set; }

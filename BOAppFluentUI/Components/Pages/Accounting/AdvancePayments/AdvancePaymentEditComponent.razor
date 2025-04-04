@@ -587,7 +587,7 @@
             // Sprawdzamy, czy jest to status strej (nowe zgłoszenie)
             if (strej)
             {
-                formItem.Status = GetNextStatus(formItem);
+                formItem.Status = GetNextStatus(formItem); 
                 var newId = await _mediator.Send(new CreateAdvanePaymentCommand(formItem));
                 var saveResult = await _mediator.Send(new GetAdvancePaymentByIdQuery(newId));
             }
@@ -595,14 +595,14 @@
             {
                 formItem.Status = GetNextStatus(formItem);
                 await _mediator.Send(new UpdateAdvancePaymentCommand(formItem));
-            }
+            }   
 
             var message = $"Formularz został wysłany!";
             var intent = ToastIntent.Success;
             _toastService.ShowToast(intent, message, 3000);
 
             _navigationManager.NavigateTo($"/zaliczki/{_srcPage}");
-        }
+        }   
     }
 
 
@@ -666,7 +666,7 @@
         if (e.Text != null)
         {
             e.Items = _locations.Where(a =>
-                a.Name.Contains(e.Text, StringComparison.OrdinalIgnoreCase) ||
+                a.Description.Contains(e.Text, StringComparison.OrdinalIgnoreCase) ||
                 a.SapNumber.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
         }
     }

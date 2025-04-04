@@ -8,6 +8,9 @@
 @using Microsoft.AspNetCore.Authorization
 @using System.Security.Claims
 @using Application.Interfaces
+@using Application.CQRS.AccountingCQRS.AccountingNote.Commands
+@using Application.CQRS.AccountingCQRS.AccountingNote.Queries
+@using Application.CQRS.General.Organisations.Queries
 
 @inject IMediator _mediator
 @* @implements IDialogContentComponent<AccountingNoteFormVm> *@
@@ -38,12 +41,17 @@
                     <FluentTextField @bind-Value="@Content.ServiceAdvisor"></FluentTextField>
                 </td>
                 <td>
-                    <FluentCombobox TOption="string"
-                                    Items="@orgs"
-                                    Id="OrgId"
-                                    Width="150px"
-                                    Height="250px"
-                                    @bind-Value="@Content.Dealer" />
+                    <FluentAutocomplete TOption="LocationVm"
+                                        SelectValueOnTab="true"
+                                        AutoComplete="on"
+                                        OnOptionsSearch="@OnLocationSearch"
+                                        Placeholder="Wybierz lokalizacje..."
+                                        Width="150px"
+                                        Height="250px"
+                                        OptionText="@(p => p.SapNumber + ' ' + p.Description)"
+                                        MaximumSelectedOptions="1"
+                                        @bind-SelectedOptions="@_selectedLocation"
+                                        @bind-SelectedOptions:after="@HandleLocationChange" />
                 </td>
                 <td>
                     <FluentCombobox TOption="string"
@@ -165,7 +173,7 @@
             </tr>
         </tbody>
     </table>
-    @if (Content.Status == "Rejestracja")
+    @if (strej)
     {
         <FluentSpacer Width="@buttonSpacer" />
 
@@ -205,12 +213,19 @@
     private IQueryable<CompanyVm> itemCompaniesList { get; set; }
     private int buttonSpacer = 100;
     private CompanyVm selectedCompany;
+    private bool strej { get; set; } = false;
+    private bool stwtr { get; set; } = false;
+    private bool stzak { get; set; } = false;
+    private IEnumerable<LocationVm> _locations { get; set; } = new List<LocationVm>().AsQueryable();
+    private IEnumerable<LocationVm> _selectedLocation = Array.Empty<LocationVm>();
 
     protected override async Task OnInitializedAsync()
     {
         _editContext = new EditContext(Content);
         var dealIq = await _mediator.Send(new GetAllCompaniesByTypeIdQuery(4));
-        orgs = dealIq.Select(dealer => dealer.Name).AsQueryable();
+        //orgs = dealIq.Select(dealer => dealer.Name).AsQueryable();
+        orgs = dealIq.ToList();
+        _locations = await _mediator.Send(new GetLocationsQuery());
 
         var insurerIq = await _mediator.Send(new GetAllCompaniesByTypeIdQuery(2));
         insurer = insurerIq.Select(dealer => dealer.Name).AsQueryable();
@@ -221,10 +236,10 @@
         //     Console.WriteLine($"Firma: {company.Name} (ID: {company.Id})");
         // }
         AssignStatusBool();
-        GenerateNoteNumber();
+        //GenerateNoteNumber();
         await RefreshClaims();
     }
-    private IQueryable<string> orgs { get; set; }
+    private List<CompanyVm> orgs { get; set; }
     private IQueryable<string> insurer { get; set; }
 
     bool _formUploading;
@@ -234,11 +249,44 @@
 
     FluentInputFileEventArgs[] Files = Array.Empty<FluentInputFileEventArgs>();
 
+    private void OnCompanyChanged(CompanyVm company)
+    {
+        if (company != null)
+        {
+            Content.Dealer = company.Name;
+            Content.DG = company.Name;
+        }
+    }
+
+    private void OnLocationSearch(OptionsSearchEventArgs<LocationVm> e)
+    {
+        if (e.Text != null)
+        {
+            e.Items = _locations.Where(a =>
+                a.Description.Contains(e.Text, StringComparison.OrdinalIgnoreCase) ||
+                a.SapNumber.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
+        }
+    }
+
     public string PaymentCashString
     {
         get => Content.PaymentMethod;  // Teraz przechowujemy stringa
         set => Content.PaymentMethod = value;
     }
+
+    private async Task HandleLocationChange()
+    {
+        var selectedLocation = _selectedLocation.FirstOrDefault();
+        if (Content.Dealer == null)
+        {
+            Console.WriteLine("Nie znaleziono lokalizacji, nie można pobrać organizacji.");
+            return;
+        }
+        Content.Dealer = selectedLocation.Description;
+        Content.DG = selectedLocation.SapNumber;
+
+    }
+
     private void OnPaymentChanged()
     {
         Console.WriteLine("PaymentChanged");
@@ -265,6 +313,11 @@
         StateHasChanged();
     }
 
+    private async Task CancelForm()
+    {
+        Console.WriteLine("Cancel form");
+    }
+
     // private void HandleCompanyChange(ChangeEventArgs e)
     // {
     //     var selectedComapany = itemCompaniesList.FirstOrDefault(c => c.Id == int.Parse(e.Value.ToString()));
@@ -275,7 +328,9 @@
 
     private void AssignStatusBool()
     {
-        
+        strej = Content.Status == "Rejestracja";
+        stwtr = Content.Status == "Otwarte";
+        stzak = Content.Status == "Zamkniete";
     }
 
     private async Task RefreshClaims()
@@ -293,17 +348,41 @@
         }
     }
 
-    private void GenerateNoteNumber()
+    // private void GenerateNoteNumber()
+    // {
+    //     var dateNow = DateTime.Now;
+    //     Content.NoteNumber = $"NT_{dateNow.Year - 2000:D2}{dateNow.Month:D2}{dateNow.Day:D2}_{dateNow.Hour:D2}{dateNow.Minute:D2}{dateNow.Second:D2}";
+    // }
+
+    private async Task SendForm()
     {
-        var dateNow = DateTime.Now;
-        Content.NoteNumber = $"NT_{dateNow.Year - 2000:D2}{dateNow.Month:D2}{dateNow.Day:D2}_{dateNow.Hour:D2}{dateNow.Minute:D2}{dateNow.Second:D2}";
+        if (_editContext.Validate())
+        {
+            if (strej)
+            {
+                Content.Status = GetNextStatus(Content);
+                var newId = await _mediator.Send(new CreateAccountingNoteCommand(Content));
+                var saveResult = await _mediator.Send(new GetAccountingNoteByIdQuery(newId));
+            }
+        }
     }
 
-    private async Task SaveForm()
+    private string GetNextStatus(AccountingNoteFormVm content)
     {
-        if(_editContext.Validate())
+        string newStatus = string.Empty;
+        switch (content.Status)
         {
-            
+            case "Rejestracja":
+                newStatus = "Otwarte";
+                break;
+
+            case "Otwarte":
+                newStatus = "Zamkniete";
+                break;
+
+            default:
+                throw new InvalidOperationException("Nieznany status: " + content.Status);
         }
+        return newStatus;
     }
 }
