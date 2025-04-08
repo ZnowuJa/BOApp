@@ -28,7 +28,7 @@ namespace Application.Forms
         public bool Exported { get; set; } = false;
         public string MPK { get; set; } = string.Empty;
         public string NoteNumber { get; set; } = string.Empty;
-        public DateTime Date { get; set; } 
+        public DateTime? Date { get; set; } 
         public string ServiceAdvisor { get; set; } = string.Empty;
         public int CompanyId { get; set; }
         public string Dealer { get; set; } = string.Empty;
@@ -38,7 +38,7 @@ namespace Application.Forms
         public string OrderNumber { get; set; } = string.Empty;
         public string DamageNumber { get; set; } = string.Empty;
         public decimal Amount { get; set; }
-        public DateTime PaymentDeadline { get; set; }
+        public DateTime? PaymentDeadline { get; set; }
         public string PaymentMethod { get; set; } = string.Empty;
         public string DealerName { get; set; } = string.Empty;
         public string NoteContent { get; set; } = string.Empty;

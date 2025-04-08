@@ -1,4 +1,5 @@
-﻿@page "/accountingnotes"
+﻿@page "/notyksiegowe/{role}"
+@page "/accountingnotes{role}"
 @using Application.CQRS.AccountingCQRS.AccountingNote.Queries
 @using Application.Forms
 @using Microsoft.AspNetCore.Authorization
@@ -8,6 +9,7 @@
 @inject IMediator _mediator
 @inject IDialogService _dialogService
 @inject IToastService _toastService
+@inject NavigationManager _navigationManager
 
 <h3>AccountingNoteListPage</h3>
 
@@ -18,30 +20,80 @@
 }
 else
 {
-    <FluentDataGrid Items="@accountingNote" TGridItem="AccountingNoteFormVm" GridTemplateColumns="50px 1fr 1fr 1fr" AutoFit="true">
+    <FluentDataGrid Items="@Utils.ApplyFilters(accountingNote, filterColumns)" Pagination="@pagination" TGridItem="AccountingNoteFormVm" GridTemplateColumns="80px repeat(7, 1fr)" AutoFit="true" ResizableColumns="true">
+        @foreach (var column in filterColumns.Where(c => c.IsVisible))
+        {
+            if (column.IsDropdown)
+            {
+                <PropertyColumn TGridItem="AccountingNoteFormVm" TProp="string" Property="@(Utils.GetPropertyExpression<AccountingNoteFormVm>(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label" Filtered="column.SelectedValues.Any()">
+                    <ColumnOptions>
+                        <FluentSelect TOption="string"
+                                      Items="@(column.DropdownValues)"
+                                      Multiple="true"
+                                      SelectedOptionsChanged="@(e => Utils.OnSelectedOptionsChanged<AccountingNoteFormVm>(e, column))">
+                            @foreach (var value in column.DropdownValues)
+                            {
+                                <FluentOption Value="@value">@value</FluentOption>
+                            }
+                        </FluentSelect>
+                    </ColumnOptions>
+                </PropertyColumn>
+            }
+            else
+            {
+                <PropertyColumn TGridItem="AccountingNoteFormVm" TProp="string" Property="@(Utils.GetPropertyExpression<AccountingNoteFormVm>(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label" Filtered="!string.IsNullOrWhiteSpace(column.Filter)">
+                    <ColumnOptions>
+                        <div class="search-box">
+                            <FluentSearch type="search" Autofocus="true" @bind-Value="column.Filter" @oninput="(args) => Utils.HandleFilterDebounced(column, args, debounceDispatcher, () => InvokeAsync(StateHasChanged))" Placeholder="@($"{column.Label.ToLower()}...")" />
+                        </div>
+                    </ColumnOptions>
+                </PropertyColumn>
+            }
+        }
 
-        <PropertyColumn Property="@(c => c.Status)" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.DG)" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.Dealer)" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.Insurer)" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.NoteNumber)" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.Date)" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.PaymentDeadline)" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.Amount)" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.AmountPaid)" Sortable="true" Align="Align.Start" Tooltip="true" />
-        <PropertyColumn Property="@(c => c.AmountRemaining)" Sortable="true" Align="Align.Start" Tooltip="true" />
-
+        @* Actions *@
         <TemplateColumn Title="Actions" Align="Align.End">
-            <FluentButton IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" />
-            @* <FluentButton IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => EditItem(context))" />
-            <FluentButton IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" /> *@
+            @{
+                var viewId = $"viewid-{context.Id}";
+                var editId = $"editid-{context.Id}";
+                var deleteId = $"deleteid-{context.Id}";
+            }
+
+            <FluentButton Id="@viewId" IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" Disabled="false" />
+            <FluentTooltip Anchor="@viewId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Left Delay=50>Podgląd</FluentTooltip>
+
+            <FluentButton Id="@editId" IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => Edit(context))" Disabled="false" />
+            <FluentTooltip Anchor="@editId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Edytuj</FluentTooltip>
+
+            <FluentButton Id="@deleteId" IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" Disabled="false" />
+            <FluentTooltip Anchor="@deleteId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Skasuj wniosek</FluentTooltip>
+
         </TemplateColumn>
     </FluentDataGrid>
     <FluentButton IconStart="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddPanel())" />
 }
 
 @code {
+    [Parameter] public string role { get; set; }
+
     private IQueryable<AccountingNoteFormVm> accountingNote;
+
+    private DebounceDispatcher debounceDispatcher = new DebounceDispatcher();
+    private PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
+
+    private List<FilterColumn<AccountingNoteFormVm>> filterColumns = new List<FilterColumn<AccountingNoteFormVm>>
+    {
+        new FilterColumn<AccountingNoteFormVm> { FirstRow = true, Label = "Numer noty", Property = c => c.NoteNumber.ToString() ?? string.Empty, IsVisible = true },
+        new FilterColumn<AccountingNoteFormVm> { FirstRow = true, Label = "Status", Property = c => c.Status.ToString() ?? string.Empty, IsVisible = true, IsDropdown = true },
+        new FilterColumn<AccountingNoteFormVm> { FirstRow = true, Label = "DG", Property = c => c.DG.ToString() ?? string.Empty, IsVisible = true },
+        new FilterColumn<AccountingNoteFormVm> { FirstRow = true, Label = "Dealer", Property = c => c.Dealer.ToString() ?? string.Empty, IsVisible = true, IsDropdown = true},
+        new FilterColumn<AccountingNoteFormVm> { FirstRow = true, Label = "Ubezpieczyciel", Property = c => c.Insurer.ToString() ?? string.Empty, IsVisible = true, IsDropdown = true },
+        new FilterColumn<AccountingNoteFormVm> { FirstRow = true, Label = "Data", Property = c => c.Date?.ToString("yyyy-MM-dd") ?? string.Empty, IsVisible = true },
+        new FilterColumn<AccountingNoteFormVm> { FirstRow = true, Label = "Termin płatności", Property = c => c.PaymentDeadline?.ToString("yyyy-MM-dd") ?? string.Empty, IsVisible = true },
+        new FilterColumn<AccountingNoteFormVm> { FirstRow = true, Label = "Kwota", Property = c => c.Amount.ToString("N2"), IsVisible = true },
+        new FilterColumn<AccountingNoteFormVm> { FirstRow = true, Label = "Kwota zapłacona", Property = c => c.AmountPaid.ToString("N2"), IsVisible = true },
+        new FilterColumn<AccountingNoteFormVm> { FirstRow = true, Label = "Pozostało do zapłaty", Property = c => c.AmountRemaining.ToString("N2"), IsVisible = true }
+    };
 
     protected override async Task OnInitializedAsync()
     {
@@ -53,12 +105,21 @@ else
         accountingNote = await _mediator.Send(new GetAllAccountingNoteQuery());
     }
 
+    private async Task Delete(AccountingNoteFormVm item)
+    {
+    }
+
     private async Task View(AccountingNoteFormVm item)
     {
     }
 
-    private async Task EditItem(AccountingNoteFormVm item)
+    private async Task Edit(AccountingNoteFormVm item)
     {
+        _navigationManager.NavigateTo($"/notaksiegowa/{item.Id}?srcPage={role}");
+
+
+
+
         // ToastIntent intent;
         // string message = string.Empty;
         // int resultId = 0;
@@ -116,7 +177,7 @@ else
     private async Task AddPanel()
     {
         var item = new AccountingNoteFormVm();
-        await EditItem(item);
+        await Edit(item);
     }
 
 }
