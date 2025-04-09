@@ -93,8 +93,8 @@ else
         var data = item;
         var dialog = await _dialogService.ShowDialogAsync<Department_Edit_Component>(data, new DialogParameters()
             {
-                Height = "750px",
-                Width = "720px",
+                Height = "400px",
+                Width = "600px",
                 Title = data.Id > 0 ? "Update Department" : "Create new Department",
                 PreventDismissOnOverlayClick = false,
                 PreventScroll = true,
@@ -107,7 +107,7 @@ else
             item = (DepartmentVm)result.Data;
             if (item.Id > 0)
             {
-                i = await _mediator.Send(new UpdateDepartmentCommand(item.Id, item.DeptNumber, item.LongName, item.CompanyId, item.CostCenter, item.SapNumber, item.WarehouseID, item.ManagerEmpId));
+                i = await _mediator.Send(new UpdateDepartmentCommand(item.Id, item.DeptNumber, item.LongName, item.CompanyId, item.CostCenter, item.SapNumber, item.WarehouseID, item.ManagerVm.EnovaEmpId));
                 intent = ToastIntent.Success;
                 message = "Department has been updated!";
             }

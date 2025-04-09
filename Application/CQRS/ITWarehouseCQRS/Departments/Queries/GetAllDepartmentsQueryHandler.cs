@@ -27,7 +27,7 @@ public class GetAllDepartmentsQueryHandler : IRequestHandler<GetAllDepartmentsQu
         {
             var itemsCompanies = await _appDbContext.Companies.Where(p => p.StatusId == 1).ToListAsync(cancellationToken);
             var itemsWarehouses = await _appDbContext.Warehouses.Where(p => p.StatusId == 1).ToListAsync(cancellationToken);
-            var itemsManagers = await _appDbContext.Employees.Where(q => q.StatusId == 1).ToListAsync(cancellationToken);
+            var itemsManagers = await _appDbContext.Employees.Where(q => q.StatusId == 1 && q.IsActive == 1).ToListAsync(cancellationToken);
             //.Where(p => p.IsManager == true)
 
             foreach (var item in itemList)
