@@ -1,5 +1,6 @@
 ﻿using Application.Mappings;
 using Application.ViewModels;
+using Application.ViewModels.Accounting;
 using AutoMapper;
 using Domain.Entities.Accounting;
 
@@ -43,6 +44,8 @@ namespace Application.Forms
         public string DealerName { get; set; } = string.Empty;
         public string NoteContent { get; set; } = string.Empty;
         public string Attachment { get; set; } = string.Empty;
+
+        public List<Attachment> Attachments { get; set; } = new();
 
         //
         public string? CompanyVmName { get; set; }

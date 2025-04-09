@@ -19,6 +19,7 @@
 @* @implements IDialogContentComponent<AccountingNoteFormVm> *@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager _navigationManager
+@inject IWebHostEnvironment Environment
 
 <h3>Noty księgowe</h3>
 @if (_editContext != null)
@@ -175,7 +176,8 @@
                     }
                     </ul>
                     } *@
-                        <InputFile id="fileInput" accept=".png, .jpg, .pdf" style="display: none;" />
+
+                        <FluentInputFile id="fileInput" OnChange="HandleFileUpload" accept=".png, .jpg, .pdf" />
                     </th>
                 </tr>
 
@@ -192,6 +194,20 @@
                           BackgroundColor="var(--accent-fill-rest)"
                           Style="width: 100px">
                 Wyślij
+            </FluentButton>
+        }
+
+        @if (stwtr)
+        {
+            <FluentSpacer Width="@buttonSpacer" />
+
+            <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
+                          Id="SendFormId"
+                          Appearance="Appearance.Accent"
+                          OnClick="@SendForm"
+                          BackgroundColor="var(--accent-fill-rest)"
+                          Style="width: 100px">
+                Zapisz
             </FluentButton>
         }
 
@@ -241,6 +257,7 @@ else
     private IEnumerable<LocationVm> _locations { get; set; } = new List<LocationVm>().AsQueryable();
     private IEnumerable<LocationVm> _selectedLocation = Array.Empty<LocationVm>();
 
+    private AccountingNoteFormVm CurrentAttachmentForUpload = new AccountingNoteFormVm();
 
     protected override async Task OnInitializedAsync()
     {
@@ -343,6 +360,27 @@ else
         set => Content.PaymentMethod = value;
     }
 
+    private async Task HandleFileUpload(InputFileChangeEventArgs e)
+    {
+        // if(CurrentAttachmentForUpload != null)
+        // {
+        //     var uploadedFile = e.File;
+        //     if(uploadedFile != null)
+        //     {
+        //         var filePath = await FileUtils.UploadFile(uploadedFile, CurrentAttachmentForUpload.Id.ToString(), Environment.WebRootPath);
+        //         var attachmentFile = new Attachment
+        //             {
+        //                 Id = CurrentAttachmentForUpload.Attachments.Count + 1,
+        //                 FilePath = filePath,
+        //                 OriginalFileName = uploadedFile.Name,
+        //                 AttUrl = FileUtils.GenerateUrl(filePath, Environment.WebRootPath)
+        //             };
+        //         CurrentAttachmentForUpload.Attachments.Add(attachmentFile);
+        //     }
+        // }
+        // _editContext.Validate();
+    }
+
     private async Task HandleLocationChange()
     {
         var selectedLocation = _selectedLocation.FirstOrDefault();
@@ -432,7 +470,22 @@ else
     {
         if (_editContext.Validate())
         {
-            Content.Status = GetNextStatus(Content);
+            if (stwtr)
+            {
+                if(Content.Amount >= Content.AmountPaid)
+                {
+                    Console.WriteLine("Kwota nie opłacona");
+                }
+                else
+                {
+                    Content.Status = GetNextStatus(Content);
+                }
+            }
+            else
+            {
+                Content.Status = GetNextStatus(Content);
+            }
+
             if (Content.Id == 0)
             {
                 var savedId = await _mediator.Send(new CreateAccountingNoteCommand(Content));
