@@ -309,7 +309,7 @@ namespace Persistance.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("BusinessPartner");
+                    b.ToTable("BusinessPartners");
                 });
 
             modelBuilder.Entity("Domain.Entities.Accounting.CostCenter", b =>

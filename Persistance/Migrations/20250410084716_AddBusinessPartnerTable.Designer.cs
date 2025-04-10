@@ -12,7 +12,7 @@ using Persistance;
 namespace Persistance.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250410073903_AddBusinessPartnerTable")]
+    [Migration("20250410084716_AddBusinessPartnerTable")]
     partial class AddBusinessPartnerTable
     {
         /// <inheritdoc />
@@ -312,7 +312,7 @@ namespace Persistance.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("BusinessPartner");
+                    b.ToTable("BusinessPartners");
                 });
 
             modelBuilder.Entity("Domain.Entities.Accounting.CostCenter", b =>

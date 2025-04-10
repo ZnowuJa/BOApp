@@ -63,6 +63,7 @@ public interface IAppDbContext
     DbSet<Bnp20> Bnp20s { get; set; }
     DbSet<Bnp55> Bnp55s { get; set; }
     DbSet<SapCostCenter> SapCostCenters { get; set; }
+    DbSet<BusinessPartner> BusinessPartners { get; set; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default);

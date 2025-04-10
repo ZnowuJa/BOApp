@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Application.CQRS.AccountingCQRS.BusinessPartner.Commands
+namespace Application.CQRS.AccountingCQRS.BusinessPartners.Commands
 {
     /*public class DeleteBusinessPartnerCommand(int id) : IRequest<int>
     {

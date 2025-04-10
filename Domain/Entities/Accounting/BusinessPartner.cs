@@ -1,4 +1,5 @@
-﻿using BackOfficeApp_Domain.Common;
+﻿using AutoMapper;
+using BackOfficeApp_Domain.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;

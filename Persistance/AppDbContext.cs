@@ -74,7 +74,7 @@ public class AppDbContext : IdentityDbContext<AppUser>, IAppDbContext
 
 
     public DbSet<AdvancePaymentForm> AdvancePayments { get; set; }
-    public DbSet<BusinessPartner> BusinessPartner { get; set; }
+    public DbSet<BusinessPartner> BusinessPartners { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

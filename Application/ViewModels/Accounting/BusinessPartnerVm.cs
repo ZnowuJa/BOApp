@@ -1,11 +1,15 @@
-﻿using System;
+﻿using Application.Mappings;
+using AutoMapper;
+using Domain.Entities.Accounting;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Application.ViewModels.Accounting;
-public class BusinessPartnerVm
+
+public class BusinessPartnerVm : IMapFrom<BusinessPartner>
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
@@ -19,4 +23,9 @@ public class BusinessPartnerVm
     public string VatId { get; set; } = string.Empty;
     public string SAPId { get; set; } = string.Empty;
     public string Type { get; set; } = string.Empty;
+
+    public void Mapping(Profile profile)
+    {
+        profile.CreateMap<BusinessPartner, BusinessPartnerVm>().ReverseMap();
+    }
 }

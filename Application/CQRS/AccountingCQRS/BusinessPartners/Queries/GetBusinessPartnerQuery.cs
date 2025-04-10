@@ -9,7 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Application.CQRS.AccountingCQRS.BusinessPartner.Queries
+namespace Application.CQRS.AccountingCQRS.BusinessPartners.Queries
 {
 /*    public class GetBusinessPartnerQuery(int i) : IRequest<BusinessPartnerVm>
     {
