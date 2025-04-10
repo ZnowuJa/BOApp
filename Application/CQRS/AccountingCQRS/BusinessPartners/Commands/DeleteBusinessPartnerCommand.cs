@@ -1,5 +1,6 @@
 ﻿using Application.Interfaces;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Application.CQRS.AccountingCQRS.BusinessPartners.Commands
 {
-    /*public class DeleteBusinessPartnerCommand(int id) : IRequest<int>
+    public class DeleteBusinessPartnerCommand(int id) : IRequest<int>
     {
         public int Id { get; set; } = id;
     }
@@ -28,5 +29,5 @@ namespace Application.CQRS.AccountingCQRS.BusinessPartners.Commands
             await _appDbContext.SaveChangesAsync(cancellationToken);
             return result.Id;
         }
-    }*/
+    }
 }

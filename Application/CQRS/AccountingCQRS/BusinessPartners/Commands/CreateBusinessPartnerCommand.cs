@@ -23,7 +23,7 @@ namespace Application.CQRS.AccountingCQRS.BusinessPartners.Commands
 
         public async Task<int> Handle(CreateBusinessPartnerCommand request, CancellationToken cancellationToken)
         {
-            var businessPartner = _mapper.Map<Domain.Entities.Accounting.BusinessPartner>(request.BusinessPartner);
+            var businessPartner = _mapper.Map<BusinessPartner>(request.BusinessPartner);
             //businessPartner.StatusId = 1;
 
             _context.BusinessPartners.Add(businessPartner);

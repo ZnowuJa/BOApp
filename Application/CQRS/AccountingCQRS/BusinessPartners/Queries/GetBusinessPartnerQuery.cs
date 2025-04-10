@@ -3,6 +3,7 @@ using Application.ViewModels.Accounting;
 using AutoMapper;
 using Domain.Entities.Accounting;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Application.CQRS.AccountingCQRS.BusinessPartners.Queries
 {
-/*    public class GetBusinessPartnerQuery(int i) : IRequest<BusinessPartnerVm>
+    public class GetBusinessPartnerQuery(int i) : IRequest<BusinessPartnerVm>
     {
         public int BusinessPartnerId { get; set; } = i;
     }
@@ -29,5 +30,5 @@ namespace Application.CQRS.AccountingCQRS.BusinessPartners.Queries
                                                      .FirstOrDefaultAsync(cancellationToken);
             return _mapper.Map<BusinessPartnerVm>(businessPartner);
         }
-    }*/
+    }
 }

@@ -1,5 +1,103 @@
-﻿<h3>BusinessPartner_ListPage</h3>
+﻿@page "/kontrahencibiznesowi"
+@using Microsoft.AspNetCore.Authorization
+@using Application.ViewModels.Accounting
+@using Application.CQRS.AccountingCQRS.BusinessPartners.Queries
+
+@attribute [Authorize(Policy = "Technician")]
+@attribute [Authorize(Policy = "Accountant")]
+@inject IMediator _mediator
+
+<h3>Kontrahenci</h3>
+
+@if(businessPartner == null)
+{
+    <FluentProgressRing>Ładowanie...</FluentProgressRing>
+}
+else
+{
+    <FluentDataGrid Items="@filteredBusinessPartners"
+                    TGridItem="BusinessPartnerVm"
+                    ResizableColumns="true"
+                    Pagination="@pagination"
+                    Style="overflow: auto;"
+                    ShowHover="true">
+    @foreach(var column in filterColumns.Where(c => c.IsVisible))
+        {
+            <PropertyColumn TGridItem="BusinessPartnerVm" TProp="string" Property="@(Utils.GetPropertyExpression(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label" Filtered="!string.IsNullOrWhiteSpace(column.Filter)">
+                <ColumnOptions>
+                    <div class="search-box">
+                        <FluentSearch type="search" Autofocus="true" @bind-Value="column.Filter" @oninput="(args) => Utils.HandleFilterDebounced(column, args, debounceDispatcher, () => InvokeAsync(StateHasChanged))" Placeholder="@($"{column.Label.ToLower()}...")"/>
+                    </div>
+                </ColumnOptions>
+            </PropertyColumn>
+        }
+
+        <TemplateColumn Title="Akcje" Align="Align.End">
+            @{
+                var viewId = $"viewid-{context.Id}";
+                var editId = $"editid-{context.Id}";
+                var deleteId = $"deleteid-{context.Id}";
+            }
+            <FluentButton Id="@viewId" IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" />
+            <FluentTooltip Anchor="@viewId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Szczegóły</FluentTooltip>
+
+            <FluentButton Id="@editId" IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => EditItem(context))" />
+            <FluentTooltip Anchor="@editId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Edytuj</FluentTooltip>
+
+            <FluentButton Id="@deleteId" IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" />
+            <FluentTooltip Anchor="@deleteId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Usuń</FluentTooltip>
+
+        </TemplateColumn>
+    </FluentDataGrid>
+    <FluentPaginator State="@pagination" />
+    <FluentButton IconStart="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddPanel())" />
+}
 
 @code {
+    private IQueryable<BusinessPartnerVm> businessPartner;
+    private IQueryable<BusinessPartnerVm> filteredBusinessPartners => businessPartner.Where(x =>
+    filterColumns.All(column => string.IsNullOrWhiteSpace(column.Filter) ||
+    column.Property(x).Contains(column.Filter, StringComparison.CurrentCultureIgnoreCase)));
 
+    readonly PaginationState pagination = new PaginationState { ItemsPerPage = 12 };
+    private DebounceDispatcher debounceDispatcher = new DebounceDispatcher();
+
+    private List<FilterColumn<BusinessPartnerVm>> filterColumns = new List<FilterColumn<BusinessPartnerVm>>
+    {
+        new FilterColumn<BusinessPartnerVm> { FirstRow = true, Label = "ID", Property = bp => bp.Id.ToString(), IsVisible = true, Width = "80px" },
+        new FilterColumn<BusinessPartnerVm> { FirstRow = true, Label = "Nazwa", Property = bp => bp.Name, IsVisible = true, Width = "1FR" },
+        new FilterColumn<BusinessPartnerVm> { FirstRow = true, Label = "Pełna nazwa", Property = bp => bp.FullName, IsVisible = true, Width = "1FR" },
+        new FilterColumn<BusinessPartnerVm> { FirstRow = true, Label = "Oddział", Property = bp => bp.Branch, IsVisible = true, Width = "1FR" },
+        new FilterColumn<BusinessPartnerVm> { FirstRow = true, Label = "Ulica", Property = bp => bp.Street, IsVisible = true, Width = "1FR" },
+        new FilterColumn<BusinessPartnerVm> { FirstRow = true, Label = "Miasto", Property = bp => bp.City, IsVisible = true, Width = "1FR" },
+        new FilterColumn<BusinessPartnerVm> { FirstRow = true, Label = "Kod pocztowy", Property = bp => bp.PostalCode, IsVisible = true, Width = "1FR" },
+        new FilterColumn<BusinessPartnerVm> { FirstRow = true, Label = "Kraj", Property = bp => bp.Country, IsVisible = true, Width = "1FR" },
+        new FilterColumn<BusinessPartnerVm> { FirstRow = true, Label = "Numer konta", Property = bp => bp.BankAccountNumber, IsVisible = true, Width = "1FR" },
+        new FilterColumn<BusinessPartnerVm> { FirstRow = true, Label = "NIP", Property = bp => bp.VatId, IsVisible = true, Width = "1FR" },
+        new FilterColumn<BusinessPartnerVm> { FirstRow = true, Label = "ID SAP", Property = bp => bp.SAPId, IsVisible = true, Width = "1FR" },
+        new FilterColumn<BusinessPartnerVm> { FirstRow = true, Label = "Typ", Property = bp => bp.Type, IsVisible = true, Width = "1FR" }
+    };
+
+    private async Task View(BusinessPartnerVm item)
+    {
+    }
+    private async Task EditItem(BusinessPartnerVm item)
+    {
+    }
+    private async Task Delete(BusinessPartnerVm item)
+    {
+    }
+    private async Task AddPanel()
+    {
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Load();
+    }
+
+    private async Task Load()
+    {
+        businessPartner = await _mediator.Send(new GetAllBusinessPartnerQuery());
+    }
 }
