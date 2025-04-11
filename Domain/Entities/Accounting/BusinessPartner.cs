@@ -10,16 +10,16 @@ namespace Domain.Entities.Accounting
 {
     public class BusinessPartner : SmallAuditableEntity
     {
-        public string Name { get; set; } = string.Empty;
-        public string LongName { get; set; } = string.Empty;
-        public string Branch { get; set; } = string.Empty;
-        public string Street { get; set; } = string.Empty;
-        public string City { get; set; } = string.Empty;
-        public string PostalCode { get; set; } = string.Empty;
-        public string Country { get; set; } = string.Empty;
-        public string BankAccountNumber { get; set; } = string.Empty;
-        public string VatId { get; set; } = string.Empty;
-        public string SAPId { get; set; } = string.Empty;
-        public string Type { get; set; } = string.Empty;
+        public string Name { get; set; }
+        public string LongName { get; set; }
+        public string? Branch { get; set; }
+        public string Street { get; set; }
+        public string City { get; set; }
+        public string PostalCode { get; set; }
+        public string? Country { get; set; }
+        public string? BankAccountNumber { get; set; }
+        public string? VatId { get; set; }
+        public string? SAPId { get; set; }
+        public string Type { get; set; }
     }
 }

@@ -13,7 +13,7 @@ public class BusinessPartnerVm : IMapFrom<BusinessPartner>
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
-    public string FullName { get; set; } = string.Empty;
+    public string LongName { get; set; } = string.Empty;
     public string Branch { get; set; } = string.Empty;
     public string Street { get; set; } = string.Empty;
     public string City { get; set; } = string.Empty;

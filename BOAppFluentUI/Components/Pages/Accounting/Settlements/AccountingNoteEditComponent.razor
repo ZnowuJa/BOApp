@@ -12,6 +12,7 @@
 @using Application.CQRS.AccountingCQRS.AccountingNote.Commands
 @using Application.CQRS.AccountingCQRS.AccountingNote.Queries
 @using Application.CQRS.General.Organisations.Queries
+@using Application.CQRS.AccountingCQRS.BusinessPartners.Queries
 
 @attribute [Authorize(Policy = "User")]
 
@@ -273,15 +274,20 @@ else
         }
         if (Content.Dealer != null)
         {
-            _selectedLocation = new List<LocationVm>
-    {
+            _selectedLocation = new[]
+            {
         new LocationVm
         {
             SapNumber = Content.DG,
             Description = Content.Dealer
         }
-    };
+         };
         }
+        else
+        {
+            _selectedLocation = Array.Empty<LocationVm>();
+        }
+
 
         _editContext = new EditContext(Content);
         var dealIq = await _mediator.Send(new GetAllCompaniesByTypeIdQuery(4));
@@ -289,8 +295,9 @@ else
         orgs = dealIq.ToList();
         _locations = await _mediator.Send(new GetLocationsQuery());
 
-        var insurerIq = await _mediator.Send(new GetAllCompaniesByTypeIdQuery(2));
-        insurer = insurerIq.Select(dealer => dealer.Name).AsQueryable();
+        var insurerObject = await _mediator.Send(new GetAllBusinessPartnersByTypeNameQuery("Ubezpieczyciel"));
+        insurer = insurerObject.Select(dealer => dealer.Name).AsQueryable();
+        //insurer = insurerId.Select(dealer => dealer.Name).AsQueryable();
 
         // Console.WriteLine($"Liczba elementów: {itemCompaniesList.Count()}");
         // foreach (var company in itemCompaniesList)
@@ -384,15 +391,18 @@ else
     private async Task HandleLocationChange()
     {
         var selectedLocation = _selectedLocation.FirstOrDefault();
-        if (Content.Dealer == null)
+
+        if (selectedLocation == null)
         {
-            Console.WriteLine("Nie znaleziono lokalizacji, nie można pobrać organizacji.");
+            Content.Dealer = null;
+            Content.DG = null;
             return;
         }
+
         Content.Dealer = selectedLocation.Description;
         Content.DG = selectedLocation.SapNumber;
-
     }
+
 
     private void OnPaymentChanged()
     {
@@ -472,7 +482,7 @@ else
         {
             if (stwtr)
             {
-                if(Content.Amount >= Content.AmountPaid)
+                if (Content.Amount >= Content.AmountPaid)
                 {
                     Console.WriteLine("Kwota nie opłacona");
                 }

@@ -6,27 +6,65 @@
 @attribute [Authorize(Policy = "Technician")]
 @attribute [Authorize(Policy = "Accountant")]
 @inject IMediator _mediator
+@inject IJSRuntime JS
 
 <h3>Kontrahenci</h3>
 
-@if(businessPartner == null)
+@if (businessPartner == null)
 {
     <FluentProgressRing>Ładowanie...</FluentProgressRing>
 }
 else
 {
+    <div>
+        <FluentLabel Typo="Typography.Subject">
+            <FluentButton BackgroundColor="var(--accent-fill-rest)"
+                          Color="var(--neutral-fill-rest)"
+                          OnClick="ToggleVisibility">
+                Pokaż kolumny:
+                @ToggleIcon
+            </FluentButton>
+        </FluentLabel>
+
+
+        @if (isExpanded)
+        {
+            <div>
+                <FluentStack Orientation="Orientation.Horizontal">
+                    @foreach (var column in filterColumns)
+                    {
+                        if (column.FirstRow)
+                        {
+                            <FluentCheckbox @bind-Value="column.IsVisible" Label="@column.Label" />
+                        }
+                    }
+                </FluentStack>
+                <p></p>
+                <FluentStack Orientation="Orientation.Horizontal">
+                    @foreach (var column in filterColumns)
+                    {
+                        if (!column.FirstRow)
+                        {
+                            <FluentCheckbox @bind-Value="column.IsVisible" Label="@column.Label" />
+                        }
+                    }
+                </FluentStack>
+            </div>
+        }
+    </div>
+
     <FluentDataGrid Items="@filteredBusinessPartners"
                     TGridItem="BusinessPartnerVm"
                     ResizableColumns="true"
                     Pagination="@pagination"
                     Style="overflow: auto;"
                     ShowHover="true">
-    @foreach(var column in filterColumns.Where(c => c.IsVisible))
+        @foreach (var column in filterColumns.Where(c => c.IsVisible))
         {
             <PropertyColumn TGridItem="BusinessPartnerVm" TProp="string" Property="@(Utils.GetPropertyExpression(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label" Filtered="!string.IsNullOrWhiteSpace(column.Filter)">
                 <ColumnOptions>
                     <div class="search-box">
-                        <FluentSearch type="search" Autofocus="true" @bind-Value="column.Filter" @oninput="(args) => Utils.HandleFilterDebounced(column, args, debounceDispatcher, () => InvokeAsync(StateHasChanged))" Placeholder="@($"{column.Label.ToLower()}...")"/>
+                        <FluentSearch type="search" Autofocus="true" @bind-Value="column.Filter" @oninput="(args) => Utils.HandleFilterDebounced(column, args, debounceDispatcher, () => InvokeAsync(StateHasChanged))" Placeholder="@($"{column.Label.ToLower()}...")" />
                     </div>
                 </ColumnOptions>
             </PropertyColumn>
@@ -62,20 +100,28 @@ else
     readonly PaginationState pagination = new PaginationState { ItemsPerPage = 12 };
     private DebounceDispatcher debounceDispatcher = new DebounceDispatcher();
 
+    private bool isExpanded = false;
+    private string ToggleIcon => isExpanded ? "▼" : "▶";
+
+    private void ToggleVisibility()
+    {
+        isExpanded = !isExpanded;
+    }
+
     private List<FilterColumn<BusinessPartnerVm>> filterColumns = new List<FilterColumn<BusinessPartnerVm>>
     {
-        new FilterColumn<BusinessPartnerVm> { FirstRow = true, Label = "ID", Property = bp => bp.Id.ToString(), IsVisible = true, Width = "80px" },
+        new FilterColumn<BusinessPartnerVm> { FirstRow = true, Label = "ID", Property = bp => bp.Id.ToString(), IsVisible = false, Width = "80px" },
         new FilterColumn<BusinessPartnerVm> { FirstRow = true, Label = "Nazwa", Property = bp => bp.Name, IsVisible = true, Width = "1FR" },
-        new FilterColumn<BusinessPartnerVm> { FirstRow = true, Label = "Pełna nazwa", Property = bp => bp.FullName, IsVisible = true, Width = "1FR" },
+        new FilterColumn<BusinessPartnerVm> { FirstRow = true, Label = "Pełna nazwa", Property = bp => bp.LongName, IsVisible = false, Width = "1FR" },
         new FilterColumn<BusinessPartnerVm> { FirstRow = true, Label = "Oddział", Property = bp => bp.Branch, IsVisible = true, Width = "1FR" },
         new FilterColumn<BusinessPartnerVm> { FirstRow = true, Label = "Ulica", Property = bp => bp.Street, IsVisible = true, Width = "1FR" },
-        new FilterColumn<BusinessPartnerVm> { FirstRow = true, Label = "Miasto", Property = bp => bp.City, IsVisible = true, Width = "1FR" },
         new FilterColumn<BusinessPartnerVm> { FirstRow = true, Label = "Kod pocztowy", Property = bp => bp.PostalCode, IsVisible = true, Width = "1FR" },
-        new FilterColumn<BusinessPartnerVm> { FirstRow = true, Label = "Kraj", Property = bp => bp.Country, IsVisible = true, Width = "1FR" },
-        new FilterColumn<BusinessPartnerVm> { FirstRow = true, Label = "Numer konta", Property = bp => bp.BankAccountNumber, IsVisible = true, Width = "1FR" },
-        new FilterColumn<BusinessPartnerVm> { FirstRow = true, Label = "NIP", Property = bp => bp.VatId, IsVisible = true, Width = "1FR" },
-        new FilterColumn<BusinessPartnerVm> { FirstRow = true, Label = "ID SAP", Property = bp => bp.SAPId, IsVisible = true, Width = "1FR" },
-        new FilterColumn<BusinessPartnerVm> { FirstRow = true, Label = "Typ", Property = bp => bp.Type, IsVisible = true, Width = "1FR" }
+        new FilterColumn<BusinessPartnerVm> { FirstRow = false, Label = "Miasto", Property = bp => bp.City, IsVisible = true, Width = "1FR" },
+        new FilterColumn<BusinessPartnerVm> { FirstRow = false, Label = "Kraj", Property = bp => bp.Country, IsVisible = false, Width = "1FR" },
+        new FilterColumn<BusinessPartnerVm> { FirstRow = false, Label = "Numer konta", Property = bp => bp.BankAccountNumber, IsVisible = false, Width = "1FR" },
+        new FilterColumn<BusinessPartnerVm> { FirstRow = false, Label = "NIP", Property = bp => bp.VatId, IsVisible = false, Width = "1FR" },
+        new FilterColumn<BusinessPartnerVm> { FirstRow = false, Label = "ID SAP", Property = bp => bp.SAPId, IsVisible = false, Width = "1FR" },
+        new FilterColumn<BusinessPartnerVm> { FirstRow = false, Label = "Typ", Property = bp => bp.Type, IsVisible = true, Width = "1FR" }
     };
 
     private async Task View(BusinessPartnerVm item)
