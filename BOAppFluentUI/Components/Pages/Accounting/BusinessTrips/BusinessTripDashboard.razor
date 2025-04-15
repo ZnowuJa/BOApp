@@ -3,7 +3,7 @@
 
 @using Microsoft.AspNetCore.Authorization
 
-@attribute [Authorize(Policy = "Accountant")]
+@attribute [Authorize(Policy = "User")]
 
 @inject IMediator _mediator
 @inject ILogger<BusinessTripDashboard> _logger

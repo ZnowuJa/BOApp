@@ -73,6 +73,7 @@ public class AppDbContext : IdentityDbContext<AppUser>, IAppDbContext
     public DbSet<Bnp55> Bnp55s { get; set; }
     public DbSet<AdvancePaymentForm> AdvancePayments { get; set; }
     public DbSet<BankTransferForm> BankTransfers{ get; set; }
+    public DbSet<CostAllocation> CostAllocations { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -150,6 +151,11 @@ public class AppDbContext : IdentityDbContext<AppUser>, IAppDbContext
         .HasIndex(m => m.ManagerId)
         .IsUnique();
 
+        builder.Entity<CostAllocation>()
+            .ToView("v_EmpCostAllocations")
+            .HasNoKey();
+        
+        
         base.OnModelCreating(builder);
 
     }
