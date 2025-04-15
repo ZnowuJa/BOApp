@@ -98,7 +98,6 @@
 
   <ItemGroup>
     <Folder Include="AAA_IDEAS\" />
-    <Folder Include="CQRS\AccountingCQRS\BankTransfers\Commands\" />
     <Folder Include="CQRS\ITToolsCQRS\" />
     <Folder Include="ViewModels\ITWarehouse\" />
   </ItemGroup>
