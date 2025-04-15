@@ -8,6 +8,9 @@ namespace Application.Forms.Accounting.Enums
 {
     public enum BusinessPartnerType
     {
-        Ubezpieczyciel
+        Ubezpieczyciel,
+        Dostawca,
+        Partner,
+        Inne
     }
 }

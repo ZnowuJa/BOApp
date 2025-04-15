@@ -47,6 +47,7 @@ namespace Domain.Forms.Accounting
 
         public string Objective { get; set; } = string.Empty;
         public decimal? AdvancePaymentAmount { get; set; } = 0;
+        public decimal? AdvancePaymentBalance { get; set; }
         public string? AdvancePaymentCurrency { get; set; } = "PLN";
         public bool AdvancePaymentCash { get; set; } = false;
         public string? BankAccountNumber { get; set; } = string.Empty;

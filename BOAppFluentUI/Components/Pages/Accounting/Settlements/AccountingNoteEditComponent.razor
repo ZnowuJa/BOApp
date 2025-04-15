@@ -182,46 +182,53 @@
                     </th>
                 </tr>
 
+                <tr>
+                    <th colspan="4">
+                        <div class="center">
+                            @if (strej)
+                            {
+
+                                <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
+                                              Id="SendFormId"
+                                              Appearance="Appearance.Accent"
+                                              OnClick="@SendForm"
+                                              BackgroundColor="var(--accent-fill-rest)"
+                                              Style="width: 100px">
+                                    Wyślij
+                                </FluentButton>
+                            }
+
+                            @if (stwtr)
+                            {
+                                //<FluentSpacer Width="@buttonSpacer" />
+
+                                <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
+                                              Id="SendFormId"
+                                              Appearance="Appearance.Accent"
+                                              OnClick="@SendForm"
+                                              BackgroundColor="var(--accent-fill-rest)"
+                                              Style="width: 100px">
+                                    Zapisz
+                                </FluentButton>
+                            }
+
+                            <FluentSpacer Width="@buttonSpacer" />
+
+                            <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
+                                          Appearance="Appearance.Accent"
+                                          Id="CancelFormId"
+                                          OnClick="@CancelForm"
+                                          BackgroundColor="var(--info)"
+                                          Style="width: 100px">
+                                Anuluj
+                            </FluentButton>
+
+                        </div>
+                    </th>
+                </tr>
             </tbody>
         </table>
-        @if (strej)
-        {
-            <FluentSpacer Width="@buttonSpacer" />
-
-            <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
-                          Id="SendFormId"
-                          Appearance="Appearance.Accent"
-                          OnClick="@SendForm"
-                          BackgroundColor="var(--accent-fill-rest)"
-                          Style="width: 100px">
-                Wyślij
-            </FluentButton>
-        }
-
-        @if (stwtr)
-        {
-            <FluentSpacer Width="@buttonSpacer" />
-
-            <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
-                          Id="SendFormId"
-                          Appearance="Appearance.Accent"
-                          OnClick="@SendForm"
-                          BackgroundColor="var(--accent-fill-rest)"
-                          Style="width: 100px">
-                Zapisz
-            </FluentButton>
-        }
-
-        <FluentSpacer Width="@buttonSpacer" />
-
-        <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
-                      Appearance="Appearance.Accent"
-                      Id="CancelFormId"
-                      OnClick="@CancelForm"
-                      BackgroundColor="var(--info)"
-                      Style="width: 100px">
-            Anuluj
-        </FluentButton>
+        
     </EditForm>
 }
 else

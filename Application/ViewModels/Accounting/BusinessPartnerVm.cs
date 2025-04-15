@@ -1,4 +1,5 @@
-﻿using Application.Mappings;
+﻿using Application.Forms.Accounting.Enums;
+using Application.Mappings;
 using AutoMapper;
 using Domain.Entities.Accounting;
 using System;
@@ -14,15 +15,15 @@ public class BusinessPartnerVm : IMapFrom<BusinessPartner>
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public string LongName { get; set; } = string.Empty;
-    public string Branch { get; set; } = string.Empty;
+    public string? Branch { get; set; } = string.Empty;
     public string Street { get; set; } = string.Empty;
     public string City { get; set; } = string.Empty;
     public string PostalCode { get; set; } = string.Empty;
-    public string Country { get; set; } = string.Empty;
-    public string BankAccountNumber { get; set; } = string.Empty;
-    public string VatId { get; set; } = string.Empty;
-    public string SAPId { get; set; } = string.Empty;
-    public string Type { get; set; } = string.Empty;
+    public string? Country { get; set; } = string.Empty;
+    public string? BankAccountNumber { get; set; } = string.Empty;
+    public string? VatId { get; set; } = string.Empty;
+    public string? SAPId { get; set; } = string.Empty;
+    public BusinessPartnerType Type { get; set; }
 
     public void Mapping(Profile profile)
     {
