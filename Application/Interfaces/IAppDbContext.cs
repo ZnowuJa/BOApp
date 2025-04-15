@@ -64,6 +64,7 @@ public interface IAppDbContext
     public DbSet<Bnp55> Bnp55s { get; set; }
     public DbSet<SapCostCenter> SapCostCenters { get; set; }
     public DbSet<BankTransferForm> BankTransfers{ get; set; }
+    public DbSet<CostAllocation> CostAllocations { get; set; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     Task<IDbContextTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default);
