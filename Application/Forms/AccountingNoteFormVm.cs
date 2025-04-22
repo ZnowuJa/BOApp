@@ -1,8 +1,11 @@
-﻿using Application.Mappings;
+﻿using Application.AdHocJobs;
+using Application.Forms.Accounting;
+using Application.Mappings;
 using Application.ViewModels;
 using Application.ViewModels.Accounting;
 using AutoMapper;
 using Domain.Entities.Accounting;
+using Domain.Forms.Accounting;
 
 namespace Application.Forms
 {
@@ -43,8 +46,9 @@ namespace Application.Forms
         public string PaymentMethod { get; set; } = string.Empty;
         public string DealerName { get; set; } = string.Empty;
         public string NoteContent { get; set; } = string.Empty;
-        public string Attachment { get; set; } = string.Empty;
+        //public string Attachment { get; set; } = string.Empty;
 
+        public DateTime CreatedDate { get; set; } = DateTime.Now;
         public List<Attachment> Attachments { get; set; } = new();
 
         //
@@ -54,7 +58,14 @@ namespace Application.Forms
 
         public void Mapping(Profile profile)
         {
-            profile.CreateMap<AccountingNoteForm, AccountingNoteFormVm>().ReverseMap();
+            profile.CreateMap<AccountingNoteForm, AccountingNoteFormVm>()
+                .ForMember(dest => dest.Attachments, opt => opt.MapFrom(src =>
+        string.IsNullOrEmpty(src.Attachment)
+            ? new List<Attachment>()
+            : AppUtils.SafeDeserialize<List<Attachment>>(src.Attachment)));
+
+            profile.CreateMap<AccountingNoteFormVm, AccountingNoteForm>()
+                .ForMember(dest => dest.Attachment, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.Attachments)));
         }
     }
 

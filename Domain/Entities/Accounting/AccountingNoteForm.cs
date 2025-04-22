@@ -15,7 +15,7 @@ public class AccountingNoteForm : FormTemplate
     {
         Statuses = new List<string>
             {
-                "Rejestracja", "W trakcie", "Zakończony"
+                "Rejestracja", "Otwarte", "Zamkniete"
             };
     }
     public string DG { get; set; }

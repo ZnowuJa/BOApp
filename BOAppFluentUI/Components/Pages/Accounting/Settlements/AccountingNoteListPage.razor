@@ -20,7 +20,49 @@
 }
 else
 {
-    <FluentDataGrid Items="@Utils.ApplyFilters(accountingNote, filterColumns)" Pagination="@pagination" TGridItem="AccountingNoteFormVm" GridTemplateColumns="80px repeat(7, 1fr)" AutoFit="true" ResizableColumns="true">
+    <div>
+        <FluentLabel Typo="Typography.Subject">
+            <FluentButton BackgroundColor="var(--accent-fill-rest)"
+                          Color="var(--neutral-fill-rest)"
+                          OnClick="ToggleVisibility">
+                Pokaż kolumny:
+                @ToggleIcon
+            </FluentButton>
+        </FluentLabel>
+
+
+        @if (isExpanded)
+        {
+            <div>
+                <FluentStack Orientation="Orientation.Horizontal">
+                    @foreach (var column in filterColumns)
+                    {
+                        if (column.FirstRow)
+                        {
+                            <FluentCheckbox @bind-Value="column.IsVisible" Label="@column.Label" />
+                        }
+                    }
+                </FluentStack>
+                <p></p>
+                <FluentStack Orientation="Orientation.Horizontal">
+                    @foreach (var column in filterColumns)
+                    {
+                        if (!column.FirstRow)
+                        {
+                            <FluentCheckbox @bind-Value="column.IsVisible" Label="@column.Label" />
+                        }
+                    }
+                </FluentStack>
+            </div>
+        }
+    </div>
+
+    <FluentDataGrid Items="@Utils.ApplyFilters(accountingNote, filterColumns)"
+                    Pagination="@pagination"
+                    TGridItem="AccountingNoteFormVm"
+                    Style="overflow: auto;"
+                    ShowHover="true"
+                    ResizableColumns="true">
         @foreach (var column in filterColumns.Where(c => c.IsVisible))
         {
             if (column.IsDropdown)
@@ -78,22 +120,29 @@ else
 
     private IQueryable<AccountingNoteFormVm> accountingNote;
 
+    private PaginationState pagination = new PaginationState { ItemsPerPage = 12 };
     private DebounceDispatcher debounceDispatcher = new DebounceDispatcher();
-    private PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
 
     private List<FilterColumn<AccountingNoteFormVm>> filterColumns = new List<FilterColumn<AccountingNoteFormVm>>
     {
-        new FilterColumn<AccountingNoteFormVm> { FirstRow = true, Label = "Numer noty", Property = c => c.NoteNumber.ToString() ?? string.Empty, IsVisible = true },
-        new FilterColumn<AccountingNoteFormVm> { FirstRow = true, Label = "Status", Property = c => c.Status.ToString() ?? string.Empty, IsVisible = true, IsDropdown = true },
-        new FilterColumn<AccountingNoteFormVm> { FirstRow = true, Label = "DG", Property = c => c.DG.ToString() ?? string.Empty, IsVisible = true },
-        new FilterColumn<AccountingNoteFormVm> { FirstRow = true, Label = "Dealer", Property = c => c.Dealer.ToString() ?? string.Empty, IsVisible = true, IsDropdown = true},
-        new FilterColumn<AccountingNoteFormVm> { FirstRow = true, Label = "Ubezpieczyciel", Property = c => c.Insurer.ToString() ?? string.Empty, IsVisible = true, IsDropdown = true },
-        new FilterColumn<AccountingNoteFormVm> { FirstRow = true, Label = "Data", Property = c => c.Date?.ToString("yyyy-MM-dd") ?? string.Empty, IsVisible = true },
-        new FilterColumn<AccountingNoteFormVm> { FirstRow = true, Label = "Termin płatności", Property = c => c.PaymentDeadline?.ToString("yyyy-MM-dd") ?? string.Empty, IsVisible = true },
-        new FilterColumn<AccountingNoteFormVm> { FirstRow = true, Label = "Kwota", Property = c => c.Amount.ToString("N2"), IsVisible = true },
-        new FilterColumn<AccountingNoteFormVm> { FirstRow = true, Label = "Kwota zapłacona", Property = c => c.AmountPaid.ToString("N2"), IsVisible = true },
-        new FilterColumn<AccountingNoteFormVm> { FirstRow = true, Label = "Pozostało do zapłaty", Property = c => c.AmountRemaining.ToString("N2"), IsVisible = true }
+        new FilterColumn<AccountingNoteFormVm> { FirstRow = true, Label = "Numer noty", Property = c => c.NoteNumber.ToString() ?? string.Empty, IsVisible = true, Width = "1FR" },
+        new FilterColumn<AccountingNoteFormVm> { FirstRow = true, Label = "Status", Property = c => c.Status.ToString() ?? string.Empty, IsVisible = true, IsDropdown = true, Width = "1FR" },
+        new FilterColumn<AccountingNoteFormVm> { FirstRow = true, Label = "DG", Property = c => c.DG.ToString() ?? string.Empty, IsVisible = false, Width = "1FR" },
+        new FilterColumn<AccountingNoteFormVm> { FirstRow = true, Label = "Dealer", Property = c => c.Dealer.ToString() ?? string.Empty, IsVisible = true, IsDropdown = true, Width = "1FR"},
+        new FilterColumn<AccountingNoteFormVm> { FirstRow = true, Label = "Ubezpieczyciel", Property = c => c.Insurer.ToString() ?? string.Empty, IsVisible = true, IsDropdown = true, Width = "1FR" },
+        new FilterColumn<AccountingNoteFormVm> { FirstRow = false, Label = "Data", Property = c => c.Date?.ToString("yyyy-MM-dd") ?? string.Empty, IsVisible = true, Width = "1FR" },
+        new FilterColumn<AccountingNoteFormVm> { FirstRow = false, Label = "Termin płatności", Property = c => c.PaymentDeadline?.ToString("yyyy-MM-dd") ?? string.Empty, IsVisible = true, Width = "1FR" },
+        new FilterColumn<AccountingNoteFormVm> { FirstRow = false, Label = "Kwota", Property = c => c.Amount.ToString("N2"), IsVisible = true, Width = "1FR" },
+        new FilterColumn<AccountingNoteFormVm> { FirstRow = false, Label = "Kwota zapłacona", Property = c => c.AmountPaid.ToString("N2"), IsVisible = true, Width = "1FR" },
+        new FilterColumn<AccountingNoteFormVm> { FirstRow = false, Label = "Pozostało do zapłaty", Property = c => c.AmountRemaining.ToString("N2"), IsVisible = false, Width = "1FR" }
     };
+
+    private bool isExpanded = false;
+    private string ToggleIcon => isExpanded ? "▼" : "▶";
+    private void ToggleVisibility()
+    {
+        isExpanded = !isExpanded;
+    }
 
     protected override async Task OnInitializedAsync()
     {

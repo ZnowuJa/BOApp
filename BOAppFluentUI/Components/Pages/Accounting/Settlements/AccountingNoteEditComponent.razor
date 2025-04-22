@@ -13,6 +13,7 @@
 @using Application.CQRS.AccountingCQRS.AccountingNote.Queries
 @using Application.CQRS.General.Organisations.Queries
 @using Application.CQRS.AccountingCQRS.BusinessPartners.Queries
+@using System.Text.RegularExpressions
 
 @attribute [Authorize(Policy = "User")]
 
@@ -26,210 +27,245 @@
 @if (_editContext != null)
 {
     <EditForm EditContext="_editContext">
+        <FluentValidationValidator @ref="_fluentValidator" />
         <table class="table-container">
             <thead>
                 <tr class="table-caption">
-                    <th style="text-align: left; border-right: none; font-size: large;" colspan="2">
+                    <th colspan="2" style="text-align: left; border-right: none; font-size: large;">
                         Informacje Ogólne
                     </th>
-                    <th style="text-align: right; border-left: none; font-size: large;" colspan="2">
+                    <th colspan="2" style="text-align: right; border-left: none; font-size: large;">
                         Status: @Content.Status | Numer: @Content.NoteNumber
                     </th>
-                </tr>
-                <tr class="table-header-left table-caption">
-                    <th style="width: 130px;">Doradca serwisowy:</th>
-                    <th style="width: 150px;">Dealer:</th>
-                    <th style="width: 150px;">Ubezpieczyciel:</th>
-                    <th style="width: 120px;">Data</th>
                 </tr>
             </thead>
             <tbody>
                 <tr>
+                    <th>Doradca serwisowy:</th>
                     <td>
-                        <FluentTextField @bind-Value="@Content.ServiceAdvisor"></FluentTextField>
+                        <FluentTextField @bind-Value="@Content.ServiceAdvisor" Style="width: 250px;" />
                     </td>
+                    <th>Data:</th>
+                    <td>
+                        <FluentDatePicker @bind-Value="Content.Date"
+                                          Style="width: 250px;" />
+                        <FluentValidationMessage For="@(() => Content.Date)" />
+                    </td>
+                </tr>
+                <tr class="alt-row">
+                    <th>Dealer:</th>
                     <td>
                         <FluentAutocomplete TOption="LocationVm"
                                             SelectValueOnTab="true"
                                             AutoComplete="on"
                                             OnOptionsSearch="@OnLocationSearch"
                                             Placeholder="Wybierz lokalizacje..."
-                                            Width="150px"
+                                            Width="250px"
                                             Height="250px"
                                             OptionText="@(p => p.SapNumber + ' ' + p.Description)"
+                                            OptionValue="@(p => p.SapNumber)"
                                             MaximumSelectedOptions="1"
                                             @bind-SelectedOptions="@_selectedLocation"
                                             @bind-SelectedOptions:after="@HandleLocationChange" />
                     </td>
+                    <th>Ubezpieczyciel:</th>
                     <td>
                         <FluentCombobox TOption="string"
                                         Items="@insurer"
                                         Id="InsurerId"
-                                        Width="150px"
+                                        Autocomplete="ComboboxAutocomplete.Both"
+                                        Width="250px"
                                         Height="250px"
                                         @bind-Value="@Content.Insurer" />
                     </td>
-                    <td>
-                        <FluentDatePicker Value="SelectedValue" ValueChanged="@(e => OnDateChanged("Date1", e))" />
-                    </td>
-                </tr>
-
-                <tr class="table-header-left table-caption">
-                    <th style="width: 130px;">VIN:</th>
-                    <th style="width: 150px;">Rejestracja:</th>
-                    <th style="width: 130px;">Numer zlecenia:</th>
-                    <th style="width: 120px;">Numer szkody:</th>
                 </tr>
                 <tr>
+                    <th>VIN:</th>
                     <td>
                         <FluentTextField Id="VIN"
                                          @bind-Value="@Content.VIN"
-                                         Placeholder="Wpisz VIN" />
+                                         Placeholder="Wpisz VIN"
+                                         Style="width: 250px;" />
+                        <FluentValidationMessage For="@(() => Content.VIN)" />
                     </td>
+                    <th>Rejestracja:</th>
                     <td>
                         <FluentTextField Id="Registration"
                                          @bind-Value="@Content.Registration"
-                                         Placeholder="Wpisz rejestrację" />
-
+                                         Placeholder="Wpisz rejestrację"
+                                         Style="width: 250px;" />
+                        <FluentValidationMessage For="@(() => Content.Registration)" />
                     </td>
+                </tr>
+                <tr class="alt-row">
+                    <th>Numer zlecenia:</th>
                     <td>
                         <FluentTextField Id="OrderNumber"
                                          @bind-Value="Content.OrderNumber"
-                                         Placeholder="Wpisz numer zlecenia" />
-
+                                         Placeholder="Wpisz numer zlecenia"
+                                         Style="width: 250px;" />
+                        <FluentValidationMessage For="@(() => Content.OrderNumber)" />
                     </td>
+                    <th>Numer szkody:</th>
                     <td>
                         <FluentTextField Id="DamageNumber"
                                          @bind-Value="Content.DamageNumber"
-                                         Placeholder="Wpisz numer szkody" />
-
+                                         Placeholder="Wpisz numer szkody"
+                                         Style="width: 250px;" />
+                        <FluentValidationMessage For="@(() => Content.DamageNumber)" />
                     </td>
                 </tr>
-                <tr class="table-header-left table-caption">
-                    <th>Metoda płatności:</th>
-                    <th>Kwota:</th>
-                    <th>Termin płatności:</th>
+
+                <tr class="table-caption">
+                    <th colspan="4" style="font-size: large; text-align:center;">Płatności</th>
                 </tr>
+
                 <tr>
-                    <td>
-                        <FluentSelect Items=@PaymentMethodsInt
+                    <th>Metoda płatności:</th>
+                    <td colspan="3">
+                        <FluentSelect Items="@PaymentMethodsInt"
                                       OptionText="@(i => i.Text)"
                                       OptionValue="@(a => a.Value.ToString())"
                                       OptionSelected="@(a => a.Selected)"
                                       @bind-Value="@PaymentCashString"
-                                      @bind-Value:after="@OnPaymentChanged" />
+                                      @bind-Value:after="@OnPaymentChanged"
+                                      Style="width: 250px;" />
                     </td>
+                </tr>
+                <tr class="alt-row">
+                    <th>Kwota:</th>
                     <td>
                         <FluentNumberField Id="Amount"
                                            @bind-Value="Content.Amount"
-                                           Placeholder="Wpisz kwotę">
-                        </FluentNumberField>
-
+                                           Placeholder="Wpisz kwotę"
+                                           Style="width: 250px;" />
+                        <FluentValidationMessage For="@(() => Content.Amount)" />
                     </td>
+                    <th>Termin płatności:</th>
                     <td>
-                        <FluentDatePicker Value="SelectedValueTo" ValueChanged="@(e => OnDateChanged("Date2", e))" />
+                        <FluentDatePicker Style="width: 250px;"
+                                          @bind-Value="Content.PaymentDeadline" />
+                        <FluentValidationMessage For="@(() => Content.PaymentDeadline)" />
                     </td>
                 </tr>
-                <tr>
-                    <th class="table-header-left table-caption">Treść noty:</th>
-                    <th colspan="3"> <FluentTextField @bind-Valie="Content.NoteContent" /> </th>
-                </tr>
-                <tr>
-                    <th class="table-header-left table-caption">Załącznik:</th>
-                    <th colspan="3">
-                        @* <FluentInputFile @ref="@myFileUploader"
-                    DragDropZoneVisible="false"
-                    Mode="InputFileMode.SaveToTemporaryFolder"
-                    Multiple="true"
-                    AnchorId="MyUploadLoadingButton"
-                    MaximumFileSize="@(100 * 1024 * 1024)"
-                    Accept=".mp4, .mov, .avi"
-                    OnProgressChange="@(e =>
-                    {
-                    _formUploading = true;
-                    progressPercent = e.ProgressPercent;
-                    progressTitle = e.ProgressTitle;
-                    })"
-                    OnCompleted="@OnCompleted" />
+                @if (Content.Status != "Rejestracja")
+                {
+                    <tr>
+                        <th>Wpłata TU:</th>
+                        <td>
+                            <FluentNumberField Id="AmountPaid"
+                                               @bind-Value="Content.AmountPaid"
+                                               Style="width: 250px;" />
+                        </td>
+                        <th>Pozostało do zapłaty:</th>
+                        <td>
+                            <FluentNumberField Id="AmountRemaining"
+                                               @bind-Value="Content.AmountRemaining"
+                                               Style="width: 250px;" />
+                        </td>
+                    </tr>
+                }
 
-                    <FluentProgress Min="0" Max="100" Visible="@(progressPercent > 0)" Value="@progressPercent" />
-                    <FluentLabel Alignment="HorizontalAlignment.Center">
-                    @progressTitle
-                    </FluentLabel>
-
-                    <FluentButton Id="MyUploadLoadingButton" Loading="_formUploading" Appearance="Appearance.Accent">
-                    Wybierz...
-                    </FluentButton>
-
-                    @if (Files.Any())
-                    {
-                    <h4>Plik(i) przesłane:</h4>
-                    <ul>
-                    @foreach (var file in Files)
-                    {
-                    <li>
-                    <b>@file.Name</b> 🔹
-                    @($"{Decimal.Divide(file.Size, 1024):N} KB") 🔹
-                    @file.ContentType 🔹
-                    @file.LocalFile?.FullName
-                    @file.ErrorMessage
-                    </li>
-                    }
-                    </ul>
-                    } *@
-
-                        <FluentInputFile id="fileInput" OnChange="HandleFileUpload" accept=".png, .jpg, .pdf" />
-                    </th>
+                <tr class="table-caption">
+                    <th colspan="4" style="font-size: large; text-align:center;">Treść noty i załącznik</th>
                 </tr>
 
                 <tr>
-                    <th colspan="4">
-                        <div class="center">
-                            @if (strej)
-                            {
-
-                                <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
-                                              Id="SendFormId"
-                                              Appearance="Appearance.Accent"
-                                              OnClick="@SendForm"
-                                              BackgroundColor="var(--accent-fill-rest)"
-                                              Style="width: 100px">
-                                    Wyślij
-                                </FluentButton>
-                            }
-
-                            @if (stwtr)
-                            {
-                                //<FluentSpacer Width="@buttonSpacer" />
-
-                                <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
-                                              Id="SendFormId"
-                                              Appearance="Appearance.Accent"
-                                              OnClick="@SendForm"
-                                              BackgroundColor="var(--accent-fill-rest)"
-                                              Style="width: 100px">
-                                    Zapisz
-                                </FluentButton>
-                            }
-
-                            <FluentSpacer Width="@buttonSpacer" />
-
+                    <th>Treść noty:</th>
+                    <td colspan="3">
+                        <FluentTextField @bind-Value="Content.NoteContent" Style="width: 100%" />
+                        <FluentValidationMessage For="@(() => Content.NoteContent)" />
+                    </td>
+                </tr>
+                <tr class="alt-row">
+                    <th>Załącznik:</th>
+                    <td colspan="3">
+                        <FluentInputFile Id="my-file-uploader"
+                                         Mode="InputFileMode.SaveToTemporaryFolder"
+                                         Multiple="true"
+                                         MaximumFileCount="4"
+                                         MaximumFileSize="@(10 * 1024 * 1024)"
+                                         Accept="image/*"
+                                         @bind-ProgressPercent="@ProgressPercent"
+                                         OnCompleted="@OnCompletedAsync"
+                                         Style="height: 80px;">
+                            <ChildContent>
+@*                                 <label for="my-file-uploader">
+                                    <FluentIcon Value="@(new @Icons.Regular.Size24.ArrowUpload())" />
+                                </label>
+ *@
+                                <div>
+                                    Przeciągnij tutaj pliki, które chcesz przesłać,
+                                    lub <label for="my-file-uploader">przeglądaj</label>
+                                    je na swoim urządzeniu<span style="color: red;">*</span>.
+                                    <br />
+                                    <em>Maksymalnie 4 pliki.</em>
+                                </div>
+                            </ChildContent>
+                        </FluentInputFile>
+                    </td>
+                </tr>
+                @if ((Content.Attachments ?? new List<Attachment>()).Any())
+                {
+                    <tr>
+                        <th>Przesłane pliki:</th>
+                        <td colspan="3">
+                            <ul>
+                                @foreach (var attachment in Content.Attachments)
+                                {
+                                    <li>
+                                        <b>@attachment.OriginalFileName</b>🔹
+                                        <a href="@attachment.AttUrl" target="_blank">Otwórz</a>🔹
+                                        <a @onclick="() => RemoveAttachment(attachment)">🗑️ Usuń</a>
+                                    </li>
+                                }
+                            </ul>
+                        </td>
+                    </tr>
+                }
+                <tr>
+                    <td colspan="4" style="text-align: center;">
+                        @if (strej)
+                        {
                             <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
+                                          Id="SendFormId"
                                           Appearance="Appearance.Accent"
-                                          Id="CancelFormId"
-                                          OnClick="@CancelForm"
-                                          BackgroundColor="var(--info)"
+                                          OnClick="@SendForm"
+                                          BackgroundColor="var(--accent-fill-rest)"
                                           Style="width: 100px">
-                                Anuluj
+                                Wyślij
                             </FluentButton>
+                        }
 
-                        </div>
-                    </th>
+                        @if (stwtr)
+                        {
+                            <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
+                                          Id="SaveFormId"
+                                          Appearance="Appearance.Accent"
+                                          OnClick="@SendForm"
+                                          BackgroundColor="var(--accent-fill-rest)"
+                                          Style="width: 100px">
+                                Zapisz
+                            </FluentButton>
+                        }
+
+                        <FluentSpacer Width="@buttonSpacer" />
+
+                        <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
+                                      Appearance="Appearance.Accent"
+                                      Id="CancelFormId"
+                                      OnClick="@CancelForm"
+                                      BackgroundColor="var(--info)"
+                                      Style="width: 100px">
+                            Anuluj
+                        </FluentButton>
+                    </td>
                 </tr>
             </tbody>
         </table>
-        
+
     </EditForm>
+
 }
 else
 {
@@ -237,35 +273,116 @@ else
 }
 
 @code {
+    #region [PARAMETRY / MODELE]
     [Parameter]
     public int Id { get; set; }
 
-    public AccountingNoteFormVm Content { get; set; } = new AccountingNoteFormVm();
+    public AccountingNoteFormVm Content { get; set; } = new();
+    private AccountingNoteFormVm CurrentAttachmentForUpload = new();
+    #endregion
 
+    #region [FORMULARZ / WALIDACJA]
     private EditContext _editContext;
-    private bool isLoading { get; set; } = true;
+    private FluentValidationValidator? _fluentValidator;
     private bool showForm { get; set; } = true;
-    private string _srcPage = "view";
+    #endregion
 
+    #region [UŻYTKOWNIK / CONTEXT]
     private ClaimsPrincipal? user { get; set; }
     private string username { get; set; }
     private EmployeeVm emp { get; set; }
+    #endregion
 
+    #region [DATY]
     private DateTime? SelectedValue { get; set; } = DateTime.Today;
     private DateTime? SelectedValueTo { get; set; } = DateTime.Today.AddDays(14);
+    #endregion
 
+    #region [FIRMY / LOKALIZACJE]
     private IQueryable<CompanyVm> itemCompaniesList { get; set; }
+    private List<CompanyVm> orgs { get; set; }
     private CompanyVm selectedCompany;
-    private int buttonSpacer = 100;
+
+    private IQueryable<string> insurer { get; set; }
+
+    private IEnumerable<LocationVm> _locations { get; set; } = new List<LocationVm>().AsQueryable();
+    private IEnumerable<LocationVm> _selectedLocation = Array.Empty<LocationVm>();
+    #endregion
+
+    #region [STANY / FLAGI]
+    private bool isLoading { get; set; } = true;
+    private string _srcPage = "view";
 
     private bool strej { get; set; } = false;
     private bool stwtr { get; set; } = false;
     private bool stzak { get; set; } = false;
+    private bool _formUploading;
+    #endregion
 
-    private IEnumerable<LocationVm> _locations { get; set; } = new List<LocationVm>().AsQueryable();
-    private IEnumerable<LocationVm> _selectedLocation = Array.Empty<LocationVm>();
+    #region [UPLOADER / ZAŁĄCZNIKI]
+    FluentInputFile? myFileUploader = default!;
+    FluentInputFileEventArgs[] Files = Array.Empty<FluentInputFileEventArgs>();
 
-    private AccountingNoteFormVm CurrentAttachmentForUpload = new AccountingNoteFormVm();
+    int ProgressPercent = 0;
+    int? progressPercent;
+    string? progressTitle;
+    #endregion
+
+    #region [POMOCNICZE]
+    private int buttonSpacer = 100;
+    #endregion
+
+    #region [WŁASNOŚCI]
+    public string PaymentCashString
+    {
+        get => Content.PaymentMethod;
+        set => Content.PaymentMethod = value;
+    }
+    #endregion
+
+
+    private async Task OnCompletedAsync(IEnumerable<FluentInputFileEventArgs> files)
+    {
+        foreach (var file in files)
+        {
+            if (file.LocalFile == null)
+                continue;
+
+            var newFilePath = Path.Combine(
+                Environment.WebRootPath,
+                "AccountingNotes",
+                Content.CreatedDate.ToString("yyyy"),
+                Content.CreatedDate.ToString("yyyyMM"),
+                Content.CreatedDate.ToString("yyyyMMdd"));
+
+            Directory.CreateDirectory(newFilePath);
+
+            var finalPath = Path.Combine(
+                newFilePath,
+                $"{Content.NoteNumber}_{Guid.NewGuid()}{Path.GetExtension(file.Name)}");
+
+            // Przenosimy plik z folderu tymczasowego
+            FileUtils.MoveFile(file.LocalFile.FullName, finalPath);
+
+            // Dodajemy do listy Attachmentów
+            Content.Attachments.Add(new Attachment
+                {
+                    Id = Content.Attachments.Count + 1,
+                    OriginalFileName = file.Name,
+                    FilePath = finalPath,
+                    AttUrl = FileUtils.GenerateUrl(finalPath, Environment.WebRootPath)
+                });
+        }
+
+        await Task.Delay(500);
+        ProgressPercent = 0;
+    }
+
+    private void RemoveAttachment(Attachment attachment)
+    {
+        FileUtils.RemoveFile(attachment.FilePath);
+        Content.Attachments.Remove(attachment);
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -295,7 +412,6 @@ else
             _selectedLocation = Array.Empty<LocationVm>();
         }
 
-
         _editContext = new EditContext(Content);
         var dealIq = await _mediator.Send(new GetAllCompaniesByTypeIdQuery(4));
         //orgs = dealIq.Select(dealer => dealer.Name).AsQueryable();
@@ -303,7 +419,8 @@ else
         _locations = await _mediator.Send(new GetLocationsQuery());
 
         var insurerObject = await _mediator.Send(new GetAllBusinessPartnersByTypeNameQuery("Ubezpieczyciel"));
-        insurer = insurerObject.Select(dealer => dealer.Name).AsQueryable();
+        insurer = insurerObject.Select(dealer => Regex.Replace(dealer.LongName.Trim(), @"-\s*$", "").TrimEnd()).AsQueryable();
+
         //insurer = insurerId.Select(dealer => dealer.Name).AsQueryable();
 
         // Console.WriteLine($"Liczba elementów: {itemCompaniesList.Count()}");
@@ -313,24 +430,16 @@ else
         // }
         SetSrcPage();
         AssignStatusBool();
+
         if (strej)
         {
             Content.Date = SelectedValue;
             Content.PaymentDeadline = SelectedValueTo;
         }
+
         //GenerateNoteNumber();
         await RefreshClaims();
     }
-
-    private List<CompanyVm> orgs { get; set; }
-    private IQueryable<string> insurer { get; set; }
-
-    bool _formUploading;
-    FluentInputFile? myFileUploader = default!;
-    int? progressPercent;
-    string? progressTitle;
-
-    FluentInputFileEventArgs[] Files = Array.Empty<FluentInputFileEventArgs>();
 
     private void OnCompanyChanged(CompanyVm company)
     {
@@ -341,22 +450,22 @@ else
         }
     }
 
-    private async Task OnDateChanged(string type, DateTime? newDate)
-    {
-        switch ((type))
-        {
-            case ("Date1"):
-                SelectedValue = newDate;
-                Content.Date = SelectedValue;
-                break;
-            case ("Date2"):
-                SelectedValueTo = newDate;
-                Content.PaymentDeadline = SelectedValue;
-                break;
-            default:
-                throw new ArgumentException($"Nieobsługiwane wartości: {type}");
-        }
-    }
+    // private async Task OnDateChanged(string type, DateTime? newDate)
+    // {
+    //     switch ((type))
+    //     {
+    //         case ("Date1"):
+    //             SelectedValue = newDate;
+    //             Content.Date = SelectedValue;
+    //             break;
+    //         case ("Date2"):
+    //             SelectedValueTo = newDate;
+    //             Content.PaymentDeadline = SelectedValueTo;
+    //             break;
+    //         default:
+    //             throw new ArgumentException($"Nieobsługiwane wartości: {type}");
+    //     }
+    // }
 
     private void OnLocationSearch(OptionsSearchEventArgs<LocationVm> e)
     {
@@ -366,12 +475,6 @@ else
                 a.Description.Contains(e.Text, StringComparison.OrdinalIgnoreCase) ||
                 a.SapNumber.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
         }
-    }
-
-    public string PaymentCashString
-    {
-        get => Content.PaymentMethod;  // Teraz przechowujemy stringa
-        set => Content.PaymentMethod = value;
     }
 
     private async Task HandleFileUpload(InputFileChangeEventArgs e)
@@ -558,3 +661,8 @@ else
         return newStatus;
     }
 }
+<style>
+    .alt-row {
+        background-color: #eaeaea;
+    }
+</style>
