@@ -1,0 +1,204 @@
+﻿@* Business Partner Edit Component *@
+@using Application.ViewModels.Accounting
+@using Application.Forms.Accounting.Enums
+@inject IMediator _mediator
+@implements IDialogContentComponent<BusinessPartnerVm>
+
+<!-- Header -->
+<FluentDialogHeader ShowDismiss="true">
+    <FluentStack VerticalAlignment="VerticalAlignment.Center">
+        <FluentIcon Value="@(new Icons.Regular.Size24.BuildingBank())" />
+        <FluentLabel Typo="Typography.PaneHeader">
+            @Dialog.Instance.Parameters.Title
+        </FluentLabel>
+    </FluentStack>
+</FluentDialogHeader>
+
+<!-- Body -->
+<FluentDialogBody Style="overflow-y: auto; overflow-x: auto;">
+    <EditForm EditContext="_editContext">
+        <FluentValidationValidator @ref="_fluentValidator" />
+        <div>
+            <table class="table-container">
+                <tbody>
+                    <tr>
+                        <td class="table-caption" style="width: 200px;">
+                            Nazwa: <span class="required">*</span>
+                        </td>
+                        <td>
+                            <FluentTextField @bind-Value="@Content.Name" Placeholder="Wprowadź nazwę..." @oninput="OnInputChanged" style="width: 250px" />
+                            <FluentValidationMessage For="@(() => Content.Name)" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="table-caption">
+                            Oddział:
+                        </td>
+                        <td>
+                            <FluentTextField @bind-Value="@Content.Branch" Placeholder="Wprowadź nazwę oddziału..." @oninput="OnInputChanged" style="width: 250px"/>
+                            <FluentValidationMessage For="@(() => Content.Branch)" />
+                        </td>
+                    </tr>
+                    <tr>
+
+                        <td class="table-caption">
+                            Pełna nazwa:
+                        </td>
+                        <td>
+                            <FluentTextField Value="@(Content.Name + " - " + Content.Branch)" ReadOnly="true" Placeholder="Wprowadź pełną nazwę..." style="width: 250px" />
+                            <FluentValidationMessage For="@(() => Content.LongName)" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="table-caption">
+                            Ulica: <span class="required">*</span>
+                        </td>
+                        <td>
+                            <FluentTextField @bind-Value="@Content.Street" Placeholder="Wprowadź ulicę..." style="width: 250px" />
+                            <FluentValidationMessage For="@(() => Content.Street)" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="table-caption">
+                            Miasto: <span class="required">*</span>
+                        </td>
+                        <td>
+                            <FluentTextField @bind-Value="@Content.City" Placeholder="Wprowadź miasto..." style="width: 250px" />
+                            <FluentValidationMessage For="@(() => Content.City)" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="table-caption">
+                            Kod pocztowy: <span class="required">*</span>
+                        </td>
+                        <td>
+                            <FluentTextField @bind-Value="@Content.PostalCode" Placeholder="Wprowadź kod pocztowy..." style="width: 250px"/>
+                            <FluentValidationMessage For="@(() => Content.PostalCode)" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="table-caption">
+                            Kraj:
+                        </td>
+                        <td>
+                            <FluentTextField @bind-Value="@Content.Country" Placeholder="Wprowadź kraj..." style="width: 250px" />
+                            <FluentValidationMessage For="@(() => Content.Country)" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="table-caption">
+                            Nr konta bankowego:
+                        </td>
+                        <td>
+                            <FluentTextField @bind-Value="@Content.BankAccountNumber" Placeholder="Wprowadź nr konta..." style="width: 250px"/>
+                            <FluentValidationMessage For="@(() => Content.BankAccountNumber)" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="table-caption">
+                            VAT ID:
+                        </td>
+                        <td>
+                            <FluentTextField @bind-Value="@Content.VatId" Placeholder="Wprowadź VAT..." style="width: 250px" />
+                            <FluentValidationMessage For="@(() => Content.VatId)" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="table-caption">
+                            Identyfikator SAP:
+                        </td>
+                        <td>
+                            <FluentTextField @bind-Value="@Content.SAPId" Placeholder="Wprowadź ID SAP..." style="width: 250px" />
+                            <FluentValidationMessage For="@(() => Content.SAPId)" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="table-caption">
+                            Typ: <span class="required">*</span>
+                        </td>
+                        <td>
+                            <FluentSelect Items="@_partnerTypes"
+                                            @bind-Value="SelectedType"
+                                            Placeholder="Wybierz typ partnera..."
+                                            Width="200" />
+                            <FluentValidationMessage For="@(() => Content.Type)" />
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </EditForm>
+</FluentDialogBody>
+
+<!-- Footer -->
+<FluentDialogFooter>
+    <FluentButton Appearance="Appearance.Accent" OnClick="@SaveAsync">Zapisz</FluentButton>
+    <FluentButton Appearance="Appearance.Neutral" OnClick="@CancelAsync">Anuluj</FluentButton>
+</FluentDialogFooter>
+
+
+@code {
+    [Parameter]
+    public BusinessPartnerVm Content { get; set; } = default!;
+
+    [CascadingParameter]
+    public FluentDialog Dialog { get; set; } = default!;
+
+    private EditContext _editContext;
+
+    private FluentValidationValidator? _fluentValidator;
+
+    private IQueryable<string> _partnerTypes = Enum.GetValues(typeof(BusinessPartnerType))
+    .Cast<BusinessPartnerType>()
+    .Select(e => e.ToString())
+    .AsQueryable();
+
+    private string SelectedType
+    {
+        get => Content.Type.ToString();
+        set => Content.Type = Enum.TryParse<BusinessPartnerType>(value, out var result) ? result : Content.Type;
+    }
+
+    private void OnInputChanged(ChangeEventArgs e)
+    {
+        StateHasChanged();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _editContext = new EditContext(Content);
+        base.OnInitialized();
+    }
+
+    private async Task SaveAsync()
+    {
+        Console.WriteLine("SaveAsync starts...");
+        Content.LongName = $"{Content.Name} - {Content.Branch}".TrimEnd('-', ' ').Trim();
+        if (_editContext.Validate())
+        {
+            Console.WriteLine("EditContext Validation OK!...");
+            await Dialog.CloseAsync(Content);
+        }
+        else
+        {
+            Console.WriteLine("EditContext Validation NOT OK!...");
+            return;
+        }
+        if (Content.Id != 0)
+        {
+            await Dialog.CloseAsync(Content);
+        }
+    }
+
+    private async Task CancelAsync()
+    {
+        await Dialog.CancelAsync();
+    }
+}
+
+<style>
+    .required {
+        color: red;
+        font-weight: bold;
+    }
+</style>

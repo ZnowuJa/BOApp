@@ -63,6 +63,7 @@ public interface IAppDbContext
     public DbSet<Bnp20> Bnp20s { get; set; }
     public DbSet<Bnp55> Bnp55s { get; set; }
     public DbSet<SapCostCenter> SapCostCenters { get; set; }
+    public DbSet<BusinessPartner> BusinessPartners { get; set; }
     public DbSet<BankTransferForm> BankTransfers{ get; set; }
     public DbSet<CostAllocation> CostAllocations { get; set; }
 

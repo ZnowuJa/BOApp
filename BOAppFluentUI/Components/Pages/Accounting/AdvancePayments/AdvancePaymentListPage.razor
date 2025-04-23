@@ -83,13 +83,14 @@
         <FluentTooltip Anchor="@editId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Edytuj</FluentTooltip>
 
         <FluentButton Id="@deleteId" IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" Disabled="@actionsDisabled" />
-        <FluentTooltip Anchor="@deleteId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Skasuj</FluentTooltip>
+        <FluentTooltip Anchor="@deleteId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Skasuj wniosek</FluentTooltip>
 
     </TemplateColumn>
+
 </FluentDataGrid>
 <FluentPaginator State="@pagination" />
-<FluentButton IconStart="@(new Icons.Regular.Size24.Add())" OnClick="@(() => _navigationManager.NavigateTo($"/zaliczka/0?srcPage=pracownik"))" />
-
+<FluentButton Id="createId" IconStart="@(new Icons.Regular.Size24.Add())" OnClick="@(() => _navigationManager.NavigateTo($"/zaliczka/0?srcPage=pracownik"))" />
+<FluentTooltip Anchor="createId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Bottom Delay=50>Nowy wniosek o zaliczkę</FluentTooltip>
 @code {
     [Parameter] public string role { get; set; }
 

@@ -4,7 +4,6 @@ using AutoMapper;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
-
 namespace Application.CQRS.AccountingCQRS.AdvancePayments.Queries
 {
     public class GetAdvancePaymentByIdQuery(int id) : IRequest<AdvancePaymentFormVm>

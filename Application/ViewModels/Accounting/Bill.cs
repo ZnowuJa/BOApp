@@ -9,7 +9,7 @@ public class Bill
     public List<BillFile> BillFiles { get; set; } = new();
     public bool Invoice { get; set; } = false;
     public string InvoiceTitle { get; set; } = string.Empty;
-    public BusinessPartner BusinessPartner { get; set; } = new();
+    public BusinessPartnerVm BusinessPartner { get; set; } = new();
     public string InvoiceNumber { get; set; } = string.Empty;
     public DateTime InvoiceDate { get; set; } = DateTime.Now;
     public List<InvoiceMapping> InvoiceMappings { get; set; } = new();

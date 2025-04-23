@@ -1,0 +1,329 @@
+﻿@page "/accountingnote2"
+@* Accounting Note Edit Component *@
+@using Application.CQRS.ITWarehouseCQRS.Companies.Queries
+@using Application.Forms
+@using Application.CQRS.ITWarehouseCQRS.Employees.Queries
+@using Application.ViewModels.Accounting
+@using Application.ViewModels.General
+@using Microsoft.AspNetCore.Authorization
+@using System.Security.Claims
+@using Application.Interfaces
+
+@inject IMediator _mediator
+@* @implements IDialogContentComponent<AccountingNoteFormVm> *@
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+
+<EditForm EditContext="_editContext">
+    <table class="table-container">
+        <thead>
+            <tr class="table-caption">
+                <th style="text-align: center; border-right: none; font-size: large;" colspan="2">Noty księgowe</th>
+            </tr>
+            <tr class="table-caption">
+                <th style="text-align: left; border-right: none; font-size: large;">
+                    Informacje Ogólne
+                </th>
+                <th style="text-align: right; border-left: none; font-size: large;">
+                    Status: @Content.Status | Numer: @Content.NoteNumber
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <th class="table-header-left table-caption">Doradca serwisowy:</th>
+                <th>
+                    <FluentTextField @bind-Value="@Content.ServiceAdvisor"
+                                     Width="300px"
+                                     Height="250px"></FluentTextField>
+                </th>
+            </tr>
+            <tr>
+                <th class="table-header-left table-caption">Dealer:</th>
+                <th>
+                    <FluentCombobox TOption="string"
+                                    Items="@orgs"
+                                    Id="OrgId"
+                                    Width="300px"
+                                    Height="250px"
+                                    @bind-Value="@Content.Dealer" />
+                </th>
+            </tr>
+            <tr>
+                <th class="table-header-left table-caption">Ubezpieczyciel:</th>
+                <th>
+                    <FluentCombobox TOption="string"
+                                    Items="@insurer"
+                                    Id="InsurerId"
+                                    Width="300px"
+                                    Height="250px"
+                                    @bind-Value="@Content.Insurer" />
+                </th>
+            </tr>
+            <tr>
+                <th class="table-header-left table-caption">Data</th>
+                <th><FluentDatePicker @bind-Value="@SelectedValue" /></th>
+
+            </tr>
+
+            <tr>
+                <th class="table-header-left table-caption">VIN:</th>
+                <th>
+                    <FluentTextField Id="VIN"
+                                     @bind-Value="@Content.VIN"
+                                     Placeholder="Wpisz VIN" />
+                </th>
+            </tr>
+
+            <tr>
+                <th class="table-header-left table-caption">Rejestracja:</th>
+                <th>
+                    <FluentTextField Id="Registration"
+                                     @bind-Value="@Content.Registration"
+                                     Placeholder="Wpisz rejestrację" />
+                </th>
+            </tr>
+
+            <tr>
+                <th class="table-header-left table-caption">Numer zlecenia:</th>
+                <th>
+                    <FluentTextField Id="OrderNumber"
+                                     @bind-Value="Content.OrderNumber"
+                                     Placeholder="Wpisz numer zlecenia" />
+                </th>
+            </tr>
+
+            <tr>
+                <th class="table-header-left table-caption">Numer szkody:</th>
+                <th>
+                    <FluentTextField Id="DamageNumber"
+                                     @bind-Value="Content.DamageNumber"
+                                     Placeholder="Wpisz numer szkody" />
+                </th>
+            </tr>
+
+            <tr>
+                <th class="table-header-left table-caption">Metoda płatności:</th>
+                <th>
+                    <FluentSelect Items=@PaymentMethodsInt
+                                  OptionText="@(i => i.Text)"
+                                  OptionValue="@(a => a.Value.ToString())"
+                                  OptionSelected="@(a => a.Selected)"
+                                  @bind-Value="@PaymentCashString"
+                                  @bind-Value:after="@OnPaymentChanged" />
+                </th>
+            </tr>
+
+            <tr>
+                <th class="table-header-left table-caption">Kwota:</th>
+                <th>
+                    <FluentNumberField Id="Amount"
+                                       @bind-Value="Content.Amount"
+                                       Placeholder="Wpisz kwotę">
+                    </FluentNumberField>
+                </th>
+            </tr>
+
+            <tr>
+                <th class="table-header-left table-caption">Termin płatności:</th>
+                <th>
+                    <FluentDatePicker @bind-Value="@SelectedValueTo" />
+                </th>
+            </tr>
+
+            <tr>
+                <th class="table-header-left table-caption">Treść noty:</th>
+                <th>
+                    <FluentTextField />
+                </th>
+            </tr>
+
+            <tr>
+                <th class="table-header-left table-caption">Załącznik:</th>
+                <th>
+                    <FluentInputFile @ref="@myFileUploader"
+                                     DragDropZoneVisible="false"
+                                     Mode="InputFileMode.SaveToTemporaryFolder"
+                                     Multiple="true"
+                                     AnchorId="MyUploadLoadingButton"
+                                     MaximumFileSize="@(100 * 1024 * 1024)"
+                                     Accept=".mp4, .mov, .avi"
+                                     OnProgressChange="@(e =>
+                                        {
+                                        _formUploading = true;
+                                        progressPercent = e.ProgressPercent;
+                                        progressTitle = e.ProgressTitle;
+                                        })"
+                                     OnCompleted="@OnCompleted" />
+                    <FluentProgress Min="0" Max="100" Visible="@(progressPercent > 0)" Value="@progressPercent" />
+                    <FluentLabel Alignment="HorizontalAlignment.Center">
+                        @progressTitle
+                    </FluentLabel>
+
+                    <FluentButton Id="MyUploadLoadingButton" Loading="_formUploading" Appearance="Appearance.Accent">
+                        Wybierz...
+                    </FluentButton>
+                </th>
+            </tr>
+            <tr colspan=2>
+                @if (Files.Any())
+                {
+                    <h4>Plik(i) przesłane:</h4>
+                    <ul>
+                        @foreach (var file in Files)
+                        {
+                            <li>
+                                <b>@file.Name</b> 🔹
+                                @($"{Decimal.Divide(file.Size, 1024):N} KB") 🔹
+                                @file.ContentType 🔹
+                                @file.LocalFile?.FullName
+                                @file.ErrorMessage
+                            </li>
+                        }
+                    </ul>
+                }
+            </tr>
+            @*
+            </td>
+            </tr>
+            <tr>
+            <th class="table-header-left table-caption"></th>
+            <th colspan="3">  </th>
+            </tr>
+            <tr>
+            <th class="table-header-left table-caption"></th>
+            <th colspan="3">
+
+
+
+
+            
+            </th>
+            </tr> *@
+        </tbody>
+    </table>
+</EditForm>
+
+
+@code {
+    [Parameter] public int Id { get; set; }
+    private EditContext _editContext;
+    private bool isLoading { get; set; } = true;
+    public AccountingNoteFormVm Content { get; set; } = new AccountingNoteFormVm();
+    private ClaimsPrincipal? user { get; set; }
+    private string username { get; set; }
+    private EmployeeVm emp { get; set; }
+    private DateTime? SelectedValue { get; set; } = DateTime.Today;
+    private DateTime? SelectedValueTo { get; set; } = DateTime.Today.AddDays(14);
+    private IQueryable<CompanyVm> itemCompaniesList { get; set; }
+
+    private CompanyVm selectedCompany;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _editContext = new EditContext(Content);
+        var dealIq = await _mediator.Send(new GetAllCompaniesByTypeIdQuery(4));
+        orgs = dealIq.Select(dealer => dealer.Name).AsQueryable();
+
+        var insurerIq = await _mediator.Send(new GetAllCompaniesByTypeIdQuery(2));
+        insurer = insurerIq.Select(dealer => dealer.Name).AsQueryable();
+
+        // Console.WriteLine($"Liczba elementów: {itemCompaniesList.Count()}");
+        // foreach (var company in itemCompaniesList)
+        // {
+        //     Console.WriteLine($"Firma: {company.Name} (ID: {company.Id})");
+        // }
+
+        GenerateNoteNumber();
+        await RefreshClaims();
+    }
+    private IQueryable<string> orgs { get; set; }
+    private IQueryable<string> insurer { get; set; }
+
+    bool _formUploading;
+    FluentInputFile? myFileUploader = default!;
+    int? progressPercent;
+    string? progressTitle;
+
+    FluentInputFileEventArgs[] Files = Array.Empty<FluentInputFileEventArgs>();
+
+    public string PaymentCashString
+    {
+        get => Content.PaymentMethod;  // Teraz przechowujemy stringa
+        set => Content.PaymentMethod = value;
+    }
+    private void OnPaymentChanged()
+    {
+        Console.WriteLine("PaymentChanged");
+    }
+
+    private List<Option<int>> PaymentMethodsInt = new()
+        {
+            { new Option<int> { Value = 0, Text = "Przelew"} },
+            { new Option<int> { Value = 1, Text = "Gotówka" } },
+        };
+
+    void OnCompleted(IEnumerable<FluentInputFileEventArgs> files)
+    {
+        Files = files.ToArray();
+        progressPercent = myFileUploader!.ProgressPercent;
+        progressTitle = myFileUploader!.ProgressTitle;
+
+        // For the demo, delete these files.
+        foreach (var file in Files)
+        {
+            file.LocalFile?.Delete();
+        }
+        _formUploading = false;
+        StateHasChanged();
+    }
+
+    // private void HandleCompanyChange(ChangeEventArgs e)
+    // {
+    //     var selectedComapany = itemCompaniesList.FirstOrDefault(c => c.Id == int.Parse(e.Value.ToString()));
+    //     Content.CompanyVmId = selectedComapany.Id;
+    //     Content.CompanyVmName = selectedComapany.Title;
+
+    // }
+
+    private async Task RefreshClaims()
+    {
+        try
+        {
+            var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authenticationState.User;
+            var nameClaim = user.Claims.FirstOrDefault(c => c.Type == "name");
+            Content.ServiceAdvisor = nameClaim?.Value;
+        }
+        catch (Exception ex)
+        {
+            // Handle any errors
+        }
+    }
+
+    private void GenerateNoteNumber()
+    {
+        var dateNow = DateTime.Now;
+        Content.NoteNumber = $"NT_{dateNow.Year - 2000:D2}{dateNow.Month:D2}{dateNow.Day:D2}_{dateNow.Hour:D2}{dateNow.Minute:D2}{dateNow.Second:D2}";
+    }
+
+    private async Task SaveAsync()
+    {
+        // Console.WriteLine("SaveAsync starts...");
+        // if (_editContext.Validate())
+        // {
+        //     Console.WriteLine("EditContext Validation OK!...");
+        //     Content.Date = SelectedValue;
+        //     await Dialog.CloseAsync(Content);
+        // }
+        // else
+        // {
+        //     Console.WriteLine("EditContext Validation NOT OK!...");
+        //     return;
+        // }
+        // if (Content.Id != 0)
+        // {
+        //     await Dialog.CloseAsync(Content);
+        // }
+    }
+}

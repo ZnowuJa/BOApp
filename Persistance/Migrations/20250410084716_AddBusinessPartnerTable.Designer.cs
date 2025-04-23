@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Persistance;
 
@@ -11,9 +12,11 @@ using Persistance;
 namespace Persistance.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250410084716_AddBusinessPartnerTable")]
+    partial class AddBusinessPartnerTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -255,9 +258,11 @@ namespace Persistance.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("BankAccountNumber")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Branch")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("City")
@@ -265,6 +270,7 @@ namespace Persistance.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Country")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("Inactivated")
@@ -286,6 +292,7 @@ namespace Persistance.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("SAPId")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("StatusId")
@@ -300,6 +307,7 @@ namespace Persistance.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("VatId")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -1995,7 +2003,7 @@ namespace Persistance.Migrations
                     b.ToTable("Warehouses");
                 });
 
-            modelBuilder.Entity("Domain.Forms.Accounting.BankTransferForm", b =>
+            modelBuilder.Entity("Domain.Forms.Accounting.AdvancePaymentForm", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -2004,9 +2012,6 @@ namespace Persistance.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<decimal?>("AdvancePaymentAmount")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal?>("AdvancePaymentBalance")
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<bool>("AdvancePaymentCash")
@@ -2019,14 +2024,23 @@ namespace Persistance.Migrations
                         .HasColumnType("date");
 
                     b.Property<string>("Approvals")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("BTMappingAdvancePayment")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("BankTransferMapping")
+                    b.Property<string>("BTMappingPayout")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("BankTransferTitle")
+                    b.Property<string>("BankAccountNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CashPayoutNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CashPoint")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -2040,15 +2054,7 @@ namespace Persistance.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Document")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("EmployeeName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("EmployeeSapCostCenterVm")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -2059,6 +2065,14 @@ namespace Persistance.Migrations
                     b.Property<string>("FolderName")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("FormCostCenter")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FormCostLocation")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("FormFiles")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -2067,10 +2081,6 @@ namespace Persistance.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("InactivatedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("InvoiceMappings")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("LVL1_EmployeeName")
@@ -2139,14 +2149,14 @@ namespace Persistance.Migrations
                     b.Property<string>("ModifiedBy")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Notes")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Number")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("NumberPrefix")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Objective")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -2155,7 +2165,9 @@ namespace Persistance.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("OrganisationSapNumber")
-                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PayoutCashierEmpId")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("RejectReason")
@@ -2165,9 +2177,6 @@ namespace Persistance.Migrations
                     b.Property<string>("RejectReasons")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("SplitPayment")
-                        .HasColumnType("bit");
 
                     b.Property<string>("Status")
                         .HasColumnType("nvarchar(max)");
@@ -2188,7 +2197,7 @@ namespace Persistance.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("BankTransfers");
+                    b.ToTable("AdvancePayments");
                 });
 
             modelBuilder.Entity("Domain.Forms.Accounting.BusinessTravelForm", b =>
