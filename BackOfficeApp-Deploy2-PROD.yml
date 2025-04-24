@@ -106,7 +106,8 @@ stages:
                   Write-Host "EnvName $(EnvName)"
                   Write-Host "CommitNumber $(GetCommitId.CommitNumber)"
                   
-                    - stage: BuildPROD
+  - stage: BuildPROD
+    dependsOn: GeneralSetup
     condition: and(always(), in(variables['EnvName'], 'PROD', 'BOTH'))
     jobs:
       - job: SetAppSettingsForPROD
