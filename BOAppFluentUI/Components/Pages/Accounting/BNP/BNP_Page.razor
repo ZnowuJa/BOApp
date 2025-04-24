@@ -33,9 +33,8 @@
             <div style="margin-left: auto;">
                 <FluentSelect Items="@pageSizeOptions55"
                               OptionText="@(i => i.Text)"
-                              OptionValue="@(i => i.Value)"
                               Value="@selectedPageSize55"
-                              ValueChanged="@(v => OnPageSizeChanged55(v))"
+                              ValueChanged="v => OnPageSizeChanged55(v)"
                               ValueExpression="() => selectedPageSize55"
                               Width="80px"
                               Label="Rozmiar strony:" />
@@ -52,50 +51,50 @@
         }
         else
         {
-            <div id="datagrid-container">
-            <FluentDataGrid Items="FilteredItems55"
-                            Pagination="@pagination55"
-                            AutoItemsPerPage="true"
-                            ResizableColumns="true"
-                            Style="height: auto; overflow:auto;"
-                            ShowHover="true"
-                            TGridItem="Bnp55Vm">
+            <div style="height: @(autoItemsPerPage55 ? "calc(100vh - 320px);" : " ;") overflow-y: hidden; overflow: hidden;">
+                <FluentDataGrid Items="FilteredItems55"
+                                AutoItemsPerPage="@autoItemsPerPage55"
+                                ResizableColumns="true"
+                                ShowHover="true"
+                                Style="height: auto; overflow:auto;"
+                                Pagination="@pagination55">
 
-                @foreach (var column in filterColumns55.Where(c => c.IsVisible))
-                {
-                    if (column.IsDropdown)
+                    @foreach (var column in filterColumns55.Where(c => c.IsVisible))
                     {
-                        <PropertyColumn TGridItem="Bnp55Vm" TProp="string" Property="@(Utils.GetPropertyExpression<Bnp55Vm>(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label" Filtered="column.SelectedValues.Any()">
-                            <ColumnOptions>
-                                <FluentSelect TOption="string"
-                                              Items="@(column.DropdownValues)"
-                                              Multiple="true"
-                                              SelectedOptionsChanged="@(e => Utils.OnSelectedOptionsChanged<Bnp55Vm>(e, column))">
-                                    @foreach (var value in column.DropdownValues)
-                                    {
-                                        <FluentOption Value="@value">@value</FluentOption>
-                                    }
-                                </FluentSelect>
-                            </ColumnOptions>
-                        </PropertyColumn>
+                        if (column.IsDropdown)
+                        {
+                            <PropertyColumn TGridItem="Bnp55Vm" TProp="string" Property="@(Utils.GetPropertyExpression<Bnp55Vm>(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label" Filtered="column.SelectedValues.Any()">
+                                <ColumnOptions>
+                                    <FluentSelect TOption="string"
+                                                  Items="@(column.DropdownValues)"
+                                                  Multiple="true"
+                                                  SelectedOptionsChanged="@(e => Utils.OnSelectedOptionsChanged<Bnp55Vm>(e, column))">
+                                        @foreach (var value in column.DropdownValues)
+                                        {
+                                            <FluentOption Value="@value">@value</FluentOption>
+                                        }
+                                    </FluentSelect>
+                                </ColumnOptions>
+                            </PropertyColumn>
+                        }
+                        else
+                        {
+                            <PropertyColumn TGridItem="Bnp55Vm" TProp="string" Property="@(Utils.GetPropertyExpression<Bnp55Vm>(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label" Filtered="!string.IsNullOrWhiteSpace(column.Filter)" Width="@column.Width" IsDefaultSortColumn="@column.IsDefaultSortColumn"
+                                            InitialSortDirection="@column.InitialSortDirection">
+                                <ColumnOptions>
+                                    <div class="search-box">
+                                        <FluentSearch type="search" Autofocus="true" @bind-Value="column.Filter" Placeholder="@($"{column.Label.ToLower()}...")" />
+                                    </div>
+                                </ColumnOptions>
+                            </PropertyColumn>
+                        }
                     }
-                    else
-                    {
-                        <PropertyColumn TGridItem="Bnp55Vm" TProp="string" Property="@(Utils.GetPropertyExpression<Bnp55Vm>(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label" Filtered="!string.IsNullOrWhiteSpace(column.Filter)" Width="@column.Width" IsDefaultSortColumn="@column.IsDefaultSortColumn"
-                                        InitialSortDirection="@column.InitialSortDirection">
-                            <ColumnOptions>
-                                <div class="search-box">
-                                    <FluentSearch type="search" Autofocus="true" @bind-Value="column.Filter" Placeholder="@($"{column.Label.ToLower()}...")" />
-                                </div>
-                            </ColumnOptions>
-                        </PropertyColumn>
-                    }
-                }
-            </FluentDataGrid>
+                </FluentDataGrid>
             </div>
             <FluentPaginator State="@pagination55" />
         }
     </FluentTab>
+
     <FluentTab Label="BNP20" Id="tab-2">
         <div style="display: flex; gap: 16px; width: 100%; align-items: center;">
             <div>
@@ -111,7 +110,6 @@
             <div style="margin-left: auto;">
                 <FluentSelect Items="@pageSizeOptions20"
                               OptionText="@(i => i.Text)"
-                              OptionValue="@(i => i.Value)"
                               Value="@selectedPageSize20"
                               ValueChanged="@(v => OnPageSizeChanged20(v))"
                               ValueExpression="() => selectedPageSize20"
@@ -131,13 +129,14 @@
         }
         else
         {
-            <div id="datagrid-container">
+            <div style="height: @(autoItemsPerPage20 ? "calc(100vh - 320px);" : " ;") overflow-y: hidden; overflow: hidden;">
                 <FluentDataGrid Items="@FilteredItems"
-                                Pagination="@pagination20"
-                                AutoItemsPerPage="true"
+                                
+                                AutoItemsPerPage="@autoItemsPerPage20"
                                 ResizableColumns="true"
                                 ShowHover="true"
-                                Style="height: auto; overflow:auto;">
+                                Style="height: auto; overflow:auto;"
+                                Pagination="@pagination20">
 
                     @foreach (var column in filterColumns.Where(c => c.IsVisible))
                     {
@@ -176,32 +175,65 @@
             (ShowCRDT_55 && x.Cdtdbtind == "CRDT") || (ShowDBIT_55 && x.Cdtdbtind == "DBIT"))
         .Where(x =>
             filterColumns55.All(column =>
-                string.IsNullOrWhiteSpace(column.Filter) ||
-                column.Property(x).Contains(column.Filter, StringComparison.CurrentCultureIgnoreCase)));
-
-    private string selectedPageSize20 = "10";
-    private string selectedPageSize55 = "10";
-
-    readonly PaginationState pagination20 = new PaginationState { ItemsPerPage = 10 };
-    readonly PaginationState pagination55 = new PaginationState { ItemsPerPage = 10 };
+                string.IsNullOrWhiteSpace(column.Filter)
+                    || column.Filter
+                        .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                        .Any(term =>
+                            column.Property(x).Contains(term, StringComparison.CurrentCultureIgnoreCase))));
 
     private DateTime? StartDateTime20 { get; set; } = DateTime.Today.AddMonths(-3);
     private DateTime? EndDateTime20 { get; set; } = DateTime.Today;
-
     private DateTime? StartDateTime55 { get; set; } = DateTime.Today.AddMonths(-3);
     private DateTime? EndDateTime55 { get; set; } = DateTime.Today;
+
+    private string selectedPageSize55 = "Auto";
+    private string selectedPageSize20 = "Auto";
+    PaginationState pagination20 = new PaginationState { ItemsPerPage = 10 };
+    PaginationState pagination55 = new PaginationState { ItemsPerPage = 10 };
 
     private bool IsLoading20 { get; set; }
     private bool IsLoading55 { get; set; }
 
     private bool ShowCRDT_55 = true;
     private bool ShowDBIT_55 = true;
-
     private bool ShowCRDT_20 = true;
     private bool ShowDBIT_20 = true;
 
+    private bool autoItemsPerPage55 = true;
+    private bool autoItemsPerPage20 = true;
+
     string? activeid = "tab-1";
     FluentTab? changedto;
+
+    string nameFilter = string.Empty;
+
+    private List<SelectOption> pageSizeOptions55 = new()
+    {
+    new SelectOption { Text = "Auto", Value = "Auto" },
+    new SelectOption { Text = "10", Value = "10" },
+    new SelectOption { Text = "15", Value = "15" },
+    new SelectOption { Text = "20", Value = "20" },
+    new SelectOption { Text = "50", Value = "50" },
+    new SelectOption { Text = "100", Value = "100" },
+    new SelectOption { Text = "250", Value = "250" },
+    };
+
+    private List<SelectOption> pageSizeOptions20 = new()
+    {
+    new SelectOption { Text = "Auto", Value = "Auto" },
+    new SelectOption { Text = "10", Value = "10" },
+    new SelectOption { Text = "15", Value = "15" },
+    new SelectOption { Text = "20", Value = "20" },
+    new SelectOption { Text = "50", Value = "50" },
+    new SelectOption { Text = "100", Value = "100" },
+    new SelectOption { Text = "250", Value = "250" },
+    };
+
+    public class SelectOption
+    {
+        public string Text { get; set; }
+        public string Value { get; set; }
+    }
 
     private bool IsDateDisabled20(DateTime date)
     {
@@ -220,8 +252,6 @@
     {
         return date.Date > EndDateTime20; // Wyłącza wszystkie daty po EndDate
     }
-
-    string nameFilter = string.Empty;
 
     private readonly List<FilterColumn<Bnp20Vm>> filterColumns = new List<FilterColumn<Bnp20Vm>>
     {
@@ -251,50 +281,33 @@
         new FilterColumn<Bnp55Vm> {FirstRow = true, Label = "Cdtdbtind", Property = c => c.Cdtdbtind, IsVisible = true, Width= "100px"},
     };
 
-    private List<SelectOption> pageSizeOptions55 = new()
+    private Task OnPageSizeChanged55(string? newValue)
     {
-        new() { Text = "10", Value = "10" },
-        new() { Text = "15", Value = "15" },
-        new() { Text = "20", Value = "20" },
-        new() { Text = "50", Value = "50" },
-        new() { Text = "100", Value = "100" },
-        new() { Text = "250", Value =  "250"},
-        new() { Text = "500", Value =  "500"},
-    };
-
-    private List<SelectOption> pageSizeOptions20 = new()
+        HandlePageSizeChange(newValue, ref selectedPageSize55, ref autoItemsPerPage55, pagination55);
+        return Task.CompletedTask;
+    }
+    private Task OnPageSizeChanged20(string? newValue)
     {
-        new() { Text = "10", Value = "10" },
-        new() { Text = "15", Value = "15" },
-        new() { Text = "20", Value = "20" },
-        new() { Text = "50", Value = "50" },
-        new() { Text = "100", Value = "100" },
-        new() { Text = "250", Value =  "250"},
-        new() { Text = "500", Value =  "500"},
-    };
-
-    public class SelectOption
-    {
-        public string Text { get; set; }
-        public string Value { get; set; }
+        HandlePageSizeChange(newValue, ref selectedPageSize20, ref autoItemsPerPage20, pagination20);
+        return Task.CompletedTask;
     }
 
-    private void OnPageSizeChanged20(string value)
+    private void HandlePageSizeChange(
+                                string? newValue,
+                                ref string selectedValue,
+                                ref bool autoFlag,
+                                PaginationState pagination)
     {
-        selectedPageSize20 = value;
-        if (int.TryParse(value, out int size))
+        selectedValue = newValue ?? "Auto";
+
+        if (selectedValue == "Auto")
         {
-            pagination20.ItemsPerPage = size;
+            autoFlag = true;
         }
-    }
-
-
-    private void OnPageSizeChanged55(string value)
-    {
-        selectedPageSize55 = value;
-        if (int.TryParse(value, out int size))
+        else if (int.TryParse(selectedValue, out var value))
         {
-            pagination55.ItemsPerPage = size;
+            autoFlag = false;
+            pagination.ItemsPerPage = value;
         }
     }
 
@@ -309,6 +322,16 @@
     private void HandleOnTabChange(FluentTab tab)
     {
         changedto = tab;
+        if (tab.Id == "tab-1")
+        {
+            selectedPageSize55 = "Auto";
+            autoItemsPerPage55 = true;
+        }
+        else if (tab.Id == "tab-2")
+        {
+            selectedPageSize20 = "Auto";
+            autoItemsPerPage20 = true;
+        }
     }
 
     private static DateOnly ConvertToDateOnly(DateTime? dateTime)
@@ -383,10 +406,3 @@
         _toastService.ShowToast(intent, message, 3000);
     }
 }
-
-<style>
-    #datagrid-container {
-        height: calc(100vh - 300px);
-        overflow-y: auto;
-    }
-</style>
