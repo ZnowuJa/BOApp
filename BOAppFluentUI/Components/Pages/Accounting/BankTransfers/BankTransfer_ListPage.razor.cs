@@ -1,4 +1,5 @@
-﻿using Application.ExportModels;
+﻿using Application.CQRS.AccountingCQRS.BankTransfers.Queries;
+using Application.ExportModels;
 using Application.Forms.Accounting;
 using Microsoft.AspNetCore.Components;
 using Microsoft.FluentUI.AspNetCore.Components;
@@ -58,7 +59,7 @@ public partial class BankTransfer_ListPage : ComponentBase
 
     private async Task Load()
     {
-        // items2load = await _mediator.Send(new GetAllBusinessTripQuery());
+        items2load = await _mediator.Send(new GetAllBankTrasferQuery());
 
         items = role switch
         {
@@ -99,15 +100,15 @@ public partial class BankTransfer_ListPage : ComponentBase
 
     private async Task Edit(BankTransferFormVm item = null)
     {
-        _navigationManager.NavigateTo($"/delegacja/{item.Id}?srcPage={role}");
+        _navigationManager.NavigateTo($"/przelew/{item.Id}?srcPage={role}");
     }
     private async Task View(BankTransferFormVm item = null)
     {
-        _navigationManager.NavigateTo($"/delegacja/{item.Id}?srcPage=view");
+        _navigationManager.NavigateTo($"/przelew/{item.Id}?srcPage=view");
     }
     private async Task Delete(BankTransferFormVm item = null)
     {
-        var dialog = await _dialogService.ShowConfirmationAsync("Kasowanie delegacji: " + item.Number + "\n Czy na pewno?", "TAK", "NIE", "Potwierdź operację kasowania");
+        var dialog = await _dialogService.ShowConfirmationAsync("Kasowanie Polecenia przelewu: " + item.Number + "\n Czy na pewno?", "TAK", "NIE", "Potwierdź operację kasowania");
         var result = await dialog.Result;
         bool deleteConfirm = result.Cancelled;
 
@@ -117,14 +118,14 @@ public partial class BankTransfer_ListPage : ComponentBase
         if (deleteConfirm)
         {
             intent = ToastIntent.Error;
-            message = $"Nie skasowano delegacji {item.Number}";
+            message = $"Nie skasowano Polecenia Przelewu {item.Number}";
 
         }
         else
         {
             // var i = await _mediator.Send(new DeleteBusinessTripCommand(item));
             intent = ToastIntent.Success;
-            message = $"Skasowano delegację {item.Number}";
+            message = $"Skasowano Polecenie Przelewu {item.Number}";
 
         }
 

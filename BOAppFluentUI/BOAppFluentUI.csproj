@@ -38,6 +38,9 @@
 	<Content Remove="_ViewStart.cshtml" />
 	<Content Remove="_ViewImports.cshtml" />
 	<Content Remove="Components\Pages\ITWarehouseAdmin\Asset\AssetSaleAssetsGrid_Component.razor" />
+	<Content Update="Components\Pages\Accounting\BusinessTrips\DailyMeal_EditComponent_InputNumberTest.razor">
+	  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	</Content>
   </ItemGroup>
 
   <ItemGroup>
