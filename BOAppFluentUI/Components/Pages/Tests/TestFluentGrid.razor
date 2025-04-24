@@ -1,0 +1,63 @@
+﻿@page "/TestFluentGrid"
+<h3>TestFluentGrid</h3>
+
+
+<FluentGrid>
+     <FluentGridColumn Title="Informacje Ogólne" ColSpan="2" HeaderStyle="text-align: left; border-right: none; font-size: large;" />
+     <FluentGridColumn Title="Status: Rejestracja | Numer: 123456" ColSpan="2" HeaderStyle="text-align: right; border-left: none; font-size: large;" />
+    
+     <FluentGridColumn Title="Pracownik" Width="130px" />
+     <FluentGridColumn Title="Kraj docelowy" Width="150px" />
+     <FluentGridColumn Title="Miasto" Width="130px" />
+     <FluentGridColumn Title="Cel podróży" Width="120px" />
+
+     <FluentGridRow>
+         <FluentGridCell>
+         <FluentSelect TOption="string"
+
+                       Items="@_objectives"
+                       Placeholder="wybierz cel wyjazdu..."
+                       @bind-Value="@selectedObjective" />
+         </FluentGridCell>
+         <FluentGridCell>
+             <FluentSelect TOption="string"
+
+                           Items="@_objectives"
+                           Placeholder="wybierz cel wyjazdu..."
+                           @bind-Value="@selectedObjective" />
+             </FluentGridCell>
+         <FluentGridCell>
+             <FluentSelect TOption="string"
+
+                           Items="@_objectives"
+                           Placeholder="wybierz cel wyjazdu..."
+                           @bind-Value="@selectedObjective" />
+             </FluentGridCell>
+         <FluentGridCell>
+             <FluentSelect TOption="string"
+                                      
+                                       Items="@_objectives"
+                                       Placeholder="wybierz cel wyjazdu..."
+                                       @bind-Value="@selectedObjective" />
+             
+             </FluentGridCell>
+         </FluentGridRow>
+</FluentGrid>
+
+<FluentGrid>
+    <FluentGridItem xs="12">
+        <div class="card">
+            xs="12" i nagłówek
+        </div>
+    </FluentGridItem>
+    <FluentGridItem xs="12">
+        <div class="card">
+            xs="12"
+        </div>
+    </FluentGridItem>
+</FluentGrid>
+
+@code {
+    IEnumerable<string> _objectives = new List<string>{ "a", "bv", "c", "d" };
+    string selectedObjective { get; set; }
+}

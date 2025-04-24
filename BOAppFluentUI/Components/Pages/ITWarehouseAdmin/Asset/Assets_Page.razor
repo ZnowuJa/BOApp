@@ -189,9 +189,9 @@ else
     private IQueryable<AssetDTO> filteredProducts => products.Where(x =>
         filterColumns.All(column => string.IsNullOrWhiteSpace(column.Filter) ||
                                     column.Property(x).Contains(column.Filter, StringComparison.CurrentCultureIgnoreCase)) &&
-        (isAll && x.StateVmId != 5 && x.StateVmId !=7) ||
+        ((isAll && x.StateVmId != 5 && x.StateVmId !=7) ||
          (isSold && x.StateVmId == 7) || 
-          (isScrapped && x.StateVmId == 5)
+          (isScrapped && x.StateVmId == 5))
     );
 
 
