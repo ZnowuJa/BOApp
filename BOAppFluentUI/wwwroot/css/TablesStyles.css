@@ -64,6 +64,70 @@
 }
 
 
+
+.x_table-caption-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--accent-fill-rest);
+    color: white;
+    padding: 15px;
+    border-radius: 8px 8px 0 0;
+    font-weight: bold;
+    font-size: 1.2em;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.x_table-container {
+    width: 100%;
+    max-width: 1000px;
+    border-collapse: collapse;
+    font-family: Arial, sans-serif;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 0 0 8px 8px;
+    overflow: hidden;
+    margin-top: 10px;
+}
+
+.x_table-header {
+    background-color: var(--accent-fill-rest);
+    color: white;
+    text-align: left;
+    font-weight: bold;
+    font-size: 1em;
+}
+
+.x_table-container th, .x_table-container td {
+    padding: 15px;
+    border: 1px solid #ddd;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: background-color 0.3s ease;
+}
+
+.x_table-container th {
+    font-size: 1em;
+}
+
+.x_table-container td {
+    font-size: 0.9em;
+}
+
+.x_table-container tr:hover td {
+    background-color: #f1f1f1;
+}
+
+.x_validation-error {
+    color: red;
+    font-size: 0.8em;
+    margin-top: 5px;
+}
+
+
+
+
 .small-table-container {
     max-height: 40px;
     width: 100%;
