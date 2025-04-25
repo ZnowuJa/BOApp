@@ -17,8 +17,6 @@
         text-align: center;
         padding: 3px 8px 3px 8px;
     }
-
-
     .table-container th {
         max-height: 60px;
         padding: 3px 8px 3px 8px;
@@ -30,7 +28,6 @@
         align-items: center; /* Vertically center content */
         justify-content: space-between; /* Push text and icon to the edges */
     }
-
     .table-container td {
         max-height: 60px;
         padding: 3px 8px 3px 8px;
@@ -40,18 +37,16 @@
         overflow: visible;
         text-overflow: ellipsis; /* Add "..." for overflowing text */
     }
-
-.table-header-left {
+    .table-header-left {
     max-height: 60px;
     background-color: var(--accent-fill-rest);
     color: white; /* Match header text color */
 }
-
-.table-header-right {
-    background-color: color-mix(in srgb, white 15%, var(--accent-fill-rest) 60%);
+    .table-header-right {
+        background-color: color-mix(in srgb, white 15%, var(--accent-fill-rest) 60%);
+        color: white; /* Match header text color */
 }
-
-.table-caption {
+    .table-caption {
     max-height: 60px;
     caption-side: top; /* Place caption above the table */
     background-color: var(--accent-fill-rest); /* Match header background */
@@ -61,9 +56,54 @@
     padding: 3px 8px 3px 8px; /* Add padding for spacing */
     border: 1px solid #ddd; /* Optional: Match table border */
     border-bottom: none; /* Remove bottom border for seamless look with the table */
+    }
+
+/* Light table styles for Business Trip Form */
+ .table-container-light {
+     width: 100%;
+     
+     border-collapse: collapse;
+     border-spacing: 0;
+     border-radius: 8px;
+     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+     overflow: visible;
+ }
+.table-container-light th,
+.table-container-light td {
+    max-height: 50px;
+    padding: 8px;
+    border: none; /* remove all default borders */
+    white-space: nowrap; /* Prevent line breaks */
+    overflow: visible;
+    text-overflow: ellipsis; /* Add "..." for overflowing text */
 }
-
-
+.table-container-light thead tr:last-child {
+    border-bottom: 2px solid grey; /* dark grey, bold line between header and body */
+}
+.table-container-light tbody tr {
+    border-bottom: 1px solid #d3d3d3; /* light line between rows */
+    max-height: 50px;
+}
+/* Optional: visually remove left/right border of the last and first header cells */
+.table-container-light th:first-child,
+.table-container-light td:first-child,
+.table-container-light th:last-child,
+.table-container-light td:last-child {
+    max-height: 50px;
+    border-left: none;
+    border-right: none;
+}
+.table-caption-light {
+    max-height: 55px;
+    caption-side: top; /* Place caption above the table */
+    background-color: var(--accent-fill-rest); /* Match header background */
+    color: white; /* Match header text color */
+    font-weight: bold; /* Make it bold */
+    text-align: left; /* Center the text */
+    padding: 3px 8px 3px 8px; /* Add padding for spacing */
+    border: 1px solid #ddd; /* Optional: Match table border */
+    border-bottom: none; /* Remove bottom border for seamless look with the table */
+}
 
 .x_table-caption-container {
     display: flex;

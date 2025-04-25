@@ -49,31 +49,43 @@
 @inject IWebHostEnvironment Environment
 @inject IValidator<BusinessTravelFormVm> Validator
 <div class="emptytemp">
-<h3>@Title</h3>
+@* <h3>@Title</h3> *@
     @if (isLoading)
     {
         <FluentProgressRing />
     } else     
     {
         if(showForm){
-            <EditForm EditContext="_editContext" OnValidSubmit="HandleValidSubmit">
+            <EditForm EditContext="_editContext" OnValidSubmit="HandleValidSubmit" Style="max-width: 1000px">
 
                 <FluentValidationValidator @ref="_fluentValidationValidator" />
 
                 <div class="emptytemp">
-
-                    <table class="table-container">
-                        @* <caption class="table-caption">Informacje Ogólne</caption> *@
+                    <table class="table-container-light">
+                        @* <caption class="table-caption-light">Informacje Ogólne</caption> *@
                         <thead>
-                            <tr class="table-caption">
-                                <th style="text-align: left; border-right: none; font-size: large;" colspan="2">
-                                    Informacje Ogólne
-                                </th>
-                                <th style="text-align: right; border-left: none; font-size: large;" colspan="2">
-                                    Status: @formItem.Status | Numer: @formItem.Number
-                                </th>
-                            </tr>
-                            <tr class="table-header-left table-caption">
+                        <tr class="table-caption-light">
+                            <th style="text-align: left; border-right: none; font-size: large;" colspan="2">
+                                Podróż Służbowa | Informacje Ogólne
+                            </th>
+                            <th style="text-align: right; border-left: none; font-size: large;" colspan="2">
+                                Status: @formItem.Status | Numer: @formItem.Number
+                            </th>
+                        </tr>
+                        </thead>
+                    </table>
+                    <table class="table-container-light">
+                        @* <caption class="table-caption-light">Informacje Ogólne</caption> *@
+                        <thead>
+                            @* <tr class="table-caption-light"> *@
+                            @*     <th style="text-align: left; border-right: none; font-size: large;" colspan="2"> *@
+                            @*         Podróż Służbowa | Informacje Ogólne *@
+                            @*     </th> *@
+                            @*     <th style="text-align: right; border-left: none; font-size: large;" colspan="2"> *@
+                            @*         Status: @formItem.Status | Numer: @formItem.Number *@
+                            @*     </th> *@
+                            @* </tr> *@
+                            <tr >
                                 <th style="width: 130px;">Pracownik</th>
                                 <th style="width: 150px;">Kraj docelowy</th>
                                 <th style="width: 130px;">Miasto</th>
@@ -131,15 +143,15 @@
                     </table>
                     @if (lastRejectReason != null && !string.IsNullOrEmpty(formItem.RejectReason) && (strej || stroz || stodrz ))
                     {
-                        <table class="table-container">
+                        <table class="table-container-light">
                             <thead>
-                                <tr class="table-caption" >
+                                <tr class="table-caption-light" >
                                     <th colspan="4" style="background-color: orange; color: white; font-weight: 800;" >
                                         Powody odrzucenia
                                     </th>
 
                                 </tr>
-                                <tr class="table-caption" style="background-color: orange; color: white; font-weight: 800;" >
+                                <tr class="table-caption-light" style="background-color: orange; color: white; font-weight: 800;" >
                                     <th>Data</th>
                                     <th>Status</th>
                                     <th>Odrzucający</th>
@@ -167,11 +179,11 @@
                     }
 
                     @* Dates *@
-                    <table class="table-container">
+                    <table class="table-container-light">
                         <tbody>
                             <tr>
                                 <td  style="width: 170px">
-                                    Początek:
+                                    <b>Początek:</b>
                                 </td>
                                 <td>
                                     <DateTimePickerComponent DateTimeValue="@formItem.StartDate"
@@ -181,7 +193,7 @@
                                     <FluentValidationMessage For="@(() => formItem.StartDate)" class="validation-error" />
                                 </td>
                                 <td style="width: 150px">
-                                    Koniec:
+                                    <b>Koniec:</b>
                                 </td>
                                 <td>
                                     <DateTimePickerComponent DateTimeValue="@formItem.EndDate"
@@ -195,14 +207,14 @@
 
                     @* SAP COST CENTERS*@
 
-                    <table class="table-container">
+                    <table class="table-container-light">
                         <thead>
-                            <tr class="table-caption">
-                                <th>
+                            <tr class="table-caption-light" >
+                                <th colspan="5" style="text-align: left; padding-left: 10px;"> 
                                     Wybierz MPK  <FluentIcon Id="SelectMPKId" Value="@(new Icons.Regular.Size16.Info())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" />
                                 </th>
                             </tr>
-                            <tr class="table-header-left table-caption">
+                            <tr>
                                 <th style="width: 130px;">Lokalizacja</th>
                                 <th style="width: 150px;">Dział</th>
                                 <th style="width: 50px;">Udział</th>
@@ -234,10 +246,10 @@
                     <FluentTooltip Anchor="SelectMPKId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50> Sprawdź poprawność przypisania kosztów delegacji. Jeśli konieczny jest podział między kilka działów/oddziałów, dodaj kolejny zapis używając przycisku '+'. Pamiętaj również o odpowiednim rozdzieleniu procentowym..</FluentTooltip>
 
                     @* Transportation *@
-                    <table class="table-container">
+                    <table class="table-container-light">
                         <tbody>
                             <tr>
-                                <td class="table-caption" style="width: 170px; padding: 10px;" >
+                                <td class="table-caption-light" style="width: 170px; padding: 10px;" >
                                     Środek transportu:
                                 </td>
                                 <td style="text-align: left;" colspan="5">
@@ -255,7 +267,7 @@
                                 </td>
                                 @if (IsCompanyCar)
                                 {
-                                    <td class="table-caption" style="width: 150px">
+                                    <td class="table-caption-light" style="width: 150px">
                                         Numer rejestracyjny:
                                     </td>
                                     <td style="text-align: left;">
@@ -275,7 +287,7 @@
                                 }
                                 @if (IsPublicTransport)
                                 {
-                                    <td class="table-caption" style="width: 150px">
+                                    <td class="table-caption-light" style="width: 150px">
                                         Opłacone przez firmę:
                                     </td>
                                     <td style="text-align: left;">
@@ -292,7 +304,7 @@
                             @if (IsPrivateCar)
                             {
                                 <tr>
-                                    <td class="table-caption" style="width: 170px">
+                                    <td class="table-caption-light" style="width: 170px">
                                         Numer rejestracyjny:
                                     </td>
                                     <td style="text-align: left; width: 120px;">
@@ -303,7 +315,7 @@
                                         Required="true" />
                                         <FluentValidationMessage For="@(() => formItem.MileageRegister.PrivateCarRegistration)" />
                                     </td>
-                                    <td class="table-caption" style="width: 150px">
+                                    <td class="table-caption-light" style="width: 150px">
                                         Pojemność silnika:
                                     </td>
                                     <td style="text-align: left;">
@@ -318,7 +330,7 @@
                                         <FluentTooltip Anchor="PrivateVehEngineSizeId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50> Proszę wskazać pojemność silnika samochodu prywarnego. Informacja ta jest niezbędna do prawidłowego rozliczenia kosztów użytkowania pojazdu.</FluentTooltip>
                                         <FluentValidationMessage For="@(() => formItem.MileageRegister.PrivateCarEngineSize)" />
                                     </td>
-                                    <td class="table-caption" style="width: 150px">
+                                    <td class="table-caption-light" style="width: 150px">
                                         Planowany przebieg:
                                     </td>
                                     <td style="text-align: left;">
@@ -339,10 +351,10 @@
 
                     @* Advance Payment *@
 
-                    <table class="table-container">
+                    <table class="table-container-light">
                         <tbody>
                             <tr style="height: 40px;">
-                                <td class="table-caption" style="width: 100px">
+                                <td class="table-caption-light" style="width: 100px; padding-left: 10px;">
                                     Zaliczka:
                                 </td>
                                 <td style="text-align: left;">
@@ -354,7 +366,7 @@
                                 </td>
                                 @if (formItem.AdvancePayment)
                                 {
-                                    <td class="table-caption" style="width: 100px">
+                                    <td class="table-caption-light" style="width: 100px; padding-left: 10px;">
                                         Kwota:
                                     </td>
                                     <td style="text-align: left;">
@@ -370,7 +382,7 @@
 
                                         <FluentValidationMessage For="@(() => formItem.AdvancePaymentAmount)" class="validation-error" />
                                     </td>
-                                    <td class="table-caption" style="width: 100px">
+                                    <td class="table-caption-light" style="width: 100px; padding-left: 10px;">
                                         Wypłata:
                                     </td>
                                     <td style="text-align: left;">
@@ -424,20 +436,20 @@
 
                     @if (((stzk || stzks || stzkstl || stroz || stks || stkstl || strozk || strozend) && formItem.AdvancePayment && !formItem.AdvancePaymentCash))
                     {
-                        <table class="table-container">
+                        <table class="table-container-light">
                             <tbody>
                                 <tr>
-                                    <td class="table-caption" style="width: 250px;">
+                                    <td class="table-caption-light" style="width: 250px; padding-left: 10px;">
                                         Wypłata zaliczki
                                     </td>
-                                    <td class="table-caption">
+                                    <td class="table-caption-light">
                                         Kasjerka:
                                     </td>
                                     <td style="text-align: left;">
                                         <FluentTextField Disabled="true"
                                         @bind-Value="@formItem.PayoutCashier.LongName" />
                                     </td>
-                                    <td class="table-caption">
+                                    <td class="table-caption-light">
                                         Dokument AS:
                                     </td>
                                     <td style="text-align: left;">
@@ -483,17 +495,17 @@
                         <table class="table-container">
                             <tbody>
                                 <tr>
-                                    <td class="table-caption" style="width: 250px;">
+                                    <td class="table-caption-light" style="width: 250px;">
                                         Rozliczenie delegacji
                                     </td>
-                                    <td class="table-caption">
+                                    <td class="table-caption-light">
                                         Kasjerka:
                                     </td>
                                     <td style="text-align: left;">
                                         <FluentTextField Disabled="true"
                                         @bind-Value="@formItem.ReceiptCashier.LongName" />
                                     </td>
-                                    <td class="table-caption">
+                                    <td class="table-caption-light">
                                         Dokument AS:
                                     </td>
                                     <td style="text-align: left;">
@@ -513,10 +525,10 @@
                     {
                         <hr>
                         @* List of stages - if country is not PL add Country Trip and then abroad trip and again country trip*@
-                        <table class="table-container">
+                        <table class="table-container-light">
 
                             <thead>
-                                <tr class="table-caption">
+                                <tr class="table-caption-light">
                                     <th style="text-align: left; border-right: none; font-size: large;" colspan="6">
                                         Etapy podróży słuzbowej 
                                         <FluentIcon Id="StagesInfoId" Value="@(new Icons.Regular.Size16.Info())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" />
@@ -528,7 +540,7 @@
 
                                     </th>
                                 </tr>
-                                <tr class="table-header-left">
+                                <tr >
                                     <th>Lp.</th>
                                     <th>Kraj: </th>
                                     <th>Od:
@@ -585,25 +597,24 @@
                                             @(stage.AllowanceOriginValue + stage.AllowanceAbroadValue) @(stage.CountryCurrency)
                                         </td>
                                     </tr>
-                                    <tr>
-                                        <td colspan="7">
-                                            <FluentValidationMessage For="@(() => stage.TimeSpanOK)" class="validation-error" />
-
-                                        </td>
-                                    </tr>
+                                    @* <tr> *@
+                                    @*     <td colspan="7"> *@
+                                    @*         <FluentValidationMessage For="@(() => stage.TimeSpanOK)" class="validation-error" /> *@
+                                    @* *@
+                                    @*     </td> *@
+                                    @* </tr> *@
                                 }
                             </tbody>
                         </table>
-
                     }
                     @if (ShowAccomodations)
                     {
                         <hr>
                         @* List of Accommodations - added and removed as Stages*@
-                        <table class="table-container">
+                        <table class="table-container-light">
                             <thead>
-                                <tr class="table-caption">
-                                    <th style="text-align: left; border-right: none; font-size: large;" colspan="6">
+                                <tr class="table-caption-light">
+                                    <th style="text-align: left; border-right: none; font-size: large; padding-left: 10px;" colspan="6">
                                         Noclegi: <FluentIcon Id="AccId" Value="@(new Icons.Regular.Size16.Info())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" />
                                         <FluentTooltip Anchor="AccId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50>Informacja o noclegach </FluentTooltip>
                                     </th>
@@ -613,7 +624,7 @@
                                         Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" />
                                     </th>
                                 </tr>
-                                <tr class="table-header-left">
+                                <tr >
                                     <th>Etap</th>
                                     <th>Państwo</th>
                                     <th>Noclegi</th>
@@ -684,10 +695,10 @@
                     @if (ShowLocalTravels)
                     {
                         <hr>
-                        <table class="table-container">
-                            <thead class="table-header-left">
-                                <tr class="table-caption">
-                                    <th style="text-align: left; border-right: none; font-size: large;" colspan="5">
+                        <table class="table-container-light">
+                            <thead>
+                                <tr class="table-caption-light">
+                                    <th style="text-align: left; border-right: none; font-size: large; padding-left: 10px;" colspan="5">
                                         Ryczałt na pokrycie kosztów dojazdu środkami komunikacji 
                                         <FluentIcon Id="LocTravId" 
                                         Value="@(new Icons.Regular.Size16.Info())"
@@ -742,10 +753,10 @@
                     @if (ShowTransits)
                     {
                         <hr>
-                        <table class="table-container">
+                        <table class="table-container-light">
                             <thead>
-                                <tr class="table-caption">
-                                    <th style="text-align: left; border-right: none; font-size: large; width: 85%;" >
+                                <tr class="table-caption-light">
+                                    <th style="text-align: left; border-right: none; font-size: large; width: 85%; padding-left: 10px;" >
                                         Dojazd z dworca/lotniska do Hotelu
                                         <FluentIcon Id="TransitId"
                                         Value="@(new Icons.Regular.Size16.Info())"
@@ -774,10 +785,10 @@
                     }
                     @if (ShowBills)
                     {
-                        <table class="table-container">
-                            <thead class="table-caption">
-                                <tr class="table-caption">
-                                    <th style="text-align: left; border-right: none; font-size: large;" colspan="6">
+                        <table class="table-container-light">
+                            <thead >
+                                <tr class="table-caption-light">
+                                    <th style="text-align: left; border-right: none; font-size: large; padding-left: 10px" colspan="6">
                                         Pozostałe faktury i bilety
                                         <FluentIcon Id="BillsInfoId"
                                         Value="@(new Icons.Regular.Size16.Info())"
@@ -821,7 +832,7 @@
                                     .ToList();
 
                                     <tr class="BillTable-row">
-                                        <td class="table-caption">@bill.Id</td>
+                                        <td class="table-caption-light">@bill.Id</td>
                                         <td style="width: 80px !important;">
                                             <FluentNumberField Disabled="@IsControlBillEditDisabled()"
                                             Min="0"
@@ -919,7 +930,7 @@
                                     </tr>
                                     @if (bill.Invoice)
                                     {
-                                        <td class="table-caption"></td>
+                                        <td class="table-caption-light"></td>
                                         <td >
                                             <FluentLabel>Wystawca: </FluentLabel>
                                             <FluentTextField Disabled="@IsControlBillEditDisabled()" @bind-Value="@bill.BusinessPartner.Name" @bind-Value:after="@(() => _editContext.Validate())" />
@@ -989,10 +1000,10 @@
                             <div class="tables-wrapper">
                                 <!-- Left table -->
                                 <div>
-                                    <table class="table-container">
+                                    <table class="table-container-light">
                                         <thead> 
-                                            <tr class="table-header-left">
-                                                <th>Podsumowanie - dieta krajowa</th>
+                                            <tr class="table-header-left" >
+                                                <th style="padding-left: 10px">Podsumowanie - dieta krajowa</th>
                                                 <th>Wartość</th>
                                             </tr>
                                         </thead>
@@ -1038,10 +1049,10 @@
                                 {
                                     var totalNotPLinPLN = (formItem.TotalAllowanceNotPL * formItem.CurrencyExchangeRate).ToString("0.00");
                                     <div>
-                                        <table class="table-container">
+                                        <table class="table-container-light">
                                             <thead>
                                                 <tr class="table-header-right">
-                                                    <th>Podsumowanie - dieta zagraniczna</th>
+                                                    <th style="padding-left: 10px;">Podsumowanie - dieta zagraniczna</th>
                                                     <th>Wartość</th>
                                                 </tr>
                                             </thead>
@@ -1108,19 +1119,19 @@
 
                             </div>
                             <div class="third-table-wrapper">
-                                <table class="table-container">
+                                <table class="table-container-light">
                                     <thead>
-                                        <tr class="table-header-left">
+                                        <tr>
 
                                             @if (formItem.TotalPayOut >= 0)
                                             {
-                                                <th>
+                                                <th class="table-caption-light" style="padding-left: 10px;">
                                                     Łącznie do wypłaty dla pracownika
                                                 </th>
                                             }
                                             else
                                             {
-                                                <th>
+                                                <th class = "table-caption-light">
                                                     Łącznie do zwrotu przez pracownika
                                                 </th>
                                             }
@@ -1134,12 +1145,12 @@
                         @*Receipt decision*@
                         @if (!(stal11 || stal12 || strozk || stwysroz || stbladroz))
                         {
-                            <table class="table-container">
-                                <caption class="table-caption">
-                                    Rozliczenie
+                            <table class="table-container-light">
+                                <caption class="table-caption-light">
+                                    Rozliczenie: 
                                 </caption>
                                 <thead>
-                                    <tr class="table-header-left">
+                                    <tr>
                                         <th>Kwota</th>
                                         <th>Wypłata</th>
 
@@ -1223,7 +1234,7 @@
                         <div>
                             <table class="table-container" style="width: 100%; max-width: 500px;">
                                 <tr style="height: 40px;">
-                                    <th class="table-caption">
+                                    <th class="table-caption-light" style="padding-left: 10px">
                                         Aprobujący:
                                     </th>
                                     <th>
@@ -1331,13 +1342,13 @@
                 {
                     <table class="small-table-container">
                         <thead>
-                            <tr class="small-table-caption">
+                            <tr class="small-table-caption-light">
                                 <th colspan="4">
                                     Powody odrzucenia
                                 </th>
 
                             </tr>
-                            <tr class="small-table-caption" >
+                            <tr class="small-table-caption-light" >
                                 <th style="width: 130px;">Data</th>
                                 <th style="width: 100px;">Status</th>
                                 <th style="width: 100px;">Odrzucający</th>
