@@ -1,10 +1,10 @@
 ﻿@using Application.Forms.Accounting.BuisnessTravelSmallClasses
 
-<table class="table-container-light">
+<table class="table-container2">
     <thead>
         <tr class="table-caption">
-            <th style="text-align: left; border-right: none; font-size: large; padding-left: 10px" colspan="7">
-                Zapewnione posiłki:
+            <th style="text-align: left; border-right: none; font-size: large;" colspan="7">
+                Zapewnione posiłki ki:
                 <FluentIcon Id="MealsInfoId"
                 Value="@(new Icons.Regular.Size16.Info())"
                 Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" />
@@ -14,7 +14,7 @@
             </th>
         </tr>
         <tr >
-            <th style="padding-left: 10px;">Etap</th>
+            <th>Etap</th>
             <th>Państwo</th>
             <th>Śniadania</th>
             <th>Obiady</th>
@@ -40,7 +40,7 @@
                     <td>@meal.StageId</td>
                     <td>@meal.CountryName</td>
                     <td>
-                        <div style="min-width: 100px;">
+                        <div style="max-width: 100px;">
                             <InputNumber Id="@breakId"
                             Min="0"
                             Max="@meal.Duration.ToString()"
@@ -52,7 +52,7 @@
                         </div>
                     </td>
                     <td>
-                        <div style="min-width: 100px;">
+                        <div style="max-width: 100px;">
                             <InputNumber Id="@lunchId"
                             Min="0"
                             Max="@meal.Duration.ToString()"
@@ -64,7 +64,7 @@
                         </div>
                     </td>
                     <td>
-                        <div style="min-width: 100px;">
+                        <div style="max-width: 100px;">
                             <InputNumber Id="@dinnerId"
                             Min="0"
                             Max="@meal.Duration.ToString()"
@@ -155,3 +155,35 @@
         }
     }
 }
+
+<style>
+    .table-container2 {
+        width: 100%;
+        border-collapse: collapse;
+        border-spacing: 0;
+    }
+
+    .table-container2 th,
+    .table-container2 td {
+        padding: 8px;
+        text-align: left;
+        border: none; /* remove all default borders */
+    }
+
+    .table-container2 thead tr:last-child {
+        border-bottom: 2px solid grey; /* dark grey, bold line between header and body */
+    }
+
+    .table-container2 tbody tr {
+        border-bottom: 1px solid #d3d3d3; /* light line between rows */
+    }
+
+    /* Optional: visually remove left/right border of the last and first header cells */
+    .table-container2 th:first-child,
+    .table-container2 td:first-child,
+    .table-container2 th:last-child,
+    .table-container2 td:last-child {
+        border-left: none;
+        border-right: none;
+    }
+</style>
