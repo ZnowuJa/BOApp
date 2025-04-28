@@ -166,7 +166,7 @@
                 string.IsNullOrWhiteSpace(column.Filter)
                     || column.Filter
                         .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                        .Any(term =>
+                        .All(term =>
                             column.Property(x).Contains(term, StringComparison.CurrentCultureIgnoreCase))));
 
     private IQueryable<Bnp55Vm>? bnp55;
@@ -178,7 +178,7 @@
                 string.IsNullOrWhiteSpace(column.Filter)
                     || column.Filter
                         .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-                        .Any(term =>
+                        .All(term =>
                             column.Property(x).Contains(term, StringComparison.CurrentCultureIgnoreCase))));
 
     private DateTime? StartDateTime20 { get; set; } = DateTime.Today.AddMonths(-3);
