@@ -12,7 +12,7 @@ namespace Application.Forms.Accounting;
 public class BankTransferFormVm : IFormAccounting
 {
     #region FromAuditableEntity
-        public int Id { get; set; }
+        public int Id { get; set; } = 0;
         public string? CreatedBy { get; set; }
         public DateTime? Created { get; set; }
         public string? ModifiedBy { get; set; }
@@ -22,30 +22,30 @@ public class BankTransferFormVm : IFormAccounting
         public DateTime? Inactivated { get; set; }
     #endregion
     #region Initial
-        public string Title { get; private set; }
+        public string Title { get; private set; } = string.Empty;
         public string Description { get; private set; }
         public string OperationArea { get; private set; } = "Accounting";
-        public string Status { get; set; }
-        public string Number { get; set; }
-        public string EnovaEmpId { get; set; }
+        public string Status { get; set; } = "Rejestracja";
+        public string Number { get; set; } = string.Empty;
+        public string EnovaEmpId { get; set; } = string.Empty;
         public string EmployeeName { get; set; } = string.Empty;
-        public string LVL1_EnovaEmpId { get; set; }
-        public string LVL1_EmployeeName { get; set; }
-        public string LVL2_EnovaEmpId { get; set; }
-        public string LVL2_EmployeeName { get; set; }
-        public string LVL3_EnovaEmpId { get; set; }
-        public string LVL3_EmployeeName { get; set; }
-        public string LVL4_EnovaEmpId { get; set; }
-        public string LVL4_EmployeeName { get; set; }
-        public string LVL5_EnovaEmpId { get; set; }
-        public string LVL5_EmployeeName { get; set; }
+        public string LVL1_EnovaEmpId { get; set; } //ManagerL1
+        public string LVL1_EmployeeName { get; set; } //ManagerL1
+        public string LVL2_EnovaEmpId { get; set; } //ManagerL2
+        public string LVL2_EmployeeName { get; set; } //ManagerL2
+        public string LVL3_EnovaEmpId { get; set; } //ManagerL3
+        public string LVL3_EmployeeName { get; set; } //ManagerL3
+        public string LVL4_EnovaEmpId { get; set; } //Accountant
+        public string LVL4_EmployeeName { get; set; } //Accountant 
+        public string LVL5_EnovaEmpId { get; set; } //Accountant Team Leader
+        public string LVL5_EmployeeName { get; set; } //Accountant Team Leader
 
-        public List<OrganisationRoleForFormVm> Level1Approvers { get; set; }
-        public List<OrganisationRoleForFormVm> Level2Approvers { get; set; }
-        public List<OrganisationRoleForFormVm> Level3Approvers { get; set; }
-        public List<OrganisationRoleForFormVm> Level4Approvers { get; set; }
-        public List<OrganisationRoleForFormVm> Level5Approvers { get; set; }
-        public List<FormFileVm> FormFiles { get; set; }
+        public List<OrganisationRoleForFormVm> Level1Approvers { get; set; } = new();
+    public List<OrganisationRoleForFormVm> Level2Approvers { get; set; } = new();
+    public List<OrganisationRoleForFormVm> Level3Approvers { get; set; } = new();
+    public List<OrganisationRoleForFormVm> Level4Approvers { get; set; } = new();
+    public List<OrganisationRoleForFormVm> Level5Approvers { get; set; } = new();
+    public List<FormFileVm> FormFiles { get; set; }
         public string NumberPrefix { get; set; }
         public string FolderName { get; set; }
         
@@ -57,7 +57,6 @@ public class BankTransferFormVm : IFormAccounting
         public List<RejectReason> RejectReasons { get; set; } = new();
         public string? RejectReason { get; set; } = string.Empty;
     #endregion
-
     #region Document
         public Invoice Document { get; set; }
         public string BankTransferTitle { get; set; }
@@ -67,10 +66,13 @@ public class BankTransferFormVm : IFormAccounting
         
         public List<InvoiceMapping> InvoiceMappings { get; set; }
         public BankTransferMapping BankTransferMapping { get; set; }
-    
+
     #endregion
-    
-    
+    #region Steering
+        public bool SaveOnly { get; set; } = false;
+
+    #endregion
+
     public void Mapping(Profile profile)
 {
     profile.CreateMap<BankTransferForm, BankTransferFormVm>()

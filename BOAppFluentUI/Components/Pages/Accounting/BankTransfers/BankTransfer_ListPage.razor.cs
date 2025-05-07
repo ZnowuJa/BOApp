@@ -70,7 +70,7 @@ public partial class BankTransfer_ListPage : ComponentBase
             "kasjer" or "cashier" => items2load.Where(x => x.Level2Approvers.Any(approver => approver.EmpId == CurrentUserEnowaEmpId) && (x.Status == "ZaliczkaKasa" || x.Status == "KasaRozliczenie")),
             "ksiegowe" or "accountants" => items2load,
             "zapisane" or "saved" => items2load.Where(x => x.Level2Approvers.Any(approver => approver.EmpId == CurrentUserEnowaEmpId)),
-            _ => throw new ArgumentException("Błędny adres strony!")
+            null or _ => items2load.Where(x => x.EnovaEmpId == _userContext.EnovaEmpId)
         };
 
         if (_userContext.isFormAdmin)

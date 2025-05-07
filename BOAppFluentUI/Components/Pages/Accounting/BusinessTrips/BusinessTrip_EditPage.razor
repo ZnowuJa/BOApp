@@ -1404,9 +1404,9 @@
 
 </div>
 @code {
-        #region Declarations
-        // private Timer _debounceTimer;
-        [Parameter] public int Id { get; set; }
+    #region Declarations
+    // private Timer _debounceTimer;
+    [Parameter] public int Id { get; set; }
     private EditContext _editContext;
     private FluentValidationValidator? _fluentValidationValidator;
     private string _srcPage;
@@ -3322,9 +3322,6 @@
 
         showForm = allowedEmp.Contains(_userContext.EnovaEmpId);
         isLoading = false;
-        // // // // StateHasChanged();
-        // editControlDisabled = !allowedEditor.Contains(_userContext.EnovaEmpId);
-
 
     }
     private List<OrganisationRoleForFormVm> SetApprovers(List<OrganisationRoleVm> rolesIn)
