@@ -64,14 +64,14 @@
                     <table class="table-container-light">
                         @* <caption class="table-caption-light">Informacje Ogólne</caption> *@
                         <thead>
-                        <tr class="table-caption-light">
-                            <th style="text-align: left; border-right: none; font-size: large;" colspan="2">
-                                Podróż Służbowa | Informacje Ogólne
-                            </th>
-                            <th style="text-align: right; border-left: none; font-size: large;" colspan="2">
-                                Status: @formItem.Status | Numer: @formItem.Number
-                            </th>
-                        </tr>
+                            <tr class="table-caption-light">
+                                <th style="text-align: left; border-right: none; font-size: large;" colspan="2">
+                                    Podróż Służbowa | Informacje Ogólne
+                                </th>
+                                <th style="text-align: right; border-left: none; font-size: large;" colspan="2">
+                                    Status: @formItem.Status | Numer: @formItem.Number
+                                </th>
+                            </tr>
                         </thead>
                     </table>
                     <table class="table-container-light">
@@ -3953,7 +3953,7 @@
                     PreventDismissOnOverlayClick = true,
                     PreventScroll = true,
                 });
-            
+
         }
 
     }
@@ -4205,32 +4205,24 @@
     private async Task SetupFormRozliczone()
     {
         Title = "Podróż służbowa - Rozliczone";
-        ShowAccomodations = false;
-        ShowMeals = false;
-        ShowStages = false;
-        ShowLocalTravels = false;
-        ShowTransits = false;
-        ShowCashier = false;
-        ShowBills = false;
-        ShowSummary = false;
-        ShowMileageReport = false;
-        // EnterInvoiceMapping = false;
-
-        // IsAdvancedPaymentDisabled = true;
-        // IsDateTimeDisabled = true;
-        // IsDestinationDisabled = true;
-        // IsEmployeeDisabled = true;
-        // IsBillsDisabled = true;
-        // IsInvoiceMappingDisabled = true;
-
-        // IsTransportationDisabled = true;
-        // IsMileageDisabled = true;
-        // IsCashPayoutNumberDisabled = true;
+        ShowAccomodations = true;
+        ShowMeals = true;
+        ShowStages = true;
+        ShowLocalTravels = true;
+        ShowTransits = true;
+        ShowCashier = true;
+        ShowBills = true;
+        ShowSummary = true;
+        ShowMileageReport = true;
 
         DisableApproveButton = true;
         DisableRejectButton = true;
         DisableSaveButton = true;
         DisableSendButton = true;
+
+        DisableAllControls();
+        // IsButtonSendVisible(true);
+        // IsButtonApproveVisible(true);
 
     }
     private async Task SetupFormZamkniete()

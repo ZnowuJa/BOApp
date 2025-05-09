@@ -41,11 +41,11 @@ public class BankTransferFormVm : IFormAccounting
         public string LVL5_EmployeeName { get; set; } //Accountant Team Leader
 
         public List<OrganisationRoleForFormVm> Level1Approvers { get; set; } = new();
-    public List<OrganisationRoleForFormVm> Level2Approvers { get; set; } = new();
-    public List<OrganisationRoleForFormVm> Level3Approvers { get; set; } = new();
-    public List<OrganisationRoleForFormVm> Level4Approvers { get; set; } = new();
-    public List<OrganisationRoleForFormVm> Level5Approvers { get; set; } = new();
-    public List<FormFileVm> FormFiles { get; set; }
+        public List<OrganisationRoleForFormVm> Level2Approvers { get; set; } = new();
+        public List<OrganisationRoleForFormVm> Level3Approvers { get; set; } = new();
+        public List<OrganisationRoleForFormVm> Level4Approvers { get; set; } = new();
+        public List<OrganisationRoleForFormVm> Level5Approvers { get; set; } = new();
+        public List<FormFileVm> FormFiles { get; set; }
         public string NumberPrefix { get; set; }
         public string FolderName { get; set; }
         
