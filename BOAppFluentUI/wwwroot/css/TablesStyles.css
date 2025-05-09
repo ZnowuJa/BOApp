@@ -58,41 +58,59 @@
     border-bottom: none; /* Remove bottom border for seamless look with the table */
     }
 
-/* Light table styles for Business Trip Form */
- .table-container-light {
-     width: 100%;
-     
-     border-collapse: collapse;
-     border-spacing: 0;
-     border-radius: 8px;
-     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-     overflow: visible;
- }
+
+.table-container-light {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden; /* Ensure the rounded corners are visible */
+}
+
 .table-container-light th,
 .table-container-light td {
-    max-height: 50px;
     padding: 8px;
     border: none; /* remove all default borders */
     white-space: nowrap; /* Prevent line breaks */
-    overflow: visible;
+    overflow: hidden;
     text-overflow: ellipsis; /* Add "..." for overflowing text */
 }
+
 .table-container-light thead tr:last-child {
     border-bottom: 2px solid grey; /* dark grey, bold line between header and body */
 }
+
 .table-container-light tbody tr {
     border-bottom: 1px solid #d3d3d3; /* light line between rows */
-    max-height: 50px;
 }
-/* Optional: visually remove left/right border of the last and first header cells */
+
 .table-container-light th:first-child,
 .table-container-light td:first-child,
 .table-container-light th:last-child,
 .table-container-light td:last-child {
-    max-height: 50px;
     border-left: none;
     border-right: none;
 }
+
+.table-container-light tbody tr:last-child td:first-child {
+    border-bottom-left-radius: 12px;
+}
+
+.table-container-light tbody tr:last-child td:last-child {
+    border-bottom-right-radius: 12px;
+}
+
+.table-container-light thead tr:first-child th:first-child {
+    border-top-left-radius: 12px;
+}
+
+.table-container-light thead tr:first-child th:last-child {
+    border-top-right-radius: 12px;
+}
+
+
+
 .table-caption-light {
     max-height: 55px;
     caption-side: top; /* Place caption above the table */

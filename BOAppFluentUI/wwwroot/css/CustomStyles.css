@@ -31,9 +31,14 @@
     word-wrap: break-word; /* Ensure long words break */
     display: block; /* Ensure it takes full width */
 }
-
     .validation-error::before {
         font-size: 1.5em; /* Adjust size as needed */
         margin-right: 5px; /* Space between icon and text */
         vertical-align: middle; /* Align properly */
     }
+fluent-select[disabled] {
+    --disabled-opacity: 0.9 !important;
+}
+fluent-combobox[disabled] {
+    --disabled-opacity: 1 !important;
+}
