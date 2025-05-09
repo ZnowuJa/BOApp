@@ -1,0 +1,72 @@
+﻿@page "/przelewy/{id:int}"
+@page "/banktransfers/{id:int}"
+
+@using Application.Forms.Accounting
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize(Policy = "User")]
+
+@inject IConfiguration _configuration
+@inject IMediator _mediator
+@inject IJSRuntime JS
+@inject ILogger<BankTransferFormVm> _logger
+@inject IDialogService _dialogService
+@inject IToastService _toastService
+@inject AuthenticationStateProvider _authenticationStateProvider
+@inject NavigationManager _navigationManager
+@inject IWebHostEnvironment Environment
+@inject IValidator<BankTransferFormVm> Validator
+
+<h3>BankTransferEditPage</h3>
+
+@if (isLoading)
+{
+    <FluentProgressRing />
+} else     
+{
+    if (showForm)
+    {
+        <EditForm EditContext="_editContext" OnValidSubmit="HandleValidSubmit" Style="max-width: 1000px">
+            <FluentValidationValidator @ref="_fluentValidationValidator" />
+
+
+            <table class="table-container-light">
+                <thead>
+                    <tr class="table-caption-light">
+                        <th style="text-align: left; border-right: none; font-size: large;" colspan="2">
+                            Polecenie przelewu | Informacje Ogólne
+                        </th>
+                        <th style="text-align: right; border-left: none; font-size: large;" colspan="2">
+                            Status: @formItem.Status | Numer: @formItem.Number
+                        </th>
+                    </tr>
+                </thead>
+            </table>
+            <table class="table-container-light">
+                @* <caption class="table-caption-light">Informacje Ogólne</caption> *@
+                <thead>
+                    @* <tr class="table-caption-light"> *@
+                    @*     <th style="text-align: left; border-right: none; font-size: large;" colspan="2"> *@
+                    @*         Podróż Służbowa | Informacje Ogólne *@
+                    @*     </th> *@
+                    @*     <th style="text-align: right; border-left: none; font-size: large;" colspan="2"> *@
+                    @*         Status: @formItem.Status | Numer: @formItem.Number *@
+                    @*     </th> *@
+                    @* </tr> *@
+                    <tr >
+                        <th style="width: 130px;">Pracownik</th>
+                        <th style="width: 150px;">Kraj docelowy</th>
+                        <th style="width: 130px;">Miasto</th>
+                        <th style="width: 120px;">Cel podróży</th>
+                    </tr>
+                </thead>
+            </table>
+        </EditForm>
+    }
+    else
+    {
+        <FluentText>Nie można załadować formularza</FluentText>
+    }
+
+}
+

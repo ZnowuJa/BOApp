@@ -70,7 +70,7 @@ public partial class BankTransfer_ListPage : ComponentBase
             "kasjer" or "cashier" => items2load.Where(x => x.Level2Approvers.Any(approver => approver.EmpId == CurrentUserEnowaEmpId) && (x.Status == "ZaliczkaKasa" || x.Status == "KasaRozliczenie")),
             "ksiegowe" or "accountants" => items2load,
             "zapisane" or "saved" => items2load.Where(x => x.Level2Approvers.Any(approver => approver.EmpId == CurrentUserEnowaEmpId)),
-            _ => throw new ArgumentException("Błędny adres strony!")
+            null or _ => items2load.Where(x => x.EnovaEmpId == _userContext.EnovaEmpId)
         };
 
         if (_userContext.isFormAdmin)
@@ -79,22 +79,7 @@ public partial class BankTransfer_ListPage : ComponentBase
         }
 
     }
-    // private async Task<IQueryable<BusinessTravelFormVm>> HandleSavedCase()
-    // {
-    // var resultss = await _mediator.Send(new GetBusinessTripByEmpIdQuery(int.Parse(_userContext.EnovaEmpId)));
-    //     intent = ToastIntent.Success;
-    //     if (role is "zapisane" or "saved")
-    //     {
-    //         toastMessage = "Wniosek wysłany do aprobaty!";
-    //     }
-    //     else
-    //     {
-    //         toastMessage = "Wystąpił błąd, wniosek nie zapisany!";
-    //     }
-    //
-    //     _toastService.ShowToast(intent, toastMessage, 3000);
-    //     return resultss;
-    // }
+
 
     private void HandleClearFilter(ref string filter) => filter = string.IsNullOrWhiteSpace(filter) ? string.Empty : filter;
 
