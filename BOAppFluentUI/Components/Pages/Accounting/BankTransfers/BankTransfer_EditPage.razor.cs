@@ -40,25 +40,19 @@ public partial class BankTransfer_EditPage : ComponentBase
 
     #region Steering and Button bools
     private bool strej = false;
+
     private bool stal1 = false;
     private bool stal2 = false;
     private bool stal3 = false;
-    private bool stzk = false;
-    private bool stzks = false;
-    private bool stzkstl = false;
-    private bool stroz = false;
+
     private bool stks = false;
     private bool stkstl = false;
-    private bool stal11 = false;
-    private bool stal12 = false;
-    private bool strozk = false;
     private bool stwys = false;
     private bool stblad = false;
+
     private bool strozend = false;
     private bool stzam = false;
     private bool stodrz = false;
-    private bool stwysroz = false;
-    private bool stbladroz = false;
 
     private bool DisableApproveButton = true;
     private bool DisableRejectButton = true;

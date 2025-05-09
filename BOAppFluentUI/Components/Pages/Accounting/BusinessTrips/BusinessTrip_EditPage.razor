@@ -541,8 +541,8 @@
                                     </th>
                                 </tr>
                                 <tr >
-                                    <th>Lp.</th>
-                                    <th>Kraj: </th>
+                                    <th style="width: 50px;">Lp.</th>
+                                    <th>Państwo: </th>
                                     <th>Od:
                                         <FluentIcon Id="StageFromID" Value="@(new Icons.Regular.Size16.Info())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Fill" />
                                         <FluentTooltip Anchor="StageFromID" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50>Uzupełnij dokładną datę i godzinę rozpoczęcia każdego etapu podróży. W przypadku podróży samolotem podaj godzinę wylotu.</FluentTooltip>
@@ -565,7 +565,7 @@
                                 @foreach (var stage in formItem.Stages)
                                 {
                                     <tr>
-                                        <td>@stage.Id</td>
+                                        <td class="table-caption-light" style="text-align: center; width: 50px;">@stage.Id</td>
                                         <td>
                                             <div>
                                                 @stage.CountryName
@@ -625,7 +625,7 @@
                                     </th>
                                 </tr>
                                 <tr >
-                                    <th>Etap</th>
+                                    <th  style="width: 50px;">Etap</th>
                                     <th>Państwo</th>
                                     <th>Noclegi</th>
                                     <th>Faktura 
@@ -646,8 +646,8 @@
                                 { @if (accommodation.Nights > 0)
                                     {
                                         <tr>
-                                            <td style="text-align: center;">@accommodation.StageId</td>
-                                            <td style="text-align: center;">@accommodation.CountryName</td>
+                                            <td class="table-caption-light" style="text-align: center; width: 50px;">@accommodation.StageId</td>
+                                            <td style="text-align: left;">@accommodation.CountryName</td>
                                             <td style="text-align: center;">@accommodation.Nights</td>
                                             <td style="text-align: center;">
                                                 <div>
@@ -711,7 +711,7 @@
                                     </th>
                                 </tr>
                                 <tr>
-                                    <th>Etap</th>
+                                    <th style="width: 50px;">Etap</th>
                                     <th>Państwo</th>
                                     <th>Dni</th>
                                     <th>Ryczałt</th>
@@ -726,7 +726,7 @@
                                     {
                                         <tr>
 
-                                            <td>@localTravel.StageId</td>
+                                            <td class="table-caption-light" style="text-align: center; width: 50px;">@localTravel.StageId</td>
                                             <td>@localTravel.CountryName</td>
                                             <td>
                                                 <div Style="max-width: 80px;">
@@ -787,7 +787,7 @@
                     {
                         <table class="table-container-light">
                             <thead >
-                                <tr class="table-caption-light">
+                                <tr class="table-caption-light" style="width: 50px;">
                                     <th style="text-align: left; border-right: none; font-size: large; padding-left: 10px" colspan="6">
                                         Pozostałe faktury i bilety
                                         <FluentIcon Id="BillsInfoId"
@@ -832,7 +832,7 @@
                                     .ToList();
 
                                     <tr class="BillTable-row">
-                                        <td class="table-caption-light">@bill.Id</td>
+                                        <td class="table-caption-light" style="width: 50px;">@bill.Id</td>
                                         <td style="width: 80px !important;">
                                             <FluentNumberField Disabled="@IsControlBillEditDisabled()"
                                             Min="0"
@@ -3263,7 +3263,7 @@
         int lvl2managerId = 0;
         EmployeeVm empMan = _employees.FirstOrDefault(e => e.EnovaEmpId == emp.ManagerId) ?? new EmployeeVm();
 
-        if (emp.ManagerId == null)
+        if (emp.EnovaEmpId == 4082)
         {
             lvl1managerId = 104;
             lvl2managerId = 976;
@@ -3644,20 +3644,17 @@
         }
         _editContext.Validate();
     }
-
     private void RemoveFileFromBill(Bill bill, BillFile billFile)
     {
         FileUtils.RemoveFile(billFile.FilePath);
         // bill.BillFiles.Remove(billFile);
         // _editContext.Validate();
     }
-
     private void UploadFileForBill(Bill bill)
     {
         CurrentBillForUpload = bill;
         JS.InvokeVoidAsync("triggerFileUpload");
     }
-
     private async Task SaveBillFiles()
     {
         foreach (var bill in formItem.Bills)
@@ -3815,7 +3812,6 @@
 
         // // // // StateHasChanged();
     }
-
     private async Task SetupFormZaliczkaKsiegowosc()
     {
         Title = "Podróż służbowa - Księgowość";
@@ -4705,388 +4701,7 @@
 
 }
 
-<style>
-    valid.disabled.outline {
-        color: black !important; /* Change font color to black */
-    }
 
-    div {
-        /*flex-shrink: 0; /* Prevent shrinking of elements */
-    }
-
-    .flex-container {
-        display: flex; /* Enables horizontal alignment */
-        align-items: center; /* Vertically centers items */
-        gap: 10px; /* Adds space between elements */
-        flex-wrap: wrap; /* Wraps to the next line if there's not enough space */
-    }
-
-        .flex-container > * {
-            flex-shrink: 0; /* Prevents items from shrinking */
-            margin: 0; /* Optional: Resets any margin */
-        }
-
-    .form-group {
-        display: flex;
-        align-items: center; /* Align label and control vertically */
-        gap: 10px; /* Space between the label and the control */
-        flex-wrap: nowrap; /* Ensure label and control stay on the same line */
-        flex: 1 1 auto; /* Allow the group to resize */
-        justify-content: flex-start; /* Align items to the left */
-    }
-
-
-    .form-section {
-        display: flex;
-        flex-wrap: wrap; /* Allows wrapping if content overflows */
-        gap: 15px; /* Spacing between child divs */
-        margin-bottom: 15px;
-    }
-
-        .form-section > div {
-            display: flex;
-            align-items: center; /* Vertically centers content within each div */
-            gap: 10px; /* Spacing between elements inside the div */
-        }
-
-    .new-form-sectionbbb {
-        display: flex;
-        flex-wrap: wrap; /* Allows wrapping if content overflows */
-        gap: 15px; /* Spacing between child divs */
-        margin-bottom: 15px; /* Matches other form sections */
-        border: 2px solid;
-        border-radius: 8px; /* Rounded corners */
-        padding: 10px; /* Space inside the border */
-        margin: 10px 0; /* Space outside the div */
-        align-items: center; /* Vertically center content */
-    }
-
-    .new-form-section {
-        display: flex; /* Enable horizontal alignment */
-        flex-wrap: nowrap; /* Prevent wrapping to the next line */
-        align-items: center; /* Vertically align content */
-        justify-content: flex-start; /* Align items to the start of the line */
-        border: 2px solid;
-        border-radius: 8px; /* Rounded corners */
-        padding: 10px;
-        margin: 10px 0;
-        background-color: lightblue; /* Default background color */
-        gap: 15px; /* Spacing between child divs */
-        width: fit-content;
-    }
-
-        /* Child divs inside the form section */
-        .new-form-section > div {
-            display: flex;
-            align-items: center; /* Center content within the div */
-        }
-
-        /* Background color for "Kasa" status */
-        .new-form-section.kasa {
-            background-color: #a2b3d4;
-            border-color: #a2b3d4; /* Matching blue border */
-        }
-
-        /* Background color for "Ksiegowosc" status */
-        .new-form-section.ksiegowosc {
-            background-color: #d3d3d3;
-            border-color: #d3d3d3; /* Matching grey border */
-        }
-
-    .fluent-grid-item {
-        flex-shrink: 0; /* Prevents shrinking of elements */
-    }
-
-    .autocomplete-container {
-        display: flex;
-        align-items: center;
-        gap: 10px; /* Adjust spacing as needed */
-    }
-
-        .autocomplete-container .fluent-autocomplete {
-            display: flex;
-            flex-direction: row; /* Forces label and control to align horizontally */
-            align-items: center;
-        }
-
-    table {
-        border-collapse: collapse; /* Optional: For a cleaner look */
-        /*width: 750px; /* Optional: Adjust to fit your container */
-    }
-
-    th, td {
-        padding: 5px; /* Adds padding inside each cell */
-        text-align: center; /* Optional: Align text to the left */
-    }
-
-        td:first-child, th:first-child {
-            padding-left: 0; /* Removes padding on the left of the first cell */
-        }
-
-   
-
-    .info-table {
-        width: 650px;
-        margin-bottom: 10px;
-    }
-
-        .info-table td {
-            padding: 10px;
-        }
-
-    .fluent-grid {
-        display: flex;
-        gap: 10px; /* Adjust the gap as needed */
-    }
-
-    .fluent-grid-item {
-        display: flex;
-        flex-direction: row;
-        gap: 10px; /* Adjust the gap between date and time pickers */
-    }
-
-    .custom-grid-item {
-        width: 150px;
-    }
-
-    .bold-label {
-        font-weight: bold;
-    }
-
-
-
-    .fluent-table {
-        border-collapse: collapse;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
-
-    .fluent-caption {
-        caption-side: top;
-        text-align: left;
-        font-size: 1em;
-        font-weight: bold;
-        padding: 5px;
-        background-color: dimgrey;
-        color: white;
-    }
-
-    .fluent-thead {
-        background-color: lightgrey;
-        color: dimgray;
-    }
-
-        .fluent-thead th {
-            padding: 5px;
-            text-align: left;
-        }
-
-    .fluent-row {
-    }
-
-        .fluent-row td {
-            padding: 5px;
-        }
-
-        .fluent-row div {
-            display: flex;
-            align-items: center;
-        }
-
-            .fluent-row div FluentButton {
-                margin-right: 5px;
-            }
-
-    html, body {
-        height: 100%;
-        margin: 0;
-    }
-
-    .page {
-        display: flex;
-        flex-direction: column;
-        min-height: 100vh;
-    }
-
-    .bodybody {
-        flex: 1; /* This makes the body content take up the remaining space */
-        padding-bottom: 125px; /* Ensure content doesn't overlap the footer */
-    }
-
-    .footerfooter {
-        height: 125px;
-        background-color: #f1f1f1; /* Example background color */
-        text-align: center; /* Center the footer content */
-        line-height: 75px; /* Vertically center the text */
-        position: fixed;
-        bottom: 0;
-        width: 100%;
-    }
-    .emptytemp{
-        margin-top: 20px;
-    }
-
-    .disabled {
-        opacity: 1 !important;
-    }
-
-    fluent-select[disabled] {
-        --disabled-opacity: 0.9 !important;
-    }
-    fluent-combobox[disabled] {
-        --disabled-opacity: 1 !important;
-    }
-
-</style>
-<style>
-    .all-tables-wrapper {
-        display: flex;
-        flex-direction: column; /* Arrange the tables vertically */
-        justify-content: flex-start;
-        align-items: flex-start; /* Center everything horizontally */
-        gap: 20px; /* Add spacing between the groups */
-    }
-
-    .tables-wrapper {
-        display: flex;
-        justify-content: flex-start; /* Dynamically adjust based on content width */
-        gap: 20px; /* Space between the left and right tables */
-    }
-
-    .third-table-wrapper {
-        display: flex;
-        justify-content: flex-start; /* Center the third table */
-        width: 100%;
-    }
-
-
-
-
-</style>
-<!--suppress CssUnresolvedCustomProperty -->
-<style>
-    .BillTable-container {
-        max-height: 60px;
-        width: 100%;
-        max-width: 1000px;
-        border-collapse: separate;
-        border-spacing: 0;
-        font-family: Arial, sans-serif;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        border-radius: 8px;
-        overflow: visible; /* Prevent content overflow */
-        table-layout: fixed; /* Ensures width enforcement */
-    }
-
-        .BillTable-container th,
-        .BillTable-container td {
-            max-height: 60px;
-            padding: 8px;
-            font-size: 12px;
-            border: 1px solid #ddd;
-            white-space: nowrap;
-            position: relative;
-            overflow: visible; /* Prevents width overflow */
-            text-overflow: ellipsis; /* Adds "..." for long text */
-        }
-
-        .BillTable-container thead tr:first-child th {
-            color: white;
-            font-weight: bold;
-            text-align: center;
-            padding: 8px;
-        }
-
-        .BillTable-container th:nth-child(2),
-        .BillTable-container th:nth-child(3),
-        .BillTable-container th:nth-child(4),
-        .BillTable-container th:nth-child(6),
-        .BillTable-container td:nth-child(2),
-        .BillTable-container td:nth-child(3),
-        .BillTable-container td:nth-child(4),
-        .BillTable-container td:nth-child(6) {
-            width: 120px; /* Enforce fixed column widths */
-        }
-
-    .BillTable-header-left {
-        background-color: var(--accent-fill-rest);
-    }
-
-    .BillTable-header-right {
-        background-color: color-mix(in srgb, white 40%, var(--accent-fill-rest) 60%);
-    }
-
-</style>
-<style>
-    .tableBT-wrapper {
-        display: table;
-        width: 100%;
-    }
-
-    .tableBT-container {
-        width: 100%;
-        max-width: 500px;
-        border-collapse: collapse; /* Ensure no space between tables */
-        font-family: Arial, sans-serif;
-    }
-
-        .tableBT-container thead tr:first-child th {
-
-            font-weight: bold;
-            text-align: center;
-            padding: 8px;
-        }
-
-        .tableBT-container th, .tableBT-container td {
-            padding: 8px;
-            font-size: 14px;
-            border: 1px solid #ddd;
-            white-space: nowrap; /* Prevent line breaks */
-            overflow: hidden; /* Prevent content from spilling out */
-            text-overflow: ellipsis; /* Add "..." for overflowing text */
-            align-items: center; /* Vertically center content */
-            justify-content: space-between; /* Push text and icon to the edges */
-        }
-
-    .tableBT-header-left {
-        background-color: var(--accent-fill-rest);
-    }
-
-    .tableBT-container td {
-        border-top: none; /* Remove border between tables */
-    }
-
-    .tableBT-fullwidth {
-        width: 100%; /* Allow the table to stretch within the parent container */
-        max-width: 500px; /* Match the max-width of the first two tables */
-        margin: 0 auto; /* Center the table horizontally within the parent */
-        table-layout: auto; /* Allow columns to adjust based on content */
-    }
-
-        .tableBT-fullwidth th,
-        .tableBT-fullwidth td {
-            white-space: nowrap; /* Keep content in a single line */
-            overflow: hidden; /* Prevent content overflow */
-            text-overflow: ellipsis; /* Truncate with "..." if content exceeds width */
-            padding: 8px; /* Standard padding */
-            text-align: center; /* Center-align text */
-        }
-</style>
-<style>
-    .validation-errors-list {
-        margin: 0;
-        padding-left: 20px; /* Indent the sub-list */
-    }
-
-        .validation-errors-list li {
-            margin-bottom: 5px; /* Adjust spacing between lines */
-            line-height: 1.2; /* Adjust line height for compactness */
-        }
-
-            .validation-errors-list li ul {
-                margin-top: 2px; /* Reduce space before nested lists */
-                padding-left: 15px; /* Indent nested lists */
-            }
-</style>
 <script>
     function triggerFileUpload() {
         document.getElementById("fileInput").click();

@@ -2,7 +2,7 @@
 
 <table class="table-container-light">
     <thead>
-        <tr class="table-caption">
+        <tr class="table-caption-light">
             <th style="text-align: left; border-right: none; font-size: large; padding-left: 10px" colspan="7">
                 Zapewnione posiłki:
                 <FluentIcon Id="MealsInfoId"
@@ -37,7 +37,7 @@
             @if (meal.Duration > 0)
             {
                 <tr>
-                    <td>@meal.StageId</td>
+                    <td class="table-caption-light" style="text-align: center; width: 50px;">@meal.StageId</td>
                     <td>@meal.CountryName</td>
                     <td>
                         <div style="min-width: 100px;">
