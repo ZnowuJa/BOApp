@@ -114,6 +114,7 @@ namespace Domain.Forms.Accounting
         public decimal TotalAllowanceNotPL { get; set; } = 0;
         public decimal TotalPayOut { get; set; } = 0;
         public string TotalPayOutString { get; set; } = string.Empty;
+        public int FormVersion { get; set; } = 1;
 
         public static List<string> GetDefaultStatuses()
         {
