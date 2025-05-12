@@ -7,9 +7,11 @@ using Application.CQRS.AccountingCQRS.SapCostCenters.Queries;
 using Application.CQRS.AccountingCQRS.VATRates.Queries;
 using Application.CQRS.BusinessOperationsCQRS;
 using Application.CQRS.General.Organisations.Queries;
+using Application.CQRS.ITWarehouseCQRS.Currencies.Queries;
 using Application.CQRS.ITWarehouseCQRS.Employees.Queries;
 using Application.Forms.Accounting;
 using Application.Forms.Accounting.BuisnessTravelSmallClasses;
+using Application.ViewModels;
 using Application.ViewModels.Accounting;
 using Application.ViewModels.General;
 
@@ -17,9 +19,12 @@ using Blazored.FluentValidation;
 
 using Domain.Entities.ITWarehouse;
 
+using MediatR;
+
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.FluentUI.AspNetCore.Components;
 using Microsoft.Graph.Models.TermStore;
 using Microsoft.JSInterop;
 
@@ -58,8 +63,15 @@ public partial class BankTransfer_EditPage : ComponentBase
     private bool DisableRejectButton = true;
     private bool DisableSaveButton = true;
     private bool DisableSendButton = true;
-    #endregion
 
+    private bool isOdbiorcaVisible = true;
+    #endregion
+    #region HidingShowingSections
+    private bool Show { get; set; }
+    private bool ShowInvoice { get; set; }
+
+    private bool ShowTaxes { get; set; }
+    #endregion
     #region Dictionaries
     private IEnumerable<CostCenterVm> _costCenters { get; set; }
     private IEnumerable<SapCostCenterVm> _sapCostCenters { get; set; }
@@ -67,6 +79,21 @@ public partial class BankTransfer_EditPage : ComponentBase
     private IEnumerable<VATRateVm> _vatRates { get; set; }
     private List<SimpleLocation> simpleLocations { get; set; }
     private List<SimpleDepartment> simpleDepartments { get; set; }
+    private List<LocationVm> _locations { get; set; } = new List<LocationVm>();
+    private IQueryable<string> FormTypes = new List<string>
+    {
+        "Zwrot do korekty","Uzywane","Polisy","Podatkowe","Inne","Zwrot nadplaty","Proforma","Zwrot do TU","Administracyjne","Okulary","Nowe od Dealera","Clo","PCC","CEPIK"
+    }.AsQueryable();
+    private IEnumerable<CurrencyVm> _currencies {get; set; }
+    private IEnumerable<CurrencyVm> _selectedCurrency { get; set; }
+    private string regexNIP =@"\(^(AT)(U\\d{8}$))|(^(BE)(\\d{10}$))|(^(BG)(\\d{9,10}$))|(^(CY)([0-5|9]\\d{7}[A-Z]$))|(^(CZ)(\\d{8,10})?$)|(^(DE)([1-9]\\d{8}$))|(^(DK)(\\d{8}$))|(^(EE)(10\\d{7}$))|(^(EL)(\\d{9}$))|(^(ES)([0-9A-Z][0-9]{7}[0-9A-Z]$))|(^(EU)(\\d{9}$))|(^(FI)(\\d{8}$))|(^(FR)([0-9A-Z]{2}[0-9]{9}$))|(^(GB)((?:[0-9]{12}|[0-9]{9}|(?:GD|HA)[0-9]{3})$))|(^(GR)(\\d{8,9}$))|(^(HR)(\\d{11}$))|(^(HU)(\\d{8}$))|(^(IE)([0-9A-Z\\*\\+]{7}[A-Z]{1,2}$))|(^(IT)(\\d{11}$))|(^(LV)(\\d{11}$))|(^(LT)(\\d{9}$|\\d{12}$))|(^(LU)(\\d{8}$))|(^(MT)([1-9]\\d{7}$))|(^(NL)(\\d{9}B\\d{2}$))|(^(NO)(\\d{9}$))|(^(PL)(\\d{10}$))|(^(PT)(\\d{9}$))|(^(RO)([1-9]\\d{1,9}$))|(^(RU)(\\d{10}$|\\d{12}$))|(^(RS)(\\d{9}$))|(^(SI)([1-9]\\d{7}$))|(^(SK)([1-9]\\d[(2-4)|(6-9)]\\d{7}$))|(^(SE)(\\d{10}01$))\";
+    #endregion
+
+    #region Styling
+    private JustifyContent Justification = JustifyContent.FlexStart;
+    private int Spacing = 1;
+
+
     #endregion
     #region Others
     private OrganisationVm _organisation { get; set; }
@@ -109,10 +136,10 @@ public partial class BankTransfer_EditPage : ComponentBase
 
         await SetupForm(formItem.Status);
     }
-
     private async Task SetupForm(string status)
     {
         ResetForm();
+        formItem.Currency = _currencies.Where(c => c.Name == "PLN").FirstOrDefault();
         if (strej)
             await SetupFormRejestracja();
         else if (stal1 || stal2 || stal3)
@@ -140,6 +167,9 @@ public partial class BankTransfer_EditPage : ComponentBase
         DisableRejectButton = true;
         DisableSaveButton = false;
         DisableSendButton = false;
+        var tempCurrencies = new List<CurrencyVm>();
+        tempCurrencies.Add(formItem.Currency);
+        _selectedCurrency = tempCurrencies.AsEnumerable();
     }
     private async Task SetupFormAprobata(string status)
     {
@@ -263,7 +293,10 @@ public partial class BankTransfer_EditPage : ComponentBase
             })
             .Distinct()
             .ToList();
+        _currencies = await _mediator.Send( new GetAllCurrenciesQuery());
     }
+
+
     private string GetNextStatus(BusinessTravelFormVm form)
     {
         string newStatus = string.Empty;
@@ -299,6 +332,74 @@ public partial class BankTransfer_EditPage : ComponentBase
         return newStatus;
     }
 
+    #region OnSearchMethods
+    private void OnCurrencySearch(OptionsSearchEventArgs<CurrencyVm> e)
+    {
+        if (e.Text != null)
+        {
+            e.Items = _currencies.Where(a =>
+                a.Name.Contains(e.Text, StringComparison.OrdinalIgnoreCase)).ToList();
+        }
+    }
+    private void OnLocationSearch(OptionsSearchEventArgs<LocationVm> e)
+    {
+        if (e.Text != null)
+        {
+            e.Items = _locations.Where(a =>
+                a.DisplayName.Contains(e.Text, StringComparison.OrdinalIgnoreCase) ||
+                a.SapNumber.Contains(e.Text, StringComparison.OrdinalIgnoreCase)).ToList();
+        }
+    }
+
+    #endregion
+
+    #region OnChangeHandlers
+    private async Task HandleCurrencyChange()
+    {
+        formItem.Currency = _selectedCurrency.FirstOrDefault();
+        if (formItem.Currency == null)
+        {
+            formItem.Currency = _currencies.FirstOrDefault(c => c.Name == "PLN");
+        }
+    }
+
+    private async Task HandleIsIndividualChange()
+    {
+        //formItem.IsIndividual = value;
+        Console.WriteLine(formItem.IsIndividual.ToString());
+    }
+    #endregion
+
+    #region ControlsEnebleDisable
+
+    private bool IsControlFormTypeDisabled(bool? b = null)
+    {
+        if (b.HasValue)
+        {
+            return b.Value;
+        }
+
+        //bool result = true;
+        //if (strej)
+        //{
+        //    result = false;
+        //}
+
+        return !strej;
+    }
+    private bool IsControlIndividualDisabled(bool? b = null)
+    {
+        if (b.HasValue)
+        {
+            return b.Value;
+        }
+
+        return !strej;
+    }
+
+    #endregion
+
+
     private async Task ViewAttachment(string url)
     {
         // Navigate to the URL in a new tab
@@ -310,6 +411,7 @@ public partial class BankTransfer_EditPage : ComponentBase
     {
         await JS.InvokeVoidAsync("logMessage", logMessage);
     }
+
     private void HandleValidSubmit()
     {
 

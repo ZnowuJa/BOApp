@@ -65,7 +65,7 @@
     border-spacing: 0;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    overflow: hidden; /* Ensure the rounded corners are visible */
+    overflow: visible;
 }
 
 .table-container-light th,
@@ -73,7 +73,7 @@
     padding: 8px;
     border: none; /* remove all default borders */
     white-space: nowrap; /* Prevent line breaks */
-    overflow: hidden;
+    overflow: visible;
     text-overflow: ellipsis; /* Add "..." for overflowing text */
 }
 
@@ -121,6 +121,26 @@
     padding: 3px 8px 3px 8px; /* Add padding for spacing */
     border: 1px solid #ddd; /* Optional: Match table border */
     border-bottom: none; /* Remove bottom border for seamless look with the table */
+}
+
+@media (max-width: 768px) {
+    .truncate {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
+
+fluent-select[disabled] {
+    --disabled-opacity: 0.9 !important;
+}
+
+fluent-combobox[disabled] {
+    --disabled-opacity: 1 !important;
+}
+
+.disabled {
+    opacity: 0.8 !important;
 }
 
 .x_table-caption-container {

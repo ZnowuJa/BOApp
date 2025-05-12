@@ -57,23 +57,41 @@ public class BankTransferFormVm : IFormAccounting
         public List<RejectReason> RejectReasons { get; set; } = new();
         public string? RejectReason { get; set; } = string.Empty;
     #endregion
+
+    #region Recipient
+
+    public string RecipientName { get; set; }
+    public string RecipientAddressStreet { get; set; }
+    public string RecipientAddressCity { get; set; }
+    public string RecipientAddressPostCode { get; set; }
+    public string RecipientAddressCountry { get; set; }
+    public string RecipientVatId { get; set; }
+    public bool IsIndividual { get; set; } = false;
+
+    #endregion
     #region Document
         public Invoice Document { get; set; }
-        public string BankTransferTitle { get; set; }
+        
+        public decimal Amount { get; set; } = 0;
+
+        public CurrencyVm Currency { get; set; } = new CurrencyVm();
+        //public string BankTransferTitle { get; set; }
         public bool SplitPayment { get; set; }
         
         public string Notes { get; set; }
         
         public List<InvoiceMapping> InvoiceMappings { get; set; }
-        public BankTransferMapping BankTransferMapping { get; set; }
+        public BankTransferMapping BankTransferMapping { get; set; } = new BankTransferMapping();
 
     #endregion
     #region Steering
         public bool SaveOnly { get; set; } = false;
 
-    #endregion
 
-    public void Mapping(Profile profile)
+    #endregion
+        public int FormVersion { get; set; } = 1;
+        public string FormType { get; set; } = string.Empty;
+        public void Mapping(Profile profile)
 {
     profile.CreateMap<BankTransferForm, BankTransferFormVm>()
         .ForMember(dest => dest.FormFiles, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<FormFileVm>>(src.FormFiles)))

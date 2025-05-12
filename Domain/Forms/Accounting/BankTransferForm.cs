@@ -47,8 +47,11 @@ public class BankTransferForm : FormTemplate
         
         public string InvoiceMappings { get; set; }
         public string BankTransferMapping { get; set; }
-    
- 
+        public int FormVersion { get; set; } = 1;
+        public string FormType { get; set; } = string.Empty;
+
+
+
 
     public static List<string> GetDefaultStatuses()
     {
