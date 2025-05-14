@@ -1,0 +1,304 @@
+﻿@page "/rozliczenia"
+@using BOAppFluentUI.Components.Pages.Accounting.SharedComponents
+@using Application.ViewModels.Accounting
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize(Policy = "User")]
+
+<h3>SettlementEditComponent</h3>
+
+<EditForm EditContext="_editContext">
+    <div class="form-section">
+
+        <div class="form-header">
+            <div>Informacje Ogólne</div>
+            <div>Status: @formItem.Status | Numer: @formItem.Number </div>
+        </div>
+
+        <div class="form-grid">
+            <div class="form-group" style="grid-column: span 2;">
+                <label>Rodzaj:</label>
+                <FluentSelect TOption="string" Items="types" @bind-Value="formItem.SettlementType" Style="width: 100%" />
+                @* <FluentValidationMessage For="@(() => Content.NoteContent)" /> *@
+            </div>
+            @* Jeżeli typ to: Faktura to: *@
+            @if (formItem.SettlementType == "Faktura")
+            {
+                <div class="form-group">
+                    <label>
+                        Wystawca Faktury:
+                    </label>
+                    <FluentTextField @bind-Value="formItem.InvoiceIssuer"></FluentTextField>
+                </div>
+                <div class="form-group">
+                    <label>
+
+                        NIP (z kodem kraju):
+                    </label>
+                    <FluentTextField @bind-Value="formItem.TaxIdentificationNumber"></FluentTextField>
+                </div>
+                <div class="form-group">
+                    <label>
+                        Numer Dokumentu:
+                    </label>
+                    <FluentTextField @bind-Value="formItem.DocumentNumber"></FluentTextField>
+                </div>
+                <div class="form-group">
+                    <label>
+                        Data wystawienia:
+                    </label>
+                    <FluentTextField> </FluentTextField>
+                </div>
+                <div class="form-group">
+                    <label>
+                        Tytułem:
+                    </label>
+                    <FluentTextField @bind-Value="formItem.InvoiceTitle"></FluentTextField>
+                </div>
+                <div class="form-group">
+                    <label>
+                        Faktura Brutto:
+                    </label>
+                    <FluentNumberField @bind-Value="formItem.GrossAmount"></FluentNumberField>
+                </div>
+                <div class="form-group">
+                    <label>
+                        Magazyn:
+                    </label>
+                    <FluentSwitch @bind-Value="formItem.IsWarehouseRelated" CheckedMessage="TAK" UncheckedMessage="NIE"></FluentSwitch>
+                </div>
+                <div class="form-group">
+                    <label>
+                        Numer PZ:
+                    </label>
+                    <FluentTextField @bind-Value="formItem.PZNumber" Disabled="!formItem.IsWarehouseRelated"></FluentTextField>
+                </div>
+            }
+            @if (formItem.SettlementType == "Oświadczenie")
+            {
+                <div class="form-group-attachemnt" style="grid-column: span 2;">
+                    <h3>Oświadczenie</h3>
+                    <p>
+                        Niniejszym oświadczam, że w dniu <b>@formItem.DeclarationDate?.ToString("dd.MM.yyyy")</b> poniosłem wydatek tytułem <b>@formItem.DeclarationTitle</b> na rzecz Porsche Inter Auto Polska sp.z o.o.w kwocie <b>@formItem.DeclarationAmount @formItem.DeclarationCurrency</b>. Fakturę za ten wydatek zgubiłem.
+                        <br /><br />Proszę o rozliczenie wydatku.
+                    </p>
+                </div>
+                <div class="form-group">
+                    <label>
+                        Kwota:
+                    </label>
+                    <FluentNumberField @bind-Value="formItem.DeclarationAmount"></FluentNumberField>
+                </div>
+                <div class="form-group">
+                    <label>
+                        Waluta:
+                    </label>
+                    <FluentCombobox TOption="string" @bind-Value="formItem.DeclarationCurrency" Options="CurrencyList"></FluentCombobox>
+                </div>
+                <div class="form-group">
+                    <label>
+                        Tytułem:
+                    </label>
+                    <FluentTextField @bind-Value="formItem.DeclarationTitle"></FluentTextField>
+                </div>
+                <div class="form-group">
+                    <label>
+                        Data:
+                    </label>
+                    <FluentDatePicker @bind-Value="formItem.DeclarationDate"></FluentDatePicker>
+                </div>
+            }
+            @if (formItem.SettlementType == "Paragon bez NIP")
+            {
+                <p>Paragon bez NIP</p>
+            }
+            @if (formItem.SettlementType == "Rozliczenie niewykorzystanej zaliczki")
+            {
+                <p>Rozliczenie niewykorzystanej zaliczki</p>
+            }
+            @if (formItem.SettlementType != "Rozliczenie niewykorzystanej zaliczki" && !(formItem.SettlementType == "Faktura" && formItem.IsWarehouseRelated) )
+            {
+                <div class="form-group" style="grid-column: span 2;">
+                    <label>
+                        Uzupełnij dekretację:
+                    </label>
+                    <table border="1">
+                        <tr>
+                            <td>Test</td>
+                            <td>Test</td>
+
+                        </tr>
+                        <tr>
+                            <td>Test</td>
+                            <td>Test</td>
+
+                        </tr>
+                        <tr>
+                            <td>Test</td>
+                            <td>Test</td>
+
+                        </tr>
+
+                    </table>
+                </div>
+                <div class="form-group">
+                    <label>
+                        Razem:
+                    </label>
+                    <FluentNumberField TValue="decimal"></FluentNumberField>
+                </div>
+            }
+            @if (formItem.SettlementType == "Faktura" || formItem.SettlementType == "Paragon bez NIP")
+            {
+                <div class="form-group-attachemnt" style="grid-column: span 2;">
+                    <label>Załącznik:</label>
+                    <FluentInputFile>
+                        <ChildContent>
+                            <div>
+                                Przeciągnij tutaj pliki, które chcesz przesłać, lub
+                                <label for="my-file-uploader">przeglądaj</label> je na swoim urządzeniu.
+                                <br />
+                                <em>Maksymalnie 4 pliki.</em>
+                            </div>
+                        </ChildContent>
+                    </FluentInputFile>
+                </div>
+            }
+
+            <div class="form-group">
+                <label>
+                    Sposob rozliczenia:
+                </label>
+                <FluentCombobox TOption="string"></FluentCombobox>
+            </div>
+            <div class="form-group">
+                <label>
+                    Kasa:
+                </label>
+                <FluentCombobox TOption="string"></FluentCombobox>
+            </div>
+            <div class="form-group">
+                <label>
+                    Nazwa odbiorcy:
+                </label>
+                <FluentCombobox TOption="string"></FluentCombobox>
+            </div>
+            <div class="form-group">
+                <label>
+                    Numer Konta:
+                </label>
+                <FluentCombobox TOption="string"></FluentCombobox>
+            </div>
+
+            <div class="form-group">
+                <label>
+                    AprobataL1:
+                </label>
+                <FluentCombobox TOption="string"></FluentCombobox>
+            </div>
+
+            <div class="form-group">
+                <label>
+                    AprobataL2:
+                </label>
+                <FluentCombobox TOption="string"></FluentCombobox>
+            </div>
+        </div>
+    </div>
+</EditForm>
+@code {
+    private EditContext _editContext;
+    private SettlementFormVm formItem = new SettlementFormVm();
+
+    private List<string> types = new List<string>
+    {
+        "Faktura",
+        "Oświadczenie",
+        "Paragon bez NIP",
+        "Rozliczenie niewykorzystanej zaliczki"
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (formItem.SettlementType == string.Empty)
+        {
+            formItem.SettlementType = "Faktura";
+        }
+        _editContext = new EditContext(formItem);
+    }
+}
+
+<style>
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+    }
+
+        .form-group label {
+            font-size: 0.95rem;
+            color: #444;
+            font-weight: 500;
+            margin-bottom: 0.3rem;
+            display: block;
+        }
+
+    .form-group-attachemnt {
+        font-size: 0.95rem;
+        color: #444;
+        font-weight: 500;
+        margin-bottom: 0.3rem;
+        display: block;
+    }
+
+    .form-header {
+        display: flex;
+        justify-content: space-between;
+        font-size: 1.2rem;
+        margin-bottom: 1rem;
+        color: #333;
+    }
+
+    .form-section {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #fbfbfb;
+        padding: 2rem;
+        border-radius: 8px;
+        max-width: 960px;
+        margin: 2rem auto;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    }
+
+    .form-section-title {
+        font-size: 1.1rem;
+        color: #333;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-actions {
+        margin-top: 2rem;
+    }
+
+    .file-upload-label {
+        font-size: 0.85rem;
+        color: #0078d4;
+        font-weight: 400;
+        margin-bottom: 0;
+        text-decoration: underline;
+        cursor: pointer;
+    }
+
+    .nowrap-upload {
+        white-space: nowrap;
+    }
+
+</style>
