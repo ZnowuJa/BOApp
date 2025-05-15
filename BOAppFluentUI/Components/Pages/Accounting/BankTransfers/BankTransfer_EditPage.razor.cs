@@ -6,6 +6,7 @@ using Application.CQRS.AccountingCQRS.GLAccounts.Queries;
 using Application.CQRS.AccountingCQRS.SapCostCenters.Queries;
 using Application.CQRS.AccountingCQRS.VATRates.Queries;
 using Application.CQRS.BusinessOperationsCQRS;
+using Application.CQRS.General.ManagerDeputies.Queries;
 using Application.CQRS.General.Organisations.Queries;
 using Application.CQRS.ITWarehouseCQRS.Currencies.Queries;
 using Application.CQRS.ITWarehouseCQRS.Employees.Queries;
@@ -73,10 +74,12 @@ public partial class BankTransfer_EditPage : ComponentBase
     private bool ShowTaxes { get; set; }
     #endregion
     #region Dictionaries
+    private IQueryable<EmployeeVm> _employees { get; set; }
     private IEnumerable<CostCenterVm> _costCenters { get; set; }
     private IEnumerable<SapCostCenterVm> _sapCostCenters { get; set; }
     private IEnumerable<GLAccountVm> _glAccounts { get; set; }
     private IEnumerable<VATRateVm> _vatRates { get; set; }
+    private IEnumerable<VATRateVm> _selectedSplitPaymentVatRate { get; set; }
     private List<SimpleLocation> simpleLocations { get; set; }
     private List<SimpleDepartment> simpleDepartments { get; set; }
     private List<LocationVm> _locations { get; set; } = new List<LocationVm>();
@@ -136,6 +139,8 @@ public partial class BankTransfer_EditPage : ComponentBase
 
         await SetupForm(formItem.Status);
     }
+
+    #region SetupForm
     private async Task SetupForm(string status)
     {
         ResetForm();
@@ -170,6 +175,7 @@ public partial class BankTransfer_EditPage : ComponentBase
         var tempCurrencies = new List<CurrencyVm>();
         tempCurrencies.Add(formItem.Currency);
         _selectedCurrency = tempCurrencies.AsEnumerable();
+        IsSplitPaymentDisabled(false);
     }
     private async Task SetupFormAprobata(string status)
     {
@@ -295,8 +301,59 @@ public partial class BankTransfer_EditPage : ComponentBase
             .ToList();
         _currencies = await _mediator.Send( new GetAllCurrenciesQuery());
     }
+    #endregion
+
+    #region Approvers
+    private List<OrganisationRoleForFormVm> SetApprovers(List<OrganisationRoleVm> rolesIn)
+    {
+        List<OrganisationRoleForFormVm> result = new();
+        foreach (var role in rolesIn)
+        {
+            result.Add(new OrganisationRoleForFormVm(role));
+        }
+        // Find the default role
+        var defaultRole = result.FirstOrDefault(r => r.IsDefault);
+
+        // If a default role exists, move it to the first position
+        if (defaultRole != null)
+        {
+            result.Remove(defaultRole);
+            result.Insert(0, defaultRole);
+        }
+
+        return result;
+        // rolesIn.Select(role => new OrganisationRoleForFormVm(role)).ToList();
+    }
+    private async Task<List<OrganisationRoleForFormVm>> SetManagerAndDeputies(int manId)
+    {
+        var result = new List<OrganisationRoleForFormVm>();
+        var manDep = new ManagerDeputyVm();
+        var man = _employees.Where(e => e.EnovaEmpId == manId).First();
+        OrganisationRoleForFormVm apprL1 = new()
+        {
+            IsDefault = true,
+            EmpId = man.EnovaEmpId,
+            LongName = man.LongName
+        };
+        manDep = await _mediator.Send(new GetManagerDeputyByManagerIdQuery(man.EnovaEmpId));
+        if (manDep != null)
+        {
+            var managerDeputies = manDep.Deputies;
+
+            foreach (var item in manDep.Deputies)
+            {
+                result.Add(new OrganisationRoleForFormVm(item));
+            }
+        }
+
+        result.Insert(0, apprL1);
+
+        return result;
+
+    }
 
 
+    #endregion
     private string GetNextStatus(BusinessTravelFormVm form)
     {
         string newStatus = string.Empty;
@@ -341,6 +398,14 @@ public partial class BankTransfer_EditPage : ComponentBase
                 a.Name.Contains(e.Text, StringComparison.OrdinalIgnoreCase)).ToList();
         }
     }
+    private void OnVATRateSearch(OptionsSearchEventArgs<VATRateVm> e)
+    {
+        if (e.Text != null)
+        {
+            e.Items = _vatRates.Where(a =>
+                a.Percentage.ToString().Contains(e.Text, StringComparison.OrdinalIgnoreCase)).ToList();
+        }
+    }
     private void OnLocationSearch(OptionsSearchEventArgs<LocationVm> e)
     {
         if (e.Text != null)
@@ -362,11 +427,32 @@ public partial class BankTransfer_EditPage : ComponentBase
             formItem.Currency = _currencies.FirstOrDefault(c => c.Name == "PLN");
         }
     }
-
+    private async Task HandleSplitPaymentVatRateChange()
+    {
+        formItem.SplitPaymentVatRate = _selectedSplitPaymentVatRate.FirstOrDefault();
+        if (formItem.SplitPaymentVatRate == null)
+        {
+            formItem.SplitPaymentVatRate = new VATRateVm();
+        }
+    }
     private async Task HandleIsIndividualChange()
     {
-        //formItem.IsIndividual = value;
-        Console.WriteLine(formItem.IsIndividual.ToString());
+        if (!formItem.IsIndividual)
+        {
+            formItem.SplitPayment = false;
+            formItem.SplitPaymentVatRate = new VATRateVm();
+            formItem.SplitPaymentAmount = 0;
+            IsSplitPaymentDisabled(false);
+        } else
+        {
+            IsSplitPaymentDisabled(true);
+        }
+        //Console.WriteLine(formItem.IsIndividual.ToString());
+    }
+    
+    private async Task HandleSplitPaymentAmountChange()
+    {
+        //Console.WriteLine(formItem.IsIndividual.ToString());
     }
     #endregion
 
@@ -395,6 +481,15 @@ public partial class BankTransfer_EditPage : ComponentBase
         }
 
         return !strej;
+    }
+    private bool IsSplitPaymentDisabled(bool? b = null)
+    {
+        if (b.HasValue)
+        {
+            return b.Value;
+        }
+
+        return false;
     }
 
     #endregion

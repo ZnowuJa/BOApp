@@ -4,6 +4,7 @@ using Application.Interfaces.Identity.Services;
 
 using Infrastructure.Identity.Services;
 
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -92,25 +93,6 @@ public static class DiPersistance
                     .GetRequiredService<ITokenValidatedHandlerService>();
 
                     await tokenValidatedHandler.HandleTokenValidation(context);
-
-
-                    //try
-                    //{
-                    //    var tokenValidatedHandler = context.HttpContext
-                    //        .RequestServices
-                    //        .GetRequiredService<ITokenValidatedHandlerService>();
-
-                    //    await tokenValidatedHandler.HandleTokenValidation(context);
-                    //    Console.WriteLine("Token validation handled successfully.");
-                    //}
-                    //catch (Exception ex)
-                    //{
-                    //    Console.WriteLine($"Error during token validation: {ex.Message}");
-                    //}
-
-
-
-
                 }
 
             };
@@ -156,6 +138,7 @@ public static class DiPersistance
             options.FallbackPolicy = options.DefaultPolicy;
         });
 
+        services.AddScoped<IClaimsTransformation, RefreshUserClaims>();
 
         return services;
     }

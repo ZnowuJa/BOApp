@@ -3,6 +3,7 @@
 
 @using Application.Forms.Accounting
 @using Microsoft.AspNetCore.Authorization
+@using Application.ViewModels.Accounting
 
 @attribute [Authorize(Policy = "User")]
 
@@ -32,15 +33,15 @@
 
             <table class="table-container-light">
                 <thead>
-                <tr class="table-caption-light">
-                    <th style="text-align: left; border-right: none; font-size: large;" colspan="2">
-                        Polecenie przelewu 
-                    </th>
-                    <th style="text-align: right; border-left: none; font-size: large;" colspan="2">
-                        Status: @formItem.Status  @(string.IsNullOrEmpty(formItem.Number) ? "" : "| Numer: " + formItem.Number)
+                    <tr class="table-caption-light">
+                        <th style="text-align: left; border-right: none; font-size: large;" colspan="2">
+                            Polecenie przelewu 
+                        </th>
+                        <th style="text-align: right; border-left: none; font-size: large;" colspan="2">
+                            Status: @formItem.Status  @(string.IsNullOrEmpty(formItem.Number) ? "" : "| Numer: " + formItem.Number)
 
-                    </th>
-                </tr>
+                        </th>
+                    </tr>
                 </thead>
             </table>
 
@@ -58,17 +59,17 @@
                 </FluentGridItem>
 
                 <FluentGridItem xs="4">
-                <div class="card grid-card" >
-                    <span class="truncate">
+                    <div class="card grid-card" >
+                        <span class="truncate">
                             <b>Rodzaj przelewu:</b>
                         </span>
                         <div>
                             <FluentSelect TOption="string"
-                                          Disabled="@IsControlFormTypeDisabled()"
-                                          Items="@FormTypes"
-                                          Width="180px"
-                                          Placeholder="wybierz rodzaj przelewu..."
-                                          @bind-Value="@formItem.FormType" />
+                            Disabled="@IsControlFormTypeDisabled()"
+                            Items="@FormTypes"
+                            Width="180px"
+                            Placeholder="wybierz rodzaj przelewu..."
+                            @bind-Value="@formItem.FormType" />
                         </div>
                     </div>
                 </FluentGridItem>
@@ -81,47 +82,47 @@
                         <div class="card grid-card">
                             <span class="truncate"><b>Nazwa odbiorcy:</b> </span>
                             <FluentTextField @bind-Value=formItem.RecipientName Class="full-width-for-field"></FluentTextField>
-                            
+
                         </div>
                     </FluentGridItem>
                     <FluentGridItem xs="4">
                         <div class="card grid-card">
                             <span class="truncate"><b>Numer NIP:</b> </span>
                             <FluentTextField @bind-Value=formItem.RecipientVatId Class="full-width-for-field"></FluentTextField>
-                            
+
                         </div>
                     </FluentGridItem>
                     <FluentGridItem xs="4">
                         <div class="card grid-card">
                             <span class="truncate"><b>Ulica:</b> </span>
                             <FluentTextField @bind-Value=formItem.RecipientAddressStreet Class="full-width-for-field"></FluentTextField>
-                            
+
                         </div>
                     </FluentGridItem>
                     <FluentGridItem xs="4">
                         <div class="card grid-card">
                             <span class="truncate"><b>Kod pocztowy:</b> </span>
                             <FluentTextField @bind-Value=formItem.RecipientAddressPostCode Class="full-width-for-field"></FluentTextField>
-                            
+
                         </div>
                     </FluentGridItem>
                     <FluentGridItem xs="4">
                         <div class="card grid-card">
                             <span class="truncate"><b>Miasto:</b> </span>
                             <FluentTextField @bind-Value=formItem.RecipientAddressCity Class="full-width-for-field"></FluentTextField>
-                            
+
                         </div>
                     </FluentGridItem>
                     <FluentGridItem xs="4">
                         <div class="card grid-card">
                             <span class="truncate"><b>Kraj:</b> </span>
                             <FluentTextField @bind-Value=formItem.RecipientAddressCountry Class="full-width-for-field"></FluentTextField>
-                            
+
                         </div>
                     </FluentGridItem>
                 </FluentGrid>
             </div>
-           
+
             <hr/>
             <div class="DANE PRZELEWU">
 
@@ -146,7 +147,7 @@
                                 <b>Waluta:</b>
                             </span>
                             <div>
-                               @*  <FluentAutocomplete TOption="CurrencyVm"
+                                @*  <FluentAutocomplete TOption="CurrencyVm"
                                                     Disabled="@IsControlFormTypeDisabled()"
                                                     SelectValueOnTab="true"
                                                     AutoComplete="on"
@@ -161,17 +162,17 @@
                                                                                  })"
                                                     Width="180px" /> *@
                                 <FluentAutocomplete TOption="CurrencyVm"
-                                                    Disabled="@IsControlFormTypeDisabled()"
-                                                    SelectValueOnTab="true"
-                                                    AutoComplete="on"
-                                                    MaximumOptionsSearch="30"
-                                                    OnOptionsSearch="@OnCurrencySearch"
-                                                    Placeholder="wybierz walutę..."
-                                                    MaximumSelectedOptions="1"
-                                                    OptionText="@(p => p.Name)"
-                                                    @bind-SelectedOptions="@_selectedCurrency"
-                                                    @bind-SelectedOptions:after="@HandleCurrencyChange"
-                                                    Width="180px"/>
+                                Disabled="@IsControlFormTypeDisabled()"
+                                SelectValueOnTab="true"
+                                AutoComplete="on"
+                                MaximumOptionsSearch="30"
+                                OnOptionsSearch="@OnCurrencySearch"
+                                Placeholder="wybierz walutę..."
+                                MaximumSelectedOptions="1"
+                                OptionText="@(p => p.Name)"
+                                @bind-SelectedOptions="@_selectedCurrency"
+                                @bind-SelectedOptions:after="@HandleCurrencyChange"
+                                Width="180px"/>
                                 <FluentValidationMessage For="@(() => formItem.Currency)" class="validation-error"/>
                             </div>
                         </div>
@@ -190,7 +191,7 @@
 
                         </div>
                     </FluentGridItem>
-@*                     <FluentGridItem xs="4">
+                    @*                     <FluentGridItem xs="4">
                         <div class="card grid-card">
                             <span class="truncate"><b>Kraj:</b> </span>
                             <FluentTextField @bind-Value=formItem.RecipientAddressCountry Class="full-width-for-field"></FluentTextField>
@@ -204,33 +205,61 @@
                                 Disabled = "@IsControlIndividualDisabled()"
                                 @bind-Value="@formItem.IsIndividual"
                                 @bind-Value:after="@HandleIsIndividualChange" />
-                            </div>
+                        </div>
                     </FluentGridItem>
                 </FluentGrid>
 
             </div>
-            <table class="table-container-light">
-                <thead>
-                <tr>
-                    <th style="width: 130px;">Kwota</th>
-                    <th style="width: 150px;">Waluta</th>
-                    <th style="width: 130px;">Tytułem</th>
-                    <th style="width: 130px;">Kod</th>
-                    <th style="width: 130px;">Miejscowość</th>
-                    <th style="width: 130px;">Kraj</th>
 
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td> TUTAJ Data</td>
-                    <td> TUTAJ Kwota</td>
-                    <td> TUTAJ Waluta</td>
-                    <td> TUTAJ Nadawca</td>
-                    <td> TUTAJ Odbiorca</td>
-                </tr>
-                </tbody>
-            </table>
+            <div class="SPLITPAYMENT">
+                <FluentGrid Spacing="@Spacing" AdaptiveRendering="true" Justify="@Justification"  Style="padding: 1px; ">
+                    <FluentGridItem xs="4">
+                        <div class="card grid-card">
+
+                            <span class="truncate"><b>Czy Split Payment? </b> </span>
+                            <FluentSwitch 
+                                Disabled="@IsSplitPaymentDisabled()"
+                                @bind-Value="@formItem.SplitPayment"
+                             />
+
+                        </div>
+                    </FluentGridItem>
+                    @if (formItem.SplitPayment)
+                    {
+                        <FluentGridItem xs="4">
+                            <div class="card grid-card">
+
+                                <span class="truncate"><b>Stawka VAT: </b> </span>
+                                <FluentAutocomplete TOption="VATRateVm"
+                                                    Disabled="@IsSplitPaymentDisabled()"
+                                                    SelectValueOnTab="true"
+                                                    AutoComplete="on"
+                                                    MaximumOptionsSearch="30"
+                                                    OnOptionsSearch="@OnVATRateSearch"
+                                                    Placeholder="wybierz walutę..."
+                                                    MaximumSelectedOptions="1"
+                                                    OptionText="@(p => p.Name)"
+                                                    @bind-SelectedOptions="@_selectedSplitPaymentVatRate"
+                                                    @bind-SelectedOptions:after="@HandleSplitPaymentVatRateChange"
+                                                    Width="180px" />
+
+
+                            </div>
+                        </FluentGridItem>
+                        <FluentGridItem xs="4">
+                            <div class="card grid-card">
+
+                                <span class="truncate"><b>Kwota VAT: </b> </span>
+                                <InputNumber class="full-width-for-field customFluentNumber"
+                                    @bind-Value="@formItem.SplitPaymentAmount"
+                                    @bind-Value:after="@HandleSplitPaymentAmountChange" />
+
+                            </div>
+                        </FluentGridItem>
+                    }
+                </FluentGrid>
+            </div>
+
         </EditForm>
     }
     else
