@@ -26,7 +26,7 @@
                             Nazwa: <span class="required">*</span>
                         </td>
                         <td>
-                            <FluentTextField @bind-Value="@Content.Name" Placeholder="Wprowadź nazwę..." @oninput="OnInputChanged" style="width: 250px" />
+                            <FluentTextField @bind-Value="@Content.Name" @oninput="OnInputChanged" style="width: 250px" />
                             <FluentValidationMessage For="@(() => Content.Name)" />
                         </td>
                     </tr>
@@ -35,7 +35,7 @@
                             Oddział:
                         </td>
                         <td>
-                            <FluentTextField @bind-Value="@Content.Branch" Placeholder="Wprowadź nazwę oddziału..." @oninput="OnInputChanged" style="width: 250px"/>
+                            <FluentTextField @bind-Value="@Content.Branch" @oninput="OnInputChanged" style="width: 250px"/>
                             <FluentValidationMessage For="@(() => Content.Branch)" />
                         </td>
                     </tr>
@@ -45,7 +45,7 @@
                             Pełna nazwa:
                         </td>
                         <td>
-                            <FluentTextField Value="@(Content.Name + " - " + Content.Branch)" ReadOnly="true" Placeholder="Wprowadź pełną nazwę..." style="width: 250px" />
+                            <FluentTextField Value="@(Content.Name + " - " + Content.Branch)" ReadOnly="true" style="width: 250px" />
                             <FluentValidationMessage For="@(() => Content.LongName)" />
                         </td>
                     </tr>
@@ -54,7 +54,7 @@
                             Ulica: <span class="required">*</span>
                         </td>
                         <td>
-                            <FluentTextField @bind-Value="@Content.Street" Placeholder="Wprowadź ulicę..." style="width: 250px" />
+                            <FluentTextField @bind-Value="@Content.Street" style="width: 250px" />
                             <FluentValidationMessage For="@(() => Content.Street)" />
                         </td>
                     </tr>
@@ -63,7 +63,7 @@
                             Miasto: <span class="required">*</span>
                         </td>
                         <td>
-                            <FluentTextField @bind-Value="@Content.City" Placeholder="Wprowadź miasto..." style="width: 250px" />
+                            <FluentTextField @bind-Value="@Content.City" style="width: 250px" />
                             <FluentValidationMessage For="@(() => Content.City)" />
                         </td>
                     </tr>
@@ -72,7 +72,7 @@
                             Kod pocztowy: <span class="required">*</span>
                         </td>
                         <td>
-                            <FluentTextField @bind-Value="@Content.PostalCode" Placeholder="Wprowadź kod pocztowy..." style="width: 250px"/>
+                            <FluentTextField @bind-Value="@Content.PostalCode" style="width: 250px"/>
                             <FluentValidationMessage For="@(() => Content.PostalCode)" />
                         </td>
                     </tr>
@@ -81,7 +81,7 @@
                             Kraj:
                         </td>
                         <td>
-                            <FluentTextField @bind-Value="@Content.Country" Placeholder="Wprowadź kraj..." style="width: 250px" />
+                            <FluentTextField @bind-Value="@Content.Country" style="width: 250px" />
                             <FluentValidationMessage For="@(() => Content.Country)" />
                         </td>
                     </tr>
@@ -90,7 +90,7 @@
                             Nr konta bankowego:
                         </td>
                         <td>
-                            <FluentTextField @bind-Value="@Content.BankAccountNumber" Placeholder="Wprowadź nr konta..." style="width: 250px"/>
+                            <FluentTextField @bind-Value="@Content.BankAccountNumber" style="width: 250px"/>
                             <FluentValidationMessage For="@(() => Content.BankAccountNumber)" />
                         </td>
                     </tr>
@@ -99,7 +99,7 @@
                             VAT ID:
                         </td>
                         <td>
-                            <FluentTextField @bind-Value="@Content.VatId" Placeholder="Wprowadź VAT..." style="width: 250px" />
+                            <FluentTextField @bind-Value="@Content.VatId" style="width: 250px" />
                             <FluentValidationMessage For="@(() => Content.VatId)" />
                         </td>
                     </tr>
@@ -108,7 +108,7 @@
                             Identyfikator SAP:
                         </td>
                         <td>
-                            <FluentTextField @bind-Value="@Content.SAPId" Placeholder="Wprowadź ID SAP..." style="width: 250px" />
+                            <FluentTextField @bind-Value="@Content.SAPId" style="width: 250px" />
                             <FluentValidationMessage For="@(() => Content.SAPId)" />
                         </td>
                     </tr>
@@ -119,9 +119,17 @@
                         <td>
                             <FluentSelect Items="@_partnerTypes"
                                             @bind-Value="SelectedType"
-                                            Placeholder="Wybierz typ partnera..."
                                             Width="200" />
                             <FluentValidationMessage For="@(() => Content.Type)" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="table-caption">
+                            Lokalizacja:
+                        </td>
+                        <td>
+                            <FluentTextField @bind-Value="@Content.Location" style="width: 250px" />
+                            <FluentValidationMessage For="@(() => Content.Location)" />
                         </td>
                     </tr>
                 </tbody>

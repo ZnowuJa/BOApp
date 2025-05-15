@@ -24,7 +24,8 @@ else
         <FluentLabel Typo="Typography.Subject">
             <FluentButton BackgroundColor="var(--accent-fill-rest)"
                           Color="var(--neutral-fill-rest)"
-                          OnClick="ToggleVisibility">
+                          OnClick="ToggleVisibility"
+                          style="margin-bottom: 10px">
                 Pokaż kolumny:
                 @ToggleIcon
             </FluentButton>
@@ -127,7 +128,8 @@ else
         new FilterColumn<BusinessPartnerVm> { FirstRow = false, Label = "Numer konta", Property = bp => bp.BankAccountNumber, IsVisible = false, Width = "1FR" },
         new FilterColumn<BusinessPartnerVm> { FirstRow = false, Label = "NIP", Property = bp => bp.VatId, IsVisible = false, Width = "1FR" },
         new FilterColumn<BusinessPartnerVm> { FirstRow = false, Label = "ID SAP", Property = bp => bp.SAPId, IsVisible = false, Width = "1FR" },
-        new FilterColumn<BusinessPartnerVm> { FirstRow = false, Label = "Typ", Property = bp => bp.Type.ToString(), IsVisible = true, Width = "1FR" }
+        new FilterColumn<BusinessPartnerVm> { FirstRow = false, Label = "Typ", Property = bp => bp.Type.ToString(), IsVisible = true, Width = "1FR" },
+        new FilterColumn<BusinessPartnerVm> { FirstRow = false, Label = "Lokalizacja", Property = bp => bp.Location, IsVisible = false, Width = "1FR" }
     };
 
     private async Task View(BusinessPartnerVm item)

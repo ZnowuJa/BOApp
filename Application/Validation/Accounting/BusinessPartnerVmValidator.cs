@@ -58,6 +58,9 @@ namespace Application.Validation.Accounting
 
             RuleFor(x => x.Type)
                 .IsInEnum().WithMessage("Musisz wybrać poprawny typ partnera.");
+
+            RuleFor(x => x.Location)
+                .MaximumLength(20).WithMessage("Lokalizacja może mieć maksymalnie 10 znaków.");
         }
     }
 }
