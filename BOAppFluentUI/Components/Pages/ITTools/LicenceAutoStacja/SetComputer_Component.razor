@@ -16,7 +16,7 @@
     <FluentButton Appearance="Appearance.Accent" OnClick="@SaveAsync">Przypisz komputer</FluentButton>
     </div>
 </EditForm>
-
+<hr style="width: 830px;" />
 @if (isLoading)
 {
     <div style="margin-top: 1rem;">
@@ -44,16 +44,16 @@ else if (!string.IsNullOrEmpty(Message))
     
     private async Task SaveAsync()
     {
-        Content.Nazwa = Content.Nazwa?.Trim();
-        Content.PunktTelefon = Content.PunktTelefon?.Trim();
-        Console.WriteLine("SaveAsync starts...");
+        Content.Nazwa = Content.Nazwa?.Trim().ToUpper();
+        Content.PunktTelefon = Content.PunktTelefon?.Trim().ToUpper();
+        //Console.WriteLine("SaveAsync starts...");
         if (_editContext.Validate())
         {
             isLoading = true;
             StateHasChanged();
             try
             {
-                Console.WriteLine("EditContext Validation OK!...");
+                //Console.WriteLine("EditContext Validation OK!...");
                 var result = await _mediator.Send(new CheckLicenseQuery(Content.Nazwa));
 
                 if (result)
@@ -69,7 +69,7 @@ else if (!string.IsNullOrEmpty(Message))
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Błąd: {ex.Message}");
+                //Console.WriteLine($"Błąd: {ex.Message}");
                 Message = $"Błąd: {ex.Message}";
             }
             finally
@@ -80,7 +80,7 @@ else if (!string.IsNullOrEmpty(Message))
         }
         else
         {
-            Console.WriteLine("EditContext Validation NOT OK!...");
+            //Console.WriteLine("EditContext Validation NOT OK!...");
         }
     }
 }

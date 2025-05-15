@@ -6,50 +6,74 @@
 <h3>Sprawdzenie punktów licencji</h3>
 
 <EditForm EditContext="_context">
-    <DataAnnotationsValidator/>
+    <DataAnnotationsValidator />
     <FluentTextField @bind-Value="Content.Nazwa" Label="Nazwa licencji"></FluentTextField>
-    <FluentValidationMessage For="@(() => Content.Nazwa)"/>
+    <FluentValidationMessage For="@(() => Content.Nazwa)" />
     <div>
         <FluentButton Appearance="Appearance.Accent" OnClick="@PrintLicense">Sprawdź przypisanie</FluentButton>
     </div>
 </EditForm>
-
-@if (!string.IsNullOrEmpty(LicenseList))
+<hr style="width: 830px;" />
+@if (isLoading)
+{
+    <div style="margin-top: 1rem;">
+        <FluentProgressRing />
+    </div>
+}
+else if (!string.IsNullOrEmpty(LicenseList))
 {
     <div>
-        <h4>Licencja @Content.Nazwa może przełączyć się do:</h4>
-        <pre>@LicenseList</pre>
+        <h4>Licencja <b>@Content.Nazwa</b> może przełączyć się do:</h4>
+        @foreach (var licence in LicenseList.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+        {
+            <div>@licence<br /></div>
+        }
     </div>
 }
 
 @code {
     private MysystemPunktLicenceVm Content { get; set; } = new MysystemPunktLicenceVm();
     private EditContext _context;
-    
+    private string LicenseList { get; set; }
+    private bool isLoading = false;
+
     protected override void OnInitialized()
     {
         _context = new EditContext(Content);
     }
-    
-    private string LicenseList { get; set; }
-    
+
     private async Task PrintLicense()
     {
-        try
+        Content.Nazwa = Content.Nazwa?.Trim().ToUpper();
+        if (_context.Validate())
         {
-            LicenseList = await _mediator.Send(new GetLicenseConnectionsQuery(@Content.Nazwa));
-            // Wyświetl informację
-            Console.WriteLine($"Licencja {Content.Nazwa} może przełączyć się do: \n\n{LicenseList}");
-            if (string.IsNullOrEmpty(LicenseList))
+            isLoading = true;
+            StateHasChanged();
+            try
             {
-                LicenseList = "Nie ma dopisanych innych punktów do tej licencji";
+                LicenseList = await _mediator.Send(new GetLicenseConnectionsQuery(@Content.Nazwa));
+                // Wyświetl informację
+                //Console.WriteLine($"Licencja {Content.Nazwa} może przełączyć się do: \n\n{LicenseList}");
+                if (string.IsNullOrEmpty(LicenseList))
+                {
+                    LicenseList = "Nie ma dopisanych innych punktów do tej licencji";
+                }
+            }
+            catch (Exception ex)
+            {
+                // Obsłuż błąd
+                //Console.WriteLine($"Błąd: {ex.Message}");
+                LicenseList = $"Błąd: {ex.Message}";
+            }
+            finally
+            {
+                isLoading = false;
+                StateHasChanged();
             }
         }
-        catch (Exception ex)
+        else
         {
-            // Obsłuż błąd
-            Console.WriteLine($"Błąd: {ex.Message}");
-            LicenseList = $"Błąd: {ex.Message}";
+            //Console.WriteLine("EditContext Validation NOT OK!...");
         }
     }
 }

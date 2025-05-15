@@ -7,7 +7,7 @@ namespace Application.ViewModels.AutoStacja;
 
 public class MysystemPunktComputerVm : IMapFrom<MysystemPunkt>
 {
-    [Required(ErrorMessage = "Pole Nazwa Komputera jest wymagana.")]
+    [Required(ErrorMessage = "Pole Nazwa Komputera jest wymagane.")]
     public string? PunktTelefon { get; set; }
 
     public void Mapping(Profile profile)
