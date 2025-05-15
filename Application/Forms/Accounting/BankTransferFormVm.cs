@@ -1,12 +1,14 @@
-﻿using Application.Interfaces;
+﻿using Application.AdHocJobs;
+using Application.Interfaces;
 using Application.ViewModels;
 using Application.ViewModels.Accounting;
 using Application.ViewModels.General;
-using Microsoft.Graph.Models;
-using RejectReason = Application.Forms.Accounting.BuisnessTravelSmallClasses.RejectReason;
-using Domain.Forms.Accounting;
-using Application.AdHocJobs;
+
 using AutoMapper;
+
+using Domain.Forms.Accounting;
+
+using RejectReason = Application.Forms.Accounting.BuisnessTravelSmallClasses.RejectReason;
 namespace Application.Forms.Accounting;
 
 public class BankTransferFormVm : IFormAccounting
@@ -77,6 +79,8 @@ public class BankTransferFormVm : IFormAccounting
         public CurrencyVm Currency { get; set; } = new CurrencyVm();
         //public string BankTransferTitle { get; set; }
         public bool SplitPayment { get; set; }
+        public VATRateVm SplitPaymentVatRate { get; set; }
+        public decimal SplitPaymentAmount { get; set; }
         
         public string Notes { get; set; }
         
