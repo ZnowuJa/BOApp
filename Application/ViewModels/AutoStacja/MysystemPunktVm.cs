@@ -10,9 +10,10 @@ public class MysystemPunktVm : IMapFrom<MysystemPunkt>
     public long MysystemPunktId { get; set; }
 
     public long? JednostkaOrgId { get; set; }
+    [Required(ErrorMessage = "Pole Nazwa Licencji jest wymagane.")]
     public string? Nazwa { get; set; }
     
-    [Required(ErrorMessage = "Pole Nazwa Komputera jest wymagana.")]
+    [Required(ErrorMessage = "Pole Nazwa Komputera jest wymagane.")]
     public string? PunktTelefon { get; set; }
     public string? PunktEmail { get; set; }
     public void Mapping(Profile profile)

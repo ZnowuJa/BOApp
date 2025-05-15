@@ -13,68 +13,73 @@
         <FluentButton Appearance="Appearance.Accent" OnClick="@SaveAsync">Sprawdź przypisanie</FluentButton>
     </div>
 </EditForm>
-
+<hr style="width: 830px;" />
 <div>
-    <h3>----</h3>
-    <p>Komputer: <b>@Content.PunktTelefon</b></p>
-    <p>Ma przypisaną licencję: <b>@LicenceName</b></p>
+    @if (isLoading)
+    {
+        <FluentProgressRing />
+    }
+    else
+    {
+    @if (!string.IsNullOrEmpty(LicenceName))
+{
+        <p>Komputer: <b>@Content.PunktTelefon</b></p>
+        <p>Ma przypisaną licencję: <b>@LicenceName</b></p>
+    }
+    }
 </div>
 
+
 @code {
-    private MysystemPunktVm Content { get; set; } = new MysystemPunktVm();
+    private MysystemPunktComputerVm Content { get; set; } = new MysystemPunktComputerVm();
     private EditContext _editContextCheck;
     string LicenceName { get; set; }
     bool isValidate = false;
+    bool isLoading = false;
 
     protected override void OnInitialized()
     {
         _editContextCheck = new EditContext(Content);
     }
 
-    
-    
     private async Task SaveAsync()
     {
-        Console.WriteLine("SaveAsync starts...");
-        Console.WriteLine($"Before sync: PunktTelefon = {Content.PunktTelefon}");
-        // Ręczne wymuszenie odświeżenia modelu (jeśli konieczne)
-        Content.PunktTelefon = Content.PunktTelefon?.Trim();
-    
-        // Ponowny log po synchronizacji
-        Console.WriteLine($"After sync: PunktTelefon = {Content.PunktTelefon}");
-        
+        //Console.WriteLine($"PunktTelefon przed Trim = {Content.PunktTelefon}");
+        Content.PunktTelefon = Content.PunktTelefon?.Trim().ToUpper();
+        //Console.WriteLine($"Usunięcie białych znaków: PunktTelefon = {Content.PunktTelefon}");
+
         isValidate = _editContextCheck.Validate();
         if (isValidate)
         {
             try
             {
-                Console.WriteLine("EditContext Validation OK!...");
-
-                // Wywołanie handlera Mediatora
+                isLoading = true;
+                //Console.WriteLine("EditContext Validation OK!...");
                 LicenceName = await _mediator.Send(new GetLicencesByPcQuery(Content.PunktTelefon));
-                // Przypisanie wyniku do Content.Nazwa
-                //Content.Nazwa = result?.Nazwa ?? "Brak danych dla podanej nazwy komputera";
-                StateHasChanged();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Błąd: {ex.Message}");
+                //Console.WriteLine($"Błąd: {ex.Message}");
                 LicenceName = "Do tego komputera nie ma przypisanych licencji";
+            }
+            finally
+            {
+                isLoading = false;
+                                StateHasChanged();
             }
         }
         else
         {
-            Console.WriteLine("EditContext Validation NOT OK!...");
+            //Console.WriteLine("EditContext Validation NOT OK!...");
             LicenceName = "Błędne dane wejściowe.";
         }
         if (!isValidate)
         {
-            Console.WriteLine("Validation failed. Errors:");
-            foreach (var message in _editContextCheck.GetValidationMessages())
-            {
-                Console.WriteLine($"Validation Error: {message}");
-            }
+            //Console.WriteLine("Validation failed. Errors:");
+            // foreach (var message in _editContextCheck.GetValidationMessages())
+            // {
+            //     Console.WriteLine($"Validation Error: {message}");
+            // }
         }
     }
-
 }

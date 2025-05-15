@@ -8,6 +8,7 @@ using Domain.Entities.BusinessOperations;
 using Domain.Entities.CoC;
 using Domain.Entities.Common;
 using Domain.Entities.ITWarehouse;
+using Domain.Entities.ITTools.LicenceAutoStacja;
 using Domain.Forms;
 using Domain.Forms.Accounting;
 using Domain.Forms.ITForms;
@@ -128,6 +129,9 @@ public class AppDbContext : IdentityDbContext<AppUser>, IAppDbContext
             .HasMany(x => x.Groups)
             .WithMany(y => y.Instructions)
             .UsingEntity(e => e.ToTable("InstructionGroup"));
+        builder.Entity<SalonInfo>()
+            .ToView("v_SalonInfo")
+            .HasNoKey(); // Mapa do widoku w bazie danych
 
         builder.Entity<CompanyCarRegistrationNumber>()
             .ToView("v_CompanyCars")

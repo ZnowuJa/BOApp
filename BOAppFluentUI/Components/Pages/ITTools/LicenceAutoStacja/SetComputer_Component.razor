@@ -16,8 +16,14 @@
     <FluentButton Appearance="Appearance.Accent" OnClick="@SaveAsync">Przypisz komputer</FluentButton>
     </div>
 </EditForm>
-
-@if (!string.IsNullOrEmpty(Message))
+<hr style="width: 830px;" />
+@if (isLoading)
+{
+    <div style="margin-top: 1rem;">
+        <FluentProgressRing />
+    </div>
+}
+else if (!string.IsNullOrEmpty(Message))
 {
     <div>
         <p>@Message</p>
@@ -28,8 +34,8 @@
     private MysystemPunktVm Content { get; set; } = new MysystemPunktVm();
     private EditContext _editContext;
     private string Message { get; set; }
-    
     private string checkLicence { get; set; }
+    private bool isLoading = false;
 
     protected override void OnInitialized()
     {
@@ -38,14 +44,16 @@
     
     private async Task SaveAsync()
     {
-        Console.WriteLine("SaveAsync starts...");
+        Content.Nazwa = Content.Nazwa?.Trim().ToUpper();
+        Content.PunktTelefon = Content.PunktTelefon?.Trim().ToUpper();
+        //Console.WriteLine("SaveAsync starts...");
         if (_editContext.Validate())
         {
+            isLoading = true;
+            StateHasChanged();
             try
             {
-                Console.WriteLine("EditContext Validation OK!...");
-
-                // Wywołanie handlera Mediatora
+                //Console.WriteLine("EditContext Validation OK!...");
                 var result = await _mediator.Send(new CheckLicenseQuery(Content.Nazwa));
 
                 if (result)
@@ -58,17 +66,21 @@
                 {
                     Message = "System nie może znaleźć podanej licencji";
                 }
-                // Przypisanie wyniku do Content.Nazwa
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Błąd: {ex.Message}");
+                //Console.WriteLine($"Błąd: {ex.Message}");
                 Message = $"Błąd: {ex.Message}";
+            }
+            finally
+            {
+                isLoading = false;
+                StateHasChanged();
             }
         }
         else
         {
-            Console.WriteLine("EditContext Validation NOT OK!...");
+            //Console.WriteLine("EditContext Validation NOT OK!...");
         }
     }
 }
