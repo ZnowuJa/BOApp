@@ -17,15 +17,6 @@ namespace Application.Validation.Accounting
                 .MinimumLength(3).WithMessage("Nazwa musi mieć co najmniej 3 znaki.")
                 .MaximumLength(100).WithMessage("Nazwa może mieć maksymalnie 100 znaków.");
 
-            RuleFor(x => x.Branch)
-                .MinimumLength(3).When(x => !string.IsNullOrWhiteSpace(x.Branch)).WithMessage("Oddział musi mieć co najmniej 3 znaki.")
-                .MaximumLength(100).WithMessage("Oddział może mieć maksymalnie 100 znaków.");
-
-            //RuleFor(x => x.LongName)
-            //    .NotEmpty().WithMessage("Pole 'Pełna nazwa' jest wymagane.")
-            //    .MinimumLength(5).WithMessage("Pełna nazwa musi mieć co najmniej 5 znaków.")
-            //    .MaximumLength(200).WithMessage("Pełna nazwa może mieć maksymalnie 200 znaków.");
-
             RuleFor(x => x.Street)
                 .NotEmpty().WithMessage("Ulica jest wymagana.")
                 .MinimumLength(3).WithMessage("Ulica musi mieć co najmniej 3 znaki.")
@@ -56,11 +47,11 @@ namespace Application.Validation.Accounting
                 .MinimumLength(4).When(x => !string.IsNullOrWhiteSpace(x.SAPId)).WithMessage("SAP ID musi mieć co najmniej 4 znaki.")
                 .MaximumLength(20).WithMessage("SAP ID może mieć maksymalnie 20 znaków.");
 
-            RuleFor(x => x.Type)
-                .IsInEnum().WithMessage("Musisz wybrać poprawny typ partnera.");
+/*            RuleFor(x => x.Type)
+                .IsInEnum().WithMessage("Musisz wybrać poprawny typ partnera.");*/
 
             RuleFor(x => x.Location)
-                .MaximumLength(20).WithMessage("Lokalizacja może mieć maksymalnie 10 znaków.");
+                .MaximumLength(10).WithMessage("Lokalizacja może mieć maksymalnie 10 znaków.");
         }
     }
 }

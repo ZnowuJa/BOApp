@@ -31,7 +31,8 @@ public class BusinessTripStage
     
 }
 
-// public enum StageTypes
+// public
+// StageTypes
 // {
 //     Travel,
 //     LocalTravel,

@@ -119,8 +119,6 @@ else
     {
         new FilterColumn<BusinessPartnerVm> { FirstRow = true, Label = "ID", Property = bp => bp.Id.ToString(), IsVisible = false, Width = "80px" },
         new FilterColumn<BusinessPartnerVm> { FirstRow = true, Label = "Nazwa", Property = bp => bp.Name, IsVisible = true, Width = "1FR" },
-        new FilterColumn<BusinessPartnerVm> { FirstRow = true, Label = "Pełna nazwa", Property = bp => bp.LongName, IsVisible = false, Width = "1FR" },
-        new FilterColumn<BusinessPartnerVm> { FirstRow = true, Label = "Oddział", Property = bp => bp.Branch, IsVisible = true, Width = "1FR" },
         new FilterColumn<BusinessPartnerVm> { FirstRow = true, Label = "Ulica", Property = bp => bp.Street, IsVisible = true, Width = "1FR" },
         new FilterColumn<BusinessPartnerVm> { FirstRow = true, Label = "Kod pocztowy", Property = bp => bp.PostalCode, IsVisible = true, Width = "1FR" },
         new FilterColumn<BusinessPartnerVm> { FirstRow = false, Label = "Miasto", Property = bp => bp.City, IsVisible = true, Width = "1FR" },
@@ -145,7 +143,7 @@ else
 
         var dialog = await _dialogService.ShowDialogAsync<BusinessPartner_EditPage>(item, new DialogParameters()
             {
-                Height = "700px",
+                Height = "570px",
                 Width = "550px",
                 Title = item.Id > 0 ? "Aktualizuj Kontrahneta" : "Nowy Kontrahent",
                 PreventDismissOnOverlayClick = false,

@@ -420,7 +420,7 @@ else
         _locations = await _mediator.Send(new GetLocationsQuery());
 
         var insurerObject = await _mediator.Send(new GetAllBusinessPartnersByTypeNameQuery("Ubezpieczyciel"));
-        insurer = insurerObject.Select(dealer => Regex.Replace(dealer.LongName.Trim(), @"-\s*$", "").TrimEnd()).AsQueryable();
+        //insurer = insurerObject.Select(dealer => Regex.Replace(dealer.LongName.Trim(), @"-\s*$", "").TrimEnd()).AsQueryable();
 
         //insurer = insurerId.Select(dealer => dealer.Name).AsQueryable();
 

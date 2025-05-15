@@ -14,17 +14,17 @@ public class BusinessPartnerVm : IMapFrom<BusinessPartner>
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
-    public string LongName { get; set; } = string.Empty;
-    public string? Branch { get; set; } = string.Empty;
     public string Street { get; set; } = string.Empty;
     public string City { get; set; } = string.Empty;
     public string PostalCode { get; set; } = string.Empty;
-    public string? Country { get; set; } = string.Empty;
+    public string Country { get; set; } = string.Empty;
     public string? BankAccountNumber { get; set; } = string.Empty;
     public string? VatId { get; set; } = string.Empty;
     public string? SAPId { get; set; } = string.Empty;
-    public BusinessPartnerType Type { get; set; }
+    public string Type { get; set; } = string.Empty;
     public string? Location { get; set; } = string.Empty;
+    public string SAPFormType { get; set; } = string.Empty;
+    public string DefaultCurrency { get; set; } = string.Empty;
 
     public void Mapping(Profile profile)
     {
