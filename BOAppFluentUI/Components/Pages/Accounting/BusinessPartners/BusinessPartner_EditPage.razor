@@ -71,7 +71,7 @@
 
                 <div class="form-group">
                     <label>Typ: <span class="required">*</span></label>
-                    <FluentSelect Items="@_partnerTypes" @bind-Value="SelectedType" Width="100%" />
+                    <FluentSelect Items="@_partnerTypes" @bind-Value="Content.Type" Width="100%" />
                     <FluentValidationMessage For="@(() => Content.Type)" />
                 </div>
 
@@ -83,7 +83,7 @@
 
                 <div class="form-group">
                     <label>SAPFormType:</label>
-                    <FluentSelect Items="@_sapFormTypes" @bind-Value="SelectedSAPFormType" Width="100%" />
+                    <FluentSelect Items="@_sapFormTypes" @bind-Value="Content.SAPFormType" Width="100%" />
                     <FluentValidationMessage For="@(() => Content.SAPFormType)" />
                 </div>
 
@@ -130,18 +130,6 @@
     "FIBLA ROP",
     "FREE FORM",
     };
-    
-    private string SelectedType
-    {
-        get => Content.Type;
-        set => Content.Type = value;
-    }
-
-    private string SelectedSAPFormType
-    {
-        get => Content.SAPFormType;
-        set => Content.SAPFormType = value;
-    }
 
     private void OnInputChanged(ChangeEventArgs e)
     {
@@ -182,7 +170,7 @@
 <style>
     .form-grid {
         display: grid;
-        grid-template-columns: repeat(2, 1fr); /* dwie kolumny o równej szerokości */
+        grid-template-columns: repeat(2, 1fr);
         gap: 16px;
     }
 
