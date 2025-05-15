@@ -22,6 +22,7 @@ public class GetLicencesByPcQueryHandler(IAutoStacjaDbContext autoStacjaDbContex
             .Select(x => x.Nazwa)
             .FirstOrDefaultAsync(cancellationToken);
 
-        return licence ?? throw new Exception($"Brak licencji dla komputera: {request.LicenceName}");
+        return licence;
+            /*?? throw new Exception($"Brak licencji dla komputera: {request.LicenceName}")*/
     }
 }
