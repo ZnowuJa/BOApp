@@ -25,6 +25,9 @@ public class BusinessPartnerVm : IMapFrom<BusinessPartner>
     public string? Location { get; set; } = string.Empty;
     public string SAPFormType { get; set; } = string.Empty;
     public string DefaultCurrency { get; set; } = string.Empty;
+    //Selected prop is needed only in Client - do not map it to Domain Entity
+    public bool Selected {get; set;} = false;
+    
 
     public void Mapping(Profile profile)
     {
