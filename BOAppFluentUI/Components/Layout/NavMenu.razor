@@ -30,17 +30,16 @@
                     <FluentNavLink Href="/delegacje" Match="NavLinkMatch.All" Icon="@(new Icons.Regular.Size20.BookInformation())" IconColor="Microsoft.FluentUI.AspNetCore.Components.Color.Accent">Delegacje</FluentNavLink>
                     <FluentNavLink Href="/testforms" Match="NavLinkMatch.All" Icon="@(new Icons.Regular.Size20.TextParagraphKo())" IconColor="Microsoft.FluentUI.AspNetCore.Components.Color.Accent">TestForm</FluentNavLink>
                     <FluentNavLink Href="/zaliczki" Match="NavLinkMatch.All" Icon="@(new Icons.Regular.Size20.MoneyHand())" IconColor="Microsoft.FluentUI.AspNetCore.Components.Color.Accent">Zaliczki</FluentNavLink>
-                    <FluentNavGroup OnClick="OnClick" Title="Narzędzia IT" Icon="@(new Icons.Regular.Size24.Toolbox())">
-                        <ChildContent>
-                            <FluentNavLink Href="/licencjeautostacja" Icon="@(new Icons.Regular.Size20.DocumentBulletList())">Licencje AS</FluentNavLink>
-                        </ChildContent>
-                    </FluentNavGroup>
                 }
-
-
             </AuthorizeView>
 
             <AuthorizeView Policy="Technician">
+                @if (envi == "DEV")
+                {
+                    <FluentNavGroup OnClick="OnClick" Title="Narzędzia IT" Icon="@(new Icons.Regular.Size24.Toolbox())">
+                        <FluentNavLink Href="/licencjeautostacja" Icon="@(new Icons.Regular.Size20.DocumentBulletList())">Licencje AS</FluentNavLink>
+                    </FluentNavGroup>
+                }
                 <FluentNavGroup OnClick="OnClick" Title="Ustawienia" Icon="@(new Icons.Regular.Size24.Settings())">
                     <ChildContent>
                         <FluentNavLink Href="/ksiegowoscustawienia" Icon="@(new Icons.Regular.Size20.PersonAccounts())">Księgowość</FluentNavLink>
