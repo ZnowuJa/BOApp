@@ -18,124 +18,85 @@
 <FluentDialogBody Style="overflow-y: auto; overflow-x: auto;">
     <EditForm EditContext="_editContext">
         <FluentValidationValidator @ref="_fluentValidator" />
-        <div>
-            <table class="table-container">
-                <tbody>
-                    <tr>
-                        <td class="table-caption" style="width: 200px;">
-                            Nazwa: <span class="required">*</span>
-                        </td>
-                        <td>
-                            <FluentTextField @bind-Value="@Content.Name" @oninput="OnInputChanged" style="width: 250px" />
-                            <FluentValidationMessage For="@(() => Content.Name)" />
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="table-caption">
-                            Oddział:
-                        </td>
-                        <td>
-                            <FluentTextField @bind-Value="@Content.Branch" @oninput="OnInputChanged" style="width: 250px"/>
-                            <FluentValidationMessage For="@(() => Content.Branch)" />
-                        </td>
-                    </tr>
-                    <tr>
 
-                        <td class="table-caption">
-                            Pełna nazwa:
-                        </td>
-                        <td>
-                            <FluentTextField Value="@(Content.Name + " - " + Content.Branch)" ReadOnly="true" style="width: 250px" />
-                            <FluentValidationMessage For="@(() => Content.LongName)" />
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="table-caption">
-                            Ulica: <span class="required">*</span>
-                        </td>
-                        <td>
-                            <FluentTextField @bind-Value="@Content.Street" style="width: 250px" />
-                            <FluentValidationMessage For="@(() => Content.Street)" />
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="table-caption">
-                            Miasto: <span class="required">*</span>
-                        </td>
-                        <td>
-                            <FluentTextField @bind-Value="@Content.City" style="width: 250px" />
-                            <FluentValidationMessage For="@(() => Content.City)" />
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="table-caption">
-                            Kod pocztowy: <span class="required">*</span>
-                        </td>
-                        <td>
-                            <FluentTextField @bind-Value="@Content.PostalCode" style="width: 250px"/>
-                            <FluentValidationMessage For="@(() => Content.PostalCode)" />
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="table-caption">
-                            Kraj:
-                        </td>
-                        <td>
-                            <FluentTextField @bind-Value="@Content.Country" style="width: 250px" />
-                            <FluentValidationMessage For="@(() => Content.Country)" />
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="table-caption">
-                            Nr konta bankowego:
-                        </td>
-                        <td>
-                            <FluentTextField @bind-Value="@Content.BankAccountNumber" style="width: 250px"/>
-                            <FluentValidationMessage For="@(() => Content.BankAccountNumber)" />
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="table-caption">
-                            VAT ID:
-                        </td>
-                        <td>
-                            <FluentTextField @bind-Value="@Content.VatId" style="width: 250px" />
-                            <FluentValidationMessage For="@(() => Content.VatId)" />
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="table-caption">
-                            Identyfikator SAP:
-                        </td>
-                        <td>
-                            <FluentTextField @bind-Value="@Content.SAPId" style="width: 250px" />
-                            <FluentValidationMessage For="@(() => Content.SAPId)" />
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="table-caption">
-                            Typ: <span class="required">*</span>
-                        </td>
-                        <td>
-                            <FluentSelect Items="@_partnerTypes"
-                                            @bind-Value="SelectedType"
-                                            Width="200" />
-                            <FluentValidationMessage For="@(() => Content.Type)" />
-                        </td>
-                    </tr>
-                    <tr>
-                        <td class="table-caption">
-                            Lokalizacja:
-                        </td>
-                        <td>
-                            <FluentTextField @bind-Value="@Content.Location" style="width: 250px" />
-                            <FluentValidationMessage For="@(() => Content.Location)" />
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+        <div class="form-section">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Nazwa: <span class="required">*</span></label>
+                    <FluentTextField @bind-Value="@Content.Name" @oninput="OnInputChanged" style="width: 100%;" />
+                    <FluentValidationMessage For="@(() => Content.Name)" />
+                </div>
+
+                <div class="form-group">
+                    <label>Ulica: <span class="required">*</span></label>
+                    <FluentTextField @bind-Value="@Content.Street" style="width: 100%;" />
+                    <FluentValidationMessage For="@(() => Content.Street)" />
+                </div>
+
+                <div class="form-group">
+                    <label>Miasto: <span class="required">*</span></label>
+                    <FluentTextField @bind-Value="@Content.City" style="width: 100%;" />
+                    <FluentValidationMessage For="@(() => Content.City)" />
+                </div>
+
+                <div class="form-group">
+                    <label>Kod pocztowy: <span class="required">*</span></label>
+                    <FluentTextField @bind-Value="@Content.PostalCode" style="width: 100%;" />
+                    <FluentValidationMessage For="@(() => Content.PostalCode)" />
+                </div>
+
+                <div class="form-group">
+                    <label>Kraj:</label>
+                    <FluentTextField @bind-Value="@Content.Country" style="width: 100%;" />
+                    <FluentValidationMessage For="@(() => Content.Country)" />
+                </div>
+
+                <div class="form-group">
+                    <label>Nr konta bankowego:</label>
+                    <FluentTextField @bind-Value="@Content.BankAccountNumber" style="width: 100%;" />
+                    <FluentValidationMessage For="@(() => Content.BankAccountNumber)" />
+                </div>
+
+                <div class="form-group">
+                    <label>VAT ID:</label>
+                    <FluentTextField @bind-Value="@Content.VatId" style="width: 100%;" />
+                    <FluentValidationMessage For="@(() => Content.VatId)" />
+                </div>
+
+                <div class="form-group">
+                    <label>Identyfikator SAP:</label>
+                    <FluentTextField @bind-Value="@Content.SAPId" style="width: 100%;" />
+                    <FluentValidationMessage For="@(() => Content.SAPId)" />
+                </div>
+
+                <div class="form-group">
+                    <label>Typ: <span class="required">*</span></label>
+                    <FluentSelect Items="@_partnerTypes" @bind-Value="Content.Type" Width="100%" />
+                    <FluentValidationMessage For="@(() => Content.Type)" />
+                </div>
+
+                <div class="form-group">
+                    <label>Lokalizacja:</label>
+                    <FluentTextField @bind-Value="@Content.Location" style="width: 100%;" />
+                    <FluentValidationMessage For="@(() => Content.Location)" />
+                </div>
+
+                <div class="form-group">
+                    <label>SAPFormType:</label>
+                    <FluentSelect Items="@_sapFormTypes" @bind-Value="Content.SAPFormType" Width="100%" />
+                    <FluentValidationMessage For="@(() => Content.SAPFormType)" />
+                </div>
+
+                <div class="form-group">
+                    <label>DefaultCurrency:</label>
+                    <FluentTextField @bind-Value="@Content.DefaultCurrency" style="width: 100%;" />
+                    <FluentValidationMessage For="@(() => Content.DefaultCurrency)" />
+                </div>
+            </div>
         </div>
     </EditForm>
+
+
 </FluentDialogBody>
 
 <!-- Footer -->
@@ -156,16 +117,19 @@
 
     private FluentValidationValidator? _fluentValidator;
 
-    private IQueryable<string> _partnerTypes = Enum.GetValues(typeof(BusinessPartnerType))
-    .Cast<BusinessPartnerType>()
-    .Select(e => e.ToString())
-    .AsQueryable();
-
-    private string SelectedType
+    private List<string> _partnerTypes = new List<string>
     {
-        get => Content.Type.ToString();
-        set => Content.Type = Enum.TryParse<BusinessPartnerType>(value, out var result) ? result : Content.Type;
-    }
+    "Ubezpieczyciel",
+    "Dostawca",
+    "Inne",
+    };
+
+    private List<string> _sapFormTypes = new List<string>
+    {
+    "FIBLA POP",
+    "FIBLA ROP",
+    "FREE FORM",
+    };
 
     private void OnInputChanged(ChangeEventArgs e)
     {
@@ -181,7 +145,6 @@
     private async Task SaveAsync()
     {
         Console.WriteLine("SaveAsync starts...");
-        Content.LongName = $"{Content.Name} - {Content.Branch}".TrimEnd('-', ' ').Trim();
         if (_editContext.Validate())
         {
             Console.WriteLine("EditContext Validation OK!...");
@@ -205,8 +168,14 @@
 }
 
 <style>
-    .required {
-        color: red;
-        font-weight: bold;
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
     }
 </style>
