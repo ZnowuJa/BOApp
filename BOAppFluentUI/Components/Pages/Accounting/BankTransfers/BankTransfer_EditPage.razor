@@ -69,14 +69,33 @@
                             Items="@FormTypes"
                             Width="180px"
                             Placeholder="wybierz rodzaj przelewu..."
-                            @bind-Value="@formItem.FormType" />
+                            @bind-Value="@formItem.FormType" 
+                            @bind-Value:after="@HandleFormTypeChange"
+                            />
                         </div>
                     </div>
                 </FluentGridItem>
             </FluentGrid>
             <hr/>
+            @if (ShowBusinessPartners)
+            {
+                <div class="BusinessPartners">
+                    <FluentDataGrid Items = "@_businessPartners" ShowHover = "true" TGridItem="BusinessPartnerVm" >
+                        <SelectColumn 
+                            TGridItem="BusinessPartnerVm"
+                            SelectMode = "@BPGridMode"
+                            Property="@(e => e.Selected)"
+                            OnSelect="HandleSelection"
+                            />
+                        <PropertyColumn Width="100px" Property="@(p => p.Name)" Title="Nazwa" />
+                        <PropertyColumn Width="100px" Property="@(p => p.City)" Title="ID" />
+                        <PropertyColumn Width="100px" Property="@(p => p.Location)" Title="ID" />
 
-            <div class="ODBIORCA" style="display: @(isOdbiorcaVisible ? "block" : "none")" >
+                    </FluentDataGrid>
+
+                </div>
+            }
+            <div class="ODBIORCA" >
                 <FluentGrid Spacing="@Spacing" AdaptiveRendering="true" Justify="@Justification"  Style="padding: 1px; ">
                     <FluentGridItem xs="4">
                         <div class="card grid-card">
@@ -122,7 +141,6 @@
                     </FluentGridItem>
                 </FluentGrid>
             </div>
-
             <hr/>
             <div class="DANE PRZELEWU">
 
@@ -210,7 +228,6 @@
                 </FluentGrid>
 
             </div>
-
             <div class="SPLITPAYMENT">
                 <FluentGrid Spacing="@Spacing" AdaptiveRendering="true" Justify="@Justification"  Style="padding: 1px; ">
                     <FluentGridItem xs="4">

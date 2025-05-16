@@ -25,6 +25,7 @@ public class BusinessPartnerVm : IMapFrom<BusinessPartner>
     public string? SAPId { get; set; } = string.Empty;
     public BusinessPartnerType Type { get; set; }
     public string? Location { get; set; } = string.Empty;
+    public bool Selected { get; set; } = false;
 
     public void Mapping(Profile profile)
     {
