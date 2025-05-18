@@ -1,4 +1,5 @@
 ﻿using System.Security.Cryptography;
+using System.Text.RegularExpressions;
 
 using Application.CQRS.AccountingCQRS.BusinessPartners.Queries;
 using Application.CQRS.AccountingCQRS.BusinessTravels.Queries;
@@ -12,6 +13,7 @@ using Application.CQRS.General.Organisations.Queries;
 using Application.CQRS.ITWarehouseCQRS.Currencies.Queries;
 using Application.CQRS.ITWarehouseCQRS.Employees.Queries;
 using Application.Forms.Accounting;
+using Application.Forms.Accounting.BankTransferSmallClasses;
 using Application.Forms.Accounting.BuisnessTravelSmallClasses;
 using Application.ViewModels;
 using Application.ViewModels.Accounting;
@@ -19,6 +21,7 @@ using Application.ViewModels.General;
 
 using Blazored.FluentValidation;
 
+using Domain.Entities.Accounting;
 using Domain.Entities.ITWarehouse;
 
 using MediatR;
@@ -35,6 +38,7 @@ namespace BOAppFluentUI.Components.Pages.Accounting.BankTransfers;
 public partial class BankTransfer_EditPage : ComponentBase
 {
     #region Declarations
+    #region General
     [Parameter] public int Id { get; set; }
     private EditContext _editContext;
     private FluentValidationValidator? _fluentValidationValidator;
@@ -44,6 +48,7 @@ public partial class BankTransfer_EditPage : ComponentBase
     private bool isLoading { get; set; } = true;
     private bool showForm { get; set; } = false;
     private FormUserContext _userContext = new FormUserContext("Accountant", "Technician");
+    #endregion
 
     #region Steering and Button bools
     private bool strej = false;
@@ -68,6 +73,8 @@ public partial class BankTransfer_EditPage : ComponentBase
 
     private bool isOdbiorcaVisible = true;
 
+    private bool isIsIndividualDisabled = false;
+    private bool isSplitPaymentVisible = true;
 
 
     #endregion
@@ -81,6 +88,8 @@ public partial class BankTransfer_EditPage : ComponentBase
     private bool ShowTaxes { get; set; }
     private bool ShowBusinessPartners => _businessPartners.Count() > 0 && 
     (formItem.FormType == "Uzywane" || formItem.FormType == "Polisy" || formItem.FormType == "Administracyjne" || formItem.FormType == "Podatkowe" || formItem.FormType == "Cło" || formItem.FormType == "PCC");
+    private bool ShowDuty => formItem.FormType == "Clo" ;
+    private bool ShowPccTax => formItem.FormType == "PCC";
     #endregion
     #region Dictionaries
     private IQueryable<EmployeeVm> _employees { get; set; }
@@ -115,6 +124,16 @@ public partial class BankTransfer_EditPage : ComponentBase
     private List<string> allowedEditor { get; set; } = new List<string>();
     private ApprovalVm approvalInfo { get; set; }
     private RejectReason lastRejectReason { get; set; }
+
+
+    #endregion
+    #region Taxes
+    private string duties { get; set; } = string.Empty;
+    //private List<Duty> convertedDuties { get; set; } = new List<Duty>();
+    private IQueryable<Duty> _duties { get; set; } = new List<Duty>().AsQueryable();
+    public string pccTaxes { get; set; } = string.Empty;
+    //public List<PccTax> convertedPccTaxes { get; set; } = new List<PccTax>();
+    public IQueryable<PccTax> _pccTaxes { get; set; } = new List<PccTax>().AsQueryable();
     #endregion
     #endregion
     protected override async Task OnInitializedAsync()
@@ -466,12 +485,21 @@ public partial class BankTransfer_EditPage : ComponentBase
 
     private async Task HandleFormTypeChange()
     {
-        _businessPartners = await _mediator.Send(new GetAllBusinessPartnersByTypeNameQuery(formItem.FormType));
+        formItem.RecipientName = formItem.RecipientVatId = formItem.RecipientAddressCity = formItem.RecipientAddressCountry = formItem.RecipientAddressPostCode = formItem.RecipientAddressStreet = formItem.BankTransferMapping.BankAccountNumber = string.Empty;
 
-        if (formItem.FormType == "")
+        _businessPartners = await _mediator.Send(new GetAllBusinessPartnersByTypeNameQuery(formItem.FormType));
+        formItem.IsIndividual = false;
+        isIsIndividualDisabled = false;
+        isSplitPaymentVisible = true;
+
+
+        if (formItem.FormType == "Clo")
         {
-            
+            formItem.IsIndividual = false;
+            isIsIndividualDisabled = true;
+            isSplitPaymentVisible = false;
         }
+
     }
     private async Task HandleCurrencyChange()
     {
@@ -495,6 +523,7 @@ public partial class BankTransfer_EditPage : ComponentBase
         {
             formItem.SplitPayment = false;
             IsSplitPaymentDisabled(true);
+            isSplitPaymentVisible = false;
         }
         else if (!formItem.IsIndividual)
         {
@@ -502,6 +531,7 @@ public partial class BankTransfer_EditPage : ComponentBase
             formItem.SplitPaymentVatRate = new VATRateVm();
             formItem.SplitPaymentAmount = 0;
             IsSplitPaymentDisabled(false);
+            isSplitPaymentVisible = true;
         }
         //Console.WriteLine(formItem.IsIndividual.ToString());
     }
@@ -509,6 +539,95 @@ public partial class BankTransfer_EditPage : ComponentBase
     private async Task HandleSplitPaymentAmountChange()
     {
         //Console.WriteLine(formItem.IsIndividual.ToString());
+    }
+
+    private async Task HandleDutyChange()
+    {
+        if (!string.IsNullOrWhiteSpace(duties))
+        {
+            var rows = duties
+                .Trim()
+                .Replace("\r\n", "\n")
+                .Split('\n', StringSplitOptions.RemoveEmptyEntries);
+
+            var parsedDuties = new List<Duty>();
+
+            foreach (var row in rows)
+            {
+                // Support both tab and comma as delimiters
+                var cells = Regex.Split(row.Trim(), @"[\t,]");
+
+                if (cells.Length < 6)
+                    continue;
+
+                try
+                {
+                    var duty = new Duty
+                    {
+                        ReceiveDate = DateOnly.Parse(cells[0].Trim()),
+                        DocumentDate = DateOnly.Parse(cells[1].Trim()),
+                        ReferenceNumber = cells[2].Trim(),
+                        NetValue = decimal.TryParse(cells[3].Trim(), out var net) ? net : 0m,
+                        VatValue = decimal.TryParse(cells[4].Trim(), out var vat) ? vat : 0m,
+                        DutyValue = decimal.TryParse(cells[5].Trim(), out var clo) ? clo : 0m
+                    };
+
+                    parsedDuties.Add(duty);
+                }
+                catch
+                {
+                    // Log error if needed
+                }
+            }
+
+            //convertedDuties = parsedDuties;
+            _duties = parsedDuties.AsQueryable();
+        }
+    }
+    private async Task HandlePCCTaxChange()
+    {
+        if (!string.IsNullOrWhiteSpace(pccTaxes))
+        {
+            var rows = duties
+                .Trim()
+                .Replace("\r\n", "\n")
+                .Split('\n', StringSplitOptions.RemoveEmptyEntries);
+
+            var parsedTaxes = new List<PccTax>();
+
+            foreach (var row in rows)
+            {
+                // Support both tab and comma as delimiters
+                var cells = Regex.Split(row.Trim(), @"[\t,]");
+
+                if (cells.Length < 6)
+                    continue;
+
+                try
+                {
+                    var pccTax = new PccTax
+                    {
+
+                        AgreementNumber = cells[2].Trim(),
+                        VIN = cells[6].Trim(),
+                        Amount = decimal.TryParse(cells[9].Trim(), out var vat) ? vat : 0m,
+                        InvoiceNumber = cells[12].Trim(),
+                        LocationNumber = cells[13].Trim(),
+                        GLAccount = cells[14].Trim(),
+                        DepartmentNumber = cells[15].Trim(),
+                    };
+
+                    parsedTaxes.Add(pccTax);
+                }
+                catch
+                {
+                    // Log error if needed
+                }
+            }
+
+            //convertedPccTaxes = parsedTaxes;
+            _pccTaxes = parsedTaxes.AsQueryable();
+        }
     }
     #endregion
 
@@ -550,7 +669,10 @@ public partial class BankTransfer_EditPage : ComponentBase
 
     #endregion
 
-
+    private async Task CheckForm()
+    {
+        _editContext.Validate();
+    }
     private async Task ViewAttachment(string url)
     {
         // Navigate to the URL in a new tab
