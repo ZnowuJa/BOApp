@@ -1,5 +1,6 @@
 ﻿using System.Security.Cryptography;
 
+using Application.CQRS.AccountingCQRS.BusinessPartners.Queries;
 using Application.CQRS.AccountingCQRS.BusinessTravels.Queries;
 using Application.CQRS.AccountingCQRS.CostCenters.Queries;
 using Application.CQRS.AccountingCQRS.GLAccounts.Queries;
@@ -66,12 +67,20 @@ public partial class BankTransfer_EditPage : ComponentBase
     private bool DisableSendButton = true;
 
     private bool isOdbiorcaVisible = true;
+
+
+
+    #endregion
+    #region BusinessPartnersSetup
+    DataGridSelectMode BPGridMode = DataGridSelectMode.Single;
+    IEnumerable<BusinessPartnerVm> SelectedItems = _businessPartners.Where(p => p.Selected);
     #endregion
     #region HidingShowingSections
     private bool Show { get; set; }
     private bool ShowInvoice { get; set; }
-
     private bool ShowTaxes { get; set; }
+    private bool ShowBusinessPartners => _businessPartners.Count() > 0 && 
+    (formItem.FormType == "Uzywane" || formItem.FormType == "Polisy" || formItem.FormType == "Administracyjne" || formItem.FormType == "Podatkowe" || formItem.FormType == "Cło" || formItem.FormType == "PCC");
     #endregion
     #region Dictionaries
     private IQueryable<EmployeeVm> _employees { get; set; }
@@ -83,6 +92,7 @@ public partial class BankTransfer_EditPage : ComponentBase
     private List<SimpleLocation> simpleLocations { get; set; }
     private List<SimpleDepartment> simpleDepartments { get; set; }
     private List<LocationVm> _locations { get; set; } = new List<LocationVm>();
+    private static IQueryable<BusinessPartnerVm> _businessPartners { get; set; }= new List<BusinessPartnerVm>().AsQueryable();
     private IQueryable<string> FormTypes = new List<string>
     {
         "Zwrot do korekty","Uzywane","Polisy","Podatkowe","Inne","Zwrot nadplaty","Proforma","Zwrot do TU","Administracyjne","Okulary","Nowe od Dealera","Clo","PCC","CEPIK"
@@ -300,6 +310,7 @@ public partial class BankTransfer_EditPage : ComponentBase
             .Distinct()
             .ToList();
         _currencies = await _mediator.Send( new GetAllCurrenciesQuery());
+        _businessPartners = await _mediator.Send(new GetAllBusinessPartnerQuery());
     }
     #endregion
 
@@ -419,6 +430,49 @@ public partial class BankTransfer_EditPage : ComponentBase
     #endregion
 
     #region OnChangeHandlers
+
+
+
+    private Task HandleSelection((BusinessPartnerVm Item, bool Selected) e)
+    {
+        // Perform the assignment
+        e.Item.Selected = e.Selected;
+        if (e.Item.Selected)
+        {
+            formItem.RecipientName = e.Item.Name;
+            formItem.RecipientAddressStreet = e.Item.Street;
+            formItem.RecipientAddressCity = e.Item.City;
+            formItem.RecipientAddressPostCode = e.Item.PostalCode;
+            formItem.RecipientAddressCountry = e.Item.Country;
+            formItem.RecipientVatId = e.Item.VatId;
+            formItem.BankTransferMapping.BankAccountNumber = e.Item.BankAccountNumber;
+        } else
+        {
+            formItem.RecipientName = string.Empty;
+            formItem.RecipientAddressStreet = string.Empty;
+            formItem.RecipientAddressCity = string.Empty;
+            formItem.RecipientAddressPostCode = string.Empty;
+            formItem.RecipientAddressCountry = string.Empty;
+            formItem.RecipientVatId = string.Empty;
+            formItem.BankTransferMapping.BankAccountNumber = string.Empty;
+        }
+            // Add any additional logic you want to execute
+            // For example, logging or updating other components
+            Console.WriteLine($"Selected: {e.Item.Name}");
+
+        return Task.CompletedTask;
+    }
+
+
+    private async Task HandleFormTypeChange()
+    {
+        _businessPartners = await _mediator.Send(new GetAllBusinessPartnersByTypeNameQuery(formItem.FormType));
+
+        if (formItem.FormType == "")
+        {
+            
+        }
+    }
     private async Task HandleCurrencyChange()
     {
         formItem.Currency = _selectedCurrency.FirstOrDefault();
@@ -437,15 +491,17 @@ public partial class BankTransfer_EditPage : ComponentBase
     }
     private async Task HandleIsIndividualChange()
     {
-        if (!formItem.IsIndividual)
+        if(formItem.IsIndividual)
+        {
+            formItem.SplitPayment = false;
+            IsSplitPaymentDisabled(true);
+        }
+        else if (!formItem.IsIndividual)
         {
             formItem.SplitPayment = false;
             formItem.SplitPaymentVatRate = new VATRateVm();
             formItem.SplitPaymentAmount = 0;
             IsSplitPaymentDisabled(false);
-        } else
-        {
-            IsSplitPaymentDisabled(true);
         }
         //Console.WriteLine(formItem.IsIndividual.ToString());
     }

@@ -1,5 +1,7 @@
 ﻿using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
+
 using Application.DTOs;
 using Application.ViewModels.General;
 
@@ -16,6 +18,12 @@ public static class AppUtils
     {
         try
         {
+
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
+
             return JsonSerializer.Deserialize<T>(jsonString);
         }
         catch (JsonException)
