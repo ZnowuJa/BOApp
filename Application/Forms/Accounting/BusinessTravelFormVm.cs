@@ -249,6 +249,8 @@ public class BusinessTravelFormVm : IMapFrom<BusinessTravelForm>, IFormAccountin
     public string TotalPayOutString { get; set; } = string.Empty;
     public bool SaveOnly { get; set; } = false;
     public int FormVersion { get; set; } = 1;
+    public string CurrentApproverName { get; set; } = string.Empty;
+
 
 
     public void Mapping(Profile profile)

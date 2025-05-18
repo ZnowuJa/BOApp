@@ -1671,7 +1671,7 @@
                 Date = DateTime.Now,
                 IsApproved = true
             };
-        
+
 
         LoadAutocompleteControls();
 
@@ -1894,6 +1894,7 @@
                 showForm = false;
                 formItem.Approvals.Add(approvalInfo);
                 formItem.Status = GetNextStatus(formItem);
+                SetCurrentApproverName(formItem.Status);
                 if (formItem.Id == 0)
                 {
                     var savedId = await _mediator.Send(new CreateBusinessTripCommand(formItem));
@@ -1921,6 +1922,7 @@
                 await SaveBillFiles();
                 formItem.Approvals.Add(approvalInfo);
                 formItem.Status = GetNextStatus(formItem);
+                SetCurrentApproverName(formItem.Status);
                 var updatedForm = await _mediator.Send(new UpdateBusinessTripCommand(formItem));
                 var saveResult = await _mediator.Send(new GetBusinessTripByIdQuery(updatedForm.Id));
                 var message = $"Formularz został wysłany do {saveResult.LVL1_EmployeeName} w celu zatwierdzenia.";
@@ -2056,6 +2058,7 @@
             if(strozk)
                 formItem.Approvals.Add(approvalInfo);
             formItem.Status = GetNextStatus(formItem);
+            SetCurrentApproverName(formItem.Status);
             await _mediator.Send(new UpdateBusinessTripCommand(formItem));
             var message = $"Formularz został wysłany!";
             var intent = ToastIntent.Success;
@@ -2067,7 +2070,7 @@
     {
         if(form.Status == "Rejestracja")
         {
-            
+
         }
     }
     private string GetNextStatus(BusinessTravelFormVm form){
@@ -2140,7 +2143,59 @@
 
         return newStatus;
     }
+    private async Task SetCurrentApproverName(string currentNewStatus)
+    {
+        //use the method only after user finishes work - sending or saving document
 
+        if(currentNewStatus == "AprobataL1"){
+            formItem.CurrentApproverName = formItem.LVL1_EmployeeName;
+        } else if(currentNewStatus == "ZaliczkaKasa"){
+            formItem.CurrentApproverName = $"{_organisation.SapNumber}_Kasa";
+
+        } else if(currentNewStatus == "ZaliczkaKsiegowosc"){
+            formItem.CurrentApproverName = $"{_organisation.SapNumber}_Księgowe";
+
+        } else if(currentNewStatus == "ZaliczkaKsiegowoscTL"){
+            formItem.CurrentApproverName = formItem.Level4Approvers.Where(tl => tl.IsDefault).Select(t => t.LongName).First();
+
+        } else if(currentNewStatus == "WyslaneDoRobota"){
+            formItem.CurrentApproverName = "Robot";
+
+        } else if(currentNewStatus == "BladRobota"){
+            formItem.CurrentApproverName = $"{_organisation.SapNumber}_Księgowe";
+
+        } else if(currentNewStatus == "Rozliczenie"){
+            formItem.CurrentApproverName = formItem.EmployeeName;
+
+        } else if(currentNewStatus == "Ksiegowosc"){
+            formItem.CurrentApproverName = $"{_organisation.SapNumber}_Księgowe";
+
+        } else if(currentNewStatus == "KsiegowoscTL"){
+            formItem.CurrentApproverName = formItem.Level4Approvers[0].LongName;
+            // formItem.CurrentApproverName = formItem.Level4Approvers.Where(tl => tl.IsDefault).Select(t => t.LongName).First();
+            Console.WriteLine();
+
+        } else if(currentNewStatus == "AprobataL11"){
+            formItem.CurrentApproverName = formItem.LVL1_EmployeeName;
+
+        } else if(currentNewStatus == "AprobataL12"){
+            formItem.CurrentApproverName = formItem.LVL5_EmployeeName;
+        } else if(currentNewStatus == "KasaRozliczenie"){
+            // tu poprawić bo kasa może zostać wybrana inna niż domyslna organizacji - może trzeba to zaktualizowac na HandleLocationChange???
+            formItem.CurrentApproverName = $"{_organisation.SapNumber}_Kasa";
+
+        } else if(currentNewStatus == "WyslaneDoRobotaRozliczenie"){
+            formItem.CurrentApproverName = "Robot";
+
+        } else if(currentNewStatus == "BladRobotaRozliczenie"){
+            //ewentualnie wyczytać z Approvals kto wysłał do robota.
+            formItem.CurrentApproverName = $"{_organisation.SapNumber}_Księgowe";
+        } else if(currentNewStatus == "Rozliczone"){
+            formItem.CurrentApproverName = "Minibuchung";
+        } else if(currentNewStatus == "Zamkniete"){
+            formItem.CurrentApproverName = "Zamkniete";
+        } 
+    }
     #endregion
     #region OnSearch
     private void OnLocationSearch(OptionsSearchEventArgs<LocationVm> e)
@@ -3313,6 +3368,7 @@
                 lvl2managerId = empMan.ManagerId;
             }
         }
+        EmployeeVm L2Man = _employees.FirstOrDefault(e => e.EnovaEmpId == lvl2managerId) ?? new EmployeeVm();
         _logger.LogInformation("LogInformation");
         _logger.LogWarning("LogWarning");
         formItem.Level1Approvers.Clear();
@@ -3324,7 +3380,9 @@
         formItem.Level2Approvers = SetApprovers(_organisation.Role_Cashiers); // Kasjerki
         formItem.Level3Approvers = SetApprovers(_organisation.Role_Accountants); // Księgowe
         formItem.Level4Approvers = SetApprovers(_organisation.Role_AccountantsTeamLeader); // Księgowe TL
-        formItem.Level5Approvers = await SetManagerAndDeputies(lvl2managerId); // Dyrektor oddziału
+        formItem.Level5Approvers = await SetManagerAndDeputies(lvl2managerId); 
+        formItem.LVL5_EnovaEmpId = L2Man.EnovaEmpId.ToString();
+        formItem.LVL5_EmployeeName = L2Man.LongName;// Dyrektor oddziału
         // approverL2 = formItem.Level5Approvers[0];
         // var empMan = _employees.Where(e => e.EnovaEmpId == emp.ManagerId).First();
         // // // // StateHasChanged();
