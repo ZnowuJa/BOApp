@@ -173,7 +173,7 @@
             BTItem.AccountantEmail = UserContext.Employee.Email;
             BTItem.AccountantTime = DateTime.Now;
             _accountantTime = BTItem.AccountantTime.HasValue ? BTItem.AccountantTime.Value.ToString() : string.Empty;
-            _selectedGlAccount = new[] { GLAccounts.Where(g => g.AccountNumber == "24000").First() };
+            _selectedGlAccount = new[] { GLAccounts.Where(g => g.AccountNumber == "240000").First() };
             DisabledPostingDate = true;
             DisabledCurrencyExchangeDate = true;
         }

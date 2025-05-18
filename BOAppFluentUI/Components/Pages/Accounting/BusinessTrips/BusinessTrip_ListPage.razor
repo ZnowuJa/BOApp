@@ -120,11 +120,12 @@
         new FilterColumn<BusinessTravelFormVm> { FirstRow = true, Label = "Status", Property = c => c.Status.ToString()??string.Empty, IsVisible = true, IsDropdown = true, DropdownValues = StatusesValues, SelectedValues = new List<string> ()},
         new FilterColumn<BusinessTravelFormVm> { FirstRow = true, Label = "Miasto", Property = c => c.Destination.ToString()??string.Empty, IsVisible = true, IsDropdown = true, DropdownValues = StatusesValues, SelectedValues = new List<string> ()},
         new FilterColumn<BusinessTravelFormVm> { FirstRow = true, Label = "Powód Odrzucenia.", Property = c => c.RejectReason, IsVisible = false },
+        new FilterColumn<BusinessTravelFormVm> { FirstRow = true, Label = "Przypisany do", Property = c =>(c.CurrentApproverName.ToString()??string.Empty), IsVisible = false },
         new FilterColumn<BusinessTravelFormVm> { FirstRow = true, Label = "Zgłaszający", Property = c =>(c.EmployeeName.ToString()??string.Empty), IsVisible = false },
         new FilterColumn<BusinessTravelFormVm> { FirstRow = true, Label = "Kraj", Property = c => c.DestinationCountry.Name, IsVisible = false },
         new FilterColumn<BusinessTravelFormVm> { FirstRow = true, Label = "Numer lok.", Property = c => c.OrganisationSapNumber, IsVisible = true },
         new FilterColumn<BusinessTravelFormVm> { FirstRow = true, Label = "Przełożony", Property = c => c.LVL1_EmployeeName, IsVisible = true },
-        new FilterColumn<BusinessTravelFormVm> { FirstRow = true, Label = "Przełożony2", Property = c => c.LVL2_EmployeeName, IsVisible = false }
+        new FilterColumn<BusinessTravelFormVm> { FirstRow = true, Label = "Przełożony2", Property = c => c.LVL5_EmployeeName, IsVisible = false }
     };
 
     private static List<string> StatusesValues { get; set; } = new List<string>
