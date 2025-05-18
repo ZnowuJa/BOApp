@@ -1,4 +1,5 @@
 ﻿using Application.AdHocJobs;
+using Application.Forms.Accounting.BankTransferSmallClasses;
 using Application.Interfaces;
 using Application.ViewModels;
 using Application.ViewModels.Accounting;
@@ -86,10 +87,12 @@ public class BankTransferFormVm : IFormAccounting
         
         public List<InvoiceMapping> InvoiceMappings { get; set; }
         public BankTransferMapping BankTransferMapping { get; set; } = new BankTransferMapping();
+        public string Duties { get; set; } = string.Empty;
+        public string PccTaxes { get; set; } = string.Empty;
 
     #endregion
     #region Steering
-        public bool SaveOnly { get; set; } = false;
+    public bool SaveOnly { get; set; } = false;
 
 
     #endregion
@@ -110,7 +113,10 @@ public class BankTransferFormVm : IFormAccounting
         .ForMember(dest => dest.RejectReasons, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<RejectReason>>(src.RejectReasons)))
         .ForMember(dest => dest.Document, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<Invoice>(src.Document)))
         .ForMember(dest => dest.InvoiceMappings, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<InvoiceMapping>>(src.InvoiceMappings)))
-        .ForMember(dest => dest.BankTransferMapping, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<BankTransferMapping>(src.BankTransferMapping)));
+        .ForMember(dest => dest.BankTransferMapping, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<BankTransferMapping>(src.BankTransferMapping)))
+        .ForMember(dest => dest.Duties, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<Duty>(src.Duties)))
+        .ForMember(dest => dest.PccTaxes, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<Duty>(src.PccTaxes)));
+        
 
     profile.CreateMap<BankTransferFormVm, BankTransferForm>()
         .ForMember(dest => dest.FormFiles, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.FormFiles)))
@@ -125,8 +131,10 @@ public class BankTransferFormVm : IFormAccounting
         .ForMember(dest => dest.RejectReasons, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.RejectReasons)))
         .ForMember(dest => dest.Document, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.Document)))
         .ForMember(dest => dest.InvoiceMappings, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.InvoiceMappings)))
-        .ForMember(dest => dest.BankTransferMapping, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.BankTransferMapping)));
-}
+        .ForMember(dest => dest.BankTransferMapping, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.BankTransferMapping)))
+        .ForMember(dest => dest.Duties, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.Duties)))
+        .ForMember(dest => dest.PccTaxes, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.PccTaxes)));
+    }
 
 
     

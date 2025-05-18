@@ -49,6 +49,8 @@ public class BankTransferForm : FormTemplate
         public string BankTransferMapping { get; set; }
         public int FormVersion { get; set; } = 1;
         public string FormType { get; set; } = string.Empty;
+        public string Duties { get; set; } = string.Empty;
+        public string PccTaxes { get; set; } = string.Empty;
 
 
 
