@@ -148,7 +148,7 @@
                     <FluentGridItem xs="4">
                         <div class="card grid-card">
                             <span class="truncate"><b>Numer konta:</b> </span>
-                            <FluentTextField @bind-Value=formItem.BankTransferMapping.BankTrasferTitle Class="full-width-for-field"></FluentTextField>
+                            <FluentTextField @bind-Value=formItem.BankTransferMapping.BankAccountNumber Class="full-width-for-field"></FluentTextField>
 
                         </div>
                     </FluentGridItem>
@@ -235,7 +235,7 @@
 
                             <span class="truncate"><b>Czy Split Payment? </b> </span>
                             <FluentSwitch 
-                                Disabled="@IsSplitPaymentDisabled()"
+                                Disabled="@formItem.IsIndividual"
                                 @bind-Value="@formItem.SplitPayment"
                              />
 

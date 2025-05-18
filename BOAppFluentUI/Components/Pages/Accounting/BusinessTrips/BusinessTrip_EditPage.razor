@@ -421,6 +421,7 @@
                                             <FluentTextField Disabled="@IsControlAdvancePaymentDisabled()"
                                             Placeholder="wprowadź numer konta"
                                             @bind-Value="@formItem.BankAccountNumber"
+                                            @bind-Value:after="@HandleBankAccountNumberAdvance"
                                             Style="width: 250px;" />
                                             <FluentValidationMessage For="@(() => formItem.BankAccountNumber)" class="validation-error" />
                                         </td>
@@ -1666,9 +1667,11 @@
                 Status = formItem.Status,
                 EnovaEmpId = _userContext.EnovaEmpId,
                 LongName = _userContext.LongName,
+                Email = _userContext.Employee.Email,
                 Date = DateTime.Now,
                 IsApproved = true
             };
+        
 
         LoadAutocompleteControls();
 
@@ -1880,10 +1883,7 @@
     private async Task SendForm()
     {
         //SENDFORM jest tylko na Rejestrację bo Create!
-        //sprawdzić czy to potrzebne
-        // foreach(var stage in formItem.Stages){
-        //     stage.TimeSpanOK = stage.EndDate < stage.StartDate;
-        // }
+
         formItem.SaveOnly = false;
         formItem.MileageRegister.PrivateCarRegistration = formItem.MileageRegister.PrivateCarRegistration?.Trim();
         if(formItem.Status == "Rejestracja"){
@@ -2063,7 +2063,13 @@
             _navigationManager.NavigateTo($"/delegacje/{_srcPage}");
         }
     }
-
+    private async Task SetLVLXEmails (BusinessTravelFormVm form)
+    {
+        if(form.Status == "Rejestracja")
+        {
+            
+        }
+    }
     private string GetNextStatus(BusinessTravelFormVm form){
         string newStatus = string.Empty;
         if(formItem.Status == "Rejestracja"){
@@ -2195,12 +2201,14 @@
         var tempEmp = _employees.First(p => p.EnovaEmpId == int.Parse(e.Value.ToString()));
         formItem.LVL1_EnovaEmpId = tempEmp.EnovaEmpId.ToString();
         formItem.LVL1_EmployeeName = tempEmp.LongName;
+        // formItem.LVL1_EmployeeEmail = tempEmp.Email;
     }
     private async Task HandleChangeApproverL5(ChangeEventArgs e)
     {
         var tempEmp = _employees.First(p => p.EnovaEmpId == int.Parse(e.Value.ToString()));
         formItem.LVL5_EnovaEmpId = tempEmp.EnovaEmpId.ToString();
         formItem.LVL5_EmployeeName = tempEmp.LongName;
+        // formItem.LVL5_EmployeeEmail = tempEmp.Email;
     }
 
     private void HandleBillChange(Bill bill, string curr)
@@ -2577,8 +2585,8 @@
             formItem.EnovaEmpId = emp.EnovaEmpId.ToString();
             _organisation = await _mediator.Send(new GetOrganisationByEmpSapNumberQuery(emp.SapNumber));
             formItem.OrganisationSapNumber = _organisation.SapNumber;
-            formItem.BankAccountNumber = emp.BankAccountNumber;
-            formItem.ReceiptBankAccountNumber = emp.BankAccountNumber;
+            formItem.BankAccountNumber = formItem.BTMappingAdvancePayment.BankAccountNumber = emp.BankAccountNumber;
+            formItem.ReceiptBankAccountNumber = formItem.BTMappingPayout.BankAccountNumber = emp.BankAccountNumber;
             await UpdateBankTransferMappings(emp);
             await SetupUserSapCostCenter(emp);
             await AssignAllApprovers(emp);
@@ -2771,6 +2779,29 @@
         RecalculateForm();
         _editContext.Validate();
         // // // // StateHasChanged();
+    }
+    private async Task HandleBankAccountNumberAdvance()
+    {
+        if (!string.IsNullOrEmpty(formItem.BankAccountNumber))
+        {
+            formItem.BTMappingAdvancePayment.BankAccountNumber = formItem.BankAccountNumber;
+        } else
+        {
+            formItem.BTMappingAdvancePayment.BankAccountNumber = string.Empty;
+        }
+
+    }
+
+    private async Task HandleBankAccountNumberPayout()
+    {
+        if (!string.IsNullOrEmpty(formItem.ReceiptBankAccountNumber))
+        {
+            formItem.BTMappingPayout.BankAccountNumber = formItem.ReceiptBankAccountNumber;
+        } else
+        {
+            formItem.BTMappingPayout.BankAccountNumber = string.Empty;
+        }
+
     }
     private async Task RecalculateAdjacentTime(int stageId, string propertyName){
 
@@ -3263,6 +3294,7 @@
         int lvl2managerId = 0;
         EmployeeVm empMan = _employees.FirstOrDefault(e => e.EnovaEmpId == emp.ManagerId) ?? new EmployeeVm();
 
+
         if (emp.EnovaEmpId == 4082)
         {
             lvl1managerId = 104;
@@ -3288,6 +3320,7 @@
         approverL1 = formItem.Level1Approvers[0];
         formItem.LVL1_EnovaEmpId = emp.ManagerId.ToString();
         formItem.LVL1_EmployeeName = emp.Manager.LongName;
+        // formItem.LVL1_EmployeeEmail = emp.Manager.Email;
         formItem.Level2Approvers = SetApprovers(_organisation.Role_Cashiers); // Kasjerki
         formItem.Level3Approvers = SetApprovers(_organisation.Role_Accountants); // Księgowe
         formItem.Level4Approvers = SetApprovers(_organisation.Role_AccountantsTeamLeader); // Księgowe TL
@@ -4039,6 +4072,9 @@
         DisableRejectButton = true;
         DisableSaveButton = false;
         DisableSendButton = false;
+
+        formItem.BankAccountNumber = formItem.BTMappingAdvancePayment.BankAccountNumber = _userContext.Employee.BankAccountNumber;
+        formItem.ReceiptBankAccountNumber = formItem.BTMappingPayout.BankAccountNumber = _userContext.Employee.BankAccountNumber;
 
         #endregion
         // // // // StateHasChanged();

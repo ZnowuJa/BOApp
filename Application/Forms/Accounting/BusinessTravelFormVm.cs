@@ -89,12 +89,20 @@ public class BusinessTravelFormVm : IMapFrom<BusinessTravelForm>, IFormAccountin
         public string LVL2_EmployeeName { get; set; } = string.Empty;
         public string LVL3_EnovaEmpId { get; set; } = string.Empty;
         public string LVL3_EmployeeName { get; set; } = string.Empty;
+
         public string LVL4_EnovaEmpId { get; set; } = string.Empty;
         public string LVL4_EmployeeName { get; set; } = string.Empty;
         public string LVL5_EnovaEmpId { get; set; } = string.Empty;
         public string LVL5_EmployeeName { get; set; } = string.Empty;
         public string LVL6_EnovaEmpId { get; set; } = string.Empty;
         public string LVL6_EmployeeName { get; set; } = string.Empty;
+        //public string LVL1_EmployeeEmail { get; set; } = string.Empty;
+        //public string LVL2_EmployeeEmail { get; set; } = string.Empty;
+        //public string LVL3_EmployeeEmail { get; set; } = string.Empty;
+        //public string LVL4_EmployeeEmail { get; set; } = string.Empty;
+        //public string LVL5_EmployeeEmail { get; set; } = string.Empty;
+        //public string LVL6_EmployeeEmail { get; set; } = string.Empty;
+
     #endregion
     public string? RejectReason { get; set; } = string.Empty;
 

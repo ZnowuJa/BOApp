@@ -437,10 +437,28 @@ public partial class BankTransfer_EditPage : ComponentBase
     {
         // Perform the assignment
         e.Item.Selected = e.Selected;
-
-        // Add any additional logic you want to execute
-        // For example, logging or updating other components
-        Console.WriteLine($"Selected: {e.Item.Name}");
+        if (e.Item.Selected)
+        {
+            formItem.RecipientName = e.Item.Name;
+            formItem.RecipientAddressStreet = e.Item.Street;
+            formItem.RecipientAddressCity = e.Item.City;
+            formItem.RecipientAddressPostCode = e.Item.PostalCode;
+            formItem.RecipientAddressCountry = e.Item.Country;
+            formItem.RecipientVatId = e.Item.VatId;
+            formItem.BankTransferMapping.BankAccountNumber = e.Item.BankAccountNumber;
+        } else
+        {
+            formItem.RecipientName = string.Empty;
+            formItem.RecipientAddressStreet = string.Empty;
+            formItem.RecipientAddressCity = string.Empty;
+            formItem.RecipientAddressPostCode = string.Empty;
+            formItem.RecipientAddressCountry = string.Empty;
+            formItem.RecipientVatId = string.Empty;
+            formItem.BankTransferMapping.BankAccountNumber = string.Empty;
+        }
+            // Add any additional logic you want to execute
+            // For example, logging or updating other components
+            Console.WriteLine($"Selected: {e.Item.Name}");
 
         return Task.CompletedTask;
     }
@@ -473,15 +491,17 @@ public partial class BankTransfer_EditPage : ComponentBase
     }
     private async Task HandleIsIndividualChange()
     {
-        if (!formItem.IsIndividual)
+        if(formItem.IsIndividual)
+        {
+            formItem.SplitPayment = false;
+            IsSplitPaymentDisabled(true);
+        }
+        else if (!formItem.IsIndividual)
         {
             formItem.SplitPayment = false;
             formItem.SplitPaymentVatRate = new VATRateVm();
             formItem.SplitPaymentAmount = 0;
             IsSplitPaymentDisabled(false);
-        } else
-        {
-            IsSplitPaymentDisabled(true);
         }
         //Console.WriteLine(formItem.IsIndividual.ToString());
     }
