@@ -4,6 +4,7 @@
 @using Application.Forms.Accounting
 @using Microsoft.AspNetCore.Authorization
 @using Application.ViewModels.Accounting
+@using Application.ViewModels.General
 
 @attribute [Authorize(Policy = "User")]
 
@@ -26,6 +27,7 @@
 {
     if (showForm)
     {
+        <div>
         <EditForm EditContext="_editContext" OnValidSubmit="HandleValidSubmit" Style="max-width: 1000px">
             <FluentValidationValidator @ref="_fluentValidationValidator" />
 
@@ -104,12 +106,6 @@
 
                 </div>
 
-                @* <FluentGrid Spacing="@Spacing" AdaptiveRendering="true" Justify="@Justification" Style="padding: 1px; ">
-                    <FluentGridItem xs="4">
-                        
-                        <FluentValidationMessage For="@(() => formItem.BankTransferMapping.BankAccountNumber)" />
-                    </FluentGridItem>
-                </FluentGrid> *@
                 if (_duties.Count() > 0)
                 {
                     <div style="padding-bottom: 10px; padding-top: 10 px;">
@@ -123,7 +119,11 @@
                         </FluentDataGrid>
                     </div>
                     
-
+                    <FluentGridItem xs="3">
+                        <div class="card grid-card" style="padding-left: 50px;">
+                            <span class="truncate"><b>Cło razem:</b> @formItem.Amount</span>
+                        </div>
+                    </FluentGridItem>
                 }
             }
             @if (ShowPccTax)
@@ -148,6 +148,11 @@
                             <PropertyColumn Property="@(d => d.DepartmentNumber)" Title="MPK" Sortable="true" />
                         </FluentDataGrid>
                     </div>
+                <FluentGridItem xs="3">
+                    <div class="card grid-card" style="padding-left: 50px;">
+                        <span class="truncate"><b>Podatek razem:</b> @formItem.Amount</span>
+                    </div>
+                </FluentGridItem>
 
 
                 }
@@ -198,7 +203,6 @@
                     </FluentGridItem>
                 </FluentGrid>
             </div>
-            <hr/>
             <div class="DANE PRZELEWU">
 
                 <FluentGrid Spacing="@Spacing" AdaptiveRendering="true" Justify="@Justification" Style="padding: 1px; ">
@@ -337,13 +341,80 @@
                 </FluentGrid>
             </div>
 
+
+
+            @* Aprobaty i przyciski *@
+                    @if (strej){
+                        <div class="APROVALS" style="display: flex; flex-direction: column; gap: 16px;">
+                        <FluentGrid Spacing="@Spacing" AdaptiveRendering="true" Justify="@Justification"  Style="padding: 1px; ">                                            
+                            <FluentGridItem xs="4">
+                                <div>
+                                    <FluentLabel Style="padding-left: 10px;"  Weight="FontWeight.Bold"> Aprobujący L1:</FluentLabel>
+                                    <FluentSelect TOption="OrganisationRoleForFormVm"
+                                            Id="AL1Id"
+                                            Autofocus="true"
+                                            Items="@formItem.Level1Approvers"
+                                            Multiple="false"
+                                            OptionValue="@(p => p.EmpId.ToString())"
+                                            OptionText="@(p => p.LongName)"
+                                            @bind-SelectedOption="@approverL1"
+                                            Height="200px"
+                                            Style = "margin-top: 5px;"
+                                            @onchange="HandleChangeApproverL1" />
+                                </div>
+                            </FluentGridItem>
+                            <FluentGridItem xs="4">
+                                <div>
+                                    <FluentLabel Style="padding-left: 10px;"  Weight="FontWeight.Bold"> Aprobujący L2:</FluentLabel>
+                                    <FluentSelect TOption="OrganisationRoleForFormVm"
+                                            Id="AL2Id"
+                                            Autofocus="true"
+                                            Items="@formItem.Level2Approvers"
+                                            Multiple="false"
+                                            OptionValue="@(p => p.EmpId.ToString())"
+                                            OptionText="@(p => p.LongName)"
+                                            @bind-SelectedOption="@approverL2"
+                                            @onchange="HandleChangeApproverL2" 
+                                            Style = "margin-top: 5px;"
+                                            />
+                
+                                </div>
+                            </FluentGridItem>
+                            @if (isLevel3Required)
+                            {
+                                <FluentGridItem xs="4">
+                                <div  >
+                                    <FluentLabel Style="padding-left: 10px;"  Weight="FontWeight.Bold"> Aprobujący L3:</FluentLabel>
+                                    <FluentSelect TOption="OrganisationRoleForFormVm"
+                                            Id="AL3Id"
+                                            Autofocus="true"
+                                            Items="@formItem.Level2Approvers"
+                                            Multiple="false"
+                                            OptionValue="@(p => p.EmpId.ToString())"
+                                            OptionText="@(p => p.LongName)"
+                                            @bind-SelectedOption="@approverL2"
+                                            @onchange="HandleChangeApproverL2"
+                                            Style = "margin-top: 5px;"
+                                            />
+                                </div>
+                            </FluentGridItem>
+                            }
+                            
+                        </FluentGrid>
+                        </div>
+                 }
+    
+                 <FluentButton Style="margin-top: 20px;" Appearance="Appearance.Accent" OnClick="@CheckForm">Zapisz</FluentButton>
         </EditForm>
+        </div>
     }
     else
     {
         <FluentText>Nie można załadować formularza</FluentText>
     }
-    <FluentButton Appearance="Appearance.Accent" OnClick="@CheckForm">Zapisz</FluentButton>
+    
+     
+    
     @* <FluentButton Appearance="Appearance.Neutral" OnClick="@CancelAsync">Anuluj</FluentButton> *@
 }
 

@@ -75,6 +75,7 @@ public partial class BankTransfer_EditPage : ComponentBase
 
     private bool isIsIndividualDisabled = false;
     private bool isSplitPaymentVisible = true;
+    private bool isLevel3Required = false;
 
 
     #endregion
@@ -87,7 +88,7 @@ public partial class BankTransfer_EditPage : ComponentBase
     private bool ShowInvoice { get; set; }
     private bool ShowTaxes { get; set; }
     private bool ShowBusinessPartners => _businessPartners.Count() > 0 && 
-    (formItem.FormType == "Uzywane" || formItem.FormType == "Polisy" || formItem.FormType == "Administracyjne" || formItem.FormType == "Podatkowe" || formItem.FormType == "Cło" || formItem.FormType == "PCC");
+    (formItem.FormType == "Uzywane" || formItem.FormType == "Polisy" || formItem.FormType == "Administracyjne" || formItem.FormType == "Podatkowe" || formItem.FormType == "Clo" || formItem.FormType == "PCC");
     private bool ShowDuty => formItem.FormType == "Clo" ;
     private bool ShowPccTax => formItem.FormType == "PCC";
     #endregion
@@ -110,7 +111,13 @@ public partial class BankTransfer_EditPage : ComponentBase
     private IEnumerable<CurrencyVm> _selectedCurrency { get; set; }
     private string regexNIP =@"\(^(AT)(U\\d{8}$))|(^(BE)(\\d{10}$))|(^(BG)(\\d{9,10}$))|(^(CY)([0-5|9]\\d{7}[A-Z]$))|(^(CZ)(\\d{8,10})?$)|(^(DE)([1-9]\\d{8}$))|(^(DK)(\\d{8}$))|(^(EE)(10\\d{7}$))|(^(EL)(\\d{9}$))|(^(ES)([0-9A-Z][0-9]{7}[0-9A-Z]$))|(^(EU)(\\d{9}$))|(^(FI)(\\d{8}$))|(^(FR)([0-9A-Z]{2}[0-9]{9}$))|(^(GB)((?:[0-9]{12}|[0-9]{9}|(?:GD|HA)[0-9]{3})$))|(^(GR)(\\d{8,9}$))|(^(HR)(\\d{11}$))|(^(HU)(\\d{8}$))|(^(IE)([0-9A-Z\\*\\+]{7}[A-Z]{1,2}$))|(^(IT)(\\d{11}$))|(^(LV)(\\d{11}$))|(^(LT)(\\d{9}$|\\d{12}$))|(^(LU)(\\d{8}$))|(^(MT)([1-9]\\d{7}$))|(^(NL)(\\d{9}B\\d{2}$))|(^(NO)(\\d{9}$))|(^(PL)(\\d{10}$))|(^(PT)(\\d{9}$))|(^(RO)([1-9]\\d{1,9}$))|(^(RU)(\\d{10}$|\\d{12}$))|(^(RS)(\\d{9}$))|(^(SI)([1-9]\\d{7}$))|(^(SK)([1-9]\\d[(2-4)|(6-9)]\\d{7}$))|(^(SE)(\\d{10}01$))\";
     #endregion
-
+    #region ApproversAndWorkflow
+    private OrganisationRoleForFormVm approverL1 { get; set; } = new();
+    private OrganisationRoleForFormVm approverL2 { get; set; } = new();
+    private OrganisationRoleForFormVm approverL3 { get; set; } = new();
+    private OrganisationRoleForFormVm approverL4 { get; set; } = new();
+    private OrganisationRoleForFormVm approverL5 { get; set; } = new();
+    #endregion
     #region Styling
     private JustifyContent Justification = JustifyContent.FlexStart;
     private int Spacing = 1;
@@ -205,6 +212,8 @@ public partial class BankTransfer_EditPage : ComponentBase
         tempCurrencies.Add(formItem.Currency);
         _selectedCurrency = tempCurrencies.AsEnumerable();
         IsSplitPaymentDisabled(false);
+        await AssignAllApprovers(_userContext.Employee);
+        //StateHasChanged();
     }
     private async Task SetupFormAprobata(string status)
     {
@@ -309,7 +318,7 @@ public partial class BankTransfer_EditPage : ComponentBase
 
         _glAccounts = await _mediator.Send(new GetAllGLAccountIEnumQuery());
         var tempLocations = await _mediator.Send(new GetCashLocationsQuery());
-        //_locations = tempLocations.ToList();
+        _locations = tempLocations.ToList();
         _vatRates = await _mediator.Send(new GetAllVatRateIEnumQuery());
         _organisation = await _mediator.Send(new GetOrganisationByEmpSapNumberQuery(_userContext.Employee.SapNumber));
         //CompanyCarRegistrationNumbers = await _mediator.Send(new GetCompanyCarRegistrationNumbersQuery());
@@ -330,10 +339,69 @@ public partial class BankTransfer_EditPage : ComponentBase
             .ToList();
         _currencies = await _mediator.Send( new GetAllCurrenciesQuery());
         _businessPartners = await _mediator.Send(new GetAllBusinessPartnerQuery());
+        _employees = await _mediator.Send(new GetAllEmployeesQuery());
+
     }
     #endregion
 
     #region Approvers
+    private async Task AssignAllApprovers(EmployeeVm emp)
+    {
+        int lvl1managerId = 0;
+        int lvl2managerId = 0;
+        int lvl3managerId = 0;
+
+        var empMan = _employees.FirstOrDefault(e => e.EnovaEmpId == emp.ManagerId) ?? new EmployeeVm();
+        Console.WriteLine();
+
+        if (emp.EnovaEmpId == 4082)
+        {
+            lvl1managerId = 104;
+            lvl2managerId = 976;
+        }
+        else
+        {
+            if (empMan.ManagerId == 0)
+            {
+                lvl1managerId = emp.ManagerId;
+                lvl2managerId = 976;
+            }
+            else
+            {
+                lvl1managerId = emp.ManagerId;
+                lvl2managerId = empMan.ManagerId;
+            }
+        }
+        EmployeeVm L2Man = _employees.FirstOrDefault(e => e.EnovaEmpId == lvl2managerId) ?? new EmployeeVm();
+
+
+        formItem.Level1Approvers.Clear();
+        formItem.Level2Approvers.Clear();
+        formItem.Level3Approvers.Clear();
+        formItem.Level4Approvers.Clear();
+        formItem.Level5Approvers.Clear();
+
+        formItem.Level1Approvers = await SetManagerAndDeputies(lvl1managerId); // Przełożony
+        approverL1 = formItem.Level1Approvers[0];
+        formItem.LVL1_EnovaEmpId = emp.ManagerId.ToString();
+        formItem.LVL1_EmployeeName = emp.Manager.LongName;
+        
+        formItem.Level2Approvers = await SetManagerAndDeputies(lvl2managerId);
+        approverL2 = formItem.Level2Approvers[0];
+        formItem.LVL2_EnovaEmpId = L2Man.EnovaEmpId.ToString();
+        formItem.LVL2_EmployeeName = L2Man.LongName;// Dyrektor oddziału
+
+        formItem.Level4Approvers = SetApprovers(_organisation.Role_Accountants); // Księgowe
+        approverL4 = formItem.Level4Approvers[0];
+        formItem.LVL4_EnovaEmpId = approverL4.EmpId.ToString();
+        formItem.LVL4_EmployeeName = approverL4.LongName;
+
+        formItem.Level5Approvers = SetApprovers(_organisation.Role_AccountantsTeamLeader); // KsięgoweTL
+        approverL5 = formItem.Level5Approvers.FirstOrDefault(a => a.IsDefault);
+        formItem.LVL5_EnovaEmpId = approverL5.EmpId.ToString();
+        formItem.LVL5_EmployeeName = approverL5.LongName;
+        
+    }
     private List<OrganisationRoleForFormVm> SetApprovers(List<OrganisationRoleVm> rolesIn)
     {
         List<OrganisationRoleForFormVm> result = new();
@@ -382,6 +450,20 @@ public partial class BankTransfer_EditPage : ComponentBase
 
     }
 
+    private async Task HandleChangeApproverL1(ChangeEventArgs e)
+    {
+        var tempEmp = _employees.First(p => p.EnovaEmpId == int.Parse(e.Value.ToString()));
+        formItem.LVL1_EnovaEmpId = tempEmp.EnovaEmpId.ToString();
+        formItem.LVL1_EmployeeName = tempEmp.LongName;
+        // formItem.LVL1_EmployeeEmail = tempEmp.Email;
+    }
+    private async Task HandleChangeApproverL2(ChangeEventArgs e)
+    {
+        var tempEmp = _employees.First(p => p.EnovaEmpId == int.Parse(e.Value.ToString()));
+        formItem.LVL2_EnovaEmpId = tempEmp.EnovaEmpId.ToString();
+        formItem.LVL2_EmployeeName = tempEmp.LongName;
+        // formItem.LVL1_EmployeeEmail = tempEmp.Email;
+    }
 
     #endregion
     private string GetNextStatus(BusinessTravelFormVm form)
@@ -486,6 +568,7 @@ public partial class BankTransfer_EditPage : ComponentBase
     private async Task HandleFormTypeChange()
     {
         formItem.RecipientName = formItem.RecipientVatId = formItem.RecipientAddressCity = formItem.RecipientAddressCountry = formItem.RecipientAddressPostCode = formItem.RecipientAddressStreet = formItem.BankTransferMapping.BankAccountNumber = string.Empty;
+        formItem.BankTransferMapping.BankTrasferTitle = string.Empty;
 
         _businessPartners = await _mediator.Send(new GetAllBusinessPartnersByTypeNameQuery(formItem.FormType));
         formItem.IsIndividual = false;
@@ -498,7 +581,16 @@ public partial class BankTransfer_EditPage : ComponentBase
             formItem.IsIndividual = false;
             isIsIndividualDisabled = true;
             isSplitPaymentVisible = false;
+            formItem.BankTransferMapping.BankTrasferTitle = $"Cło z dnia i cośtam do poprawy{DateOnly.FromDateTime(DateTime.Now)}";
         }
+        else if (formItem.FormType == "PCC")
+        {
+            formItem.IsIndividual = false;
+            isIsIndividualDisabled = true;
+            isSplitPaymentVisible = false;
+            formItem.BankTransferMapping.BankTrasferTitle = $"Podatek z dnia {DateOnly.FromDateTime(DateTime.Now)}";
+        }
+
 
     }
     private async Task HandleCurrencyChange()
@@ -582,13 +674,17 @@ public partial class BankTransfer_EditPage : ComponentBase
 
             //convertedDuties = parsedDuties;
             _duties = parsedDuties.AsQueryable();
+            if (_duties.Count() > 0)
+            {
+                formItem.Amount = _duties.Sum(x => x.DutyValue);
+            }
         }
     }
     private async Task HandlePCCTaxChange()
     {
         if (!string.IsNullOrWhiteSpace(pccTaxes))
         {
-            var rows = duties
+            var rows = pccTaxes
                 .Trim()
                 .Replace("\r\n", "\n")
                 .Split('\n', StringSplitOptions.RemoveEmptyEntries);
@@ -598,11 +694,14 @@ public partial class BankTransfer_EditPage : ComponentBase
             foreach (var row in rows)
             {
                 // Support both tab and comma as delimiters
-                var cells = Regex.Split(row.Trim(), @"[\t,]");
+                var cells = Regex.Split(row.Trim(), @"[\t,]").ToList();
 
-                if (cells.Length < 6)
-                    continue;
-
+                //if (cells.Length < 6)
+                //    continue;
+                while (cells.Count < 16)
+                {
+                    cells.Add(string.Empty);
+                }
                 try
                 {
                     var pccTax = new PccTax
@@ -627,7 +726,13 @@ public partial class BankTransfer_EditPage : ComponentBase
 
             //convertedPccTaxes = parsedTaxes;
             _pccTaxes = parsedTaxes.AsQueryable();
+            if (_pccTaxes.Count() > 0)
+            {
+                formItem.Amount = _pccTaxes.Sum(x => x.Amount);
+            }
         }
+
+
     }
     #endregion
 

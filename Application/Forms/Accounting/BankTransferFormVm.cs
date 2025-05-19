@@ -34,7 +34,8 @@ public class BankTransferFormVm : IFormAccounting
         public string EmployeeName { get; set; } = string.Empty;
         public string LVL1_EnovaEmpId { get; set; } //ManagerL1
         public string LVL1_EmployeeName { get; set; } //ManagerL1
-        public string LVL2_EnovaEmpId { get; set; } //ManagerL2
+    public string LVL1_EmpoyeeEmail { get; set; }
+    public string LVL2_EnovaEmpId { get; set; } //ManagerL2
         public string LVL2_EmployeeName { get; set; } //ManagerL2
         public string LVL3_EnovaEmpId { get; set; } //ManagerL3
         public string LVL3_EmployeeName { get; set; } //ManagerL3
@@ -99,42 +100,42 @@ public class BankTransferFormVm : IFormAccounting
         public int FormVersion { get; set; } = 1;
         public string FormType { get; set; } = string.Empty;
         public void Mapping(Profile profile)
-{
-    profile.CreateMap<BankTransferForm, BankTransferFormVm>()
-        .ForMember(dest => dest.FormFiles, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<FormFileVm>>(src.FormFiles)))
-        .ForMember(dest => dest.Level1Approvers, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<OrganisationRoleForFormVm>>(src.Level1Approvers)))
-        .ForMember(dest => dest.Level2Approvers, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<OrganisationRoleForFormVm>>(src.Level2Approvers)))
-        .ForMember(dest => dest.Level3Approvers, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<OrganisationRoleForFormVm>>(src.Level3Approvers)))
-        .ForMember(dest => dest.Level4Approvers, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<OrganisationRoleForFormVm>>(src.Level4Approvers)))
-        .ForMember(dest => dest.Level5Approvers, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<OrganisationRoleForFormVm>>(src.Level5Approvers)))
-        .ForMember(dest => dest.EmployeeSapCostCenterVm, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<SapCostCenterVm>(src.EmployeeSapCostCenterVm)))
-        .ForMember(dest => dest.FormCostCenters, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<SapCostCenterVm>>(src.FormCostCenters)))
-        .ForMember(dest => dest.Approvals, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<ApprovalVm>>(src.Approvals)))
-        .ForMember(dest => dest.RejectReasons, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<RejectReason>>(src.RejectReasons)))
-        .ForMember(dest => dest.Document, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<Invoice>(src.Document)))
-        .ForMember(dest => dest.InvoiceMappings, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<InvoiceMapping>>(src.InvoiceMappings)))
-        .ForMember(dest => dest.BankTransferMapping, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<BankTransferMapping>(src.BankTransferMapping)))
-        .ForMember(dest => dest.Duties, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<Duty>(src.Duties)))
-        .ForMember(dest => dest.PccTaxes, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<Duty>(src.PccTaxes)));
+        {
+            profile.CreateMap<BankTransferForm, BankTransferFormVm>()
+                .ForMember(dest => dest.FormFiles, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<FormFileVm>>(src.FormFiles)))
+                .ForMember(dest => dest.Level1Approvers, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<OrganisationRoleForFormVm>>(src.Level1Approvers)))
+                .ForMember(dest => dest.Level2Approvers, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<OrganisationRoleForFormVm>>(src.Level2Approvers)))
+                .ForMember(dest => dest.Level3Approvers, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<OrganisationRoleForFormVm>>(src.Level3Approvers)))
+                .ForMember(dest => dest.Level4Approvers, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<OrganisationRoleForFormVm>>(src.Level4Approvers)))
+                .ForMember(dest => dest.Level5Approvers, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<OrganisationRoleForFormVm>>(src.Level5Approvers)))
+                .ForMember(dest => dest.EmployeeSapCostCenterVm, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<SapCostCenterVm>(src.EmployeeSapCostCenterVm)))
+                .ForMember(dest => dest.FormCostCenters, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<SapCostCenterVm>>(src.FormCostCenters)))
+                .ForMember(dest => dest.Approvals, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<ApprovalVm>>(src.Approvals)))
+                .ForMember(dest => dest.RejectReasons, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<RejectReason>>(src.RejectReasons)))
+                .ForMember(dest => dest.Document, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<Invoice>(src.Document)))
+                .ForMember(dest => dest.InvoiceMappings, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<List<InvoiceMapping>>(src.InvoiceMappings)))
+                .ForMember(dest => dest.BankTransferMapping, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<BankTransferMapping>(src.BankTransferMapping)))
+                .ForMember(dest => dest.Duties, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<Duty>(src.Duties)))
+                .ForMember(dest => dest.PccTaxes, opt => opt.MapFrom(src => AppUtils.SafeDeserialize<Duty>(src.PccTaxes)));
         
 
-    profile.CreateMap<BankTransferFormVm, BankTransferForm>()
-        .ForMember(dest => dest.FormFiles, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.FormFiles)))
-        .ForMember(dest => dest.Level1Approvers, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.Level1Approvers)))
-        .ForMember(dest => dest.Level2Approvers, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.Level2Approvers)))
-        .ForMember(dest => dest.Level3Approvers, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.Level3Approvers)))
-        .ForMember(dest => dest.Level4Approvers, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.Level4Approvers)))
-        .ForMember(dest => dest.Level5Approvers, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.Level5Approvers)))
-        .ForMember(dest => dest.EmployeeSapCostCenterVm, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.EmployeeSapCostCenterVm)))
-        .ForMember(dest => dest.FormCostCenters, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.FormCostCenters)))
-        .ForMember(dest => dest.Approvals, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.Approvals)))
-        .ForMember(dest => dest.RejectReasons, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.RejectReasons)))
-        .ForMember(dest => dest.Document, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.Document)))
-        .ForMember(dest => dest.InvoiceMappings, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.InvoiceMappings)))
-        .ForMember(dest => dest.BankTransferMapping, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.BankTransferMapping)))
-        .ForMember(dest => dest.Duties, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.Duties)))
-        .ForMember(dest => dest.PccTaxes, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.PccTaxes)));
-    }
+            profile.CreateMap<BankTransferFormVm, BankTransferForm>()
+                .ForMember(dest => dest.FormFiles, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.FormFiles)))
+                .ForMember(dest => dest.Level1Approvers, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.Level1Approvers)))
+                .ForMember(dest => dest.Level2Approvers, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.Level2Approvers)))
+                .ForMember(dest => dest.Level3Approvers, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.Level3Approvers)))
+                .ForMember(dest => dest.Level4Approvers, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.Level4Approvers)))
+                .ForMember(dest => dest.Level5Approvers, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.Level5Approvers)))
+                .ForMember(dest => dest.EmployeeSapCostCenterVm, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.EmployeeSapCostCenterVm)))
+                .ForMember(dest => dest.FormCostCenters, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.FormCostCenters)))
+                .ForMember(dest => dest.Approvals, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.Approvals)))
+                .ForMember(dest => dest.RejectReasons, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.RejectReasons)))
+                .ForMember(dest => dest.Document, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.Document)))
+                .ForMember(dest => dest.InvoiceMappings, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.InvoiceMappings)))
+                .ForMember(dest => dest.BankTransferMapping, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.BankTransferMapping)))
+                .ForMember(dest => dest.Duties, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.Duties)))
+                .ForMember(dest => dest.PccTaxes, opt => opt.MapFrom(src => AppUtils.SafeSerialize(src.PccTaxes)));
+            }
 
 
     
