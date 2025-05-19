@@ -70,7 +70,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Typ: <span class="required">*</span></label>
+                    <label>Typ "przelewu": <span class="required">*</span></label>
                     <FluentSelect Items="@_partnerTypes" @bind-Value="Content.Type" Width="100%" />
                     <FluentValidationMessage For="@(() => Content.Type)" />
                 </div>
@@ -119,9 +119,7 @@
 
     private List<string> _partnerTypes = new List<string>
     {
-    "Ubezpieczyciel",
-    "Dostawca",
-    "Inne",
+        "Zwrot do korekty","Uzywane","Polisy","Podatkowe","Inne","Zwrot nadplaty","Proforma","Zwrot do TU","Administracyjne","Okulary","Nowe od Dealera","Clo","PCC","CEPIK"
     };
 
     private List<string> _sapFormTypes = new List<string>
