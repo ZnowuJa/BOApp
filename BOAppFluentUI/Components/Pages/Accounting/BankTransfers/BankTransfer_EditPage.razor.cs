@@ -1,5 +1,7 @@
 ﻿using System.Security.Cryptography;
+using System.Text.RegularExpressions;
 
+using Application.CQRS.AccountingCQRS.BusinessPartners.Queries;
 using Application.CQRS.AccountingCQRS.BusinessTravels.Queries;
 using Application.CQRS.AccountingCQRS.CostCenters.Queries;
 using Application.CQRS.AccountingCQRS.GLAccounts.Queries;
@@ -11,6 +13,7 @@ using Application.CQRS.General.Organisations.Queries;
 using Application.CQRS.ITWarehouseCQRS.Currencies.Queries;
 using Application.CQRS.ITWarehouseCQRS.Employees.Queries;
 using Application.Forms.Accounting;
+using Application.Forms.Accounting.BankTransferSmallClasses;
 using Application.Forms.Accounting.BuisnessTravelSmallClasses;
 using Application.ViewModels;
 using Application.ViewModels.Accounting;
@@ -18,6 +21,7 @@ using Application.ViewModels.General;
 
 using Blazored.FluentValidation;
 
+using Domain.Entities.Accounting;
 using Domain.Entities.ITWarehouse;
 
 using MediatR;
@@ -34,6 +38,7 @@ namespace BOAppFluentUI.Components.Pages.Accounting.BankTransfers;
 public partial class BankTransfer_EditPage : ComponentBase
 {
     #region Declarations
+    #region General
     [Parameter] public int Id { get; set; }
     private EditContext _editContext;
     private FluentValidationValidator? _fluentValidationValidator;
@@ -43,6 +48,7 @@ public partial class BankTransfer_EditPage : ComponentBase
     private bool isLoading { get; set; } = true;
     private bool showForm { get; set; } = false;
     private FormUserContext _userContext = new FormUserContext("Accountant", "Technician");
+    #endregion
 
     #region Steering and Button bools
     private bool strej = false;
@@ -66,12 +72,25 @@ public partial class BankTransfer_EditPage : ComponentBase
     private bool DisableSendButton = true;
 
     private bool isOdbiorcaVisible = true;
+
+    private bool isIsIndividualDisabled = false;
+    private bool isSplitPaymentVisible = true;
+    private bool isLevel3Required = false;
+
+
+    #endregion
+    #region BusinessPartnersSetup
+    DataGridSelectMode BPGridMode = DataGridSelectMode.Single;
+    IEnumerable<BusinessPartnerVm> SelectedItems = _businessPartners.Where(p => p.Selected);
     #endregion
     #region HidingShowingSections
     private bool Show { get; set; }
     private bool ShowInvoice { get; set; }
-
     private bool ShowTaxes { get; set; }
+    private bool ShowBusinessPartners => _businessPartners.Count() > 0 && 
+    (formItem.FormType == "Uzywane" || formItem.FormType == "Polisy" || formItem.FormType == "Administracyjne" || formItem.FormType == "Podatkowe" || formItem.FormType == "Clo" || formItem.FormType == "PCC");
+    private bool ShowDuty => formItem.FormType == "Clo" ;
+    private bool ShowPccTax => formItem.FormType == "PCC";
     #endregion
     #region Dictionaries
     private IQueryable<EmployeeVm> _employees { get; set; }
@@ -83,6 +102,7 @@ public partial class BankTransfer_EditPage : ComponentBase
     private List<SimpleLocation> simpleLocations { get; set; }
     private List<SimpleDepartment> simpleDepartments { get; set; }
     private List<LocationVm> _locations { get; set; } = new List<LocationVm>();
+    private static IQueryable<BusinessPartnerVm> _businessPartners { get; set; }= new List<BusinessPartnerVm>().AsQueryable();
     private IQueryable<string> FormTypes = new List<string>
     {
         "Zwrot do korekty","Uzywane","Polisy","Podatkowe","Inne","Zwrot nadplaty","Proforma","Zwrot do TU","Administracyjne","Okulary","Nowe od Dealera","Clo","PCC","CEPIK"
@@ -91,7 +111,13 @@ public partial class BankTransfer_EditPage : ComponentBase
     private IEnumerable<CurrencyVm> _selectedCurrency { get; set; }
     private string regexNIP =@"\(^(AT)(U\\d{8}$))|(^(BE)(\\d{10}$))|(^(BG)(\\d{9,10}$))|(^(CY)([0-5|9]\\d{7}[A-Z]$))|(^(CZ)(\\d{8,10})?$)|(^(DE)([1-9]\\d{8}$))|(^(DK)(\\d{8}$))|(^(EE)(10\\d{7}$))|(^(EL)(\\d{9}$))|(^(ES)([0-9A-Z][0-9]{7}[0-9A-Z]$))|(^(EU)(\\d{9}$))|(^(FI)(\\d{8}$))|(^(FR)([0-9A-Z]{2}[0-9]{9}$))|(^(GB)((?:[0-9]{12}|[0-9]{9}|(?:GD|HA)[0-9]{3})$))|(^(GR)(\\d{8,9}$))|(^(HR)(\\d{11}$))|(^(HU)(\\d{8}$))|(^(IE)([0-9A-Z\\*\\+]{7}[A-Z]{1,2}$))|(^(IT)(\\d{11}$))|(^(LV)(\\d{11}$))|(^(LT)(\\d{9}$|\\d{12}$))|(^(LU)(\\d{8}$))|(^(MT)([1-9]\\d{7}$))|(^(NL)(\\d{9}B\\d{2}$))|(^(NO)(\\d{9}$))|(^(PL)(\\d{10}$))|(^(PT)(\\d{9}$))|(^(RO)([1-9]\\d{1,9}$))|(^(RU)(\\d{10}$|\\d{12}$))|(^(RS)(\\d{9}$))|(^(SI)([1-9]\\d{7}$))|(^(SK)([1-9]\\d[(2-4)|(6-9)]\\d{7}$))|(^(SE)(\\d{10}01$))\";
     #endregion
-
+    #region ApproversAndWorkflow
+    private OrganisationRoleForFormVm approverL1 { get; set; } = new();
+    private OrganisationRoleForFormVm approverL2 { get; set; } = new();
+    private OrganisationRoleForFormVm approverL3 { get; set; } = new();
+    private OrganisationRoleForFormVm approverL4 { get; set; } = new();
+    private OrganisationRoleForFormVm approverL5 { get; set; } = new();
+    #endregion
     #region Styling
     private JustifyContent Justification = JustifyContent.FlexStart;
     private int Spacing = 1;
@@ -105,6 +131,16 @@ public partial class BankTransfer_EditPage : ComponentBase
     private List<string> allowedEditor { get; set; } = new List<string>();
     private ApprovalVm approvalInfo { get; set; }
     private RejectReason lastRejectReason { get; set; }
+
+
+    #endregion
+    #region Taxes
+    private string duties { get; set; } = string.Empty;
+    //private List<Duty> convertedDuties { get; set; } = new List<Duty>();
+    private IQueryable<Duty> _duties { get; set; } = new List<Duty>().AsQueryable();
+    public string pccTaxes { get; set; } = string.Empty;
+    //public List<PccTax> convertedPccTaxes { get; set; } = new List<PccTax>();
+    public IQueryable<PccTax> _pccTaxes { get; set; } = new List<PccTax>().AsQueryable();
     #endregion
     #endregion
     protected override async Task OnInitializedAsync()
@@ -176,6 +212,8 @@ public partial class BankTransfer_EditPage : ComponentBase
         tempCurrencies.Add(formItem.Currency);
         _selectedCurrency = tempCurrencies.AsEnumerable();
         IsSplitPaymentDisabled(false);
+        await AssignAllApprovers(_userContext.Employee);
+        //StateHasChanged();
     }
     private async Task SetupFormAprobata(string status)
     {
@@ -280,7 +318,7 @@ public partial class BankTransfer_EditPage : ComponentBase
 
         _glAccounts = await _mediator.Send(new GetAllGLAccountIEnumQuery());
         var tempLocations = await _mediator.Send(new GetCashLocationsQuery());
-        //_locations = tempLocations.ToList();
+        _locations = tempLocations.ToList();
         _vatRates = await _mediator.Send(new GetAllVatRateIEnumQuery());
         _organisation = await _mediator.Send(new GetOrganisationByEmpSapNumberQuery(_userContext.Employee.SapNumber));
         //CompanyCarRegistrationNumbers = await _mediator.Send(new GetCompanyCarRegistrationNumbersQuery());
@@ -300,10 +338,70 @@ public partial class BankTransfer_EditPage : ComponentBase
             .Distinct()
             .ToList();
         _currencies = await _mediator.Send( new GetAllCurrenciesQuery());
+        _businessPartners = await _mediator.Send(new GetAllBusinessPartnerQuery());
+        _employees = await _mediator.Send(new GetAllEmployeesQuery());
+
     }
     #endregion
 
     #region Approvers
+    private async Task AssignAllApprovers(EmployeeVm emp)
+    {
+        int lvl1managerId = 0;
+        int lvl2managerId = 0;
+        int lvl3managerId = 0;
+
+        var empMan = _employees.FirstOrDefault(e => e.EnovaEmpId == emp.ManagerId) ?? new EmployeeVm();
+        Console.WriteLine();
+
+        if (emp.EnovaEmpId == 4082)
+        {
+            lvl1managerId = 104;
+            lvl2managerId = 976;
+        }
+        else
+        {
+            if (empMan.ManagerId == 0)
+            {
+                lvl1managerId = emp.ManagerId;
+                lvl2managerId = 976;
+            }
+            else
+            {
+                lvl1managerId = emp.ManagerId;
+                lvl2managerId = empMan.ManagerId;
+            }
+        }
+        EmployeeVm L2Man = _employees.FirstOrDefault(e => e.EnovaEmpId == lvl2managerId) ?? new EmployeeVm();
+
+
+        formItem.Level1Approvers.Clear();
+        formItem.Level2Approvers.Clear();
+        formItem.Level3Approvers.Clear();
+        formItem.Level4Approvers.Clear();
+        formItem.Level5Approvers.Clear();
+
+        formItem.Level1Approvers = await SetManagerAndDeputies(lvl1managerId); // Przełożony
+        approverL1 = formItem.Level1Approvers[0];
+        formItem.LVL1_EnovaEmpId = emp.ManagerId.ToString();
+        formItem.LVL1_EmployeeName = emp.Manager.LongName;
+        
+        formItem.Level2Approvers = await SetManagerAndDeputies(lvl2managerId);
+        approverL2 = formItem.Level2Approvers[0];
+        formItem.LVL2_EnovaEmpId = L2Man.EnovaEmpId.ToString();
+        formItem.LVL2_EmployeeName = L2Man.LongName;// Dyrektor oddziału
+
+        formItem.Level4Approvers = SetApprovers(_organisation.Role_Accountants); // Księgowe
+        approverL4 = formItem.Level4Approvers[0];
+        formItem.LVL4_EnovaEmpId = approverL4.EmpId.ToString();
+        formItem.LVL4_EmployeeName = approverL4.LongName;
+
+        formItem.Level5Approvers = SetApprovers(_organisation.Role_AccountantsTeamLeader); // KsięgoweTL
+        approverL5 = formItem.Level5Approvers.FirstOrDefault(a => a.IsDefault);
+        formItem.LVL5_EnovaEmpId = approverL5.EmpId.ToString();
+        formItem.LVL5_EmployeeName = approverL5.LongName;
+        
+    }
     private List<OrganisationRoleForFormVm> SetApprovers(List<OrganisationRoleVm> rolesIn)
     {
         List<OrganisationRoleForFormVm> result = new();
@@ -352,6 +450,20 @@ public partial class BankTransfer_EditPage : ComponentBase
 
     }
 
+    private async Task HandleChangeApproverL1(ChangeEventArgs e)
+    {
+        var tempEmp = _employees.First(p => p.EnovaEmpId == int.Parse(e.Value.ToString()));
+        formItem.LVL1_EnovaEmpId = tempEmp.EnovaEmpId.ToString();
+        formItem.LVL1_EmployeeName = tempEmp.LongName;
+        // formItem.LVL1_EmployeeEmail = tempEmp.Email;
+    }
+    private async Task HandleChangeApproverL2(ChangeEventArgs e)
+    {
+        var tempEmp = _employees.First(p => p.EnovaEmpId == int.Parse(e.Value.ToString()));
+        formItem.LVL2_EnovaEmpId = tempEmp.EnovaEmpId.ToString();
+        formItem.LVL2_EmployeeName = tempEmp.LongName;
+        // formItem.LVL1_EmployeeEmail = tempEmp.Email;
+    }
 
     #endregion
     private string GetNextStatus(BusinessTravelFormVm form)
@@ -419,6 +531,68 @@ public partial class BankTransfer_EditPage : ComponentBase
     #endregion
 
     #region OnChangeHandlers
+
+
+
+    private Task HandleSelection((BusinessPartnerVm Item, bool Selected) e)
+    {
+        // Perform the assignment
+        e.Item.Selected = e.Selected;
+        if (e.Item.Selected)
+        {
+            formItem.RecipientName = e.Item.Name;
+            formItem.RecipientAddressStreet = e.Item.Street;
+            formItem.RecipientAddressCity = e.Item.City;
+            formItem.RecipientAddressPostCode = e.Item.PostalCode;
+            formItem.RecipientAddressCountry = e.Item.Country;
+            formItem.RecipientVatId = e.Item.VatId;
+            formItem.BankTransferMapping.BankAccountNumber = e.Item.BankAccountNumber;
+        } else
+        {
+            formItem.RecipientName = string.Empty;
+            formItem.RecipientAddressStreet = string.Empty;
+            formItem.RecipientAddressCity = string.Empty;
+            formItem.RecipientAddressPostCode = string.Empty;
+            formItem.RecipientAddressCountry = string.Empty;
+            formItem.RecipientVatId = string.Empty;
+            formItem.BankTransferMapping.BankAccountNumber = string.Empty;
+        }
+            // Add any additional logic you want to execute
+            // For example, logging or updating other components
+            Console.WriteLine($"Selected: {e.Item.Name}");
+
+        return Task.CompletedTask;
+    }
+
+
+    private async Task HandleFormTypeChange()
+    {
+        formItem.RecipientName = formItem.RecipientVatId = formItem.RecipientAddressCity = formItem.RecipientAddressCountry = formItem.RecipientAddressPostCode = formItem.RecipientAddressStreet = formItem.BankTransferMapping.BankAccountNumber = string.Empty;
+        formItem.BankTransferMapping.BankTrasferTitle = string.Empty;
+
+        _businessPartners = await _mediator.Send(new GetAllBusinessPartnersByTypeNameQuery(formItem.FormType));
+        formItem.IsIndividual = false;
+        isIsIndividualDisabled = false;
+        isSplitPaymentVisible = true;
+
+
+        if (formItem.FormType == "Clo")
+        {
+            formItem.IsIndividual = false;
+            isIsIndividualDisabled = true;
+            isSplitPaymentVisible = false;
+            formItem.BankTransferMapping.BankTrasferTitle = $"Cło z dnia i cośtam do poprawy{DateOnly.FromDateTime(DateTime.Now)}";
+        }
+        else if (formItem.FormType == "PCC")
+        {
+            formItem.IsIndividual = false;
+            isIsIndividualDisabled = true;
+            isSplitPaymentVisible = false;
+            formItem.BankTransferMapping.BankTrasferTitle = $"Podatek z dnia {DateOnly.FromDateTime(DateTime.Now)}";
+        }
+
+
+    }
     private async Task HandleCurrencyChange()
     {
         formItem.Currency = _selectedCurrency.FirstOrDefault();
@@ -437,15 +611,19 @@ public partial class BankTransfer_EditPage : ComponentBase
     }
     private async Task HandleIsIndividualChange()
     {
-        if (!formItem.IsIndividual)
+        if(formItem.IsIndividual)
+        {
+            formItem.SplitPayment = false;
+            IsSplitPaymentDisabled(true);
+            isSplitPaymentVisible = false;
+        }
+        else if (!formItem.IsIndividual)
         {
             formItem.SplitPayment = false;
             formItem.SplitPaymentVatRate = new VATRateVm();
             formItem.SplitPaymentAmount = 0;
             IsSplitPaymentDisabled(false);
-        } else
-        {
-            IsSplitPaymentDisabled(true);
+            isSplitPaymentVisible = true;
         }
         //Console.WriteLine(formItem.IsIndividual.ToString());
     }
@@ -453,6 +631,108 @@ public partial class BankTransfer_EditPage : ComponentBase
     private async Task HandleSplitPaymentAmountChange()
     {
         //Console.WriteLine(formItem.IsIndividual.ToString());
+    }
+
+    private async Task HandleDutyChange()
+    {
+        if (!string.IsNullOrWhiteSpace(duties))
+        {
+            var rows = duties
+                .Trim()
+                .Replace("\r\n", "\n")
+                .Split('\n', StringSplitOptions.RemoveEmptyEntries);
+
+            var parsedDuties = new List<Duty>();
+
+            foreach (var row in rows)
+            {
+                // Support both tab and comma as delimiters
+                var cells = Regex.Split(row.Trim(), @"[\t,]");
+
+                if (cells.Length < 6)
+                    continue;
+
+                try
+                {
+                    var duty = new Duty
+                    {
+                        ReceiveDate = DateOnly.Parse(cells[0].Trim()),
+                        DocumentDate = DateOnly.Parse(cells[1].Trim()),
+                        ReferenceNumber = cells[2].Trim(),
+                        NetValue = decimal.TryParse(cells[3].Trim(), out var net) ? net : 0m,
+                        VatValue = decimal.TryParse(cells[4].Trim(), out var vat) ? vat : 0m,
+                        DutyValue = decimal.TryParse(cells[5].Trim(), out var clo) ? clo : 0m
+                    };
+
+                    parsedDuties.Add(duty);
+                }
+                catch
+                {
+                    // Log error if needed
+                }
+            }
+
+            //convertedDuties = parsedDuties;
+            _duties = parsedDuties.AsQueryable();
+            if (_duties.Count() > 0)
+            {
+                formItem.Amount = _duties.Sum(x => x.DutyValue);
+            }
+        }
+    }
+    private async Task HandlePCCTaxChange()
+    {
+        if (!string.IsNullOrWhiteSpace(pccTaxes))
+        {
+            var rows = pccTaxes
+                .Trim()
+                .Replace("\r\n", "\n")
+                .Split('\n', StringSplitOptions.RemoveEmptyEntries);
+
+            var parsedTaxes = new List<PccTax>();
+
+            foreach (var row in rows)
+            {
+                // Support both tab and comma as delimiters
+                var cells = Regex.Split(row.Trim(), @"[\t,]").ToList();
+
+                //if (cells.Length < 6)
+                //    continue;
+                while (cells.Count < 16)
+                {
+                    cells.Add(string.Empty);
+                }
+                try
+                {
+                    var pccTax = new PccTax
+                    {
+
+                        AgreementNumber = cells[2].Trim(),
+                        VIN = cells[6].Trim(),
+                        Amount = decimal.TryParse(cells[9].Trim(), out var vat) ? vat : 0m,
+                        InvoiceNumber = cells[12].Trim(),
+                        LocationNumber = cells[13].Trim(),
+                        GLAccount = cells[14].Trim(),
+                        DepartmentNumber = cells[15].Trim(),
+                    };
+
+                    parsedTaxes.Add(pccTax);
+                }
+                catch
+                {
+                    // Log error if needed
+                }
+            }
+
+            //convertedPccTaxes = parsedTaxes;
+            _pccTaxes = parsedTaxes.AsQueryable();
+            if (_pccTaxes.Count() > 0)
+            {
+                formItem.Amount = _pccTaxes.Sum(x => x.Amount);
+            }
+        }
+
+
     }
     #endregion
 
@@ -494,7 +774,10 @@ public partial class BankTransfer_EditPage : ComponentBase
 
     #endregion
 
-
+    private async Task CheckForm()
+    {
+        _editContext.Validate();
+    }
     private async Task ViewAttachment(string url)
     {
         // Navigate to the URL in a new tab

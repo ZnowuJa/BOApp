@@ -40,11 +40,28 @@ public class BusinessTravelFormVmValidator : AbstractValidator<BusinessTravelFor
             RuleFor(x => x.FormCostCenters)
                 .Custom((costCenters, context) =>
                 {
-                    int totalShare = costCenters.Sum(cc => cc.Share.Value);
+                    if (costCenters == null || !costCenters.Any())
+                    {
+                        context.AddFailure("FormCostCenters", "Lista centrów kosztów nie może być pusta.");
+                        return;
+                    }
+
+                    int totalShare = costCenters.Sum(cc => cc.Share ?? 0);
                     if (totalShare != 100)
                     {
                         context.AddFailure("FormCostCenters", "Suma udziałów musi wynosić 100%.");
                     }
+
+                    foreach (var cc in costCenters)
+                    {
+                        if (string.IsNullOrEmpty(cc.LocationName) ||
+                            string.IsNullOrEmpty(cc.DepartmentName) ||  
+                            string.IsNullOrEmpty(cc.ResponsibleManagerName))
+                        {
+                            context.AddFailure("FormCostCenters", "Każdy wpis musi zawierać lokalizację, dział i osobę odpowiedzialną.");
+                        }
+                    }
+
                 });
         });
         When(form => form.AdvancePayment, () => 
