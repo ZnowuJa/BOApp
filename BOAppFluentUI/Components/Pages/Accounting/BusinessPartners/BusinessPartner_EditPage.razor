@@ -1,6 +1,10 @@
 ﻿@* Business Partner Edit Component *@
 @using Application.ViewModels.Accounting
 @using Application.Forms.Accounting.Enums
+@using Application.CQRS.AccountingCQRS.Countries.Queries
+@using Application.ViewModels.General
+@using Application.CQRS.General.Organisations.Queries
+
 @inject IMediator _mediator
 @implements IDialogContentComponent<BusinessPartnerVm>
 
@@ -22,39 +26,48 @@
         <div class="form-section">
             <div class="form-grid">
                 <div class="form-group">
-                    <label>Nazwa: <span class="required">*</span></label>
+                    <label>Nazwa:</label>
                     <FluentTextField @bind-Value="@Content.Name" @oninput="OnInputChanged" style="width: 100%;" />
                     <FluentValidationMessage For="@(() => Content.Name)" />
                 </div>
 
                 <div class="form-group">
-                    <label>Ulica: <span class="required">*</span></label>
+                    <label>Ulica:</label>
                     <FluentTextField @bind-Value="@Content.Street" style="width: 100%;" />
                     <FluentValidationMessage For="@(() => Content.Street)" />
                 </div>
 
                 <div class="form-group">
-                    <label>Miasto: <span class="required">*</span></label>
+                    <label>Miasto:</label>
                     <FluentTextField @bind-Value="@Content.City" style="width: 100%;" />
                     <FluentValidationMessage For="@(() => Content.City)" />
                 </div>
 
                 <div class="form-group">
-                    <label>Kod pocztowy: <span class="required">*</span></label>
+                    <label>Kod pocztowy:</label>
                     <FluentTextField @bind-Value="@Content.PostalCode" style="width: 100%;" />
                     <FluentValidationMessage For="@(() => Content.PostalCode)" />
                 </div>
 
                 <div class="form-group">
                     <label>Kraj:</label>
-                    <FluentTextField @bind-Value="@Content.Country" style="width: 100%;" />
+                    <FluentCombobox TOption="string"
+                                    Items="@itemCountryNameList"
+                                    Autocomplete="ComboboxAutocomplete.Both"
+                                    @bind-Value="@Content.Country"
+                                    style="width: 100%;" />
                     <FluentValidationMessage For="@(() => Content.Country)" />
                 </div>
 
                 <div class="form-group">
-                    <label>Nr konta bankowego:</label>
-                    <FluentTextField @bind-Value="@Content.BankAccountNumber" style="width: 100%;" />
-                    <FluentValidationMessage For="@(() => Content.BankAccountNumber)" />
+                    <label>Domyślna waluta:</label>
+                    <FluentSelect TOption="CurrencyVm"
+                                  Items="@itemCurrencyList"
+                                  OptionValue="@(p => p.Name)"
+                                  OptionText="@(p => p.Name)"
+                                  @bind-Value="@Content.DefaultCurrency"
+                                  style="width: 100%;" />
+                    <FluentValidationMessage For="@(() => Content.DefaultCurrency)" />
                 </div>
 
                 <div class="form-group">
@@ -70,27 +83,52 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Typ: <span class="required">*</span></label>
-                    <FluentSelect Items="@_partnerTypes" @bind-Value="Content.Type" Width="100%" />
-                    <FluentValidationMessage For="@(() => Content.Type)" />
+                    <label>Nr konta bankowego:</label>
+                    <FluentTextField @bind-Value="@Content.BankAccountNumber" style="width: 100%;" />
+                    <FluentValidationMessage For="@(() => Content.BankAccountNumber)" />
                 </div>
 
                 <div class="form-group">
                     <label>Lokalizacja:</label>
-                    <FluentTextField @bind-Value="@Content.Location" style="width: 100%;" />
+                    @*                     <FluentSelect TOption="OrganisationVm"
+                    Items="@itemSAPNumberList"
+                    OptionValue="@(p => p.SapNumber)"
+                    OptionText="@(p => p.SapNumber)"
+                    @bind-Value="@Content.Location"
+                    style="width: 100%;" />
+                    <FluentValidationMessage For="@(() => Content.Location)" /> *@
+
+                    <FluentAutocomplete TOption="LocationVm"
+                                        SelectValueOnTab="true"
+                                        AutoComplete="on"
+                                        OnOptionsSearch="@OnLocationSearch"
+                                        MaximumSelectedOptions="1"
+                                        MaximumOptionsSearch="130"
+                                        OptionText="@(p => p.SapNumber + ' ' + p.Description)"
+                                        @bind-SelectedOptions="@_selectedLocation"
+                                        @bind-SelectedOptions:after="@HandleLocationChange"
+                                        style="width: 100%;">
+
+                                        <MaximumSelectedOptionsMessage>
+                                            Można wybrać tylko jedną lokalizację.
+                                        </MaximumSelectedOptionsMessage>
+                                        </FluentAutocomplete>
+
                     <FluentValidationMessage For="@(() => Content.Location)" />
+
+                </div>
+
+                <div class="form-group">
+                    <label>Typ:</label>
+                    <FluentSelect Items="@_partnerTypes" @bind-Value="Content.Type" Width="100%" />
+                    <FluentValidationMessage For="@(() => Content.Type)" />
+
                 </div>
 
                 <div class="form-group">
                     <label>SAPFormType:</label>
                     <FluentSelect Items="@_sapFormTypes" @bind-Value="Content.SAPFormType" Width="100%" />
                     <FluentValidationMessage For="@(() => Content.SAPFormType)" />
-                </div>
-
-                <div class="form-group">
-                    <label>DefaultCurrency:</label>
-                    <FluentTextField @bind-Value="@Content.DefaultCurrency" style="width: 100%;" />
-                    <FluentValidationMessage For="@(() => Content.DefaultCurrency)" />
                 </div>
             </div>
         </div>
@@ -117,8 +155,15 @@
 
     private FluentValidationValidator? _fluentValidator;
 
+    private IQueryable<CurrencyVm> itemCurrencyList { get; set; }
+    private IQueryable<string> itemCountryNameList { get; set; }
+
+    private IEnumerable<LocationVm> _locations { get; set; } = new List<LocationVm>().AsQueryable();
+    private IEnumerable<LocationVm> _selectedLocation = Array.Empty<LocationVm>();
+
     private List<string> _partnerTypes = new List<string>
     {
+    "Select...",
     "Ubezpieczyciel",
     "Dostawca",
     "Inne",
@@ -126,6 +171,7 @@
 
     private List<string> _sapFormTypes = new List<string>
     {
+    "Select...",
     "FIBLA POP",
     "FIBLA ROP",
     "FREE FORM",
@@ -139,7 +185,37 @@
     protected override async Task OnInitializedAsync()
     {
         _editContext = new EditContext(Content);
+        itemCurrencyList = await _mediator.Send(new GetAllCurrenciesForSelectQuery());
+        _locations = await _mediator.Send(new GetLocationsQuery());
+        if (!string.IsNullOrWhiteSpace(Content.Location))
+        {
+            var match = _locations.FirstOrDefault(x => x.SapNumber == Content.Location);
+            if (match is not null)
+            {
+                _selectedLocation = new List<LocationVm> { match };
+            }
+        }
+        var itemCountryNameListObject = await _mediator.Send(new GetAllCountryForSelectQuery());
+        itemCountryNameList = itemCountryNameListObject.Select(i => i.Name).AsQueryable();
         base.OnInitialized();
+    }
+
+    private async Task OnLocationSearch(OptionsSearchEventArgs<LocationVm> e)
+    {
+        if (e.Text != null)
+        {
+            e.Items = _locations.Where(a =>
+                a.Description.Contains(e.Text, StringComparison.OrdinalIgnoreCase) ||
+                a.SapNumber.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
+        }
+    }
+
+    private async Task HandleLocationChange()
+    {
+        var loc = _selectedLocation.FirstOrDefault();
+        if (loc is not null)
+            Content.Location = loc.SapNumber;
+        _editContext?.NotifyFieldChanged(FieldIdentifier.Create(() => Content.Location));
     }
 
     private async Task SaveAsync()

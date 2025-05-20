@@ -22,9 +22,7 @@ else
 {
     <div>
         <FluentLabel Typo="Typography.Subject">
-            <FluentButton BackgroundColor="var(--accent-fill-rest)"
-                          Color="var(--neutral-fill-rest)"
-                          OnClick="ToggleVisibility"
+            <FluentButton OnClick="ToggleVisibility"
                           style="margin-bottom: 10px">
                 Pokaż kolumny:
                 @ToggleIcon
@@ -119,15 +117,18 @@ else
     {
         new FilterColumn<BusinessPartnerVm> { FirstRow = true, Label = "ID", Property = bp => bp.Id.ToString(), IsVisible = false, Width = "80px" },
         new FilterColumn<BusinessPartnerVm> { FirstRow = true, Label = "Nazwa", Property = bp => bp.Name, IsVisible = true, Width = "1FR" },
-        new FilterColumn<BusinessPartnerVm> { FirstRow = true, Label = "Ulica", Property = bp => bp.Street, IsVisible = true, Width = "1FR" },
-        new FilterColumn<BusinessPartnerVm> { FirstRow = true, Label = "Kod pocztowy", Property = bp => bp.PostalCode, IsVisible = true, Width = "1FR" },
-        new FilterColumn<BusinessPartnerVm> { FirstRow = false, Label = "Miasto", Property = bp => bp.City, IsVisible = true, Width = "1FR" },
-        new FilterColumn<BusinessPartnerVm> { FirstRow = false, Label = "Kraj", Property = bp => bp.Country, IsVisible = false, Width = "1FR" },
+        new FilterColumn<BusinessPartnerVm> { FirstRow = true, Label = "Ulica", Property = bp => bp.Street, IsVisible = false, Width = "1FR" },
+        new FilterColumn<BusinessPartnerVm> { FirstRow = true, Label = "Kod pocztowy", Property = bp => bp.PostalCode, IsVisible = false, Width = "1FR" },
+        new FilterColumn<BusinessPartnerVm> { FirstRow = true, Label = "Miasto", Property = bp => bp.City, IsVisible = true, Width = "1FR" },
+        new FilterColumn<BusinessPartnerVm> { FirstRow = true, Label = "Kraj", Property = bp => bp.Country, IsVisible = false, Width = "1FR" },
         new FilterColumn<BusinessPartnerVm> { FirstRow = false, Label = "Numer konta", Property = bp => bp.BankAccountNumber, IsVisible = false, Width = "1FR" },
-        new FilterColumn<BusinessPartnerVm> { FirstRow = false, Label = "NIP", Property = bp => bp.VatId, IsVisible = false, Width = "1FR" },
+        new FilterColumn<BusinessPartnerVm> { FirstRow = false, Label = "NIP", Property = bp => bp.VatId, IsVisible = true, Width = "1FR" },
         new FilterColumn<BusinessPartnerVm> { FirstRow = false, Label = "ID SAP", Property = bp => bp.SAPId, IsVisible = false, Width = "1FR" },
         new FilterColumn<BusinessPartnerVm> { FirstRow = false, Label = "Typ", Property = bp => bp.Type.ToString(), IsVisible = true, Width = "1FR" },
-        new FilterColumn<BusinessPartnerVm> { FirstRow = false, Label = "Lokalizacja", Property = bp => bp.Location, IsVisible = false, Width = "1FR" }
+        new FilterColumn<BusinessPartnerVm> { FirstRow = false, Label = "Lokalizacja", Property = bp => bp.Location, IsVisible = false, Width = "1FR" },
+        new FilterColumn<BusinessPartnerVm> { FirstRow = false, Label = "SAPFormType", Property = bp => bp.SAPFormType, IsVisible = true, Width = "1FR" },
+        new FilterColumn<BusinessPartnerVm> { FirstRow = false, Label = "Waluta", Property = bp => bp.DefaultCurrency, IsVisible = false, Width = "1FR" }
+
     };
 
     private async Task View(BusinessPartnerVm item)
@@ -144,7 +145,7 @@ else
         var dialog = await _dialogService.ShowDialogAsync<BusinessPartner_EditPage>(item, new DialogParameters()
             {
                 Height = "570px",
-                Width = "550px",
+                Width = "590px",
                 Title = item.Id > 0 ? "Aktualizuj Kontrahneta" : "Nowy Kontrahent",
                 PreventDismissOnOverlayClick = false,
                 PreventScroll = true,
