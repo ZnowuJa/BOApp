@@ -53,7 +53,10 @@ namespace Application.Validation.Accounting
                 .MinimumLength(4).When(x => !string.IsNullOrWhiteSpace(x.SAPId)).WithMessage("SAP ID musi mieć co najmniej 4 znaki.")
                 .MaximumLength(20).WithMessage("SAP ID może mieć maksymalnie 20 znaków.");
 
-            RuleFor(x => x.Type)
+            RuleFor(x => x.BusinessPartnerType)
+                .NotEmpty().WithMessage("Typ musi zostać wybrany.").NotEqual("Select...").WithMessage("Typ musi zostać wybrany.");
+
+            RuleFor(x => x.BankTransferType)
                 .NotEmpty().WithMessage("Typ musi zostać wybrany.").NotEqual("Select...").WithMessage("Typ musi zostać wybrany.");
 
             RuleFor(x => x.Location)

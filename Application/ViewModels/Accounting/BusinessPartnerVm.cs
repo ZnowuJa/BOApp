@@ -21,7 +21,8 @@ public class BusinessPartnerVm : IMapFrom<BusinessPartner>
     public string? BankAccountNumber { get; set; } = string.Empty;
     public string? VatId { get; set; } = string.Empty;
     public string? SAPId { get; set; } = string.Empty;
-    public string Type { get; set; } = string.Empty;
+    public string BankTransferType { get; set; } = string.Empty;
+    public string BusinessPartnerType { get; set; } = string.Empty;
     public string? Location { get; set; } = string.Empty;
     public string SAPFormType { get; set; } = string.Empty;
     public string DefaultCurrency { get; set; } = string.Empty;

@@ -18,7 +18,8 @@ namespace Domain.Entities.Accounting
         public string? BankAccountNumber { get; set; }
         public string? VatId { get; set; }
         public string? SAPId { get; set; }
-        public string Type { get; set; }
+        public string BankTransferType { get; set; }
+        public string BusinessPartnerType { get; set; }
         public string? Location { get; set; }
         public string SAPFormType { get; set; }
         public string DefaultCurrency {  get; set; }

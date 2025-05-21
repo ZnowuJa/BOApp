@@ -124,7 +124,7 @@ else
         new FilterColumn<BusinessPartnerVm> { FirstRow = false, Label = "Numer konta", Property = bp => bp.BankAccountNumber, IsVisible = false, Width = "1FR" },
         new FilterColumn<BusinessPartnerVm> { FirstRow = false, Label = "NIP", Property = bp => bp.VatId, IsVisible = true, Width = "1FR" },
         new FilterColumn<BusinessPartnerVm> { FirstRow = false, Label = "ID SAP", Property = bp => bp.SAPId, IsVisible = false, Width = "1FR" },
-        new FilterColumn<BusinessPartnerVm> { FirstRow = false, Label = "Typ", Property = bp => bp.Type.ToString(), IsVisible = true, Width = "1FR" },
+        new FilterColumn<BusinessPartnerVm> { FirstRow = false, Label = "Typ", Property = bp => bp.BusinessPartnerType.ToString(), IsVisible = true, Width = "1FR" },
         new FilterColumn<BusinessPartnerVm> { FirstRow = false, Label = "Lokalizacja", Property = bp => bp.Location, IsVisible = false, Width = "1FR" },
         new FilterColumn<BusinessPartnerVm> { FirstRow = false, Label = "SAPFormType", Property = bp => bp.SAPFormType, IsVisible = true, Width = "1FR" },
         new FilterColumn<BusinessPartnerVm> { FirstRow = false, Label = "Waluta", Property = bp => bp.DefaultCurrency, IsVisible = false, Width = "1FR" }

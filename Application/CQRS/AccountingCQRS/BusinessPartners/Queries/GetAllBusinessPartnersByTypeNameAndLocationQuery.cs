@@ -21,7 +21,7 @@ namespace Application.CQRS.AccountingCQRS.BusinessPartners.Queries
         {
             var result = await _appDbContext.BusinessPartners
                 .Where(p => p.StatusId == 1 &&
-                            p.Type == request.TypeName &&
+                            p.BusinessPartnerType == request.TypeName &&
                             p.Location == request.Location)
                 .ToListAsync(cancellationToken);
 
