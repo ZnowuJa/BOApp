@@ -65,6 +65,7 @@
                                     Items="@itemCountryNameList"
                                     Autocomplete="ComboboxAutocomplete.Both"
                                     @bind-Value="@Content.Country"
+                                    Height="250px"
                                     style="width: 100%;" />
                     <FluentValidationMessage For="@(() => Content.Country)" />
                 </div>
@@ -76,6 +77,7 @@
                                   OptionValue="@(p => p.Name)"
                                   OptionText="@(p => p.Name)"
                                   @bind-Value="@Content.DefaultCurrency"
+                                  Height="250px"
                                   style="width: 100%;" />
                     <FluentValidationMessage For="@(() => Content.DefaultCurrency)" />
                 </div>

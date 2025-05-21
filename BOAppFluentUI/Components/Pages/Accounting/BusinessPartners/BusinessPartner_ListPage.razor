@@ -121,10 +121,11 @@ else
         new FilterColumn<BusinessPartnerVm> { FirstRow = true, Label = "Kod pocztowy", Property = bp => bp.PostalCode, IsVisible = false, Width = "1FR" },
         new FilterColumn<BusinessPartnerVm> { FirstRow = true, Label = "Miasto", Property = bp => bp.City, IsVisible = true, Width = "1FR" },
         new FilterColumn<BusinessPartnerVm> { FirstRow = true, Label = "Kraj", Property = bp => bp.Country, IsVisible = false, Width = "1FR" },
-        new FilterColumn<BusinessPartnerVm> { FirstRow = false, Label = "Numer konta", Property = bp => bp.BankAccountNumber, IsVisible = false, Width = "1FR" },
+        new FilterColumn<BusinessPartnerVm> { FirstRow = true, Label = "Numer konta", Property = bp => bp.BankAccountNumber, IsVisible = false, Width = "1FR" },
         new FilterColumn<BusinessPartnerVm> { FirstRow = false, Label = "NIP", Property = bp => bp.VatId, IsVisible = true, Width = "1FR" },
         new FilterColumn<BusinessPartnerVm> { FirstRow = false, Label = "ID SAP", Property = bp => bp.SAPId, IsVisible = false, Width = "1FR" },
-        new FilterColumn<BusinessPartnerVm> { FirstRow = false, Label = "Typ", Property = bp => bp.BusinessPartnerType.ToString(), IsVisible = true, Width = "1FR" },
+        new FilterColumn<BusinessPartnerVm> { FirstRow = false, Label = "Typ Kontrahenta", Property = bp => bp.BusinessPartnerType, IsVisible = true, Width = "1FR" },
+        new FilterColumn<BusinessPartnerVm> { FirstRow = false, Label = "Typ przelewu", Property = bp => bp.BankTransferType, IsVisible = true, Width = "1FR" },
         new FilterColumn<BusinessPartnerVm> { FirstRow = false, Label = "Lokalizacja", Property = bp => bp.Location, IsVisible = false, Width = "1FR" },
         new FilterColumn<BusinessPartnerVm> { FirstRow = false, Label = "SAPFormType", Property = bp => bp.SAPFormType, IsVisible = true, Width = "1FR" },
         new FilterColumn<BusinessPartnerVm> { FirstRow = false, Label = "Waluta", Property = bp => bp.DefaultCurrency, IsVisible = false, Width = "1FR" }
