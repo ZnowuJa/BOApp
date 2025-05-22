@@ -139,7 +139,7 @@ stages:
                     $appSettings = Get-Content $(appSettingsPath) -Raw | ConvertFrom-Json
                     $appSettings.ConnectionStrings.AppDbContextConnection = "$(AppDbContextConnectionDEV)"
                     $appSettings.ConnectionStrings.AsDbContextConnection = "$(AsDbContextConnectionDEV)"
-                    $appSettings.ConnectionStrings.BNPDbContextConnection = "$(BNPDbContextConnection)"
+                    # $appSettings.ConnectionStrings.BNPDbContextConnection = "$(BNPDbContextConnection)"
                     $appSettings.BaseUrl = "$(baseUrlDEV)"
                     $appSettings.AppVersion = "$(commitId)"
                     $appSettings.Environment = "DEV"
