@@ -26,7 +26,7 @@ public class BusinessPartnerVm : IMapFrom<BusinessPartner>
     public string? Location { get; set; } = string.Empty;
     public string SAPFormType { get; set; } = string.Empty;
     public string DefaultCurrency { get; set; } = string.Empty;
-    public bool Selected { get; set; } = false;
+    public bool Selected { get; set; } = true;
 
     public void Mapping(Profile profile)
     {
