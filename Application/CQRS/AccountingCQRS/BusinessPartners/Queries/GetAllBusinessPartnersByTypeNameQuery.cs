@@ -19,7 +19,7 @@ namespace Application.CQRS.AccountingCQRS.BusinessPartners.Queries
         public async Task<IQueryable<BusinessPartnerVm>> Handle(GetAllBusinessPartnersByTypeNameQuery request, CancellationToken cancellationToken)
         {
             var result = await _appDbContext.BusinessPartners
-                .Where(p => p.StatusId == 1 && p.Type == request.TypeName)
+                .Where(p => p.StatusId == 1 && p.BusinessPartnerType == request.TypeName)
                 .ToListAsync(cancellationToken);
 
             var res = _mapper.Map<List<BusinessPartnerVm>>(result);

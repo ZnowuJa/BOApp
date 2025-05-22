@@ -6,31 +6,32 @@
 <tr>
     <td>
         <FluentAutocomplete TOption="SimpleLocation"
-        Disabled="@isEditable"
-        Class="bold-label"
-        AutoComplete="on"
-        MaximumOptionsSearch="40"
-        OnOptionsSearch="@OnLocationSearch"
-        Placeholder="wybierz..."
-        MaximumSelectedOptions="1"
-        OptionText="@(p => p.SAPLocationNumber + ' ' + p.SAPLocationName)"
-        @bind-SelectedOptions="@SelectedLocation"
-        @bind-SelectedOptions:after="@HandleSCCLocationChange"
-        Width="200px" />
+            Disabled="@isEditable"
+            Class="bold-label"
+            AutoComplete="on"
+            MaximumOptionsSearch="40"
+            OnOptionsSearch="@OnLocationSearch"
+            Placeholder="wybierz..."
+            MaximumSelectedOptions="1"
+            OptionText="@(p => p.SAPLocationNumber + ' ' + p.SAPLocationName)"
+            @bind-SelectedOptions="@SelectedLocation"
+            @bind-SelectedOptions:after="@HandleSCCLocationChange"
+            Width="200px" />
     </td>
     <td>
-        <FluentAutocomplete TOption="SimpleDepartment"
-                            Disabled="@isDeptEditable"
-        Class="bold-label"
-        AutoComplete="on"
-        MaximumOptionsSearch="80"
-        OnOptionsSearch="@OnDepartmentSearch"
-        Placeholder="wybierz..."
-        MaximumSelectedOptions="1"
-        OptionText="@(p => p.SAPDepartmentNumber + ' ' + p.SAPDepartmentName)"
-        @bind-SelectedOptions="@SelectedDepartment"
-        @bind-SelectedOptions:after="@HandleSCCDepartmentChange"
-        Width="220px" />
+        <FluentAutocomplete 
+            TOption="SimpleDepartment"
+            Disabled="@isDeptEditable"
+            Class="bold-label"
+            AutoComplete="on"
+            MaximumOptionsSearch="80"
+            OnOptionsSearch="@OnDepartmentSearch"
+            Placeholder="wybierz..."
+            MaximumSelectedOptions="1"
+            OptionText="@(p => p.SAPDepartmentNumber + ' ' + p.SAPDepartmentName)"
+            @bind-SelectedOptions="@SelectedDepartment"
+            @bind-SelectedOptions:after="@HandleSCCDepartmentChange"
+            Width="220px" />
     </td>
     <td>
         <InputNumber
@@ -173,7 +174,8 @@
         var tempLocation = SelectedLocation.FirstOrDefault();
         if (tempDepartment is null)
         {
-            _SelectedSapCC = new SapCostCenterVm[] { new SapCostCenterVm() };
+            _SelectedSapCC  = new SapCostCenterVm[] { new SapCostCenterVm() };
+            _content = new SapCostCenterVm();
         }
         else if (!string.IsNullOrEmpty(tempDepartment.SAPDepartmentNumber))
         {
@@ -196,7 +198,7 @@
         {
             var emp = SelectedDepartment.FirstOrDefault();
         }
-
+        await OnSapCostCenterChanged.InvokeAsync(_content);
         StateHasChanged();
     }
 
