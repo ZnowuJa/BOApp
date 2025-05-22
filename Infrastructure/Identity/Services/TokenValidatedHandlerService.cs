@@ -30,7 +30,6 @@ public class TokenValidatedHandlerService : ITokenValidatedHandlerService
         _logger = logger;
     }
 
-
     public async Task HandleTokenValidation(TokenValidatedContext context)
     {
         await _userRegistrationService.CheckRoles();
@@ -82,7 +81,6 @@ public class TokenValidatedHandlerService : ITokenValidatedHandlerService
         }
 
     }
-
     public async Task<bool> UpdateEmployee(AppUser appUser, Employee empl, TokenValidatedContext ctx)
     {
         //empl = await _appDbContext.Employees.Where(e => e.Email.ToString() == user.Email).FirstOrDefaultAsync();
@@ -136,7 +134,6 @@ public class TokenValidatedHandlerService : ITokenValidatedHandlerService
 
         return result != null;
     }
-
      public async Task<bool> CheckUserInEmployeesTable(string preferedName)
     {
         var employee = await _appDbContext.Employees.Where(e => e.Email.ToString() == preferedName).FirstOrDefaultAsync();
