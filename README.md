@@ -13,10 +13,7 @@ Aplikacje w systemie zbudowane są w jednolitym szablonie:
 - Architektura  
 - Usługi bazodanowe  
 - Usługi integracji z Azure  
-- Obsługa danych o pracownikach (import i aktualizacja)  
-- Środowiska robocze i integracja z AZB  
-  - DEV  
-  - PROD  
+- Obsługa danych o pracownikach (import i aktualizacja)   
 
 #### Aplikacje:  
 - Ogólne systemowe słowniki  
