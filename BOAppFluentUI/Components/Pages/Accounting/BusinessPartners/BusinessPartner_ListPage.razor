@@ -1,0 +1,237 @@
+﻿@page "/kontrahencibiznesowi"
+@using Microsoft.AspNetCore.Authorization
+@using Application.ViewModels.Accounting
+@using Application.CQRS.AccountingCQRS.BusinessPartners.Queries
+@using Application.CQRS.AccountingCQRS.BusinessPartners.Commands
+
+@attribute [Authorize(Policy = "Technician")]
+@attribute [Authorize(Policy = "Accountant")]
+
+@inject IMediator _mediator
+@inject IDialogService _dialogService
+@inject IToastService _toastService
+@inject IJSRuntime JS
+
+<h3>Kontrahenci</h3>
+
+@if (businessPartner == null)
+{
+    <FluentProgressRing>Ładowanie...</FluentProgressRing>
+}
+else
+{
+    <div>
+        <FluentLabel Typo="Typography.Subject">
+            <FluentButton OnClick="ToggleVisibility"
+                          style="margin-bottom: 10px">
+                Pokaż kolumny:
+                @ToggleIcon
+            </FluentButton>
+        </FluentLabel>
+
+
+        @if (isExpanded)
+        {
+            <div>
+                <FluentStack Orientation="Orientation.Horizontal">
+                    @foreach (var column in filterColumns)
+                    {
+                        if (column.FirstRow)
+                        {
+                            <FluentCheckbox @bind-Value="column.IsVisible" Label="@column.Label" />
+                        }
+                    }
+                </FluentStack>
+                <p></p>
+                <FluentStack Orientation="Orientation.Horizontal">
+                    @foreach (var column in filterColumns)
+                    {
+                        if (!column.FirstRow)
+                        {
+                            <FluentCheckbox @bind-Value="column.IsVisible" Label="@column.Label" />
+                        }
+                    }
+                </FluentStack>
+            </div>
+        }
+    </div>
+
+    <FluentDataGrid Items="@filteredBusinessPartners"
+                    TGridItem="BusinessPartnerVm"
+                    ResizableColumns="true"
+                    Pagination="@pagination"
+                    Style="overflow: auto;"
+                    ShowHover="true">
+        @foreach (var column in filterColumns.Where(c => c.IsVisible))
+        {
+            <PropertyColumn TGridItem="BusinessPartnerVm" TProp="string" Property="@(Utils.GetPropertyExpression(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label" Filtered="!string.IsNullOrWhiteSpace(column.Filter)">
+                <ColumnOptions>
+                    <div class="search-box">
+                        <FluentSearch type="search" Autofocus="true" @bind-Value="column.Filter" @oninput="(args) => Utils.HandleFilterDebounced(column, args, debounceDispatcher, () => InvokeAsync(StateHasChanged))" Placeholder="@($"{column.Label.ToLower()}...")" />
+                    </div>
+                </ColumnOptions>
+            </PropertyColumn>
+        }
+
+        <TemplateColumn Title="Akcje" Align="Align.End">
+            @{
+                var viewId = $"viewid-{context.Id}";
+                var editId = $"editid-{context.Id}";
+                var deleteId = $"deleteid-{context.Id}";
+            }
+            <FluentButton Id="@viewId" IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" />
+            <FluentTooltip Anchor="@viewId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Szczegóły</FluentTooltip>
+
+            <FluentButton Id="@editId" IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => EditItem(context))" />
+            <FluentTooltip Anchor="@editId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Edytuj</FluentTooltip>
+
+            <FluentButton Id="@deleteId" IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" />
+            <FluentTooltip Anchor="@deleteId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Usuń</FluentTooltip>
+
+        </TemplateColumn>
+    </FluentDataGrid>
+    <FluentPaginator State="@pagination" />
+    <FluentButton IconStart="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddPanel())" />
+}
+
+@code {
+    private IQueryable<BusinessPartnerVm> businessPartner;
+    private IQueryable<BusinessPartnerVm> filteredBusinessPartners => businessPartner.Where(x =>
+    filterColumns.All(column => string.IsNullOrWhiteSpace(column.Filter) ||
+    column.Property(x).Contains(column.Filter, StringComparison.CurrentCultureIgnoreCase)));
+
+    readonly PaginationState pagination = new PaginationState { ItemsPerPage = 12 };
+    private DebounceDispatcher debounceDispatcher = new DebounceDispatcher();
+
+    private bool isExpanded = false;
+    private string ToggleIcon => isExpanded ? "▼" : "▶";
+
+    private bool deleteConfirm = false;
+   
+    private void ToggleVisibility()
+    {
+        isExpanded = !isExpanded;
+    }
+
+    private List<FilterColumn<BusinessPartnerVm>> filterColumns = new List<FilterColumn<BusinessPartnerVm>>
+    {
+        new FilterColumn<BusinessPartnerVm> { FirstRow = true, Label = "ID", Property = bp => bp.Id.ToString(), IsVisible = false, Width = "80px" },
+        new FilterColumn<BusinessPartnerVm> { FirstRow = true, Label = "Nazwa", Property = bp => bp.Name, IsVisible = true, Width = "1FR" },
+        new FilterColumn<BusinessPartnerVm> { FirstRow = true, Label = "Ulica", Property = bp => bp.Street, IsVisible = false, Width = "1FR" },
+        new FilterColumn<BusinessPartnerVm> { FirstRow = true, Label = "Kod pocztowy", Property = bp => bp.PostalCode, IsVisible = false, Width = "1FR" },
+        new FilterColumn<BusinessPartnerVm> { FirstRow = true, Label = "Miasto", Property = bp => bp.City, IsVisible = true, Width = "1FR" },
+        new FilterColumn<BusinessPartnerVm> { FirstRow = true, Label = "Kraj", Property = bp => bp.Country, IsVisible = false, Width = "1FR" },
+        new FilterColumn<BusinessPartnerVm> { FirstRow = true, Label = "Numer konta", Property = bp => bp.BankAccountNumber, IsVisible = false, Width = "1FR" },
+        new FilterColumn<BusinessPartnerVm> { FirstRow = false, Label = "NIP", Property = bp => bp.VatId, IsVisible = true, Width = "1FR" },
+        new FilterColumn<BusinessPartnerVm> { FirstRow = false, Label = "ID SAP", Property = bp => bp.SAPId, IsVisible = false, Width = "1FR" },
+        new FilterColumn<BusinessPartnerVm> { FirstRow = false, Label = "Typ Kontrahenta", Property = bp => bp.BusinessPartnerType, IsVisible = true, Width = "1FR" },
+        new FilterColumn<BusinessPartnerVm> { FirstRow = false, Label = "Typ przelewu", Property = bp => bp.BankTransferType, IsVisible = true, Width = "1FR" },
+        new FilterColumn<BusinessPartnerVm> { FirstRow = false, Label = "Lokalizacja", Property = bp => bp.Location, IsVisible = true, Width = "1FR" },
+        new FilterColumn<BusinessPartnerVm> { FirstRow = false, Label = "SAPFormType", Property = bp => bp.SAPFormType, IsVisible = true, Width = "1FR" },
+        new FilterColumn<BusinessPartnerVm> { FirstRow = false, Label = "Waluta", Property = bp => bp.DefaultCurrency, IsVisible = false, Width = "1FR" }
+
+    };
+
+    private async Task View(BusinessPartnerVm item)
+    {
+        await _dialogService.ShowInfoAsync(message: $"Id: {item.Id}, Kontrahent: {item.Name}");
+    }
+
+    private async Task EditItem(BusinessPartnerVm item)
+    {
+        ToastIntent intent;
+        string message = string.Empty;
+        int resultId = 0;
+
+        var dialog = await _dialogService.ShowDialogAsync<BusinessPartner_EditPage>(item, new DialogParameters()
+            {
+                Height = "570px",
+                Width = "590px",
+                Title = item.Id > 0 ? "Aktualizuj Kontrahneta" : "Nowy Kontrahent",
+                PreventDismissOnOverlayClick = false,
+                PreventScroll = true,
+            });
+
+        var result = await dialog.Result;
+
+        if (!result.Cancelled && result.Data != null)
+        {
+            var final = (BusinessPartnerVm)result.Data;
+
+            if (final.Id > 0)
+            {
+                resultId = await _mediator.Send(new UpdateBusinessPartnerCommand(final));
+                intent = ToastIntent.Success;
+                message = "Kontrahent został zaktualizowany!";
+            }
+            else if (final.Id == 0)
+            {
+                resultId = await _mediator.Send(new CreateBusinessPartnerCommand(final));
+                intent = ToastIntent.Success;
+                message = "Kontrahent został utworzony!";
+            }
+            else
+            {
+                intent = ToastIntent.Warning;
+                message = "Coś poszło źle!";
+            }
+        }
+        else if (result.Cancelled)
+        {
+            intent = ToastIntent.Info;
+            message = "Operacja anulowana";
+        }
+        else
+        {
+            intent = ToastIntent.Error;
+            message = "Coś poszło źle!";
+        }
+
+        await Load();
+        _toastService.ShowToast(intent, message, 3000);
+    }
+
+    private async Task Delete(BusinessPartnerVm item)
+    {
+        var dialog = await _dialogService.ShowConfirmationAsync(
+            $"Czy na pewno chcesz usunąć Kontrahenta: {item.Name}?",
+            "Usuń",
+            "Anuluj",
+            "Potwierdź usunięcie");
+        var result = await dialog.Result;
+        deleteConfirm = result.Cancelled;
+        ToastIntent intent;
+        string message = string.Empty;
+
+        if (deleteConfirm)
+        {
+            intent = ToastIntent.Error;
+            message = "Operacja anulowana";
+        }
+        else
+        {
+            var i = await _mediator.Send(new DeleteBusinessPartnerCommand(item.Id));
+            intent = ToastIntent.Success;
+            message = "Kontrahent został usunięty!";
+        }
+
+        _toastService.ShowToast(intent, message, 3000);
+        await Load();
+    }
+
+    private async Task AddPanel()
+    {
+        var item = new BusinessPartnerVm();
+        await EditItem(item);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Load();
+    }
+
+    private async Task Load()
+    {
+        businessPartner = await _mediator.Send(new GetAllBusinessPartnerQuery());
+    }
+}

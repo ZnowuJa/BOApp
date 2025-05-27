@@ -1,0 +1,590 @@
+﻿@* InvoiceItem Edit Component *@
+
+@using Application.ITWarehouseCQRS.Invoices.Commands
+@using Application.CQRS.ITWarehouseCQRS.Units.Queries
+@using Application.CQRS.ITWarehouseCQRS.Assets.Commands
+@using Application.CQRS.ITWarehouseCQRS.Assets.Queries
+@using MediatR
+@using System.Security.Claims
+
+@inject IMediator _mediator;
+@implements IDialogContentComponent<InvoiceItemVm>
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+@* Header *@
+<FluentDialogHeader ShowDismiss="true">
+    <FluentStack VerticalAlignment="VerticalAlignment.Center">
+        <FluentIcon Value="@(new Icons.Regular.Size24.WindowApps())" />
+        <FluentLabel Typo="Typography.PaneHeader">
+            @Dialog.Instance.Parameters.Title
+        </FluentLabel>
+    </FluentStack>
+</FluentDialogHeader>
+
+@* Footer *@
+<FluentDialogFooter>
+    
+    @if((importAssets || enterAssets || importAssetsExt) && generateAssets)
+    {
+        <FluentButton IconEnd="@(new Icons.Regular.Size24.ArrowClockwiseDashes())" Appearance="Appearance.Accent" OnClick="@SaveAllAssets"> Generate Assets </FluentButton>
+    }
+    @if(!showItemsGenerated){
+        <FluentButton Appearance="Appearance.Neutral" OnClick="@CancelAsync">Cancel</FluentButton>
+    } else
+    {
+        <FluentButton Appearance="Appearance.Neutral" OnClick="@CancelAsync">Close</FluentButton>
+    }
+
+</FluentDialogFooter>
+
+@* Body *@
+<FluentDialogBody>
+        <EditForm EditContext="_editContext" Context = "formContext">
+        <FluentValidationValidator @ref="_fluentValidator" />
+    <FluentGrid>
+        @* Item Name *@
+        <FluentGridItem xs="2" sm="2">
+            <div class="card">
+                <FluentTextField Id="ItemName"  
+                                 Disabled="@editmode"
+                                 Placeholder="item name">
+                                    Item Name:
+                </FluentTextField>
+                <FluentValidationMessage For="@(() => Content.Name)" />
+            </div>
+        </FluentGridItem>
+        @* Part ComboBox *@
+            <FluentGridItem xs="2" sm="2">
+                <div class="card">
+                    <FluentTextField Id="PartName" @bind-Value="@Content.PartVm.Name"
+                                     Disabled="@editmode"
+                                     Placeholder="Part name">
+                        Part Name:
+                    </FluentTextField>
+                    <FluentValidationMessage For="@(() => Content.PartVm.Name)" />
+                </div>
+            </FluentGridItem>
+        @* Unit Price *@
+            <FluentGridItem xs="2" sm="2">
+            <div class="card">
+                <FluentNumberField 
+                    Id="UPrice" 
+                    @bind-Value="@Content.UnitNetPrice"
+                                       Disabled="@editmode"
+                    Placeholder="unit price..."> Unit net price 
+                </FluentNumberField>
+                @* <FluentValidationMessage For="@(() => newInvItem.Qty)" /> *@
+            </div>
+        </FluentGridItem>
+        @* Qty *@
+        <FluentGridItem xs="2" sm="2">
+            <div class="card">
+                <FluentNumberField 
+                    Id="Qty"
+                    Disabled="@editmode"
+                    @bind-Value="@Content.Qty" 
+                    Placeholder="quantity..."> 
+                    Qty    
+                </FluentNumberField>
+                @* <FluentValidationMessage For="@(() => newInvItem.Qty)" /> *@
+            </div>
+        </FluentGridItem>
+        @* Unit *@
+            <FluentGridItem xs="2" sm="2">
+                <div class="card">
+                    <FluentTextField Id="UnitName" @bind-Value="@Content.UnitVm.ShortName"
+                                     Disabled="@editmode"
+                                     Placeholder="Unit name">
+                                        Unit:
+                    </FluentTextField>
+                    <FluentValidationMessage For="@(() => Content.UnitVm.ShortName)" />
+                </div>
+            </FluentGridItem>
+
+    </FluentGrid>
+    <p></p>
+        @if (!Content.ItemsGenerated)
+        {
+            
+            @* <FluentButton IconStart="@(new Icons.Regular.Size24.Add())" OnClick="@(() => ImportAssets())"> Import Assets </FluentButton> *@
+            <FluentButton IconStart="@(new Icons.Regular.Size24.Add())" OnClick="@(() => ImportAssetsExt())"> Import Assets Ext </FluentButton>
+            <FluentButton IconStart="@(new Icons.Regular.Size24.Add())" OnClick="@(() => AddAssets())"> Enter Assets </FluentButton>
+        }
+        
+        <p></p>
+@*         @if (importAssets)
+        {
+            <FluentTextArea @ref=assetsArea @onchange="(e) => HandleSerialEdit(e, true)" Label="AssetsArea" />
+            <p></p>
+                <p> Please paste only serial numbers with any separator</p>
+            
+        } *@
+        @if (importAssetsExt)
+        {
+            <FluentTextArea @ref=assetsAreaExt @onchange="(e) => HandleSerialEditExt(e, true)" Label="AssetsAreaExt" Disabled = "disabledTA" />
+                <p></p>
+            
+            <FluentStack>
+                <FluentSwitch Disabled = "serial" ValueChanged="(e) => { serial = !serial; setDisabledTA(); }" Label="Serial Number" />
+                <FluentSwitch ValueChanged="(e) => { imei = !imei; setDisabledTA(); }" Label="IMEI" />
+                <FluentSwitch ValueChanged="(e) => { mac = !mac; setDisabledTA(); }" Label="MAC" />
+            </FluentStack>
+            <p></p>
+            if(serial && !imei && !mac)
+            {
+                <p> Please paste 1 value for each line: Serial Number, for each new Asset</p>
+            }
+            if (serial && imei && !mac)
+            {
+                <p> Please paste 2 values for each line: Serial number, IMEI, with any separator and one line for each new Asset</p>
+            }
+            if (serial && imei && mac)
+            {
+                <p> Please paste 3 values for each line: Serial number, IMEI, MAC, with any separator and one line for each new Asset</p>
+            }
+            if (serial && !imei && mac)
+            {
+                <p> Please paste 2 values for each line: Serial number, MAC, with any separator and one line for each new Asset</p>
+            }
+
+
+        }
+        @if (enterAssets)
+        {
+            <FluentDataGrid id="enterAssetsId" Items="itemAssetVms" Pagination="@pagination" GridTemplateColumns="1fr 1fr 1fr 1fr" TGridItem=AssetVm >
+
+                <TemplateColumn Title ="Asset Tag Number">
+
+                    <FluentTextField 
+                        @bind-Value="@context.AssetTagNumber" 
+                        Disabled = "@editmode"/>
+                </TemplateColumn>
+                <TemplateColumn Title = "Serial Number">
+                    <FluentTextField 
+                        @bind-Value="@context.SerialNumber"
+                        Disabled="@(!string.IsNullOrEmpty(context.SerialNumber))"
+                        @onchange="(e) => HandleSerialEdit(e, false, context, serialProp )" />
+                </TemplateColumn>
+
+                <TemplateColumn Title = "IMEI">
+                    <FluentTextField 
+                        @bind-Value="@context.Imei"
+                        Disabled="@(!string.IsNullOrEmpty(context.Imei))"
+                        @onchange="(e) => HandleSerialEdit(e, false, context, imeiProp )" />
+                </TemplateColumn>
+                <TemplateColumn Title="MAC">
+                    <FluentTextField 
+                        @bind-Value="@context.Mac"
+                        Disabled="@(!string.IsNullOrEmpty(context.Mac))"
+                        @onchange="(e) => HandleSerialEdit(e, false, context, macProp)" />
+                </TemplateColumn>
+            </FluentDataGrid>
+            <FluentPaginator State="@pagination" />
+            <div> 
+                <FluentCheckbox @bind-value = "@leasing" Label ="Leasing:"/>
+            </div>
+            @if (leasing)
+            {
+                <div style="margin-right: 10px;">
+                    <FluentDatePicker Label="End of contract: " AriaLabel="To" @bind-Value="@leasingUntil" />
+                </div>
+            }
+            @if (noAllSerialsAssigned)
+            {
+                <div class="validation-error"><p style="color:red;">@errorMessage</p></div>
+            }
+            @*     <FluentButton IconEnd="@(new Icons.Regular.Size24.ArrowClockwiseDashes())" OnClick="@(() => SaveAllAssets())"> Save All Assets </FluentButton> *@
+
+        }
+        @if (showItemsGenerated)
+        {
+            <br />
+            <h3> Assets generated: </h3>
+            <FluentDataGrid Items="@itemAssetVms" Pagination="@paginationAssetsGenned" TGridItem="AssetVm" GridTemplateColumns="80px repeat(4, 1fr) " ResizableColumns=true>
+                <PropertyColumn Property="@(i => i.Id)" Sortable="true" Align="Align.Start" Title="Id" Tooltip="true" />
+                <PropertyColumn Property="@(i => i.AssetTagNumber)" Sortable="true" Align="Align.Start" Title="Asset Tag Number" Tooltip="true" />
+                <PropertyColumn Property="@(i => i.SerialNumber)" Sortable="true" Align="Align.Start" Title="Serial Number" Tooltip="true" />
+                    <PropertyColumn Property="@(i => i.Imei)" Sortable="true" Align="Align.Start" Title="IMEI" Tooltip="true" />
+                <PropertyColumn Property="@(i => i.Mac)" Sortable="true" Align="Align.Start" Title="MAC" Tooltip="true" />
+            </FluentDataGrid>
+            <FluentPaginator State="@paginationAssetsGenned" />
+            <p></p>
+        }
+        @if (noAllSerialsAssigned)
+        {
+            <div class="validation-error"><p style="color:red;">@errorMessage</p></div>
+        }
+    </EditForm>
+</FluentDialogBody>
+
+
+@code {
+    #region InitComponent
+    [Parameter]
+    public InvoiceItemVm Content { get; set; } = default;
+
+    [CascadingParameter]
+    public FluentDialog Dialog { get; set; } = default;
+
+    private EditContext _editContext;
+
+    private FluentValidationValidator? _fluentValidator;
+    private string errorMessage;
+
+    private bool editmode { get; set; } = true;
+    private bool enterAssets { get; set; } = false;
+    private bool importAssets { get; set; } = false;
+    private bool importAssetsExt { get; set; } = false;
+    private bool noAllSerialsAssigned { get; set; } = false;
+    private bool showItemsGenerated { get; set; } = false;
+    private bool generateAssets { get; set; } = false;
+
+    private IQueryable<PartVm> itemPartsList { get; set; }
+    private IQueryable<CompanyVm> itemCompanyList { get; set; }
+    private IQueryable<CurrencyVm> itemCurrencyList { get; set; }
+    private IQueryable<UnitVm> itemUnitsList { get; set; }
+    private IQueryable<InvoiceItemVm> itemInvoiceItems { get; set; }
+    private IQueryable<AssetVm> itemAssetVms { get; set; }
+
+    PaginationState pagination = new PaginationState { ItemsPerPage = 5 };
+    PaginationState paginationAssetsGenned = new PaginationState { ItemsPerPage = 5 };
+
+    private InvoiceVm invoice { get; set; } = default;
+    private bool leasing { get; set; } = false;
+    private DateTime? leasingUntil { get; set; }
+
+    // FluentTextArea assetsArea;
+    FluentTextArea assetsAreaExt;
+
+    private ClaimsPrincipal? user { get; set; }
+    private string username { get; set; }
+
+    private string serialProp = "SerialNumber";
+    private string imeiProp = "Imei";
+    private string macProp = "Mac";
+
+    private bool serial = true;
+    private bool imei = false;
+    private bool mac = false;
+    private bool disabledTA = false;
+
+    #endregion InitComponent
+
+    protected override async Task OnInitializedAsync()
+    {
+        _editContext = new EditContext(Content);
+        showItemsGenerated = Content.ItemsGenerated;
+        itemPartsList = await _mediator.Send(new GetAllPartsQuery());
+        itemUnitsList = await _mediator.Send(new GetAllUnitsForSelectQuery());
+        invoice = await _mediator.Send(new GetInvoiceQuery(Content.InvoiceVmId));
+        var invoiceDate = invoice.Date;
+
+        if(!(Content.AssetsVm.Count > 0))
+        {
+            // string latestAssetTagNumber = string.Empty;
+            var prefix = Content.PartVm.CategoryVm.Prefix;
+            var leadingZeros = Content.PartVm.CategoryVm.LeadingZeros;
+
+            if (Content.PartVm.CategoryVm.LeadingZeros == 0)
+            {
+                //tu dorobić itemAssetVms puste z oczxekiwaniem na serial
+            } else
+            {
+                var latestAssetTagNumber = await _mediator.Send(new GetLatestAssetNumberByPrefixQuery(prefix));
+
+                var tempList = new List<AssetVm>();
+
+                int latestNumericPart = 0;
+                if (!string.IsNullOrEmpty(latestAssetTagNumber))
+                {
+                    latestNumericPart = int.Parse(latestAssetTagNumber);
+                }
+
+                for (int i = 0; i < Content.Qty; i++)
+                {
+                    var tempAsst = new AssetVm();
+                    latestNumericPart++;
+                    var nextAssetTagNumber = prefix + latestNumericPart.ToString().PadLeft(leadingZeros, '0');
+                    tempAsst.AssetTagNumber = nextAssetTagNumber;
+                    tempAsst.WarehouseVmId = 26;
+                    tempAsst.WarrantyUntil = invoiceDate?.AddMonths(Content.PartVm.WarrantyPeriod);
+                    tempAsst.PurchaseDate = invoiceDate;
+                    tempAsst.Leasing = false;
+                    // tempAsst.EndOfContract = datA jakaś;
+                    tempAsst.Imei = string.Empty;
+                    tempAsst.Mac = string.Empty;
+
+                    tempList.Add(tempAsst);
+
+                }
+                itemAssetVms = tempList.AsQueryable();
+            }
+            //think about variuos amount of digits across categories
+            
+
+        } 
+        else
+        {
+            itemAssetVms = Content.AssetsVm.AsQueryable();
+        }
+
+        await GetUserName();
+
+        // var userClaim = user.Claims.Where(c => c.Type == ClaimTypes.Title).SingleOrDefault();
+        // username = userClaim.Value;
+        // foreach (Claim a in user.Claims)
+        // {
+        //     Console.WriteLine("Type : " + a.Type + "| value : " + a.Value);
+
+        // }
+        // Console.WriteLine("IIComp username : " + username);
+        base.OnInitialized();
+    }
+
+    private async Task SaveAsync()
+    {
+        await Dialog.CloseAsync(Content);
+    }
+    private async Task CancelAsync()
+    {
+        await Dialog.CloseAsync(Content);
+    }
+
+    private void onChangeCurrency(ChangeEventArgs e)
+    {
+        var selected = itemCurrencyList.FirstOrDefault(c => c.Id == int.Parse(e.Value.ToString()));
+        Content.CurrencyVmId = selected.Id;
+        Content.CurrencyVmName = selected.Name;
+    }
+    private void onChangePart(ChangeEventArgs e)
+    {
+        var selected = itemPartsList.FirstOrDefault(c => c.Id == int.Parse(e.Value.ToString()));
+        Content.PartVmId = selected.Id;
+        Content.PartVmName = selected.Name;
+    }
+
+    private void HandlePartChange(string newValue)
+    {
+        Content.PartVmId = Content.PartVm.Id;
+        Content.PartVmName = Content.PartVm.Name;
+    }
+    private void HandleUnitChange(string newValue)
+    {
+        Content.UnitVmId = Content.UnitVm.Id;
+        Content.UnitVmName = Content.UnitVm.ShortName;
+    }
+    private void ImportAssets()
+    {
+        importAssets = true;
+        importAssetsExt = false;
+        enterAssets = false;
+        showItemsGenerated = Content.ItemsGenerated;
+    }
+    private void ImportAssetsExt()
+    {
+        importAssets = false;
+        importAssetsExt = true;
+        enterAssets = false;
+        showItemsGenerated = Content.ItemsGenerated;
+    }
+    private void AddAssets()
+    {
+        enterAssets = true;
+        importAssets = false;
+        importAssetsExt = false;
+        showItemsGenerated = false;
+
+    }
+
+    private async Task SaveAllAssets()
+    {
+        int counter = 0;
+        foreach(var asst in itemAssetVms)
+        {
+            if(asst.AssetTagNumber != string.Empty && asst.SerialNumber != string.Empty)
+            {
+                //save asset
+                var res = await _mediator.Send(new CreateAssetCommand(
+                    Content.PartVmId, 
+                    Content.InvoiceVmId, 
+                    Content.Id, 
+                    asst.AssetTagNumber, 
+                    1, 
+                    asst.SerialNumber, 
+                    DateTime.Now, 
+                    0,
+                    string.Empty, 
+                    string.Empty, 
+                    0, 
+                    Content.UnitNetPrice, 
+                    Content.CurrencyVmId, 
+                    invoice.Date,
+                    asst.Leasing,
+                    asst.EndOfContract,
+                    asst.WarrantyUntil,
+                    asst.Imei,
+                    asst.Mac,
+                    asst.EndOfSupport,
+                    username
+                    ));
+
+                if (res > 0)
+                {
+                    counter++;
+                }
+            }
+            else
+            {
+                //send error message to component
+            }
+        }
+        if(counter == (int)Content.Qty)
+        {
+            Content.ItemsGenerated = true;
+            await _mediator.Send(new UpdateInvoiceItemCommand(Content.Id, Content.Name, Content.PartVmId, Content.Qty, Content.UnitVmId, Content.UnitNetPrice, Content.CurrencyVmId, Content.InvoiceVmId, Content.ItemsGenerated, Content.Leasing, Content.EndOfContract));
+            enterAssets = false;
+            importAssets = false;
+            importAssetsExt = false;
+            showItemsGenerated = true;
+            // itemAssetVms = await )
+        }
+    }
+    private void setDisabledTA()
+    {
+
+        Console.WriteLine("setDisabledTA : " + serial + " " + imei + " " + mac);
+        if (serial || mac || imei)
+        {
+            disabledTA = false;
+        }
+        else
+        {
+            disabledTA = true;
+            assetsAreaExt.Value = ""; // Clear the content of FluentTextArea
+        }
+        StateHasChanged();
+    }
+    private Task HandleSerialEditExt(ChangeEventArgs e, bool isTextArea, AssetVm assetVm = default)
+    {
+        if (isTextArea)
+        {
+            var lines = e.Value.ToString().Split(new char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
+
+            if(lines.Count() != itemAssetVms.Count())
+            {
+                errorMessage = "Amount of lines doesn't match declared quantity of Assets!";
+                noAllSerialsAssigned = true;
+                return Task.CompletedTask;
+
+            } else
+            {
+                noAllSerialsAssigned = false;
+            }
+
+            int propsCount = 1;
+            if (imei) { propsCount++; };
+            if (mac) { propsCount++; };
+            foreach (var line in lines)
+            {
+                var values = line.Split(new char[] { ' ', ',', '.', ':', '|', '\t' }, StringSplitOptions.RemoveEmptyEntries);
+
+                UpdateAssetSerials(values[0], assetVm, "SerialNumber");
+
+                if (imei && !mac)
+                {
+                    UpdateAssetSerials(values[1], assetVm, "Imei");
+                }
+                if (!imei && mac)
+                {
+                    UpdateAssetSerials(values[1], assetVm, "Mac");
+                }
+                if (imei && mac)
+                {
+                    UpdateAssetSerials(values[1], assetVm, "Imei");
+                    UpdateAssetSerials(values[2], assetVm, "Mac");
+                }
+
+            }
+        }
+        else
+        {
+            string newSerialNumber = e.Value.ToString();
+            UpdateAssetSerials(newSerialNumber, assetVm, "AssetTagNumber"); // Default to AssetTagNumber for single value
+        }
+
+        return Task.CompletedTask;
+    }
+    private  Task HandleSerialEdit(ChangeEventArgs e, bool isTextArea, AssetVm assetVm = default, string propertyName = default)
+    {
+
+        if (isTextArea)
+        {
+            var serials = e.Value.ToString().Split(new char[] { ' ', ',', '.', ':', '|', '\t', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+            foreach (var serial in serials)
+            {
+                UpdateAssetSerials(serial, assetVm, "SerialNumber");
+            }
+        }
+        else
+        {
+            string newSerialNumber = e.Value.ToString();
+            UpdateAssetSerials(newSerialNumber, assetVm, propertyName);
+        }
+
+        return Task.CompletedTask;
+    }
+    private void UpdateAssetSerials(string newSerialNumber, AssetVm assetVm, string propertyName)
+    {
+        if (assetVm == null)
+        {
+            foreach (var a in itemAssetVms)
+            {
+                var property = a.GetType().GetProperty(propertyName);
+                if (property != null && string.IsNullOrWhiteSpace((string)property.GetValue(a)))
+                {
+                    property.SetValue(a, newSerialNumber);
+                    break;
+                }
+            }
+        }
+        else
+        {
+            var property = assetVm.GetType().GetProperty(propertyName);
+            if (property != null)
+            {
+                property.SetValue(assetVm, newSerialNumber);
+            }
+        }
+        Console.WriteLine(itemAssetVms.Count());
+        int filled = itemAssetVms.Count(a => !string.IsNullOrWhiteSpace(a.SerialNumber));
+        if (filled == itemAssetVms.Count())
+        {
+            noAllSerialsAssigned = false;
+            generateAssets = true;
+        }
+        else
+        {
+            int remaining = itemAssetVms.Count() - filled;
+            errorMessage = $"{remaining} assets have not all data numbers assigned!";
+            noAllSerialsAssigned = true;
+        }
+    }
+
+    private async Task GetUserName()
+    {
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        user = authenticationState.User;
+        var claimType = "name"; // or use ClaimTypes.Title
+        var usernameClaim = user.Claims.FirstOrDefault(c => c.Type == claimType);
+        if (usernameClaim != null)
+        {
+            username = usernameClaim.Value;
+        }
+        else
+        {
+            username = "unknown";
+            Console.WriteLine($"No claim of type {claimType} found.");
+        }
+
+    }
+}

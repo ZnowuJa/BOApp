@@ -1,0 +1,76 @@
+﻿.customFluentNumber {
+    appearance: none;
+    color: inherit;
+    background: transparent;
+    border: 0px;
+    height: calc(100% - 4px);
+    margin-top: auto;
+    margin-bottom: auto;
+    padding: 0 calc(var(--design-unit) * 2px + 1px);
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    width: 100%;
+    outline: none;
+    box-sizing: border-box;
+    position: relative;
+    color: inherit;
+    border: calc(var(--stroke-width) * 1px) solid transparent;
+    border-radius: calc(var(--control-corner-radius) * 1px);
+    height: calc((var(--base-height-multiplier) + var(--density)) * var(--design-unit) * 1px);
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    background: padding-box linear-gradient(var(--neutral-fill-input-rest),var(--neutral-fill-input-rest)),border-box var(--neutral-stroke-input-rest);
+}
+.validation-error {
+    color: red;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    white-space: normal; /* Allow wrapping */
+    word-wrap: break-word; /* Ensure long words break */
+    display: block; /* Ensure it takes full width */
+}
+    .validation-error::before {
+        font-size: 1.5em; /* Adjust size as needed */
+        margin-right: 5px; /* Space between icon and text */
+        vertical-align: middle; /* Align properly */
+    }
+
+.grid-card {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 8px; /* Optional for spacing inside the card */
+    margin: 0;
+    font-size: 14px;
+    height: 40px;
+    width: 100%;
+}
+
+.grid-card-select {
+        display: flex;
+        flex-direction: column; /* stack label and input vertically */
+        align-items: flex-start;
+        gap: 8px;
+        padding: 4px 8px;
+        margin: 0;
+        font-size: 14px;
+        width: 100%;
+       
+    /* Remove height constraint */
+}
+
+
+.full-width-for-field {
+    width: 50%; /* Make the text field fill the container */
+    flex-grow: 1; /* Allow it to grow and take up any remaining space */
+}
+
+.truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: inline-block;
+    max-width: 100%;
+}

@@ -1,0 +1,102 @@
+﻿@page "/przelewy/{role}"
+@page "/banktransfers/{role}"
+
+@using Application.ExportModels
+@using Application.Forms.Accounting;
+@using AutoMapper
+@using Microsoft.AspNetCore.Authorization
+
+@inject IMediator _mediator
+@inject ILogger<BankTransfer_ListPage> _logger
+@inject IDialogService _dialogService
+@inject IToastService _toastService
+@inject IJSRuntime JS
+@inject IMapper _mapper
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager _navigationManager
+
+@attribute [Authorize(Policy = "User")]
+
+<h3>BankTransfer_ListPage</h3>
+
+<FluentStack Orientation="Orientation.Horizontal">
+    <FluentLabel Typo="Typography.Subject"> Pokaż kolumny:  </FluentLabel>
+    @foreach (var column in filterColumns)
+    {
+        if (column.FirstRow)
+        {
+            <FluentCheckbox @bind-Value="column.IsVisible" Label="@column.Label" />
+        }
+    }
+</FluentStack>
+<p></p>
+<FluentStack Orientation="Orientation.Horizontal">
+    @foreach (var column in filterColumns)
+    {
+        if (!column.FirstRow)
+        {
+            <FluentCheckbox @bind-Value="column.IsVisible" Label="@column.Label" />
+        }
+    }
+</FluentStack>
+
+<FluentDataGrid Items="@Utils.ApplyFilters(items, filterColumns)" Pagination="@pagination" TGridItem="BankTransferFormVm" GridTemplateColumns="80px repeat(7, 1fr)" AutoFit="true" ResizableColumns="true">
+    @foreach (var column in filterColumns.Where(c => c.IsVisible))
+    {
+        if (column.IsDropdown)
+        {
+            <PropertyColumn TGridItem="BankTransferFormVm" TProp="string" Property="@(Utils.GetPropertyExpression<BankTransferFormVm>(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label" Filtered="column.SelectedValues.Any()">
+                <ColumnOptions>
+                    <FluentSelect TOption="string"
+                                  Items="@(column.DropdownValues)"
+                                  Multiple="true"
+                                  SelectedOptionsChanged="@(e => Utils.OnSelectedOptionsChanged<BankTransferFormVm>(e, column))">
+                        @foreach (var value in column.DropdownValues)
+                        {
+                            <FluentOption Value="@value">@value</FluentOption>
+                        }
+                    </FluentSelect>
+                </ColumnOptions>
+            </PropertyColumn>
+        }
+        else
+        {
+            <PropertyColumn TGridItem="BankTransferFormVm" TProp="string" Property="@(Utils.GetPropertyExpression<BankTransferFormVm>(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label" Filtered="!string.IsNullOrWhiteSpace(column.Filter)">
+                <ColumnOptions>
+                    <div class="search-box">
+                        <FluentSearch type="search" Autofocus="true" @bind-Value="column.Filter" @oninput="(args) => Utils.HandleFilterDebounced(column, args, debounceDispatcher, () => InvokeAsync(StateHasChanged))" Placeholder="@($"{column.Label.ToLower()}...")" />
+                    </div>
+                </ColumnOptions>
+            </PropertyColumn>
+        }
+    }
+
+
+
+    @* Actions *@
+    <TemplateColumn Title="Actions" Align="Align.End">
+
+        @{
+            var viewId = $"viewid-{context.Id}";
+            var editId = $"editid-{context.Id}";
+            var deleteId = $"deleteid-{context.Id}";
+
+        }
+        <FluentButton Id="@editId" IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => Edit(context))" Disabled="@Utils.IsAccEditDisabled(context, _userContext)" />
+        @*WARNING it is not tested if isEditDisabled works*@
+        <FluentTooltip Anchor="@editId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Edycja</FluentTooltip>
+        <FluentButton Id="@viewId" IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" Disabled="false" />
+        @*WARNING it is not tested if isEditDisabled works*@
+        <FluentTooltip Anchor="@viewId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Podgląd</FluentTooltip>
+        <FluentButton Id="@deleteId" IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" Disabled="@actionsDisabled" />
+        <FluentTooltip Anchor="@deleteId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Skasuj</FluentTooltip>
+
+    </TemplateColumn>
+</FluentDataGrid>
+<FluentPaginator State="@pagination" />
+<FluentButton IconStart="@(new Icons.Regular.Size24.Add())" OnClick="@(() => _navigationManager.NavigateTo($"/przelewy/0?srcPage=pracownik"))" />
+<FluentButton Disabled="true" OnClick="DownloadCsv">Pobierz CSV</FluentButton>
+
+@code {
+    
+}

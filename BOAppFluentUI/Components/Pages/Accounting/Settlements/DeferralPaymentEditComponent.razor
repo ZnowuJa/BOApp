@@ -1,0 +1,395 @@
+﻿
+@page "/deferralpaymentedit/{id:int}"
+@page "/platnoscodroczona/{id:int}"
+@using Application.CQRS.AccountingCQRS.DeferralPayment.Commands
+@using Application.CQRS.AccountingCQRS.DeferralPayment.Queries
+@using Application.CQRS.General.Organisations.Queries
+@using Application.CQRS.ITWarehouseCQRS.Employees.Queries
+@using Application.Forms.Accounting
+@using Application.ViewModels.Accounting
+@using Application.ViewModels.General
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.FluentUI.AspNetCore.Components.Extensions
+@using System.Security.Claims
+
+@attribute [Authorize(Policy = "User")]
+
+@inject IMediator _mediator
+@inject IJSRuntime JS
+@inject ILogger<DeferralPaymentListPage> _logger
+@inject IDialogService _dialogService
+@inject IToastService _toastService
+@inject AuthenticationStateProvider formAuthenticationStateProvider
+@inject NavigationManager _navigationManager
+
+
+@if (formItem == null)
+        {
+            <FluentProgressRing>Loading...</FluentProgressRing>
+        }
+        else if (showForm)
+        {
+            <h3>Wniosek o udzielenie odroczonej płatności  | Status: @formItem.Status</h3>
+
+            <EditForm EditContext="_editContext" Context="editFormContext">
+                <div>
+                    <table>
+                        <tr>
+                            <td><b>Numer:</b></td>
+                            <td>@formItem.Number</td>
+                            <td><b>Zgłoszone: </b></td>
+                            <td>@formItem.Requested.ToIsoDateString()</td>
+                        </tr>
+                        <tr>
+                            <td><b>Organizacja:</b></td>
+                            <td>@_organisation.Name</td>
+                            <td><b>Zgłaszający:</b></td>
+                            <td>@formItem.EmployeeName</td>
+                        </tr>
+                        <tr>
+                            <td><b>Numer FK:</b></td>
+                            <td>@formItem.Numer_Fk</td>
+                            <td><b>Lokalizacja:</b></td>
+                            <td>@formItem.CC</td>
+                        </tr>
+                        <tr>
+                            <td><b>NIP:</b></td>
+                            <td>@formItem.VATID</td>
+                            <td><b></b></td>
+                            <td></td>
+                        </tr>
+                    </table>
+                </div>
+                <p></p>
+                <FluentStack VerticalAlignment="VerticalAlignment.Center" HorizontalAlignment="HorizontalAlignment.Start">
+
+                    <div>
+                        <FluentTextField Id="kontrahentId" @bind-Value="formItem.KontrahentId" ReadOnly="true" style="width: 100px;"> Numer (AS): </FluentTextField>
+                    </div>
+                    <div>
+                        <FluentTextField Id="name" @bind-Value="formItem.KontrahentName" ReadOnly="true" style="width: 400px;"> Nazwa: </FluentTextField>
+                    </div>
+        @*             <div>
+                        <FluentTextField Id="EmpName" @bind-Value="formItem.EmployeeName" ReadOnly="true" style="width: 400px;"> Nazwa użytkownika: </FluentTextField>
+                    </div> *@
+                </FluentStack>
+                <h3> </h3>
+                <FluentTextArea @bind-Value="formItem.Note" Label="Proszę o włączenie odroczonej płatności ze względu na:" Cols="72" Required="true" Disabled = "true">
+                </FluentTextArea>
+
+                <p></p>
+                <h5>Aprobujący:</h5>
+                @if (al1 || al2)
+                {
+                    <p></p>
+            
+                    <FluentStack Orientation="Orientation.Horizontal">
+                    <FluentSelect TOption="OrganisationRoleForFormVm"
+                                  Style="align-items: center;"
+                                  Id="AL1Id"
+                                  Disabled="@(canEditApprover)"
+                                  Label="Aprobata L1"
+                                  Autofocus="true"
+                                  Items="formItem.Level1Approvers"
+                                  Multiple="false"
+                                  OptionValue="@(p => p.EmpId.ToString())"
+                                  OptionText="@(p => p.LongName)"
+                                  OptionSelected="@(p => p.EmpId == int.Parse(formItem.LVL1_EnovaEmpId.ToString()))"
+                                  @bind-SelectedOption="approverL1"
+                                  Height="200px"
+                                  @onchange="@(e => Utils.HandleChangeApprover(e, itemEmployeesList, formItem, "L1"))" />
+                    Aprobata L2:   &nbsp;&nbsp; Dział Rozrachunki
+
+
+        @*             
+                    <FluentSelect TOption="OrganisationRoleForFormVm"
+                                  Id="AL2Id"
+                                  Autofocus="true"
+                                  Label="Aprobata L2"
+                                  Items="formItem.Level2Approvers"
+                                  Multiple="false"
+                                  OptionValue="@(p => p.EmpId.ToString())"
+                                  OptionText="@(p => p.LongName)"
+                                  OptionSelected="@(p => p.EmpId == int.Parse(formItem.LVL2_EnovaEmpId.ToString()))"
+                                  @bind-SelectedOption="approverL2"
+                                  Height="200px"
+                                  @onchange="HandleChangeApproverL2" />
+                     *@
+                    </FluentStack>
+                }
+
+                <h3></h3>
+                <p></p>
+                <p></p>
+                <FluentButton IconEnd="@(new Icons.Regular.Size16.Mail())"
+                              Appearance="Appearance.Accent" OnClick="() => Save(sent)" BackgroundColor="#509EDB" Style="width: 100px" Disabled="@SendButton"> 
+                              Wyślij</FluentButton>
+                <FluentSpacer Width="@buttonSpacer" />
+                <FluentButton IconEnd="@(new Icons.Regular.Size16.PresenceAvailable())"
+                              Appearance="Appearance.Accent" OnClick="() => Save(approved)" BackgroundColor="#1FC91F" Style="width: 100px" Disabled = "@ApproveButton"> 
+                              Zatwierdź</FluentButton>
+                <FluentSpacer Width="@buttonSpacer" />
+                <FluentButton IconEnd="@(new Icons.Regular.Size20.DismissCircle())"
+                              Appearance="Appearance.Accent" OnClick="() => Save(rejected)" BackgroundColor="#C21E56" Color="#FFFFFF" Style="width: 100px" Disabled="@ApproveButton"> Odrzuć</FluentButton>
+                <FluentSpacer Width="@buttonSpacer" />
+                <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
+                              Appearance="Appearance.Accent" OnClick="() => Save(cancelled)" BackgroundColor="#808080" Color="#FFFFFF" Style="width: 100px"> Anuluj</FluentButton>
+            </EditForm>
+        } else
+        {
+    <h2>Nie masz odpowiednich uprawnień do otwierania tej strony.</h2>
+        }
+
+
+@code {
+    #region Declarations
+    [Parameter]
+    public int Id { get; set; }
+    private string _srcPage;
+    private bool blankPage = true;
+
+    private DeferralPaymentFormVm formItem { get; set; }
+    private EditContext _editContext;
+
+    private CustomerVm customer { get; set; }
+    private string message { get; set; }
+    private string messageMissing { get; set; }
+    private bool showCustomer { get; set; }
+    // private bool showApproval = false;
+
+    private readonly string sent = "sent";
+    private readonly string rejected = "rejected";
+    private readonly string approved = "approved";
+    private readonly string cancelled = "cancelled";
+
+    private string nextStatus { get; set; } = string.Empty;
+
+    // private bool caneditfields = false;
+
+    private ClaimsPrincipal? user { get; set; }
+    private string username { get; set; }
+    private EmployeeVm emp { get; set; }
+
+    private FormUserContext _userContext = new FormUserContext("Settlement", "Technician");
+
+    private IQueryable<EmployeeVm> itemEmployeesList { get; set; }
+    private OrganisationRoleForFormVm approverL1 { get; set; }
+    private OrganisationRoleForFormVm approverL2 { get; set; }
+    private string ApproverL1Name { get; set; }
+    private bool al1 = false;
+    private bool al2 = false;
+    private bool fin = false;
+    private bool rej = false;
+    private bool canEditApprover = false;
+    private bool ApproveButton = false;
+    private bool SendButton = true;
+
+    private ApprovalVm approval { get; set; }
+
+    private OrganisationVm _organisation { get; set; }
+    private WorkflowTemplateVm wf { get; set; }
+    // private string FormName = "DeferralPaymentFormVm";
+
+    private int buttonSpacer = 100;
+
+    private List<string> allowedEmp { get; set; } = new List<string>();
+    private List<string> allowedEditor { get; set; } = new List<string>();
+    private bool showForm { get; set; }
+
+    private ToastIntent intent { get; set; }
+    private string toastMessage { get; set; } = string.Empty;
+
+    #endregion Declarations
+
+    protected override async Task OnInitializedAsync()
+    {
+        var uri = new Uri(_navigationManager.Uri);
+        var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+
+        if (query.TryGetValue("srcPage", out var sourcePageValue))
+        {
+
+            if (sourcePageValue == "kierownik" || sourcePageValue == "pracownik" || sourcePageValue == "rozrachunki")
+            {
+                _srcPage = sourcePageValue; // Valid sourcePage is set
+            }
+            else
+            {
+                blankPage = false; // Invalid value
+                return;
+            }
+        } else
+        {
+            blankPage = false;
+            return;
+        }
+        messageMissing = "Loading";
+        try
+        {
+            formItem = await _mediator.Send(new GetDeferralPaymentQuery(Id));
+            _editContext = new EditContext(formItem);
+        }
+        catch (Exception ex)
+        {
+            // Console.WriteLine($"Error loading kontrahent: {ex.Message}");
+        }
+        itemEmployeesList = await _mediator.Send(new GetAllEmployeesQuery());
+        emp = itemEmployeesList.Where(em => em.EnovaEmpId == formItem.EmployeeId).FirstOrDefault();
+        await Utils.GetUserName(formAuthenticationStateProvider, _userContext, _mediator);
+
+        // await GetUserName();
+        await GetAllowedPersons(formItem);
+
+        showForm = allowedEmp.Contains(_userContext.EnovaEmpId);
+        canEditApprover = allowedEditor.Contains(_userContext.EnovaEmpId);
+        
+        if (showForm)
+            await Load();
+
+    }
+
+    private async Task Load()
+    {
+        al1 = formItem.Status == "AprobataL1";
+        al2 = formItem.Status == "AprobataL2";
+        fin = formItem.Status == "Zakończone";
+        rej = formItem.Status == "Odrzucone";
+
+        if (fin || rej)
+        {
+            ApproveButton = true;
+        }
+
+        _organisation = await _mediator.Send(new GetOrganisationByEmpSapNumberQuery(emp.SapNumber));
+        approval = new ApprovalVm()
+        {
+                Status = formItem.Status,
+                EnovaEmpId = _userContext.EnovaEmpId,
+                LongName = _userContext.LongName,
+                Date = DateTime.Now,
+                IsApproved = true
+        };
+
+        messageMissing = "Loaded";
+        StateHasChanged();
+    }
+
+    private async Task SetApproversDDL(DeferralPaymentFormVm form)
+    {
+
+    }
+
+    private void HandleChangeApproverL1(ChangeEventArgs e)
+    {
+        var tempEmp = itemEmployeesList.First(p => p.EnovaEmpId == int.Parse(e.Value.ToString()));
+        formItem.LVL1_EnovaEmpId = tempEmp.EnovaEmpId.ToString();
+        formItem.LVL1_EmployeeName = tempEmp.LongName;
+        Console.WriteLine(tempEmp.LongName);
+    }
+    private void HandleChangeApproverL2(ChangeEventArgs e)
+    {
+        var tempEmp = itemEmployeesList.First(p => p.EnovaEmpId == int.Parse(e.Value.ToString()));
+        formItem.LVL2_EnovaEmpId = tempEmp.EnovaEmpId.ToString();
+        formItem.LVL2_EmployeeName = tempEmp.LongName;
+        Console.WriteLine(tempEmp.LongName);
+    }
+
+    private async Task Save(string buttonState)
+    {
+        var destination = string.Empty;
+        destination = $"/platnosciodroczone/{_srcPage}";
+        if (buttonState == "approved")
+        {
+            formItem.Status = formItem.Status switch
+            {
+                "AprobataL1" => "AprobataL2",
+                "AprobataL2" => "Zakończone",
+                _ => formItem.Status
+            };
+        }
+        else if (buttonState == "rejected")
+        {
+            string reason = string.Empty;
+
+            var dialog = await _dialogService.ShowDialogAsync<DeferralPaymentRejectComponent>(reason, new DialogParameters()
+                {
+                    Height = "240px",
+                    Title = $"Podaj powód odrzucenia wniosku...",
+                    PreventDismissOnOverlayClick = true,
+                    PreventScroll = true,
+                });
+
+            var result = await dialog.Result;
+
+            if (!result.Cancelled && (result.Data != null || (string)result.Data != string.Empty))
+            {
+                formItem.RejectReason = (string)result.Data;
+                approval.IsApproved = false;
+                formItem.Status = "Odrzucone";
+
+            } else
+            {
+                return;
+            }
+
+        }
+        else if (buttonState == "cancelled")
+        {
+            // destination = "/rozrachunki";
+            _navigationManager.NavigateTo(destination);
+            return;
+        }
+
+        formItem.Approvals.Add(approval);
+        if (formItem.Status == "Zakończone")
+        {
+            formItem.isApproved = true;
+        }
+        var saveResult = await _mediator.Send(new UpdateDeferralPaymentCommand(formItem));
+
+        message = $"Wniosek o numerze {saveResult.Number} o opóźnioną płatność dla {saveResult.KontrahentId}, {saveResult.KontrahentName} wysłana!";
+        _navigationManager.NavigateTo(destination);
+        
+    }
+
+    private async Task GetAllowedPersons(DeferralPaymentFormVm form)
+    {
+
+        if(form.Status == "AprobataL1" || form.Status == "AprobataL2")
+        {
+            allowedEmp.Add(form.EmployeeId.ToString());
+            allowedEmp.Add(form.LVL1_EnovaEmpId); //this is manager of requestor
+            allowedEmp.AddRange(form.Level2Approvers.Select(l => l.EmpId.ToString()));//this is Settlement Department
+            allowedEditor.AddRange(form.Level2Approvers.Select(l => l.EmpId.ToString()));
+        } else
+        {
+            allowedEmp.Add(form.EmployeeId.ToString());
+            allowedEmp.AddRange(form.Level2Approvers.Select(l => l.EmpId.ToString()));
+        }
+    }
+    private async Task GoBack()
+    {
+        // Console.WriteLine("GOBACK");
+        await JS.InvokeVoidAsync("goBack");
+    }
+}
+
+<style>
+        table {
+            border-collapse: collapse; /* Optional: For a cleaner look */
+            width: 450px; /* Optional: Adjust to fit your container */
+        }
+        th, td {
+            padding: 5px; /* Adds padding inside each cell */
+            text-align: left; /* Optional: Align text to the left */
+        }
+        td:first-child, th:first-child {
+            padding-left: 0; /* Removes padding on the left of the first cell */
+        }
+</style>
+
+<script>
+    function goBack() {
+        window.history.back();
+    }
+</script>

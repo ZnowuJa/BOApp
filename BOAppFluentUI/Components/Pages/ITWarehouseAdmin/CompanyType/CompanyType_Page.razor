@@ -1,0 +1,146 @@
+﻿@page "/companytypes"
+@using Application.CQRS.ITWarehouseCQRS.CompanyTypes.Commands
+@using Application.CQRS.ITWarehouseCQRS.CompanyTypes.Queries
+@using Application.ViewModels
+@using MediatR
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize(Policy = "Technician")]
+
+@inject IMediator _mediator
+@inject ILogger<CompanyType_Page> _logger
+@inject IDialogService _dialogService
+@inject IToastService _toastService
+
+
+<h3>Company Types</h3>
+
+@if (_items == null)
+{
+    <FluentProgressRing>Loading...</FluentProgressRing>
+    
+}
+else
+{
+
+    <FluentDataGrid Items="@_items" TGridItem="CompanyTypeVm" GridTemplateColumns="50px repeat(2, 1fr)">
+        
+        
+        <PropertyColumn Property="@(c => c.Id)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.Name)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <TemplateColumn Title="Actions" Align="Align.End">
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" />
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => EditItem(context))" />
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" />
+
+        </TemplateColumn>
+    </FluentDataGrid>
+    <FluentButton IconStart="@(new Icons.Regular.Size20.Add())" OnClick="@(() => Add())" />
+}
+
+
+
+@code {
+    // public CompanyTypeVm Selected { get; set; }
+
+    // CreateCompanyTypeCommandValidator cctcV = new();
+
+    private IQueryable<CompanyTypeVm> _items;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Load();
+    }
+
+    private async Task Load()
+    {
+        _items = await _mediator.Send(new GetAllCompanyTypesQuery());
+        Console.WriteLine(_items.Count());
+    }
+
+    private async Task EditItem(CompanyTypeVm item)
+    {
+        ToastIntent intent;
+        string message = string.Empty;
+        int i = 0;
+
+        var data = item;
+        var dialog = await _dialogService.ShowDialogAsync<CompanyType_Edit_Component>(data, new DialogParameters()
+        {
+                Height = "240px",
+                Title = data.Id > 0 ? "Update Company Type Title" : "Create new Company Type",
+                PreventDismissOnOverlayClick = false,
+                PreventScroll = true,
+        });
+        var result = await dialog.Result;
+        if(!result.Cancelled && result.Data != null)
+        {
+            item = (CompanyTypeVm)result.Data;
+            if (item.Id > 0)
+            {
+                i = await _mediator.Send(new UpdateCompanyTypeCommand(item.Id, item.Name));
+                intent = ToastIntent.Success;
+                message = "CompanyType has been updated!";
+            } else if (item.Id == 0)
+            {
+                i = await _mediator.Send(new CreateCompanyTypeCommand(item.Name));
+                intent = ToastIntent.Success;
+                message = "CompanyType has been Created!";
+            } else
+            {
+                intent = ToastIntent.Warning;
+                message = "Something went realy wrong!";
+            }
+
+        } else if (result.Cancelled)
+        {
+            intent = ToastIntent.Info;
+            message = "Update Cancelled...";
+        } else
+        {
+            intent = ToastIntent.Error;
+            message = "Something went wrong!!!";
+        }
+
+
+        await Load();
+        _toastService.ShowToast(intent, message, 3000);
+
+        Console.WriteLine(result.GetType());
+    }
+
+    private async Task View(CompanyTypeVm catType)
+    {
+        await _dialogService.ShowInfoAsync(message: $"Category type id: {catType.Id}, name: {catType.Name}");
+    }
+
+    private async Task Add()
+    {
+        CompanyTypeVm item = new CompanyTypeVm { Id = 0, Name = string.Empty };
+        await EditItem(item);
+    }
+
+    private async Task Delete(CompanyTypeVm item)
+    {
+        ToastIntent intent;
+        string message = string.Empty;
+
+        var i = await _mediator.Send(new DeleteCompanyTypeCommand(item.Id));
+
+        if (i == item.Id)
+        {
+            intent = ToastIntent.Success;
+            message = "CompanyType has been deleted!";
+        }
+        else
+        {
+            intent = ToastIntent.Error;
+            message = "Something went wrong!!!";
+        }
+        await Load();
+        _toastService.ShowToast(intent, message, 3000);
+
+    }
+}
+@* Disabled="@(string.IsNullOrEmpty(Content.Name) || string.IsNullOrWhiteSpace(Content.Name))" *@

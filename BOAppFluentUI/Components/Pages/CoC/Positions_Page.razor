@@ -1,0 +1,260 @@
+﻿@page "/coc/positions"
+@using Application.CQRS.CoCCQRS.GroupCoCs.Queries
+@using Application.CQRS.CoCCQRS.Positions.Commands
+@using Application.CQRS.CoCCQRS.Positions.Queries
+@using Application.CQRS.ITWarehouseCQRS.Warehouses.Commands
+@using Application.CQRS.ITWarehouseCQRS.Warehouses.Queries
+@using Application.ViewModels
+@using Application.ViewModels.CoC
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize(Policy = "Compliance")]
+
+@inject IMediator _mediator
+@inject ILogger<Positions_Page> _logger
+@inject IDialogService _dialogService
+@inject IToastService _toastService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+
+<h3>Positions</h3>
+
+@if (_items == null)
+{
+    <FluentProgressRing>Loading...</FluentProgressRing>
+
+}
+else
+{
+    <FluentDataGrid Items="@Utils.ApplyFilters(_items, filterColumns)" Pagination="@pagination" TGridItem="PositionVm" GridTemplateColumns="80px repeat(7, 1fr)" AutoFit="true" ResizableColumns="true">
+        @foreach (var column in filterColumns.Where(c => c.IsVisible))
+        {
+            if (column.IsDropdown)
+            {
+                <PropertyColumn TGridItem="PositionVm" TProp="string" Property="@(Utils.GetPropertyExpression<PositionVm>(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label" Filtered="column.SelectedValues.Any()">
+                    <ColumnOptions>
+                        <FluentSelect TOption="string"
+                                      Items="@(column.DropdownValues)"
+                                      Multiple="true"
+                                      SelectedOptionsChanged="@(e => Utils.OnSelectedOptionsChanged<PositionVm>(e, column))">
+                            @foreach (var value in column.DropdownValues)
+                            {
+                                <FluentOption Value="@value">@value</FluentOption>
+                            }
+                        </FluentSelect>
+                    </ColumnOptions>
+                </PropertyColumn>
+            }
+            else
+            {
+                <PropertyColumn TGridItem="PositionVm" TProp="string" Property="@(Utils.GetPropertyExpression<PositionVm>(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label" Filtered="!string.IsNullOrWhiteSpace(column.Filter)">
+                    <ColumnOptions>
+                        <div class="search-box">
+                            <FluentSearch type="search" Autofocus="true" @bind-Value="column.Filter" @oninput="(args) => Utils.HandleFilterDebounced(column, args, debounceDispatcher, () => InvokeAsync(StateHasChanged))" Placeholder="@($"{column.Label.ToLower()}...")" />
+                        </div>
+                    </ColumnOptions>
+                </PropertyColumn>
+            }
+        }
+
+
+
+        @* Actions *@
+        <TemplateColumn Title="Actions" Align="Align.End">
+
+            @{
+                var viewId = $"viewid-{context.Id}";
+                var editId = $"editid-{context.Id}";
+                var deleteId = $"deleteid-{context.Id}";
+
+            }
+            <FluentButton Id="@editId" IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => EditItem(context))"/>
+            @*WARNING it is not tested if isEditDisabled works*@
+            <FluentTooltip Anchor="@editId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Edycja stanowiska</FluentTooltip>
+            <FluentButton Id="@viewId" IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" Disabled="false" />
+            @*WARNING it is not tested if isEditDisabled works*@
+            <FluentTooltip Anchor="@viewId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Podgląd stanowiska</FluentTooltip>
+            <FluentButton Id="@deleteId" IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))"  />
+            <FluentTooltip Anchor="@deleteId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Skasuj stanowisko</FluentTooltip>
+
+        </TemplateColumn>
+    </FluentDataGrid>
+    <FluentPaginator State="@pagination" />
+
+
+ @*    <FluentDataGrid Items="@_items" TGridItem="PositionVm" GridTemplateColumns="50px repeat(3, 1fr)" ResizableColumns=true>
+
+
+        <PropertyColumn Property="@(c => c.Id)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.Name)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <TemplateColumn Title="Group Name" Sortable="true" Align="Align.Start">
+            @GroupName(context)
+        </TemplateColumn>
+        <TemplateColumn Title="Actions" Align="Align.End">
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" />
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => EditItem(context))" />
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" />
+
+        </TemplateColumn>
+    </FluentDataGrid>
+    <FluentButton IconStart="@(new Icons.Regular.Size20.Add())" OnClick="@(() => Add())" /> *@
+}
+
+
+
+@code {
+
+    private IQueryable<PositionVm> _items;
+    private IQueryable<GroupCoCVm> _groups;
+    private List<FilterColumn<PositionVm>> filterColumns = new List<FilterColumn<PositionVm>>
+    {
+        new FilterColumn<PositionVm> { FirstRow = true, Label = "ID", Property = c => c.Id.ToString(), IsVisible = true },
+        new FilterColumn<PositionVm> { FirstRow = true, Label = "Nazwa stanowiska", Property = c => c.Name.ToString()??string.Empty, IsVisible = true },
+        new FilterColumn<PositionVm> { FirstRow = true, Label = "Kategoria", Property = c => c.Cat.ToString()??string.Empty, IsVisible = true },
+        new FilterColumn<PositionVm> { FirstRow = true, Label = "Grupa CoC", Property = c => c.GroupCoC?.GroupName ?? "brak", IsVisible = true }
+        
+    };
+    private IQueryable<PositionVm> items { get; set; } = Enumerable.Empty<PositionVm>().AsQueryable();
+    private FormUserContext _userContext = new FormUserContext("Accountant", "Technician");
+    private IQueryable<PositionVm> filteredItems => items.Where(x =>
+    filterColumns.All(column => string.IsNullOrWhiteSpace(column.Filter) ||
+    column.Property(x).Contains(column.Filter, StringComparison.CurrentCultureIgnoreCase))).OrderByDescending(r => r.Name);
+
+    private DebounceDispatcher debounceDispatcher = new DebounceDispatcher();
+    private PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
+    protected override async Task OnInitializedAsync()
+    {
+        await Utils.GetUserName(AuthenticationStateProvider, _userContext, _mediator);
+        await Load();
+    }
+
+    private async Task Load()
+    {
+        _groups = await _mediator.Send(new GetAllGroupCoCsQuery());
+        _items = await _mediator.Send(new GetAllPositionsQuery());
+        Console.WriteLine(_items.Count());
+    }
+
+    private string GroupName(PositionVm _pos){
+        try{
+            if (_pos.GroupCoCId == 0)
+            {
+                return "brak";
+            }
+            var _group = _groups.Where(g => g.Id == _pos.GroupCoCId).First();
+            var _groupName = _group.GroupName;
+            if (_groupName != null)
+            {
+                return _groupName;
+            }
+            else
+            {
+                return "brak";
+            }
+        }
+        catch (Exception e)
+        {
+            return "brak";
+        }
+        // var _group = _groups.Where(g => g.Id == _pos.GroupCoCId).First();
+        // var _groupName = _group.GroupName;
+        // if(_groupName != null){
+        //     return _groupName;
+        // } else {
+        //     return "brak";
+        // }
+
+    }
+    private async Task EditItem(PositionVm item)
+    {
+        ToastIntent intent;
+        string message = string.Empty;
+        int i = 0;
+        if (item.GroupCoCId == null)
+        {
+            item.GroupCoCId = 0;
+        };
+        var data = item;
+
+        var dialog = await _dialogService.ShowDialogAsync<Position_Edit_Component>(data, new DialogParameters()
+            {
+                Height = "240px",
+                Title = data.Id > 0 ? "Update Position..." : "Create new Position...",
+                PreventDismissOnOverlayClick = false,
+                PreventScroll = true,
+            });
+        var result = await dialog.Result;
+        if (!result.Cancelled && result.Data != null)
+        {
+            item = (PositionVm)result.Data;
+            if (item.Id > 0)
+            {
+                i = await _mediator.Send(new UpdatePositionCommand(item));
+                intent = ToastIntent.Success;
+                message = "Position has been updated!";
+            }
+            else if (item.Id == 0)
+            {
+                i = await _mediator.Send(new CreatePositionCommand(item));
+                intent = ToastIntent.Success;
+                message = "Position has been Created!";
+            }
+            else
+            {
+                intent = ToastIntent.Warning;
+                message = "Position went realy wrong!";
+            }
+
+        }
+        else if (result.Cancelled)
+        {
+            intent = ToastIntent.Info;
+            message = "Update Cancelled...";
+        }
+        else
+        {
+            intent = ToastIntent.Error;
+            message = "Something went wrong!!!";
+        }
+
+
+        await Load();
+        _toastService.ShowToast(intent, message, 3000);
+
+        Console.WriteLine(result.GetType());
+    }
+
+    private async Task View(PositionVm item)
+    {
+        await _dialogService.ShowInfoAsync(message: $"Position id: {item.Id}, Position name: {item.Name}");
+    }
+
+    private async Task Add()
+    {
+        PositionVm item = new PositionVm (0, string.Empty);
+        await EditItem(item);
+    }
+
+    private async Task Delete(PositionVm item)
+    {
+        ToastIntent intent;
+        string message = string.Empty;
+
+        var i = await _mediator.Send(new DeletePositionCommand(item.Id));
+
+        if (i == item.Id)
+        {
+            intent = ToastIntent.Success;
+            message = "Position has been deleted!";
+        }
+        else
+        {
+            intent = ToastIntent.Error;
+            message = "Position went wrong!!!";
+        }
+        await Load();
+        _toastService.ShowToast(intent, message, 3000);
+
+    }
+}
+@* Disabled="@(string.IsNullOrEmpty(Content.Name) || string.IsNullOrWhiteSpace(Content.Name))" *@

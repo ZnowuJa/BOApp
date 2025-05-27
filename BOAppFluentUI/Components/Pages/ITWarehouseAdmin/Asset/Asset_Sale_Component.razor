@@ -1,0 +1,164 @@
+﻿@using Application.CQRS.ITWarehouseCQRS.Sales.Commands
+@using Application.DTOs
+@using Application.Forms.IT
+@using Application.ViewModels.General
+@using BOAppFluentUI.Data.DialogParameters
+
+@implements IDialogContentComponent<ITSalesAssetsDialogParameter>
+
+@inject IMediator _mediator
+
+@* Header *@
+<FluentDialogHeader ShowDismiss="true">
+    <FluentStack VerticalAlignment="VerticalAlignment.Center">
+        <FluentIcon Value="@(new Icons.Regular.Size24.WindowApps())" />
+        <FluentLabel Typo="Typography.PaneHeader">
+            @Dialog.Instance.Parameters.Title
+        </FluentLabel>
+    </FluentStack>
+</FluentDialogHeader>
+
+@* Footer *@
+<FluentDialogFooter>
+    <FluentButton Appearance="Appearance.Accent" OnClick="@CreateNewSale">Create and Assign new Sale</FluentButton>
+    <FluentButton Appearance="Appearance.Accent" OnClick="@SaveAsync" >Assign Selected Sale</FluentButton>
+    <FluentButton Appearance="Appearance.Neutral" OnClick="@CancelAsync">Cancel</FluentButton>
+</FluentDialogFooter>
+
+@* Body *@
+<FluentDialogBody>
+    @if (Dialog != null)
+    {
+            <FluentStack Orientation="Orientation.Vertical">
+
+            @foreach (var ar in AssetsList.ToList())
+            {
+                @ar.AssetTagNumber.ToString() @ar.PartVmName
+
+            }
+
+                    <FluentSelect TOption="ITSaleFormVm"
+                                  Style="align-items: center;"
+                                  Id="SaleId"
+
+                                  Label="Select open sale:"
+                                  Autofocus="true"
+                                  Items="Content.Sales"
+                                  Multiple="false"
+                                  OptionValue="@(p => p.Id.ToString())"
+                                  OptionText="@(p => p.Number)"
+                                  @bind-SelectedOption="selectedSale"
+                                  Height="200px"
+                                  @onchange="HandleChangeSale" />
+
+            </FluentStack>
+    }
+
+
+</FluentDialogBody>
+
+
+
+
+
+
+
+@code {
+    [Parameter]
+    public ITSalesAssetsDialogParameter Content { get; set; } = default!;
+
+    [CascadingParameter]
+    public FluentDialog? Dialog { get; set; }
+
+    private List<AssetDTO> AssetsList {get; set;}
+    private List<ITSaleFormVm> SaleForms { get; set; }
+
+    private ITSaleFormVm? selectedSale { get; set; } = new ITSaleFormVm();
+
+    protected override async Task OnInitializedAsync()
+    {
+        AssetsList = Content.AssetsLists;
+        SaleForms = Content.Sales;
+        selectedSale = Content.SelectedSale = SaleForms.FirstOrDefault() ;
+
+    }
+
+    private async Task CreateNewSale()
+    {
+
+        selectedSale = new ITSaleFormVm();
+        try
+        {
+            selectedSale.OperatorId = int.Parse(Content.FormUserContext.EnovaEmpId);
+            selectedSale.OperatorName = Content.FormUserContext.Employee.LongName;
+
+            selectedSale.Level1Approvers = Content.OrganisationVm.Role_ComplianceAssistant.Select(role => new OrganisationRoleForFormVm(role)).ToList() ?? new List<OrganisationRoleForFormVm>();
+
+            selectedSale.Level2Approvers = Content.OrganisationVm.Role_ComplianceAssistant.Select(role => new OrganisationRoleForFormVm(role)).ToList() ?? new List<OrganisationRoleForFormVm>();
+
+            selectedSale.LVL1_EnovaEmpId = Content.OrganisationVm.Role_ComplianceAssistant.Where(e => e.IsDefault == true).Select(m => m.EmpId).FirstOrDefault().ToString() ?? String.Empty;
+            selectedSale.LVL2_EnovaEmpId = Content.OrganisationVm.Role_ComplianceAssistant.Where(e => e.IsDefault == true).Select(m => m.EmpId).FirstOrDefault().ToString() ?? String.Empty;
+
+            // selectedSale.EmployeeId = int.Parse(Content.FormUserContext.EnovaEmpId);
+        } catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+
+        ApprovalVm approval = new ApprovalVm()
+            {
+                Status = selectedSale.Status,
+                EnovaEmpId = Content.FormUserContext.EnovaEmpId.ToString(),
+                LongName = Content.FormUserContext.Employee.LongName,
+                Date = DateTime.Now,
+                IsApproved = true
+            };
+        selectedSale.Approvals.Add(approval);
+        selectedSale.Assets = Content.AssetsLists;
+
+        var newAssetIds = AssetsList.Select(asset => asset.Id).ToList();
+        selectedSale.AssetIds = AssetsList.Select(asset => asset.Id).ToList();
+
+        Content.SelectedSale = selectedSale;
+        var result = await _mediator.Send(new CreateITSaleFormCommand(selectedSale));
+        Content.SelectedSale = result;
+
+        await Dialog.CloseAsync(Content);
+    }
+
+    private async Task HandleChangeSale(ChangeEventArgs e)
+    {
+        // var selectedId = ;
+        Content.SelectedSale = Content.Sales.FirstOrDefault(s => s.Id == int.Parse(e.Value.ToString()));
+    }
+
+
+    private async Task SaveAsync()
+    {
+        ApprovalVm approval = new ApprovalVm()
+            {
+                Status = selectedSale.Status,
+                EnovaEmpId = Content.FormUserContext.EnovaEmpId.ToString(),
+                LongName = Content.FormUserContext.Employee.LongName,
+                Date = DateTime.Now,
+                IsApproved = true
+            };
+        selectedSale.Approvals.Add(approval);
+
+        Content.SelectedSale = selectedSale;
+        var newAssetIds = AssetsList
+                            .Select(asset => asset.Id)
+                            .Where(id => !selectedSale.AssetIds.Contains(id));
+        Content.SelectedSale.EmployeeId = int.Parse(Content.FormUserContext.EnovaEmpId);
+        Content.SelectedSale.Employee = Content.FormUserContext.Employee;
+        Content.SelectedSale.AssetIds.AddRange(newAssetIds);
+
+        await Dialog.CloseAsync(Content);
+    }
+
+    private async Task CancelAsync()
+    {
+        await Dialog.CancelAsync();
+    }
+
+}

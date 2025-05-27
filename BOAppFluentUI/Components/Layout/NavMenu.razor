@@ -1,0 +1,82 @@
+﻿@inject IConfiguration _configuration
+
+<div class="navmenu">
+    <nav class="sitenav" aria-labelledby="main-menu" onclick="document.getElementById('navmenu-toggle').click();">
+        <FluentNavMenu Id="main-menu" Collapsible="true" Width="230" Title="Navigation menu" @bind-Expanded="expanded">
+
+            <FluentNavLink Href="/" Match="NavLinkMatch.All" Icon="@(new Icons.Regular.Size20.Home())" IconColor="Microsoft.FluentUI.AspNetCore.Components.Color.Accent">Start</FluentNavLink>
+            <AuthorizeView Policy="Technician">
+                <FluentNavGroup OnClick="OnClick" Title="IT" Icon="@(new Icons.Regular.Size24.DesktopPulse())">
+                    <ChildContent>
+                        <FluentNavLink Href="assets" Icon="@(new Icons.Regular.Size20.ReceiptMoney())">Assets</FluentNavLink>
+                        <FluentNavLink Href="invoices" Icon="@(new Icons.Regular.Size20.AlbumAdd())">Invoices</FluentNavLink>
+                        <FluentNavLink Href="invoiceitems" Icon="@(new Icons.Regular.Size20.AddSubtractCircle())">InvoiceItems</FluentNavLink>
+                        <FluentNavLink Href="asset_sales" Icon="@(new Icons.Regular.Size20.AddSubtractCircle())">Assets Sales</FluentNavLink>
+                        <FluentNavLink Href="licencjeautostacja" Icon="@(new Icons.Regular.Size20.DocumentBulletList())">Licencje AS</FluentNavLink>
+                        <FluentNavLink Href="itcmdbsettings" Icon="@(new Icons.Regular.Size20.TrayItemAdd())">IT CMDB Settings</FluentNavLink>
+                    </ChildContent>
+                </FluentNavGroup>
+            </AuthorizeView>
+            <AuthorizeView Policy="User">
+                <FluentNavGroup OnClick="OnClick" Title="Księgowość" Icon="@(new Icons.Regular.Size24.Toolbox())">
+                    <ChildContent>
+                        
+                        <FluentNavLink Href="rozrachunki" Match="NavLinkMatch.All" Icon="@(new Icons.Regular.Size20.MoneyHand())" IconColor="Microsoft.FluentUI.AspNetCore.Components.Color.Accent">Płatności Odroczone</FluentNavLink>
+                        @if (envi == "DEV")
+                        {
+                            <FluentNavLink Href="delegacje" Match="NavLinkMatch.All" Icon="@(new Icons.Regular.Size20.BookInformation())" IconColor="Microsoft.FluentUI.AspNetCore.Components.Color.Accent">Delegacje</FluentNavLink>
+                            <FluentNavLink Href="zaliczki" Match="NavLinkMatch.All" Icon="@(new Icons.Regular.Size20.MoneyHand())" IconColor="Microsoft.FluentUI.AspNetCore.Components.Color.Accent">Zaliczki</FluentNavLink>
+                            <FluentNavLink Href="przelewy" Match="NavLinkMatch.All" Icon="@(new Icons.Regular.Size20.MoneyHand())" IconColor="Microsoft.FluentUI.AspNetCore.Components.Color.Accent">Polecenia przelewów</FluentNavLink>
+                            <FluentNavLink Href="notyksiegowe" Match="NavLinkMatch.All" Icon="@(new Icons.Regular.Size20.MoneyHand())" IconColor="Microsoft.FluentUI.AspNetCore.Components.Color.Accent">Noty księgowe</FluentNavLink>
+                            
+                        }
+                    </ChildContent>
+                </FluentNavGroup>
+                
+                <FluentNavLink Href="wyciagibankowe" Match="NavLinkMatch.All" Icon="@(new Icons.Regular.Size20.Money())">Wyciągi Bankowe</FluentNavLink>
+                @if (envi == "DEV")
+                {
+                    <FluentNavLink Href="coc" Match="NavLinkMatch.All" Icon="@(new Icons.Regular.Size20.BookInformation())" IconColor="Microsoft.FluentUI.AspNetCore.Components.Color.Accent">Compliance</FluentNavLink>
+                }
+                
+
+                @if (envi == "DEV")
+                {
+                    
+                    @* <FluentNavLink Href="/testforms" Match="NavLinkMatch.All" Icon="@(new Icons.Regular.Size20.TextParagraphKo())" IconColor="Microsoft.FluentUI.AspNetCore.Components.Color.Accent">TestForm</FluentNavLink> *@
+                    
+                    @* <FluentNavGroup OnClick="OnClick" Title="Narzędzia IT" Icon="@(new Icons.Regular.Size24.Toolbox())">
+                        <ChildContent>
+                            <FluentNavLink Href="/zaliczki" Match="NavLinkMatch.All" Icon="@(new Icons.Regular.Size20.MoneyHand())" IconColor="Microsoft.FluentUI.AspNetCore.Components.Color.Accent">Zaliczki</FluentNavLink>
+                        </ChildContent>
+                    </FluentNavGroup> *@
+                }
+                <FluentNavGroup OnClick="OnClick" Title="Ustawienia" Icon="@(new Icons.Regular.Size24.Settings())">
+                    <ChildContent>
+                        <FluentNavLink Href="ksiegowoscustawienia" Icon="@(new Icons.Regular.Size20.PersonAccounts())">Księgowość</FluentNavLink>
+                        <FluentNavLink Href="structuresettings" Icon="@(new Icons.Regular.Size20.Organization())">Struktura</FluentNavLink>
+                        <FluentNavLink Href="generalsettings" Icon="@(new Icons.Regular.Size20.WindowSettings())">System</FluentNavLink>
+                    </ChildContent>
+                </FluentNavGroup>
+            </AuthorizeView>
+
+        </FluentNavMenu>
+    </nav>
+</div>
+
+@code {
+    private bool expanded = true;
+    private string envi { get; set; } = string.Empty;
+    private string appVersion { get; set; } = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        envi = _configuration["Environment"];
+        // appVersion = _configuration["AppVersion"];
+    }
+    void OnClick(MouseEventArgs e)
+    {
+        Console.WriteLine("NavMenu item clicked");
+    }
+}
+

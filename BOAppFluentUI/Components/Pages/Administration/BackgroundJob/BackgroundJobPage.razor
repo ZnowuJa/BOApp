@@ -1,0 +1,199 @@
+﻿@page "/backgroundjobs"
+@using Application.CQRS.General.BackgroundJobs.Commands
+@using Application.CQRS.General.BackgroundJobs.Queries;
+@using Application.Interfaces
+@using Application.ViewModels.General
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize(Policy = "Technician")]
+
+@inject IMediator _mediator
+@inject IDialogService _dialogService
+@inject IToastService _toastService
+@inject IJobSchedulerService _jobSchedulerService
+
+<h3>BackgroundJobPage</h3>
+
+@if (items == null)
+{
+    <FluentProgressRing>Ładownie...</FluentProgressRing>
+}
+else
+{
+    <FluentDataGrid Items="@filtredItems" Pagination="@pagination" TGridItem="BackgroundJobVm" GridTemplateColumns="80px repeat(6, 0.75fr)" ResizableColumns="true">
+        @foreach (var column in filterColumns.Where(c => c.IsVisible))
+        {
+            <PropertyColumn TGridItem="BackgroundJobVm" TProp="string" Property="@(Utils.GetPropertyExpression<BackgroundJobVm>(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label" Filtered="!string.IsNullOrWhiteSpace(column.Filter)">
+                <ColumnOptions>
+                    <div class="search-box">
+                        <FluentSearch type="search" Autofocus="true" @bind-Value="column.Filter" @oninput="(args) => Utils.HandleFilterDebounced(column, args, debounceDispatcher, () => InvokeAsync(StateHasChanged))" Placeholder="@($"{column.Label.ToLower()}...")" />
+                    </div>
+                </ColumnOptions>
+            </PropertyColumn>
+        }
+
+        @* Actions *@
+
+        <TemplateColumn Title="Actions" Align="Align.End">
+            @{
+                var runId = $"viewid-{context.Id}";
+                var editId = $"editid-{context.Id}";
+                var deleteId = $"deleteid-{context.Id}";
+
+            }
+            <FluentButton Id="@editId" IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => EditItem(context))" />
+            <FluentButton Id="@deleteId" IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" />
+            <FluentButton Id="@runId" IconEnd="@(new Icons.Regular.Size20.PersonRunning())" OnClick="@(() => Run(context))" />
+
+            <FluentTooltip Anchor="@editId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Edycja zadania</FluentTooltip>
+            <FluentTooltip Anchor="@deleteId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Skasuj zadanie</FluentTooltip>
+            <FluentTooltip Anchor="@runId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Uruchom zadanie</FluentTooltip>
+        </TemplateColumn>
+
+    </FluentDataGrid>
+    <FluentPaginator State="@pagination" />
+    <FluentButton IconStart="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddPanel())" />
+}
+
+@code {
+    private IQueryable<BackgroundJobVm> items;
+    private IQueryable<BackgroundJobVm> filtredItems => items.Where(x =>
+    filterColumns.All(column => string.IsNullOrWhiteSpace(column.Filter) ||
+    column.Property(x).Contains(column.Filter, StringComparison.CurrentCultureIgnoreCase)));
+
+    PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
+    private DebounceDispatcher debounceDispatcher = new DebounceDispatcher();
+    
+    private bool deleteConfirm = false;
+
+    private List<FilterColumn<BackgroundJobVm>> filterColumns = new List<FilterColumn<BackgroundJobVm>>
+    {
+        new FilterColumn<BackgroundJobVm> { FirstRow = true, Label = "Id", Property = c => c.Id.ToString(), IsVisible = true, Width = "200px" },
+        new FilterColumn<BackgroundJobVm> { FirstRow = true, Label = "JobClass", Property = c => c.JobClass.Split('.').Last(), IsVisible = true, Width = "200px" },
+        new FilterColumn<BackgroundJobVm> { FirstRow = true, Label = "JobMethod", Property = c => c.JobMethod, IsVisible = true, Width = "200px" },
+        new FilterColumn<BackgroundJobVm> { FirstRow = true, Label = "CronExpression", Property = c => c.CronExpression, IsVisible = true, Width = "200px" },
+        new FilterColumn<BackgroundJobVm> { FirstRow = true, Label = "Enabled", Property = c => c.IsEnabled, IsVisible = true, Width = "200px" },
+        new FilterColumn<BackgroundJobVm> { FirstRow = true, Label = "AssemblyName", Property = c => c.AssemblyName, IsVisible = true, Width = "200px" },
+    };
+
+    protected override async Task OnInitializedAsync() => await Load();
+
+    private async Task Load()
+    {
+        var itemsy = await _mediator.Send(new GetAllBackgroundJobQuery());
+        items = itemsy.AsQueryable();
+    }
+
+    private async Task Delete(BackgroundJobVm item)
+    {
+        var dialog = await _dialogService.ShowConfirmationAsync(
+                $"Czy na pewno chcesz usunąć BackgroundJob: {item.JobClass}?",
+                "Usuń",
+                "Anuluj",
+                "Potwierdź usunięcie");
+        var result = await dialog.Result;
+        deleteConfirm = result.Cancelled;
+        ToastIntent intent;
+        string message = string.Empty;
+
+        if (deleteConfirm)
+        {
+            intent = ToastIntent.Error;
+            message = "Operacja anulowana";
+        }
+        else
+        {
+            var i = await _mediator.Send(new DeleteBackgroundJobCommand(item.Id));
+            intent = ToastIntent.Success;
+            message = "BackgroundJob został usunięty!";
+
+            await _jobSchedulerService.ScheduleJobsAsync();
+        }
+
+        _toastService.ShowToast(intent, message, 3000);
+        await Load();
+    }
+    private async Task Run(BackgroundJobVm item)
+    {
+        var dialog = await _dialogService.ShowConfirmationAsync(
+                $"Czy na pewno chcesz uruchomić teraz: {item.JobClass}?",
+                "Uruchom",
+                "Anuluj",
+                "Potwierdź uruchomienie");
+        var result = await dialog.Result;
+        deleteConfirm = result.Cancelled;
+     
+        string message = string.Empty;
+
+        if (deleteConfirm)
+        {
+            
+        }
+        else
+        {
+            await _jobSchedulerService.RunJobManuallyAsync(item.JobClass, item.AssemblyName);
+        }
+
+        await Load();
+    }
+    private async Task EditItem(BackgroundJobVm item)
+    {
+        ToastIntent intent;
+        string message = string.Empty;
+        int resultId = 0;
+
+        var dialog = await _dialogService.ShowDialogAsync <BackgroundJobEditComponent> (item, new DialogParameters()
+            {
+                Height = "450px",
+                Width = "550px",
+                Title = item.Id > 0 ? "Aktualizuj BackgroundJob" : "Dodanie nowego BackgroundJoba",
+                PreventDismissOnOverlayClick = false,
+                PreventScroll = true,
+            });
+
+        var result = await dialog.Result;
+
+        if (!result.Cancelled && result.Data != null)
+        {
+            var final = (BackgroundJobVm)result.Data;
+
+            if (final.Id > 0)
+            {
+                resultId = await _mediator.Send(new UpdateBackgroundJobCommand(final));
+                intent = ToastIntent.Success;
+                message = "BackgroundJob został zaktualizowany!";
+            }
+            else if (final.Id == 0)
+            {
+                resultId = await _mediator.Send(new CreateBackgroundJobCommand(final));
+                intent = ToastIntent.Success;
+                message = "BackgroundJob został utworzony!";
+            }
+            else
+            {
+                intent = ToastIntent.Warning;
+                message = "Coś poszło źle!";
+            }
+
+            await _jobSchedulerService.ScheduleJobsAsync();
+        }
+        else if (result.Cancelled)
+        {
+            intent = ToastIntent.Info;
+            message = "Operacja anulowana";
+        }
+        else
+        {
+            intent = ToastIntent.Error;
+            message = "Coś poszło źle!";
+        }
+
+        await Load();
+        _toastService.ShowToast(intent, message, 3000);
+    }
+    private async Task AddPanel()
+    {
+        var item = new BackgroundJobVm();
+        await EditItem(item);
+    }
+}

@@ -1,0 +1,66 @@
+﻿@page "/send-test-email"
+@using Application.Interfaces
+
+@using Microsoft.Graph.Models
+@inject IEmailService EmailService
+
+<h3>Send Test Email</h3>
+
+@if (isSending)
+{
+    <p>Sending email...</p>
+}
+else if (!string.IsNullOrEmpty(statusMessage))
+{
+    <p>@statusMessage</p>
+}
+
+<FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
+              Appearance="Appearance.Accent" OnClick="@SendTestEmail2" BackgroundColor="#509EDB" Style="width: 100px" > Wyślij </FluentButton>
+
+@code {
+    private bool isSending = false;
+    private string statusMessage = "";
+
+    private async Task SendTestEmail2()
+    {
+        isSending = true;
+        statusMessage = "";
+        StateHasChanged();
+
+        try
+        {
+            var message = new Microsoft.Graph.Models.Message
+                {
+                    Subject = "Test Email from Blazor",
+                    Body = new ItemBody
+                    {
+                        ContentType = BodyType.Text,
+                        Content = "This is a test email sent from the Blazor application."
+                    },
+                    ToRecipients = new List<Recipient>
+                {
+                    new Recipient
+                    {
+                        EmailAddress = new EmailAddress
+                        {
+                            Address = "marcin.jarco@porscheinterauto.pl"
+                        }
+                    }
+                }
+                };
+
+            await EmailService.SendEmailAsync(message);
+            statusMessage = "✅ Email sent successfully!";
+        }
+        catch (Exception ex)
+        {
+            statusMessage = $"❌ Failed to send email: {ex.Message}";
+        }
+        finally
+        {
+            isSending = false;
+            StateHasChanged();
+        }
+    }
+}

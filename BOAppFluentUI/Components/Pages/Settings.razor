@@ -1,0 +1,159 @@
+﻿@using System.Security.Claims
+@using Application.AdHocJobs
+@using Application.CQRS.ITWarehouseCQRS.Employees.Commands
+@using Application.CQRS.ITWarehouseCQRS.Employees.Queries
+@using Application.ViewModels.General
+
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IMediator _mediator
+
+@implements IDialogContentComponent
+
+
+
+<FluentDesignTheme  @bind-Mode="@Mode"
+@bind-OfficeColor = "@Color" 
+StorageName="theme"/>
+
+<FluentSelect Label="Theme" Items="@(Enum.GetValues<DesignThemeModes>())" @bind-SelectedOption="@Mode" />
+<FluentSelect Label="Color" Items="@(new OfficeColor?[] {OfficeColor.Word, OfficeColor.Excel, OfficeColor.OneNote, OfficeColor.Access, OfficeColor.Booking, OfficeColor.Exchange, OfficeColor.Yammer, OfficeColor.PowerApps})" @bind-SelectedOption="@Color" />
+<FluentDivider Orientation="Orientation.Horizontal"/>
+
+<p></p>
+<FluentLabel>Twój numer konta bankowego:</FluentLabel>
+@if(emp != null){
+
+    <FluentTextField @bind-Value="@emp.BankAccountNumber" 
+    @bind-Value:after="@HandleEmpBankAccountChanged"/>
+    @if (showValidationMessage)
+    {
+        if (!bankAccountChecked)
+        {
+            <p class="validation-error">Niepoprawny numer konta!</p>
+        }
+        else if (bankAccountOk)
+        {
+            <p class="validation-success">Zmiana zapisana w danych użytkownika!</p>
+        }
+    }
+
+}
+@*  *@
+<p></p>
+@if(userRoles is not null)
+{
+    <b>Twoje role w systemie:</b>
+
+    @foreach(var role in userRoles)
+    {
+        <li>@role</li>
+    }
+    @* @emp.LongName.ToString(); *@
+}
+
+<p></p>
+@*
+    NavLink below opens signout-oidc url in new window. New window can be then closed and user is expected to refresh the old one. This will force logout and login, hence refreshing the tokens and Claims
+*@
+<FluentNavLink Href="/signout-oidc" target="_blank">Wyloguj</FluentNavLink>
+
+
+
+@code {
+
+    private DesignThemeModes Mode { get; set; }
+    private OfficeColor? Color { get; set; }
+    private EmployeeVm  emp { get; set; }
+    private ClaimsPrincipal user { get; set; }
+    private List<string> userRoles { get; set; }
+    private string username { get; set; }
+    private bool bankAccountOk { get; set; } = true;
+    private bool bankAccountChecked { get; set; } = false;
+    private bool showValidationMessage = false;
+    // private string signoutUrl { get; set; } =
+    // private List<string> userRoles;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var claimTypeAID = "http://schemas.microsoft.com/identity/claims/objectidentifier";
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        user = authState.User;
+
+        if (user.Identity.IsAuthenticated)
+        {
+            userRoles = user.Claims
+                .Where(c => c.Type == ClaimTypes.Role)
+                .Select(c => c.Value)
+                .Distinct()
+                .ToList();
+        }
+        var aidClaim = user.Claims.FirstOrDefault(c => c.Type == claimTypeAID);
+        if (aidClaim != null)
+        {
+            Guid aidGuid = new Guid();
+            Guid.TryParse(aidClaim.Value, out aidGuid);
+            emp = await _mediator.Send(new GetEmployeeByAIDQuery(aidGuid));
+            // Console.WriteLine($"claim of type {claimTypeAID} found.");
+        }
+        else
+        {
+            emp = new EmployeeVm();
+            // Console.WriteLine($"No claim of type {claimTypeAID} found.");
+        }
+    }
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        
+    }
+
+    private async Task HandleEmpBankAccountChanged(){
+        var accountNumber = emp.BankAccountNumber.Replace(" ", "");
+        bankAccountChecked = await AppUtils.ValidateIbanAsync(accountNumber);
+        showValidationMessage = true;
+
+        if (bankAccountChecked)
+        {
+            await _mediator.Send(new UpdateEmployeeBankAccountCommand(emp.EnovaEmpId, emp.BankAccountNumber));
+            bankAccountOk = true;
+        }
+        else
+        {
+            bankAccountOk = false;
+        }
+
+        StateHasChanged();
+
+    }
+
+}
+<style>
+    .validation-error {
+        color: red;
+        margin-top: 5px;
+        margin-bottom: 5px;
+        white-space: normal; /* Allow wrapping */
+        word-wrap: break-word; /* Ensure long words break */
+        display: block; /* Ensure it takes full width */
+    }
+
+        .validation-error::before {
+            font-size: 1.5em; /* Adjust size as needed */
+            margin-right: 5px; /* Space between icon and text */
+            vertical-align: middle; /* Align properly */
+        }
+
+    .validation-success {
+        color: green;
+        margin-top: 5px;
+        margin-bottom: 5px;
+        white-space: normal; /* Allow wrapping */
+        word-wrap: break-word; /* Ensure long words break */
+        display: block; /* Ensure it takes full width */
+    }
+
+        .validation-success::before {
+            font-size: 1.5em; /* Adjust size as needed */
+            margin-right: 5px; /* Space between icon and text */
+            vertical-align: middle; /* Align properly */
+        }
+</style>

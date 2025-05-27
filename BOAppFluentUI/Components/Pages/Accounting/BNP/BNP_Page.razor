@@ -1,0 +1,408 @@
+﻿@page "/wyciagibankowe"
+@page "/wyciagi"
+
+@using System.Diagnostics.CodeAnalysis
+@using Application.CQRS.AccountingCQRS.BNP.Queries
+@using Application.ViewModels.Accounting
+@using Microsoft.AspNetCore.Authorization
+@using System.Linq.Expressions
+@using System.Globalization;
+
+@attribute [Authorize(Policy = "User")]
+
+@inject IMediator _mediator
+@inject IToastService _toastService
+
+<h3>
+    Wyciągi Bankowe
+</h3>
+<FluentTabs @bind-ActiveTabId="@activeid" OnTabChange="HandleOnTabChange">
+    <FluentTab Label="BNP55" Id="tab-1">
+
+        <div style="display: flex; gap: 16px; width: 100%; align-items: center;">
+            <div>
+                <FluentDatePicker DisabledDateFunc="@IsAfterEndDate55" Label="Data od:" Value="StartDateTime55" ValueChanged="@(e => OnDateChanged("Start", "tab-1", e))" />
+            </div>
+            <div>
+                <FluentDatePicker DisabledDateFunc="@IsDateDisabled55" Label="Data do:" Value="EndDateTime55" ValueChanged="@(e => OnDateChanged("End", "tab-1", e))" />
+            </div>
+            <div style="padding-top: 25px;">
+                <FluentCheckbox @bind-Value="ShowCRDT_55" Label="Przychodzące (CRDT)" />
+                <FluentCheckbox @bind-Value="ShowDBIT_55" Label="Wychodzące (DBIT)" />
+            </div>
+            <div style="margin-left: auto;">
+                <FluentSelect Items="@pageSizeOptions55"
+                              OptionText="@(i => i.Text)"
+                              Value="@selectedPageSize55"
+                              ValueChanged="v => OnPageSizeChanged55(v)"
+                              ValueExpression="() => selectedPageSize55"
+                              Width="80px"
+                              Label="Rozmiar strony:" />
+            </div>
+        </div>
+        @if (IsLoading55)
+        {
+            <FluentProgressRing />
+        }
+
+        @if (bnp55 == null)
+        {
+            <FluentProgressRing>Ładowanie...</FluentProgressRing>
+        }
+        else
+        {
+            <div style="height: @(autoItemsPerPage55 ? "calc(100vh - 320px);" : " ;") overflow-y: hidden; overflow: hidden;">
+                <FluentDataGrid Items="FilteredItems55"
+                                AutoItemsPerPage="@autoItemsPerPage55"
+                                ResizableColumns="true"
+                                ShowHover="true"
+                                Style="height: auto; overflow:auto;"
+                                Pagination="@pagination55">
+
+                    @foreach (var column in filterColumns55.Where(c => c.IsVisible))
+                    {
+                        if (column.IsDropdown)
+                        {
+                            <PropertyColumn TGridItem="Bnp55Vm" TProp="string" Property="@(Utils.GetPropertyExpression<Bnp55Vm>(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label" Filtered="column.SelectedValues.Any()">
+                                <ColumnOptions>
+                                    <FluentSelect TOption="string"
+                                                  Items="@(column.DropdownValues)"
+                                                  Multiple="true"
+                                                  SelectedOptionsChanged="@(e => Utils.OnSelectedOptionsChanged<Bnp55Vm>(e, column))">
+                                        @foreach (var value in column.DropdownValues)
+                                        {
+                                            <FluentOption Value="@value">@value</FluentOption>
+                                        }
+                                    </FluentSelect>
+                                </ColumnOptions>
+                            </PropertyColumn>
+                        }
+                        else
+                        {
+                            <PropertyColumn TGridItem="Bnp55Vm" TProp="string" Property="@(Utils.GetPropertyExpression<Bnp55Vm>(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label" Filtered="!string.IsNullOrWhiteSpace(column.Filter)" Width="@column.Width" IsDefaultSortColumn="@column.IsDefaultSortColumn"
+                                            InitialSortDirection="@column.InitialSortDirection">
+                                <ColumnOptions>
+                                    <div class="search-box">
+                                        <FluentSearch type="search" Autofocus="true" @bind-Value="column.Filter" Placeholder="@($"{column.Label.ToLower()}...")" />
+                                    </div>
+                                </ColumnOptions>
+                            </PropertyColumn>
+                        }
+                    }
+                </FluentDataGrid>
+            </div>
+            <FluentPaginator State="@pagination55" />
+        }
+    </FluentTab>
+
+    <FluentTab Label="BNP20" Id="tab-2">
+        <div style="display: flex; gap: 16px; width: 100%; align-items: center;">
+            <div>
+                <FluentDatePicker DisabledDateFunc="@IsAfterEndDate20" Label="Data od:" Value="StartDateTime20" ValueChanged="@(e => OnDateChanged("Start", "tab-2", e))" />
+            </div>
+            <div>
+                <FluentDatePicker DisabledDateFunc="@IsDateDisabled20" Label="Data do:" Value="EndDateTime20" ValueChanged="@(e => OnDateChanged("End", "tab-2", e))" />
+            </div>
+            <div style="padding-top: 25px;">
+                <FluentCheckbox @bind-Value="ShowCRDT_20" Label="Przychodzące (CRDT)" />
+                <FluentCheckbox @bind-Value="ShowDBIT_20" Label="Wychodzące (DBIT)" />
+            </div>
+            <div style="margin-left: auto;">
+                <FluentSelect Items="@pageSizeOptions20"
+                              OptionText="@(i => i.Text)"
+                              Value="@selectedPageSize20"
+                              ValueChanged="@(v => OnPageSizeChanged20(v))"
+                              ValueExpression="() => selectedPageSize20"
+                              Width="80px"
+                              Label="Rozmiar strony:" />
+            </div>
+        </div>
+
+        @if (IsLoading20)
+        {
+            <FluentProgressRing />
+        }
+
+        @if (bnp20 == null)
+        {
+            <FluentProgressRing>Ładowanie...</FluentProgressRing>
+        }
+        else
+        {
+            <div style="height: @(autoItemsPerPage20 ? "calc(100vh - 320px);" : " ;") overflow-y: hidden; overflow: hidden;">
+                <FluentDataGrid Items="@FilteredItems"
+                                
+                                AutoItemsPerPage="@autoItemsPerPage20"
+                                ResizableColumns="true"
+                                ShowHover="true"
+                                Style="height: auto; overflow:auto;"
+                                Pagination="@pagination20">
+
+                    @foreach (var column in filterColumns.Where(c => c.IsVisible))
+                    {
+                        <PropertyColumn TGridItem="Bnp20Vm" TProp="string" Property="@(Utils.GetPropertyExpression<Bnp20Vm>(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label" Filtered="!string.IsNullOrWhiteSpace(column.Filter)" Width="@column.Width" IsDefaultSortColumn="@column.IsDefaultSortColumn"
+                                        InitialSortDirection="@column.InitialSortDirection">
+                            <ColumnOptions>
+                                <div class="search-box">
+                                    <FluentSearch type="search" Autofocus="true" @bind-Value="column.Filter" Placeholder="@($"{column.Label.ToLower()}...")" />
+                                </div>
+                            </ColumnOptions>
+                        </PropertyColumn>
+                    }
+                </FluentDataGrid>
+            </div>
+            <FluentPaginator State="@pagination20" />
+        }
+    </FluentTab>
+</FluentTabs>
+
+@code {
+    private IQueryable<Bnp20Vm>? bnp20;
+    private IQueryable<Bnp20Vm> FilteredItems => bnp20
+        .Where(x =>
+            (ShowCRDT_20 && x.Cdtdbtind == "CRDT") || (ShowDBIT_20 && x.Cdtdbtind == "DBIT"))
+        .Where(x =>
+            filterColumns.All(column =>
+                string.IsNullOrWhiteSpace(column.Filter)
+                    || column.Filter
+                        .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                        .All(term =>
+                            column.Property(x).Contains(term, StringComparison.CurrentCultureIgnoreCase))));
+
+    private IQueryable<Bnp55Vm>? bnp55;
+    private IQueryable<Bnp55Vm> FilteredItems55 => bnp55
+        .Where(x =>
+            (ShowCRDT_55 && x.Cdtdbtind == "CRDT") || (ShowDBIT_55 && x.Cdtdbtind == "DBIT"))
+        .Where(x =>
+            filterColumns55.All(column =>
+                string.IsNullOrWhiteSpace(column.Filter)
+                    || column.Filter
+                        .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                        .All(term =>
+                            column.Property(x).Contains(term, StringComparison.CurrentCultureIgnoreCase))));
+
+    private DateTime? StartDateTime20 { get; set; } = DateTime.Today.AddMonths(-3);
+    private DateTime? EndDateTime20 { get; set; } = DateTime.Today;
+    private DateTime? StartDateTime55 { get; set; } = DateTime.Today.AddMonths(-3);
+    private DateTime? EndDateTime55 { get; set; } = DateTime.Today;
+
+    private string selectedPageSize55 = "Auto";
+    private string selectedPageSize20 = "Auto";
+    PaginationState pagination20 = new PaginationState { ItemsPerPage = 10 };
+    PaginationState pagination55 = new PaginationState { ItemsPerPage = 10 };
+
+    private bool IsLoading20 { get; set; }
+    private bool IsLoading55 { get; set; }
+
+    private bool ShowCRDT_55 = true;
+    private bool ShowDBIT_55 = true;
+    private bool ShowCRDT_20 = true;
+    private bool ShowDBIT_20 = true;
+
+    private bool autoItemsPerPage55 = true;
+    private bool autoItemsPerPage20 = true;
+
+    string? activeid = "tab-1";
+    FluentTab? changedto;
+
+    string nameFilter = string.Empty;
+
+    private List<SelectOption> pageSizeOptions55 = new()
+    {
+    new SelectOption { Text = "Auto", Value = "Auto" },
+    new SelectOption { Text = "10", Value = "10" },
+    new SelectOption { Text = "15", Value = "15" },
+    new SelectOption { Text = "20", Value = "20" },
+    new SelectOption { Text = "50", Value = "50" },
+    new SelectOption { Text = "100", Value = "100" },
+    new SelectOption { Text = "250", Value = "250" },
+    };
+
+    private List<SelectOption> pageSizeOptions20 = new()
+    {
+    new SelectOption { Text = "Auto", Value = "Auto" },
+    new SelectOption { Text = "10", Value = "10" },
+    new SelectOption { Text = "15", Value = "15" },
+    new SelectOption { Text = "20", Value = "20" },
+    new SelectOption { Text = "50", Value = "50" },
+    new SelectOption { Text = "100", Value = "100" },
+    new SelectOption { Text = "250", Value = "250" },
+    };
+
+    public class SelectOption
+    {
+        public string Text { get; set; }
+        public string Value { get; set; }
+    }
+
+    private bool IsDateDisabled20(DateTime date)
+    {
+        return date.Date > DateTime.Today || date.Date < StartDateTime20; // Wyłącza wszystkie daty po dzisiejszym dniu i przed StartDateTime20
+    }
+    private bool IsAfterEndDate20(DateTime date)
+    {
+        return date.Date > EndDateTime20; // Wyłącza wszystkie daty po EndDate
+    }
+
+    private bool IsDateDisabled55(DateTime date)
+    {
+        return date.Date > DateTime.Today || date.Date < StartDateTime55; // Wyłącza wszystkie daty po dzisiejszym dniu i przed StartDateTime20
+    }
+    private bool IsAfterEndDate55(DateTime date)
+    {
+        return date.Date > EndDateTime20; // Wyłącza wszystkie daty po EndDate
+    }
+
+    private readonly List<FilterColumn<Bnp20Vm>> filterColumns = new List<FilterColumn<Bnp20Vm>>
+    {
+        new FilterColumn<Bnp20Vm> {FirstRow = true, Label = "Data", Property = c => c.Data.ToString("yyyy-MM-dd"), IsVisible = true, Width= "120px", IsDefaultSortColumn = true, InitialSortDirection = SortDirection.Descending},
+        new FilterColumn<Bnp20Vm> {FirstRow = true, Label = "Kwota", Property = c => c.Kwota, IsVisible = true, Width= "100px"},
+        new FilterColumn<Bnp20Vm> {FirstRow = true, Label = "Waluta", Property = c => c.Waluta, IsVisible = true, Width= "100px"},
+        new FilterColumn<Bnp20Vm> {FirstRow = true, Label = "Tytuł", Property = c => c.Tytul, IsVisible = true, Width= "200px"},
+        new FilterColumn<Bnp20Vm> {FirstRow = true, Label = "Nazwa", Property = c => c.Nazwa, IsVisible = true, Width= "200px"},
+        new FilterColumn<Bnp20Vm> {FirstRow = true, Label = "Adres", Property = c => c.Adres, IsVisible = true, Width= "200px"},
+        new FilterColumn<Bnp20Vm> {FirstRow = true, Label = "Państwo", Property = c => c.Panstwo, IsVisible = true, Width= "100px"},
+        new FilterColumn<Bnp20Vm> {FirstRow = true, Label = "IBAN", Property = c => c.Iban, IsVisible = true, Width= "200px"},
+        new FilterColumn<Bnp20Vm> {FirstRow = true, Label = "Txid", Property = c => c.Txid, IsVisible = true, Width= "200px"},
+        new FilterColumn<Bnp20Vm> {FirstRow = true, Label = "Cdtdbtind", Property = c => c.Cdtdbtind, IsVisible = true, Width= "100px"},
+    };
+
+    private readonly List<FilterColumn<Bnp55Vm>> filterColumns55 = new List<FilterColumn<Bnp55Vm>>
+    {
+        new FilterColumn<Bnp55Vm> {FirstRow = true, Label = "Data", Property = c => c.Data.ToString("yyyy-MM-dd"), IsVisible = true, Width= "120px", IsDefaultSortColumn = true, InitialSortDirection = SortDirection.Descending},
+        new FilterColumn<Bnp55Vm> {FirstRow = true, Label = "Kwota", Property = c => c.Kwota, IsVisible = true, Width= "100px"},
+        new FilterColumn<Bnp55Vm> {FirstRow = true, Label = "Waluta", Property = c => c.Waluta, IsVisible = true, Width= "100px"},
+        new FilterColumn<Bnp55Vm> {FirstRow = true, Label = "Tytuł", Property = c => c.Tytul, IsVisible = true, Width= "200px"},
+        new FilterColumn<Bnp55Vm> {FirstRow = true, Label = "Nazwa", Property = c => c.Nazwa, IsVisible = true, Width= "200px"},
+        new FilterColumn<Bnp55Vm> {FirstRow = true, Label = "Adres", Property = c => c.Adres, IsVisible = true, Width= "200px"},
+        new FilterColumn<Bnp55Vm> {FirstRow = true, Label = "Państwo", Property = c => c.Panstwo, IsVisible = true, Width= "100px"},
+        new FilterColumn<Bnp55Vm> {FirstRow = true, Label = "IBAN", Property = c => c.Iban, IsVisible = true, Width= "200px"},
+        new FilterColumn<Bnp55Vm> {FirstRow = true, Label = "Txid", Property = c => c.Txid, IsVisible = true, Width= "200px"},
+        new FilterColumn<Bnp55Vm> {FirstRow = true, Label = "Cdtdbtind", Property = c => c.Cdtdbtind, IsVisible = true, Width= "100px"},
+    };
+
+    private Task OnPageSizeChanged55(string? newValue)
+    {
+        HandlePageSizeChange(newValue, ref selectedPageSize55, ref autoItemsPerPage55, pagination55);
+        return Task.CompletedTask;
+    }
+    private Task OnPageSizeChanged20(string? newValue)
+    {
+        HandlePageSizeChange(newValue, ref selectedPageSize20, ref autoItemsPerPage20, pagination20);
+        return Task.CompletedTask;
+    }
+
+    private void HandlePageSizeChange(
+                                string? newValue,
+                                ref string selectedValue,
+                                ref bool autoFlag,
+                                PaginationState pagination)
+    {
+        selectedValue = newValue ?? "Auto";
+
+        if (selectedValue == "Auto")
+        {
+            autoFlag = true;
+        }
+        else if (int.TryParse(selectedValue, out var value))
+        {
+            autoFlag = false;
+            pagination.ItemsPerPage = value;
+        }
+    }
+
+    private void HandleClear()
+    {
+        if (string.IsNullOrWhiteSpace(nameFilter))
+        {
+            nameFilter = string.Empty;
+        }
+    }
+
+    private void HandleOnTabChange(FluentTab tab)
+    {
+        changedto = tab;
+        if (tab.Id == "tab-1")
+        {
+            selectedPageSize55 = "Auto";
+            autoItemsPerPage55 = true;
+        }
+        else if (tab.Id == "tab-2")
+        {
+            selectedPageSize20 = "Auto";
+            autoItemsPerPage20 = true;
+        }
+    }
+
+    private static DateOnly ConvertToDateOnly(DateTime? dateTime)
+    {
+        return dateTime.HasValue ? DateOnly.FromDateTime(dateTime.Value) : DateOnly.MinValue;
+    }
+
+    private async Task OnDateChanged(string type, string identifier, DateTime? newDate)
+    {
+        switch ((type, identifier))
+        {
+            case ("Start", "tab-2"):
+                StartDateTime20 = newDate;
+                break;
+            case ("Start", "tab-1"):
+                StartDateTime55 = newDate;
+                break;
+            case ("End", "tab-2"):
+                EndDateTime20 = newDate;
+                break;
+            case ("End", "tab-1"):
+                EndDateTime55 = newDate;
+                break;
+            default:
+                throw new ArgumentException($"Nieobsługiwane wartości: {type}, {identifier}");
+        }
+        await LoadBnp(identifier);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Load();
+    }
+
+    private async Task Load()
+    {
+        bnp20 = await _mediator.Send(new GetAllBnp20Query(ConvertToDateOnly(StartDateTime20), ConvertToDateOnly(EndDateTime20)));
+        bnp55 = await _mediator.Send(new GetAllBnp55Query(ConvertToDateOnly(StartDateTime55), ConvertToDateOnly(EndDateTime55)));
+    }
+
+    private async Task LoadBnp(string identifier)
+    {
+        StateHasChanged();
+        ToastIntent intent;
+        string message = string.Empty;
+        try
+        {
+            if (identifier == "tab-2")
+            {
+                IsLoading20 = true;
+                bnp20 = await _mediator.Send(new GetAllBnp20Query(ConvertToDateOnly(StartDateTime20), ConvertToDateOnly(EndDateTime20)));
+            }
+            else
+            {
+                IsLoading55 = true;
+                bnp55 = await _mediator.Send(new GetAllBnp55Query(ConvertToDateOnly(StartDateTime55), ConvertToDateOnly(EndDateTime55)));
+            }
+        }
+        catch (Exception ex)
+        {
+            intent = ToastIntent.Error;
+            message = "Błąd podczas ładowania danych!";
+        }
+        finally
+        {
+            IsLoading20 = false;
+            IsLoading55 = false;
+            intent = ToastIntent.Success;
+            message = "Dane zostały załadowane poprawnie!";
+            StateHasChanged();
+        }
+        _toastService.ShowToast(intent, message, 3000);
+    }
+}

@@ -1,0 +1,332 @@
+﻿@page "/asset_sales"
+@page "/srodkitrwale_sprzedaz"
+
+@using Application.CQRS.ITWarehouseCQRS.Assets.Queries
+@using Application.CQRS.ITWarehouseCQRS.Sales.Commands
+@using Application.CQRS.ITWarehouseCQRS.Sales.Queries
+@using Application.DTOs
+@using Application.ExportModels
+@using Application.Forms.IT;
+@using Application.CQRS.ITWarehouseCQRS.AssetHistories.Queries
+@using Application.CQRS.ITWarehouseCQRS.Assets.Commands
+@using AutoMapper
+@using Microsoft.AspNetCore.Authorization
+@using Application.Interfaces
+@using Application.CQRS.General.FormFiles.Commands
+@using System.Linq
+
+@attribute [Authorize(Policy = "Technician")]
+
+@inject IMediator _mediator
+@inject ILogger<AssetSaleForm_Page> _logger
+@inject IDialogService _dialogService
+@inject IToastService _toastService
+@inject IJSRuntime JS
+@inject IMapper _mapper
+@inject IFileService _fileService
+@* @inject ICircuitService _circuitService *@
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager _navigationManager
+
+
+<h3>Sprzedaż sprzętu IT</h3>
+
+<FluentStack Orientation="Orientation.Horizontal">
+    <FluentLabel Typo="Typography.Subject"> Show columns:  </FluentLabel>
+        @foreach (var column in filterColumns)
+    {
+        if (column.FirstRow)
+        {
+            <FluentCheckbox @bind-Value="column.IsVisible" Label="@column.Label" />
+        }
+    }
+</FluentStack>
+<p></p>
+<FluentStack Orientation="Orientation.Horizontal">
+    @foreach (var column in filterColumns)
+    {
+        if (!column.FirstRow)
+        {
+            <FluentCheckbox @bind-Value="column.IsVisible" Label="@column.Label" />
+        }
+    }
+</FluentStack>
+
+<FluentDataGrid Items="@Utils.ApplyFilters(items, filterColumns)" Pagination="@pagination" TGridItem="ITSaleFormVm" GridTemplateColumns="80px repeat(7, 1fr)" AutoFit="true" ResizableColumns="true">
+    @foreach (var column in filterColumns.Where(c => c.IsVisible))
+    {
+        if (column.IsDropdown)
+        {
+            <PropertyColumn TGridItem="ITSaleFormVm" TProp="string" Property="@(Utils.GetPropertyExpression<ITSaleFormVm>(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label" Filtered="column.SelectedValues.Any()">
+                <ColumnOptions>
+                    <FluentSelect TOption="string"
+                    Items="@(column.DropdownValues)"
+                    Multiple="true"
+
+                    SelectedOptionsChanged="@(e => Utils.OnSelectedOptionsChanged<ITSaleFormVm>(e, column))"
+                    >
+                        @foreach (var value in column.DropdownValues)
+                        {
+                            <FluentOption Value="@value">@value</FluentOption>
+                        }
+                    </FluentSelect>
+                </ColumnOptions>
+            </PropertyColumn>
+        }
+        else
+        {
+            <PropertyColumn TGridItem="ITSaleFormVm" TProp="string" Property="@(Utils.GetPropertyExpression<ITSaleFormVm>(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label" Filtered="!string.IsNullOrWhiteSpace(column.Filter)">
+                <ColumnOptions>
+                    <div class="search-box">
+                        <FluentSearch type="search" Autofocus="true" @bind-Value="column.Filter" @oninput="(args) => Utils.HandleFilterDebounced(column, args, debounceDispatcher, () => InvokeAsync(StateHasChanged))" Placeholder="@($"{column.Label.ToLower()}...")" />
+                    </div>
+                </ColumnOptions>
+            </PropertyColumn>
+        }
+    }
+
+
+
+    @* Actions *@
+    <TemplateColumn Title="Actions" Align="Align.End">
+
+        @{
+            var viewId = $"viewid-{context.Id}";
+            var editId = $"editid-{context.Id}";
+            var deleteId = $"deleteid-{context.Id}";
+            // var addId = $"addid-{context.Id}";
+        }
+        <FluentButton Id="@viewId" IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" Disabled="@viewDisabled" />
+        <FluentTooltip Anchor="@viewId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Left Delay=50>View Asset</FluentTooltip>
+
+        <FluentButton Id="@editId" IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => Edit(context))" Disabled="@isEditable(context.Status)" />
+        @*WARNING it is not tested if isEditDisabled works*@
+        <FluentTooltip Anchor="@editId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Edit Sale Form</FluentTooltip>
+
+        <FluentButton Id="@deleteId" IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" Disabled="@actionsDisabled" />
+        <FluentTooltip Anchor="@deleteId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Delete Sale Form</FluentTooltip>
+
+        @*             <FluentButton Id="@addId" IconEnd="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddToList(context))" Disabled="@actionsDisabled" />
+    <FluentTooltip Anchor="@addId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50>Add Asset to update</FluentTooltip> *@
+
+    </TemplateColumn>
+</FluentDataGrid>
+<FluentPaginator State="@pagination" />
+
+<FluentButton OnClick="DownloadCsv">Pobierz CSV</FluentButton>
+
+@code {
+
+    #region Declarations
+    // [Parameter]
+    // public string? role { get; set; }
+    private string SessionId { get; set; }
+
+    private IQueryable<ITSaleFormVm> items { get; set; } = Enumerable.Empty<ITSaleFormVm>().AsQueryable();
+
+
+    private DebounceDispatcher debounceDispatcher = new DebounceDispatcher();
+    private PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
+
+    private List<FilterColumn<ITSaleFormVm>> filterColumns = new List<FilterColumn<ITSaleFormVm>> 
+    {
+        new FilterColumn<ITSaleFormVm> { FirstRow = true, Label = "ID", Property = c => c.Id.ToString(), IsVisible = false },
+        new FilterColumn<ITSaleFormVm> { FirstRow = true, Label = "Numer", Property = c => c.Number.ToString()??string.Empty, IsVisible = true },
+        new FilterColumn<ITSaleFormVm> { FirstRow = true, Label = "Status", Property = c => c.Status.ToString()??string.Empty, IsVisible = true, IsDropdown = true, DropdownValues = StatusesValues, SelectedValues = new List<string> ()},
+        new FilterColumn<ITSaleFormVm> { FirstRow = true, Label = "Nr kontr.", Property = c => c.OperatorName.ToString(), IsVisible = false }
+    };
+
+    private static List<string> StatusesValues { get; set; } = new List<string>
+            {
+                "Rejestracja", "W trakci", "AprobataL2", "Zakończone", "Odrzucone"
+            };
+    private FormUserContext _userContext = new FormUserContext("Administrator", "AppAdmin");
+
+    private bool actionsDisabled = false;
+    private bool viewDisabled = false;
+    private bool editDisabled = false;
+    // > Utils.IsEditDisabled(context, _userContext) || @actionsDisabled;
+
+    private ToastIntent intent { get; set; }
+    private string toastMessage { get; set; } = string.Empty;
+
+    #endregion
+
+    protected override async Task OnInitializedAsync()
+    {
+        // SessionId = _circuitService.GetCircuitId();
+        await Utils.GetUserName(AuthenticationStateProvider, _userContext, _mediator);
+        await Load();
+    }
+    private async Task Load()
+    {
+        var itemsList = await _mediator.Send(new GetAllITSaleFormsQuery());
+        items = itemsList.AsQueryable();
+
+    }
+
+    private void HandleClearFilter(ref string filter) => filter = string.IsNullOrWhiteSpace(filter) ? string.Empty : filter;
+    private async Task Edit(ITSaleFormVm item = null)
+    {
+        ToastIntent intent;
+        string message;
+
+        List<AssetDTO> assetsList = new();
+        foreach(var aid in item.AssetIds){
+            var tmp = await _mediator.Send(new GetAssetDTObyIdQuery(aid));
+            assetsList.Add(tmp);
+        }
+        item.Assets = assetsList;
+
+        // var assetDialogParameter = new DialogParameters
+        // {
+        //     {"UserContext", _userContext},
+        //     {"Content", item}
+        // };
+        var dialog = await _dialogService.ShowDialogAsync<AssetSaleForm_Edit_Component>(item, new DialogParameters()
+                    {
+                        Height = "750px",
+                        Width = "1050px",
+                        Title = item.Id > 0 ? $"IT Sale Form | {item.Number}" : "New IT Sale Form",
+                        PreventDismissOnOverlayClick = false,
+                        PreventScroll = true
+                    });
+        var result = await dialog.Result;
+        // Console.WriteLine(item.FormFiles.Count());
+
+        if(!result.Cancelled)
+        {
+            var returnedItem = result.Data as ITSaleFormVm;
+            var res = await _mediator.Send(new UpdateITSaleFormCommand(returnedItem));
+            foreach (var ass in returnedItem.Assets)
+            {
+                if(ass.StateVmName == "Sold"){
+                    continue;
+                } else {
+                    DateTime date = ass.PurchaseDate ?? DateTime.Now;
+                    ass.StateVmId = 7;
+                    ass.SaleFormId = returnedItem.Id;
+                    var i = await _mediator.Send(new UpdateAssetCommand(ass.Id, ass.PartVmId, ass.InvoiceVmId, ass.InvoiceItemID, ass.AssetTagNumber, ass.StateVmId, ass.SerialNumber, ass.LastSeen, ass.AssigneeVmId, ass.AssigneeVmType, ass.AssigneeVmName, ass.WarehouseVmId, ass.Price, ass.CurrencyVmId, date, ass.Leasing, ass.EndOfContract, ass.WarrantyUntil, ass.Imei, ass.Mac, ass.EndOfSupport, ass.ScrappingFormId, ass.SaleFormId, ass.ScrappingReason, _userContext.LongName));
+                    _logger.LogInformation("AssetsPage | EditType(item) | Update Asset finished...");
+                }
+            }
+            var fin = await _mediator.Send(new UpdateITSaleFormCommand(res));
+            
+            intent = ToastIntent.Success;
+            message = "Sale Form has been updated!";
+
+            //below find if any assets have been removed from SaleForm
+            var returnedAssets = res.Assets.ToList();
+            var deletedAssets = assetsList.Where(asset => !returnedAssets.Any(returned => returned.Id == asset.Id)).ToList();
+            
+            //if there are deleted assets update its state, and history to previous version
+            foreach( var dAsset in deletedAssets){
+                DateTime date = dAsset.PurchaseDate ?? DateTime.Now;
+
+                //take history and find previous state
+                var histList = await _mediator.Send(new GetAllAssetHistoryByAssetIdQuery(dAsset.Id));
+                List<AssetHistoryVm> history = histList.ToList();
+                string firstDifferentAStateName = history
+                        .OrderByDescending(asset => asset.Id)
+                        .FirstOrDefault(asset => asset.AStateName != "Sold")?.AStateName;
+
+                //select state form States
+                var sList = await _mediator.Send(new GetAllStatesQuery());
+                List<StateVm> states = sList.ToList();
+                var prevState = states.FirstOrDefault(state => state.Name == firstDifferentAStateName);
+
+                //update props to previous state and update asset
+                dAsset.stateVm = prevState;
+                dAsset.StateVmId = prevState.Id;
+                dAsset.StateVmName = prevState.Name;
+                dAsset.SaleFormId = null;
+                var i = await _mediator.Send(new UpdateAssetCommand(dAsset.Id, dAsset.PartVmId, dAsset.InvoiceVmId, dAsset.InvoiceItemID, dAsset.AssetTagNumber, dAsset.StateVmId, dAsset.SerialNumber, dAsset.LastSeen, dAsset.AssigneeVmId, dAsset.AssigneeVmType, dAsset.AssigneeVmName, dAsset.WarehouseVmId, dAsset.Price, dAsset.CurrencyVmId, date, dAsset.Leasing, dAsset.EndOfContract, dAsset.WarrantyUntil, dAsset.Imei, dAsset.Mac, dAsset.EndOfSupport, dAsset.ScrappingFormId, dAsset.SaleFormId, dAsset.ScrappingReason, _userContext.LongName));
+            }
+        } else
+        {
+            intent = ToastIntent.Info;
+            message = "Operation Cancelled...";
+        }
+
+        _toastService.ShowToast(intent, message, 3000);
+    }
+    private async Task Delete(ITSaleFormVm item = null)
+    {
+        var dialog = await _dialogService.ShowConfirmationAsync("Kasowanie Sprzedaży: " + item.Number + "\n Czy na pewno?", "TAK", "NIE", "Potwierdź operację kasowania");
+        var result = await dialog.Result;
+        bool deleteConfirm = result.Cancelled;
+
+        ToastIntent intent;
+        string message = string.Empty;
+
+        if (deleteConfirm)
+        {
+            intent = ToastIntent.Error;
+            message = $"Nie skasowano sprzedaży {item.Number}";
+
+        }
+        else
+        {
+            foreach (var ass in item.Assets)
+            {
+                
+                ass.SaleFormId = null;
+                ass.StateVmId = 2;
+                await _mediator.Send(new UpdateAssetCommand(ass.Id, ass.PartVmId, ass.InvoiceVmId, ass.InvoiceItemID, ass.AssetTagNumber, ass.StateVmId, ass.SerialNumber, ass.LastSeen, ass.AssigneeVmId, ass.AssigneeVmType, ass.AssigneeVmName, ass.WarehouseVmId, ass.Price, ass.CurrencyVmId, DateTime.Now, ass.Leasing, ass.EndOfContract, ass.WarrantyUntil, ass.Imei, ass.Mac, ass.EndOfSupport, ass.ScrappingFormId, ass.SaleFormId, ass.ScrappingReason, _userContext.LongName));
+            }
+            var i = await _mediator.Send(new DeleteITSaleFormCommand(item.Id));
+            intent = ToastIntent.Success;
+            message = $"Skasowano sprzedaż {item.Number}";
+
+        }
+
+        _toastService.ShowToast(intent, message, 3000);
+        await Load();
+    }
+    private async Task View(ITSaleFormVm item = null)
+    {
+        List<AssetDTO> assetsList = new();
+        foreach(var aid in item.AssetIds){
+            var tmp = await _mediator.Send(new GetAssetDTObyIdQuery(aid));
+            assetsList.Add(tmp);
+        }
+        item.Assets = assetsList;
+        
+        var dialog = await _dialogService.ShowPanelAsync<AssetSaleForm_View_Component>(item, new DialogParameters()
+                    {
+                        Height = "240px",
+                        Width = "720px",
+                        Title = item.Id > 0 ? "IT Sale " : "New IT Sale",
+                        PreventDismissOnOverlayClick = false,
+                        PreventScroll = true,
+                    });
+        //     var result = await dialog.Result;
+    }
+    private async Task DownloadCsv()
+    {
+        var selectedItems = @Utils.ApplyFilters(items, filterColumns);
+
+        IQueryable<DeferralPaymentExportModel> exportModels = selectedItems.ProjectTo<ITSaleFormVm, DeferralPaymentExportModel>(_mapper);
+        var csvContent = Utils.GenerateCsvPL(exportModels);
+
+        var base64csv = Convert.ToBase64String(csvContent);
+
+        string date = DateTime.Now.ToString("yyyyMMdd");
+        string filename = $"{date}_lista.csv";      
+
+        // Invoke the JavaScript method to download the CSV
+        await JS.InvokeVoidAsync("downloadFilePL", filename, base64csv);
+    }
+
+    private bool isEditable(string status)
+    {
+        bool res = status switch
+        {
+            "Zamkniete" => true,
+            _ => false
+        };
+        return res;
+
+    }
+
+}

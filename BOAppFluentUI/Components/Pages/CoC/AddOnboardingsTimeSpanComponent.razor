@@ -1,0 +1,86 @@
+﻿@using Application.AdHocJobs
+@using Application.Interfaces
+@using Application.BackgroundJobs
+@using Application.Interfaces
+@using Application.ViewModels.General
+
+@using Microsoft.AspNetCore.Authorization
+@using Application.AdHocJobs
+
+
+@attribute [Authorize(Policy = "Technician")]
+
+@inject IMediator _mediator
+@inject ILogger<AddOnboardingsTimeSpanComponent> _logger
+@inject IDialogService _dialogService
+@inject IToastService _toastService
+@inject IEmailService _mailService;
+@inject IConfiguration _configuration;
+@inject IJobSchedulerService _jobSchedulerService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@implements IDialogContentComponent<string>
+
+<FluentDatePicker Label="Od"
+                  @bind-Value="@FromFTEDate"
+
+                  Style="width: 130px" />
+<FluentDatePicker Label="Do"
+                  @bind-Value="@ToFTEDate"
+
+                  Style="width: 130px" />
+<p></p>
+<FluentButton OnClick="@AddOnboardingsTimeSpanAction" Appearance="Appearance.Accent">
+    Generuj
+</FluentButton>
+<p></p>
+<p>AddOnboardingsTimeSpanAction</p>
+@if(isBusy){
+    <FluentProgressRing />
+}
+@if(generated.HasValue){
+    <H3>Wygenerowano @generated nowych onboardingów!</H3>
+}
+
+@code {
+    #region Declarations
+    [Parameter]
+    public string Content { get; set; }
+
+    public string sthng { get; set; }
+
+    [CascadingParameter]
+    public FluentDialog? Dialog { get; set; }
+
+    private DateTime? FromFTEDate { get; set; } = DateTime.UtcNow;
+    private DateTime? ToFTEDate { get; set; } = DateTime.UtcNow;
+    private bool isBusy { get; set; } = false;
+    private int? generated { get; set; }
+
+    #endregion
+
+    private async Task AddOnboardingsTimeSpanAction(){
+
+        isBusy = true;
+        if (FromFTEDate.HasValue && ToFTEDate.HasValue)
+        {
+            string className = "Application.BackgroundJobs.AddCoCOnboardingsJob";
+            string assembly = "Application";
+
+            await _jobSchedulerService.RunJobManuallyAsyncWithDates(className, assembly, FromFTEDate.Value, ToFTEDate.Value);
+
+            
+            isBusy = false;
+        };
+
+    }
+
+    private async Task SaveAsync()
+    {
+        await Dialog.CloseAsync(Content);
+    }
+
+    private async Task CancelAsync()
+    {
+        await Dialog.CancelAsync();
+    }
+}

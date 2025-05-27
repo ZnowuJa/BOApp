@@ -1,0 +1,136 @@
+﻿@using Application.CQRS.AccountingCQRS.CostCenters.Queries
+@using Application.CQRS.AccountingCQRS.GLAccounts.Queries
+@using Application.CQRS.AccountingCQRS.VATRates.Queries
+@using Application.CQRS.General.Organisations.Queries
+@using Application.ViewModels.Accounting
+@using Application.ViewModels.General
+@inject IMediator _mediator
+<table>
+    <tbody>
+    <tr class="fluent-row">
+        <td>
+                <FluentAutocomplete TOption="LocationVm"
+                                SelectValueOnTab="true"
+                                AutoComplete="on"
+                                Items="@_locations"
+                                OnOptionsSearch="@OnLocationSearch"
+                                Placeholder="Lokalizacja..."
+                                Multiple=true
+                                MaximumSelectedOptions="1"
+                                OptionText="@(p => p.SapNumber + ' ' + p.Name)"
+                                @bind-SelectedOptions="@_selectedLocation"
+                                @bind-SelectedOptions:after="@HandleLocationChange"
+                                Width="250px" />
+        </td>
+        <td>
+            <FluentAutocomplete TOption="CostCenterVm"
+                                SelectValueOnTab="true"
+                                AutoComplete="on"
+                                Items="@_costCenters"
+                                OnOptionsSearch="@OnCostCenterSearch"
+                                Placeholder="MPK..."
+                                Multiple=true
+                                MaximumSelectedOptions="1"
+                                OptionText="@(p => p.MPK + ' ' + p.Description)"
+                                @bind-SelectedOptions="@_selectedCostCenter"
+                                @bind-SelectedOptions:after="@HandleCostCenterChange"
+                                Width="250px" />
+        </td>
+        <td>
+            <FluentAutocomplete TOption="GLAccountVm"
+                                SelectValueOnTab="true"
+                                AutoComplete="on"
+                                Items="@_glAccounts"
+                                OnOptionsSearch="@OnGLAccountSearch"
+                                Placeholder="Konto..."
+                                Multiple=true
+                                MaximumSelectedOptions="1"
+                                OptionText="@(p => p.AccountNumber + ' ' + p.Description)"
+                                @bind-SelectedOptions="@_selectedGlAccount"
+                                @bind-SelectedOptions:after="@HandleGlAccountChange"
+                                Width="250px" />
+        </td>
+        <td>
+            <FluentAutocomplete TOption="VATRateVm"
+                                SelectValueOnTab="true"
+                                AutoComplete="on"
+                                Items="@_vatRates"
+                                OnOptionsSearch="@OnVATRateSearch"
+                                Placeholder="VAT..."
+                                Multiple=true
+                                MaximumSelectedOptions="1"
+                                OptionText="@(p => p.Percentage.ToString() + ' ' + p.Name)"
+                                @bind-SelectedOptions="@_selectedVatRate"
+                                @bind-SelectedOptions:after="@HandleVatRateChange"
+                                Width="100px" />
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+@code {
+    [Parameter] public InvoiceMapping Mapping { get; set; }
+
+    private IEnumerable<LocationVm> _locations { get; set; }
+    private IEnumerable<CostCenterVm> _costCenters { get; set; }
+    private IEnumerable<GLAccountVm> _glAccounts { get; set; }
+    private IEnumerable<VATRateVm> _vatRates { get; set; }
+    IEnumerable<LocationVm> _selectedLocation = Array.Empty<LocationVm>();
+    IEnumerable<CostCenterVm> _selectedCostCenter = Array.Empty<CostCenterVm>();
+    IEnumerable<GLAccountVm> _selectedGlAccount = Array.Empty<GLAccountVm>();
+    IEnumerable<VATRateVm> _selectedVatRate = Array.Empty<VATRateVm>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _locations = await _mediator.Send(new GetLocationsQuery());
+        _costCenters = await _mediator.Send(new GetAllCostCenterIEnumQuery());
+        _glAccounts = await _mediator.Send(new GetAllGLAccountIEnumQuery());
+        _vatRates = await _mediator.Send(new GetAllVatRateIEnumQuery());
+
+    }
+
+    private void HandleLocationChange()
+    {
+        Mapping.Location = _selectedLocation.FirstOrDefault();
+
+        Console.WriteLine();
+    }
+    private void HandleCostCenterChange()
+    {
+        Mapping.CostCenter = _selectedCostCenter.FirstOrDefault();
+
+        Console.WriteLine();
+    }
+    private void HandleGlAccountChange()
+    {
+        Mapping.GLAccount = _selectedGlAccount.FirstOrDefault();
+
+        Console.WriteLine();
+    }
+    private void HandleVatRateChange()
+    {
+        Mapping.VATRate = _selectedVatRate.FirstOrDefault();
+
+        Console.WriteLine();
+    }
+    private void OnLocationSearch(OptionsSearchEventArgs<LocationVm> e)
+    {
+        e.Items = _locations.Where(g => g.Name.Contains(e.Text, StringComparison.OrdinalIgnoreCase)
+                                        || g.SapNumber.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
+    }
+    private void OnCostCenterSearch(OptionsSearchEventArgs<CostCenterVm> e)
+    {
+        e.Items = _costCenters.Where(g => g.MPK.Contains(e.Text, StringComparison.OrdinalIgnoreCase)
+                                          || g.Description.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
+    }
+    private void OnGLAccountSearch(OptionsSearchEventArgs<GLAccountVm> e)
+    {
+        e.Items = _glAccounts.Where(g => g.AccountNumber.Contains(e.Text, StringComparison.OrdinalIgnoreCase)
+                                         || g.Description.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
+    }
+    private void OnVATRateSearch(OptionsSearchEventArgs<VATRateVm> e)
+    {
+        e.Items = _vatRates.Where(g => g.Name.Contains(e.Text, StringComparison.OrdinalIgnoreCase)
+                                       || g.Percentage.ToString().Contains(e.Text, StringComparison.OrdinalIgnoreCase));
+    }
+}

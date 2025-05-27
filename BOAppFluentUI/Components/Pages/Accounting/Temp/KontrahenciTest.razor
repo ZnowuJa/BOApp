@@ -1,0 +1,42 @@
+﻿@page "/kontrahenci"
+
+@using Application.Interfaces
+@using Application.ViewModels.Accounting
+@using AutoMapper
+@using Microsoft.EntityFrameworkCore
+
+@inject IAsDbContext _asdbctx
+@inject IMapper _mapper
+
+<h3>KontrahenciTest</h3>
+
+@if (kontrs == null)
+{
+    <FluentProgressRing>Loading...</FluentProgressRing>
+} else
+{
+    <FluentDataGrid Items="@kontrs" TGridItem="CustomerVm" ResizableColumns=true Pagination="@pagination">
+        <PropertyColumn Property="@(k => k.KontrahentId)" Sortable="true" Align="Align.Start" Tooltip="true" Title="ID" />
+        <PropertyColumn Property="@(k => k.Nazwa)" Sortable="true" Align="Align.Start" Tooltip="true" Title="Nazwa" />
+        <PropertyColumn Property="@(k => k.Przelew.ToString())" Sortable="true" Align="Align.Start" Tooltip="true" Title="Przelew" />
+    </FluentDataGrid>
+}
+
+@code {
+    private List<CustomerVm> kontrsL { get; set; }
+    private IQueryable<CustomerVm> kontrs { get; set; }
+    private PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Load();
+    }
+
+    private async Task Load()
+    {
+        var kontrahenciEntities = await _asdbctx.v_KONTRAHENCI_LISTA.ToListAsync();
+        kontrsL = _mapper.Map<List<CustomerVm>>(kontrahenciEntities);
+        kontrs = kontrsL.AsQueryable();
+
+    }
+}

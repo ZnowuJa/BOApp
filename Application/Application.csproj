@@ -1,0 +1,105 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="AdHocJobs\trash\**" />
+    <Compile Remove="BackgroundJobs\trash\**" />
+    <Compile Remove="Interfaces\ITWarehouse.Services\**" />
+    <Compile Remove="CQRS\ITWarehouseCQRS\AssetsById\**" />
+    <Compile Remove="CQRS\ITWarehouseCQRS\EmpInfos\**" />
+    <Compile Remove="CQRS\ITWarehouseCQRS\EmployeeForList\**" />
+    <Compile Remove="Services\**" />
+    <Compile Remove="ViewModels\Category\**" />
+    <Compile Remove="ViewModels\Employees\**" />
+    <EmbeddedResource Remove="AdHocJobs\trash\**" />
+    <EmbeddedResource Remove="BackgroundJobs\trash\**" />
+    <EmbeddedResource Remove="Interfaces\ITWarehouse.Services\**" />
+    <EmbeddedResource Remove="CQRS\ITWarehouseCQRS\AssetsById\**" />
+    <EmbeddedResource Remove="CQRS\ITWarehouseCQRS\EmpInfos\**" />
+    <EmbeddedResource Remove="CQRS\ITWarehouseCQRS\EmployeeForList\**" />
+    <EmbeddedResource Remove="Services\**" />
+    <EmbeddedResource Remove="ViewModels\Category\**" />
+    <EmbeddedResource Remove="ViewModels\Employees\**" />
+    <None Remove="AdHocJobs\trash\**" />
+    <None Remove="BackgroundJobs\trash\**" />
+    <None Remove="Interfaces\ITWarehouse.Services\**" />
+    <None Remove="CQRS\ITWarehouseCQRS\AssetsById\**" />
+    <None Remove="CQRS\ITWarehouseCQRS\EmpInfos\**" />
+    <None Remove="CQRS\ITWarehouseCQRS\EmployeeForList\**" />
+    <None Remove="Services\**" />
+    <None Remove="ViewModels\Category\**" />
+    <None Remove="ViewModels\Employees\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="AdHocJobs\AddCoCOnboardingsAdHocJob.cs" />
+    <Compile Remove="AdHocJobs\AddCoCOnboardingTimeSpanAdHocJob.cs" />
+    <Compile Remove="AdHocJobs\AssignCoCGroupByPositionAdHocJob.cs" />
+    <Compile Remove="AdHocJobs\MarkEmpCoCGroupByJobCodeAdHocJob.cs" />
+    <Compile Remove="AdHocJobs\SendCoCMonthlyReportAssistantsAdHocJob.cs" />
+    <Compile Remove="BackgroundJobs\MarkEmpCoCGroupByJobCodeJob.cs" />
+    <Compile Remove="BackgroundJobs\NewCoCOnboardingsJob.cs" />
+    <Compile Remove="CQRS\General\Organisations\Commands\CreateOrganisationCommandHandler.cs" />
+    <Compile Remove="CQRS\General\Organisations\Commands\DeleteOrganisationCommandHandler.cs" />
+    <Compile Remove="CQRS\General\Organisations\Commands\UpdateOrganisationCommandHandler.cs" />
+    <Compile Remove="CQRS\General\Organisations\Queries\GetAllOrganisationsQueryHandler.cs" />
+    <Compile Remove="CQRS\General\Organisations\Queries\GetOrganisationByEmpSapNumberQueryHandler.cs" />
+    <Compile Remove="CQRS\General\Organisations\Queries\GetOrganisationQueryHandler.cs" />
+    <Compile Remove="CQRS\General\Organisations\Queries\GetOrganisationsByApproverIdQueryHandler.cs" />
+    <Compile Remove="Interfaces\AssigneeToAssigneeVmConverter.cs" />
+    <Compile Remove="Interfaces\AssigneeVmToAssigneeConverter.cs" />
+    <Compile Remove="CQRS\ITWarehouseCQRS\Categories\CategoriesVm.cs" />
+    <Compile Remove="CQRS\ITWarehouseCQRS\Categories\CategoryDTO.cs" />
+    <Compile Remove="CQRS\ITWarehouseCQRS\Categories\Queries\GetAllCategoriesQueryHandler - Copy.cs" />
+    <Compile Remove="CQRS\ITWarehouseCQRS\CategoryTypes\CategoryTypeDTO.cs" />
+    <Compile Remove="CQRS\ITWarehouseCQRS\CategoryTypes\CategoryTypesVm.cs" />
+    <Compile Remove="CQRS\ITWarehouseCQRS\CategoryTypes\Commands\CreateCategoryTypeCommandValidator.cs" />
+    <Compile Remove="CQRS\ITWarehouseCQRS\Employees\Queries\GetEmployeeGridModelListQuery.cs" />
+    <Compile Remove="CQRS\ITWarehouseCQRS\Employees\Queries\GetEmployeeGridModelListQueryHandler.cs" />
+    <Compile Remove="CQRS\ITWarehouseCQRS\InvoiceItems\Commands\CreateInvoiceCommand.cs" />
+    <Compile Remove="CQRS\ITWarehouseCQRS\InvoiceItems\Commands\CreateInvoiceCommandHandler.cs" />
+    <Compile Remove="CQRS\ITWarehouseCQRS\InvoiceItems\Commands\DeleteInvoiceCommand.cs" />
+    <Compile Remove="CQRS\ITWarehouseCQRS\InvoiceItems\Commands\DeleteInvoiceCommandHandler.cs" />
+    <Compile Remove="CQRS\ITWarehouseCQRS\InvoiceItems\Commands\UpdateInvoiceCommand.cs" />
+    <Compile Remove="CQRS\ITWarehouseCQRS\InvoiceItems\Commands\UpdateInvoiceCommandHandler.cs" />
+    <Compile Remove="CQRS\ITWarehouseCQRS\InvoiceItems\Queries\GetAllInvoicesForSelectQuery.cs" />
+    <Compile Remove="Validation\AssetVmByIdValidator.cs" />
+    <Compile Remove="ViewModels\AssetVmById.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoMapper" Version="13.0.1" />
+    <PackageReference Include="Blazored.FluentValidation" Version="2.2.0" />
+    <PackageReference Include="FluentValidation" Version="11.10.0" />
+    <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.0" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.10.0" />
+    <PackageReference Include="MediatR" Version="12.4.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="8.0.10" />
+    <PackageReference Include="Microsoft.AspNetCore.Components" Version="8.0.10" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.10" />
+    <PackageReference Include="Microsoft.Graph" Version="5.60.0" />
+    <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.1.2" />
+    <PackageReference Include="Serilog" Version="4.0.2" />
+    <PackageReference Include="Serilog.AspNetCore" Version="8.0.3" />
+    <PackageReference Include="Serilog.Settings.Configuration" Version="8.0.4" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.1.2" />
+    <PackageReference Include="System.Text.Json" Version="9.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Domain\Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="AAA_IDEAS\" />
+    <Folder Include="CQRS\ITToolsCQRS\" />
+    <Folder Include="ViewModels\ITWarehouse\" />
+  </ItemGroup>
+
+</Project>

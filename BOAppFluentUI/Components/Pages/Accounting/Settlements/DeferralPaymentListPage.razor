@@ -1,0 +1,227 @@
+﻿@page "/deferralpayments/{role}"
+@page "/platnosciodroczone/{role}"
+@using Application.CQRS.AccountingCQRS.DeferralPayment.Queries
+@using Application.ExportModels
+@using Application.Forms.Accounting;
+@using AutoMapper
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize(Policy = "User")]
+
+@inject IMediator _mediator
+@inject ILogger<DeferralPaymentListPage> _logger
+@inject IDialogService _dialogService
+@inject IToastService _toastService
+@inject IJSRuntime JS
+@inject IMapper _mapper
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager _navigationManager
+
+
+<h3>Wnioski o odroczoną płatność</h3>
+
+<FluentStack Orientation="Orientation.Horizontal">
+    <FluentLabel Typo="Typography.Subject"> Show columns:  </FluentLabel>
+        @foreach (var column in filterColumns)
+    {
+        if (column.FirstRow)
+        {
+            <FluentCheckbox @bind-Value="column.IsVisible" Label="@column.Label" />
+        }
+    }
+</FluentStack>
+<p></p>
+<FluentStack Orientation="Orientation.Horizontal">
+    @foreach (var column in filterColumns)
+    {
+        if (!column.FirstRow)
+        {
+        <FluentCheckbox @bind-Value="column.IsVisible" Label="@column.Label" />
+        }
+    }
+</FluentStack>
+    
+<FluentDataGrid Items="@Utils.ApplyFilters(items, filterColumns)" Pagination="@pagination" TGridItem="DeferralPaymentFormVm" GridTemplateColumns="80px repeat(7, 1fr)" AutoFit="true" ResizableColumns="true">
+    @foreach (var column in filterColumns.Where(c => c.IsVisible))
+    {
+        if (column.IsDropdown)
+        {
+            <PropertyColumn TGridItem="DeferralPaymentFormVm" TProp="string" Property="@(Utils.GetPropertyExpression<DeferralPaymentFormVm>(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label" Filtered="column.SelectedValues.Any()">
+                <ColumnOptions>
+                    <FluentSelect TOption="string"
+                                  Items="@(column.DropdownValues)"
+                                  Multiple="true"
+
+                                  SelectedOptionsChanged="@(e => Utils.OnSelectedOptionsChanged<DeferralPaymentFormVm>(e, column))"
+                                  >
+                        @foreach (var value in column.DropdownValues)
+                        {
+                            <FluentOption Value="@value">@value</FluentOption>
+                        }
+                    </FluentSelect>
+                </ColumnOptions>
+            </PropertyColumn>
+        }
+        else
+        {
+            <PropertyColumn TGridItem="DeferralPaymentFormVm" TProp="string" Property="@(Utils.GetPropertyExpression<DeferralPaymentFormVm>(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label" Filtered="!string.IsNullOrWhiteSpace(column.Filter)">
+                <ColumnOptions>
+                    <div class="search-box">
+                        <FluentSearch type="search" Autofocus="true" @bind-Value="column.Filter" @oninput="(args) => Utils.HandleFilterDebounced(column, args, debounceDispatcher, () => InvokeAsync(StateHasChanged))" Placeholder="@($"{column.Label.ToLower()}...")" />
+                    </div>
+                </ColumnOptions>
+            </PropertyColumn>
+        }
+    }
+       
+   
+
+@* Actions *@
+<TemplateColumn Title="Actions" Align="Align.End">
+
+    @{
+        var viewId = $"viewid-{context.Id}";
+        var editId = $"editid-{context.Id}";
+        var deleteId = $"deleteid-{context.Id}";
+        // var addId = $"addid-{context.Id}";
+    }
+    <FluentButton Id="@viewId" IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" Disabled="@viewDisabled" />
+    <FluentTooltip Anchor="@viewId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Left Delay=50>View form</FluentTooltip>
+
+    <FluentButton Id="@editId" IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => Edit(context))" Disabled="@Utils.IsEditDisabled(context, _userContext)" />
+        @*WARNING it is not tested if isEditDisabled works*@
+        <FluentTooltip Anchor="@editId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Edit form</FluentTooltip>
+
+    <FluentButton Id="@deleteId" IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" Disabled="@actionsDisabled" />
+        <FluentTooltip Anchor="@deleteId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Delete form</FluentTooltip>
+
+    @*             <FluentButton Id="@addId" IconEnd="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddToList(context))" Disabled="@actionsDisabled" />
+    <FluentTooltip Anchor="@addId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50>Add Asset to update</FluentTooltip> *@
+
+</TemplateColumn>
+</FluentDataGrid>
+<FluentPaginator State="@pagination" />
+
+<FluentButton OnClick="DownloadCsv">Pobierz CSV</FluentButton>
+
+@code {
+
+    #region Declarations
+    [Parameter]
+    public string role { get; set; }
+
+    private IQueryable<DeferralPaymentFormVm> items { get; set; } = Enumerable.Empty<DeferralPaymentFormVm>().AsQueryable();
+
+    private DebounceDispatcher debounceDispatcher = new DebounceDispatcher();
+    private PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
+
+    private List<FilterColumn<DeferralPaymentFormVm>> filterColumns = new List<FilterColumn<DeferralPaymentFormVm>> 
+    {
+        new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "ID", Property = c => c.Id.ToString(), IsVisible = false },
+        new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "Numer", Property = c => c.Number.ToString()??string.Empty, IsVisible = true },
+        new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "Status", Property = c => c.Status.ToString()??string.Empty, IsVisible = true, IsDropdown = true, DropdownValues = StatusesValues, SelectedValues = new List<string> ()},
+        new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "Nr kontr.", Property = c => c.KontrahentId.ToString(), IsVisible = false },
+        new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "Nazwa kontr.", Property = c => c.KontrahentName.ToString(), IsVisible = true },
+        new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "Numer FK", Property = c => c.Numer_Fk.ToString(), IsVisible = true },
+        new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "NIP", Property = c => c.VATID == null ? "brak" : c.VATID, IsVisible = false },
+        new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "Uzasadnienie", Property = c => c.Note.ToString(), IsVisible = false },
+        new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "Zgłaszający", Property = c =>(c.EmployeeName.ToString()??string.Empty), IsVisible = false },
+        new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "Data", Property = c => c.Requested.ToString(), IsVisible = true },
+        new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "DOC CC", Property = c => c.CC.ToString(), IsVisible = true },
+        new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "Firma", Property = c => c.is_Firma ? "TAK" : "NIE", IsVisible = true },
+        new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "Przełożony", Property = c => c.LVL1_EmployeeName.ToString(), IsVisible = true },
+        new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "Rozrachunki", Property = c => c.LVL2_EmployeeName.ToString(), IsVisible = true },
+        new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "DOC CC", Property = c => c.CC.ToString(), IsVisible = true },
+        new FilterColumn<DeferralPaymentFormVm> { FirstRow = true, Label = "Odrzucone", Property = c => c.RejectReason.ToString(), IsVisible = false },
+    };
+
+    private static List<string> StatusesValues { get; set; } = new List<string>
+            {
+                "Rejestracja", "AprobataL1", "AprobataL2", "Zakończone", "Odrzucone"
+            };
+    private FormUserContext _userContext = new FormUserContext("Settlement", "Technician");
+
+    private bool actionsDisabled = false;
+    private bool viewDisabled = false;
+    private bool editDisabled = false;
+    // > Utils.IsEditDisabled(context, _userContext) || @actionsDisabled;
+
+    private ToastIntent intent { get; set; }
+    private string toastMessage { get; set; } = string.Empty;
+
+    #endregion
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        await Utils.GetUserName(AuthenticationStateProvider, _userContext, _mediator);
+        await Load();
+    }
+
+    private async Task Load()
+    {
+
+        items = role switch
+        {
+            "kierownik" or "manager" => await _mediator.Send(new GetDeferralPaymentByApproverQuery(_userContext.EnovaEmpId)),
+            "pracownik" or "employee" => await _mediator.Send(new GetDeferralPaymentByEmpIdQuery(_userContext.EnovaEmpId)),
+            "zapisane" or "saved" or "niezapisane" or "notsaved" => await HandleSavedCase(),
+
+            "rozrachunki" or "settlements" => await _mediator.Send(new GetAllDeferralPaymentFormQuery()),
+            _ => throw new ArgumentException("Błędny adres strony!")
+        };
+
+    }
+    private async Task<IQueryable<DeferralPaymentFormVm>> HandleSavedCase()
+    {
+        var resultss = await _mediator.Send(new GetDeferralPaymentByEmpIdQuery(_userContext.EnovaEmpId));
+        intent = ToastIntent.Success;
+        if (role is "zapisane" or "saved")
+        {
+            toastMessage = "Wniosek wysłany do aprobaty!";
+        } else
+        {
+            toastMessage = "Wystąpił błąd, wniosek nie zapisany!";
+        }
+
+        _toastService.ShowToast(intent, toastMessage, 3000);
+        return resultss;
+    }
+
+    private void HandleClearFilter(ref string filter) => filter = string.IsNullOrWhiteSpace(filter) ? string.Empty : filter;
+
+    private async Task Edit(DeferralPaymentFormVm item = null)
+    {
+        _navigationManager.NavigateTo($"/deferralpaymentedit/{item.Id}?srcPage={role}");
+    }
+    private async Task Delete(DeferralPaymentFormVm item = null)
+    {
+
+    }
+    private async Task View(DeferralPaymentFormVm item = null)
+    {
+        var dialog = await _dialogService.ShowPanelAsync<DeferralPaymentViewComponent>(item, new DialogParameters()
+                    {
+                        Height = "240px",
+                        Width = "720px",
+                        Title = item.Id > 0 ? "Wniosoek o Odroczoną płatność" : "Create new PartVm",
+                        PreventDismissOnOverlayClick = false,
+                        PreventScroll = true,
+                    });
+    }
+    private async Task DownloadCsv()
+    {
+        var selectedItems = @Utils.ApplyFilters(items, filterColumns);
+        IQueryable<DeferralPaymentExportModel> exportModels = selectedItems.ProjectTo<DeferralPaymentFormVm, DeferralPaymentExportModel>(_mapper);
+        
+        var csvContent = Utils.GenerateCsvPL(exportModels);
+        var base64csv = Convert.ToBase64String(csvContent);
+
+        string date = DateTime.Now.ToString("yyyyMMdd");
+        string filename = $"{date}_lista.csv";      
+
+        // Invoke the JavaScript method to download the CSV
+        await JS.InvokeVoidAsync("downloadFilePL", filename, base64csv);
+    }
+
+}

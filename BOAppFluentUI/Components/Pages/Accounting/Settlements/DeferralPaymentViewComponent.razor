@@ -1,0 +1,53 @@
+﻿@using Application.Forms.Accounting
+
+
+@implements IDialogContentComponent<DeferralPaymentFormVm>
+
+<FluentDialogBody>
+    <h3> Informacja o wniosku: @Content.Number</h3>
+    <p><b>Kontrahent: </b></p>
+    <table>
+        <tr>
+            <th>Status</th>
+            <td>@Content.Status</td>
+        </tr>
+        <tr>
+            <th>Numer wniosku</th>
+            <td>@Content.Number</td>
+        </tr>
+        <tr>
+            <th>Numer AS kontrahenta</th>
+            <td>@Content.KontrahentId</td>
+        </tr>
+        <tr>
+            <th>Nazwa kontrahenta</th>
+            <td>@Content.KontrahentName</td>
+        </tr>
+        <tr>
+            <th>Uzasadnienie</th>
+            <td>@Content.Note</td>
+        </tr>
+        <tr>
+            <th>Pracownik</th>
+            <td>@Content.EmployeeName</td>
+        </tr>
+        <tr>
+            <th>Zgłoszone</th>
+            <td>@Content.Requested</td>
+        </tr>
+        <tr>
+            <th>Aprobata 1</th>
+            <td>@Content.LVL1_EmployeeName</td>
+        </tr>
+        <tr>
+            <th>Aprobata 2</th>
+            <td>@Content.LVL2_EmployeeName</td>
+        </tr>
+    </table>
+
+</FluentDialogBody>
+
+@code {
+    [Parameter]
+    public DeferralPaymentFormVm Content { get; set; } = default!;
+}

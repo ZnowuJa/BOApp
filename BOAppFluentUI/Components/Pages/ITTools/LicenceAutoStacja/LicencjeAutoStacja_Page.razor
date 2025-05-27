@@ -1,0 +1,35 @@
+@page "/LicencjeAutoStacja"
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize(Policy = "Technician")]
+
+<h3>Licencje AutoStacja</h3>
+<FluentTabs @bind-ActiveTabId="@activeid" 
+            OnTabChange="HandleOnTabChange"
+            Size="TabSize.Medium">
+    <FluentTab Label="Nowa licencja" Icon="@(new Icons.Regular.Size24.AddCircle())" Id="tab-1">
+        <LicenceAdd_Component/>
+    </FluentTab>
+    <FluentTab Label="Przełączanie licencji" Icon="@(new Icons.Regular.Size24.ArrowBetweenDown())" Id="tab-2">
+        <MultiLicence_Component/>
+    </FluentTab>
+    <FluentTab Label="Sprawdzanie punktów" Icon="@(new Icons.Regular.Size24.AppsListDetail())" Id="tab-3">
+        <CheckLicence_Component/>
+    </FluentTab>
+    <FluentTab Label="Przypisanie komputera" Icon="@(new Icons.Regular.Size24.BriefcaseSearch())" Id="tab-4">
+        <SetComputer_Component/>
+    </FluentTab>
+    <FluentTab Label="Sprawdzanie licencji" Icon="@(new Icons.Regular.Size24.DeveloperBoardSearch())" Id="tab-5">
+        <CheckAssigment_Component/>
+    </FluentTab>
+</FluentTabs>
+
+@code {
+    string? activeid = "tab-1";
+    FluentTab? changedto;
+
+    private void HandleOnTabChange(FluentTab tab)
+    {
+        changedto = tab;
+    }
+}

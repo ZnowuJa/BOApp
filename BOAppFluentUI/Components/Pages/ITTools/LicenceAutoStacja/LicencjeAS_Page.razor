@@ -1,0 +1,47 @@
+﻿@page "/licencje"
+@using Application.CQRS.ITToolsCQRS.LicenceAutoStacja.Queries
+@using Microsoft.AspNetCore.Authorization;
+@using Application.ViewModels.AutoStacja;
+
+@attribute [Authorize(Policy = "Technician")]
+
+@inject IMediator _mediator
+@inject IDialogService _dialogService
+@inject IToastService _toastService
+
+
+<h3>LicencjeAS_Page</h3>
+
+@if (licencje == null)
+{
+    <FluentProgressRing>Loading...</FluentProgressRing>
+}
+else
+{
+    <FluentDataGrid Items="@licencje" TGridItem="MysystemPunktVm" GridTemplateColumns="200px 200px 200px 200px 200px">
+        <PropertyColumn Property="@(c => c.Nazwa)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.PunktEmail)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.PunktTelefon)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.JednostkaOrgId)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.MysystemPunktId)" Sortable="true" Align="Align.Start" Tooltip="true" />
+
+        <TemplateColumn Title="Actions" Align="Align.End">
+        </TemplateColumn>
+    </FluentDataGrid>
+
+}
+
+@code {
+    private IQueryable<MysystemPunktVm> licencje;
+    private bool deleteConfirm = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Load();
+    }
+
+    private async Task Load()
+    {
+        licencje = await _mediator.Send(new GetAllLicencjeASQuery());
+    }
+}

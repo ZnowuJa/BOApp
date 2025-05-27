@@ -1,0 +1,212 @@
+﻿@*Organisation Edit Component*@
+
+@using Application.CQRS.General.Employees2Select.Queries
+@using Application.CQRS.General.Organisations.Commands
+@using Application.CQRS.General.Organisations.Queries
+@using Application.CQRS.ITWarehouseCQRS.Companies.Queries
+@using Application.CQRS.ITWarehouseCQRS.Employees.Queries
+@using Application.ITWarehouseCQRS.Departments.Queries
+@using Application.ViewModels.General
+@using Microsoft.AspNetCore.Components.Forms
+@using Application.Interfaces
+@using System.Security.Claims
+@using MediatR
+
+@inject IMediator _mediator
+@inject ILogger<OrganisationEditComponent> _logger
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager Navigation
+@implements IDialogContentComponent<OrganisationVm>
+
+<FluentDialogHeader ShowDismiss="true">
+    <FluentStack VerticalAlignment="VerticalAlignment.Center">
+        <FluentIcon Value="@(new Icons.Regular.Size24.WindowApps())" />
+        <FluentLabel Typo="Typography.PaneHeader">
+            @Dialog.Instance.Parameters.Title
+        </FluentLabel>
+    </FluentStack>
+</FluentDialogHeader>
+
+<FluentDialogFooter>
+    <FluentButton Appearance="Appearance.Accent" OnClick="@SaveAsync">Save</FluentButton>
+    <FluentButton Appearance="Appearance.Neutral" OnClick="@CancelAsync">Cancel</FluentButton>
+</FluentDialogFooter>
+
+<FluentDialogBody  Style="overflow-y: auto; overflow-x: hidden;">
+    <EditForm EditContext="_editContext">
+        <FluentValidationValidator @ref="_fluentValidator" />
+
+        @if (!isLoading)
+        {
+            <FluentGrid>
+                <FluentGridItem xxl="3" xl="3">
+                    <FluentCombobox TOption="string" Label="Dealer" Items="@orgs" Id="OrgId" Width="150px" Height="250px" @bind-Value="@Content.Name" />
+                    <FluentValidationMessage For="@(() => Content.Name)"/>
+                </FluentGridItem>
+
+                <FluentGridItem xxl="3" xl="3">
+                    <FluentCombobox TOption="string" Label="Marka" Items="@makes" Id="MakesId" Width="150px" Height="250px" @bind-Value="@Content.Make" />
+                    <FluentValidationMessage For="@(() => Content.Make)" />
+                </FluentGridItem>
+
+                <FluentGridItem xxl="3" xl="3">
+                    <FluentCombobox TOption="string" Label="SAP Number" Items="@saps" Id="SapsId" Width="150px" Height="250px" @bind-Value="@Content.SapNumber" />
+                    <FluentValidationMessage For="@(() => Content.SapNumber)" />
+                </FluentGridItem>
+
+                <FluentGridItem xxl="3" xl="3">
+                    <FluentTextArea Id="Desc" @bind-Value="@Content.Description" Placeholder="Enter description..." Label="Opis:"  />
+                    <FluentValidationMessage For="@(() => Content.Description)" />
+                        <FluentTextArea Id="DisplId" @bind-Value="@Content.DisplayName" Placeholder="wprowadź..." Label="Nazwa wyświetlana:"  />
+                    <FluentValidationMessage For="@(() => Content.Description)" />
+                </FluentGridItem>
+            </FluentGrid>
+
+            <p></p>
+            <div style="overflow-y: auto; overflow-x: hidden;">
+            <FluentDivider Style="width: 100%;" Orientation=Orientation.Horizontal Role="DividerRole.Separator"></FluentDivider>
+            <FluentTabs Orientation="Orientation.Horizontal" ActiveTabId="tab-v1">
+                <FluentTab Label =" Sales Manager" Id="tab-v1">
+                    <OrganisationRoleListComponent Roles="@Content.Role_SalesManager" Employees="@empsList" Title="Sales Manager" />
+                </FluentTab>
+                <FluentTab Label =" Service Manager" Id="tab-v2">
+                    <OrganisationRoleListComponent Roles="@Content.Role_ServiceManager" Employees="@empsList" Title="Service Manager" />
+                </FluentTab>
+                <FluentTab Label =" Dealer Director" Id="tab-v3">
+                    <OrganisationRoleListComponent Roles="@Content.Role_DealerDirector" Employees="@empsList" Title="Dealer Director" />
+                </FluentTab>
+                <FluentTab Label=" Region Director" Id="tab-v4">
+                    <OrganisationRoleListComponent Roles="@Content.Role_RegionDirector" Employees="@empsList" Title="Region Director" />
+                </FluentTab>
+                <FluentTab Label=" Settlements Department" Id="tab-v5">
+                    <OrganisationRoleListComponent Roles="@Content.Role_SettlementsTeam" Employees="@empsList" Title="Settlements Department" />
+                </FluentTab>
+                <FluentTab Label=" Cashiers" Id="tab-v6">
+                    <OrganisationRoleListComponent Roles="@Content.Role_Cashiers" Employees="@empsList" Title="Cashiers" />
+                </FluentTab>
+            </FluentTabs>
+            <p></p>
+            <FluentDivider Style="width: 100%;" Orientation=Orientation.Horizontal Role="DividerRole.Separator"></FluentDivider>
+            <FluentTabs Orientation="Orientation.Horizontal" ActiveTabId="tab-v2">
+                <FluentTab Label="Accountants" Id="tab-v7">
+                    <OrganisationRoleListComponent Roles="@Content.Role_Accountants" Employees="@empsList" Title="Accountants" />
+                </FluentTab>
+                <FluentTab Label="Accountants TeamLeader" Id="tab-v8">
+                    <OrganisationRoleListComponent Roles="@Content.Role_AccountantsTeamLeader" Employees="@empsList" Title="Accountants TeamLeader" />
+                </FluentTab>
+                <FluentTab Label="HR Specialists" Id="tab-v9">
+                    <OrganisationRoleListComponent Roles="@Content.Role_HRSpecialists" Employees="@empsList" Title="HR Specialists" />
+                </FluentTab>
+                <FluentTab Label="Investments Department" Id="tab-v10">
+                    <OrganisationRoleListComponent Roles="@Content.Role_InvestmentsDept" Employees="@empsList" Title="Investments Department" />
+                </FluentTab>
+                <FluentTab Label="Sourcing Department" Id="tab-v11">
+                    <OrganisationRoleListComponent Roles="@Content.Role_SourcingDept" Employees="@empsList" Title="Sourcing Department" />
+                </FluentTab>
+            </FluentTabs>
+                <p></p>
+            <FluentDivider Style="width: 100%;" Orientation=Orientation.Horizontal Role="DividerRole.Separator"></FluentDivider>
+            <FluentTabs Orientation="Orientation.Horizontal" ActiveTabId="tab-v2">
+                <FluentTab Label="Compliance Assistants" Id="tab-v12">
+                    <OrganisationRoleListComponent Roles="@Content.Role_ComplianceAssistant" Employees="@empsList" Title="Compliance Assistants" />
+                </FluentTab>
+                <FluentTab Label="Compliance Managers" Id="tab-v13">
+                    <OrganisationRoleListComponent Roles="@Content.Role_ComplianceManager" Employees="@empsList" Title="Compliance Managers" />
+                </FluentTab>
+                <FluentTab Label="Disposition" Id="tab-v14">
+                    <OrganisationRoleListComponent Roles="@Content.Role_Disposition" Employees="@empsList"  />
+                </FluentTab>
+                 <FluentTab Label="Disposition Manager" Id="tab-v15">
+                    <OrganisationRoleListComponent Roles="@Content.Role_DispositionManager" Employees="@empsList"/>
+                </FluentTab>
+                <FluentTab Label="IT Assets Manager" Id="tab-v16">
+                    <OrganisationRoleListComponent Roles="@Content.Role_ITAssetManager" Employees="@empsList"  />
+                </FluentTab>
+                 <FluentTab Label="IT Manager" Id="tab-v17">
+                    <OrganisationRoleListComponent Roles="@Content.Role_ITManager" Employees="@empsList"/>
+                </FluentTab>
+
+                @*
+                <FluentTab Label="Investments Department" Id="tab-v10">
+                    <OrganisationRoleListComponent Roles="@Content.Role_InvestmentsDept" Employees="@empsList" Title="Investments Department" />
+                </FluentTab>
+                <FluentTab Label="Sourcing Department" Id="tab-v11">
+                    <OrganisationRoleListComponent Roles="@Content.Role_SourcingDept" Employees="@empsList" Title="Sourcing Department" />
+                </FluentTab> *@
+            </FluentTabs>
+            </div>
+
+        }
+        else
+        {
+            <p>Loading...</p>
+        }
+    </EditForm>
+    @if(message != string.Empty)
+    {
+        <div class="validation-error"><p style="color:red;">@message</p></div>
+    }
+</FluentDialogBody>
+
+@code {
+    [Parameter]
+    public OrganisationVm Content { get; set; }
+
+    [CascadingParameter]
+    public FluentDialog Dialog { get; set; } = default!;
+
+    private IQueryable<EmployeeVm> empsList { get; set; }
+    private bool isLoading = true;
+    private EditContext _editContext;
+    private FluentValidationValidator? _fluentValidator;
+
+    private string message = string.Empty;
+
+    private IQueryable<string> orgs { get; set; }
+    private IQueryable<string> saps { get; set; }
+    private IQueryable<string> makes = new List<string>
+    {
+        "Audi", "Skoda", "Volkswagen","Porsche", "Bentley", "Lamborghini", "Pozostałe"
+    }.AsQueryable();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _editContext = new EditContext(Content);
+
+        Content.InitializeRoles();
+
+        empsList = await _mediator.Send(new GetAllEmployeesQuery());
+        var dealIq = await _mediator.Send(new GetAllCompaniesByTypeIdQuery(4));
+        var deptsIq = await _mediator.Send(new GetAllDepartmentsQuery());
+
+        orgs = dealIq.Select(dealer => dealer.FullName).AsQueryable();
+        saps = deptsIq.Select(dept => dept.SapNumber).Distinct().Order().AsQueryable();
+
+        isLoading = false;
+    }
+
+    private async Task SaveAsync()
+    {
+        if (_editContext.Validate())
+        {
+
+        }
+        else
+        {
+            return;
+        }
+
+        if (string.IsNullOrEmpty(Content.Name) || string.IsNullOrEmpty(Content.Make) || string.IsNullOrEmpty(Content.SapNumber) || string.IsNullOrEmpty(Content.Description))
+        {
+            message = "Pamiętaj, aby uzupełnić wszystkie pola!";
+        }
+
+        await Dialog.CloseAsync(Content);
+    }
+
+    private async Task CancelAsync()
+    {
+        await Dialog.CancelAsync();
+    }
+
+}

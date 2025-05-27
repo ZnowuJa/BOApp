@@ -1,0 +1,728 @@
+﻿@page "/assets"
+@using Application.CQRS.General.Organisations.Queries
+@using Application.CQRS.ITWarehouseCQRS.Assets.Queries
+@using Application.CQRS.ITWarehouseCQRS.Employees.Queries
+@using Application.CQRS.ITWarehouseCQRS.Sales.Commands
+@using Application.CQRS.ITWarehouseCQRS.Scrappings.Queries
+@using Application.CQRS.ITWarehouseCQRS.Warehouses.Queries
+@using Application.CQRS.ITWarehouseCQRS.Sales.Queries
+@using Application.DTOs
+@using Application.ExportModels
+@using Application.Forms.IT
+@using Application.ViewModels.General
+@using Application.Interfaces
+@using Application.CQRS.ITWarehouseCQRS.AssetHistories.Commands
+@using Application.CQRS.ITWarehouseCQRS.Assets.Commands
+@using Application.ITWarehouseCQRS.Departments.Queries
+@using BOAppFluentUI.Components.Pages
+@using BOAppFluentUI.Data.DialogParameters
+@using AutoMapper
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using System.Linq.Expressions
+@using Microsoft.FluentUI.AspNetCore.Components.Extensions
+
+@attribute [Authorize(Policy = "Technician")]
+@attribute [Authorize(Policy = "Accountant")]
+
+@inject IMediator _mediator
+@inject ILogger<Assets_Page> _logger
+@inject IDialogService _dialogService
+@inject IToastService _toastService
+@inject IJSRuntime JS
+@inject IMapper _mapper
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IConfiguration _configuration
+
+<style>
+    .filter-applied {
+        background-color: #ffffcc; /* light yellow */
+    }
+
+    .filter-notapplied {
+        background-color: #ffffcc; /* light yellow */
+    }
+</style>
+
+<h3>Asset_Page</h3>
+
+@if (products == null)
+{
+    <FluentProgressRing>Loading...</FluentProgressRing>
+}
+else
+{
+    <div>
+        <FluentStack Orientation="Orientation.Horizontal">
+            <FluentLabel Typo="Typography.Subject"> Show columns:  </FluentLabel>
+            @foreach (var column in filterColumns)
+            {
+                if (column.FirstRow)
+                {
+                    <FluentCheckbox @bind-Value="column.IsVisible" Label="@column.Label" />
+                }
+                
+            }
+            </FluentStack>
+        <p></p>
+        <FluentStack Orientation="Orientation.Horizontal">
+            @foreach (var column in filterColumns)
+            {
+                if (!column.FirstRow)
+                {
+                <FluentCheckbox @bind-Value="column.IsVisible" Label="@column.Label" />
+                }
+
+            }
+        </FluentStack>
+    </div>
+    @* GridTemplateColumns = "80px repeat(6, 0.75fr) repeat(3, 0.5fr)" *@
+    <FluentDataGrid Items="@filteredProducts" Pagination="@pagination" TGridItem="AssetDTO" Style="width: 100%;" AutoFit="true" ResizableColumns="true">
+       
+        @foreach (var column in filterColumns.Where(c => c.IsVisible))
+        {
+            <PropertyColumn TGridItem="AssetDTO" TProp="string" Property="@(GetPropertyExpression(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label" Filtered="!string.IsNullOrWhiteSpace(column.Filter)" Width = "@column.Width">
+                <ColumnOptions>
+                    <div class="search-box">
+                        <FluentSearch type="search" Autofocus="true" @bind-Value="column.Filter" @oninput="(args) => HandleFilterDebounced(column, args)" Placeholder="@($"{column.Label.ToLower()}...")" />
+                    </div>
+                </ColumnOptions>
+            </PropertyColumn>
+        }
+
+        @* Actions *@
+        <TemplateColumn Title="Actions" Align="Align.End">
+            @{
+                var viewId = $"viewid-{context.Id}";
+                var editId = $"editid-{context.Id}";
+                var deleteId = $"deleteid-{context.Id}";
+                var addId = $"addid-{context.Id}";
+            }
+            <FluentButton Id = "@viewId" IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" Disabled="@actionsDisabled" />
+            <FluentTooltip Anchor="@viewId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Left Delay=50>View Asset</FluentTooltip>
+            
+            <FluentButton Id="@editId" IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => EditType(context))" Disabled="@actionsDisabled" />
+            <FluentTooltip Anchor="@editId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Edit Asset</FluentTooltip>
+            
+            <FluentButton Id="@deleteId" IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" Disabled="@actionsDisabled" />
+            <FluentTooltip Anchor="@deleteId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Delete Asset</FluentTooltip>
+            
+            <FluentButton Id="@addId" IconEnd="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddToList(context))" Disabled="@actionsDisabled" />
+            <FluentTooltip Anchor="@addId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50>Add Asset to update</FluentTooltip>
+
+        </TemplateColumn>
+    </FluentDataGrid>
+    <FluentPaginator State="@pagination" />
+    
+    <div class="center-vertically">
+        
+        <FluentButton OnClick="DownloadCsv" Appearance="Appearance.Accent"  >Pobierz CSV</FluentButton>
+        <FluentLabel class = "margin-vert-20"> <b>Filters: </b> </FluentLabel>
+        <FluentCheckbox Id="AllId" @bind-Value="@isAll" @ValueChanged="@ToggleAll" Label="All"/>
+        <FluentCheckbox Id="SoldId" @bind-Value="@isSold" @ValueChanged="@ToggleSold" Label="Sold"/>
+        <FluentCheckbox Id="ScrapId" @bind-Value="@isScrapped" @ValueChanged="@ToggleScrapped" Label="Scrapped"/>
+    </div> 
+        
+    
+    if (actionsDisabled)
+    {
+        <FluentProgressRing>Loading...</FluentProgressRing>
+    }
+    
+   @*  <FluentButton IconStart="@(new Icons.Regular.Size24.Add())" OnClick="@(() => AddPanel())" /> *@
+    @if (showUpdate)
+    {
+        <FluentDataGrid Items="@assetsToChange" TGridItem="AssetDTO" GridTemplateColumns="80px repeat(4, 1fr)" ResizableColumns=true>
+
+            <PropertyColumn Property="@(c => c.Id)" Sortable="true" Align="Align.Start" Tooltip="true" Title="Id"> </PropertyColumn>
+            <PropertyColumn Property="@(c => c.AssetTagNumber)" Sortable="true" Align="Align.Start" Tooltip="true" Title="Asset Number"> </PropertyColumn>
+            <PropertyColumn Property="@(c => c.AssigneeVmName)" Sortable="true" Align="Align.Start" Tooltip="true" Title="Assignee Name"> </PropertyColumn>
+            @* Actions *@
+            <TemplateColumn Title="Actions" Align="Align.End">
+                <FluentButton IconEnd="@(new Icons.Regular.Size20.Remote())" OnClick="@(() => RemoveFromList(context))" />
+
+            </TemplateColumn>
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.Remote())" OnClick="@(() => OpenSaleComponent(assetsToChange.ToList()))" > Sprzedaz </FluentButton>
+        </FluentDataGrid>
+
+        <div>
+            
+            <FluentStack Orientation="Orientation.Horizontal">
+                <FluentLabel Typo="Typography.Subject"> Select Assignee:  </FluentLabel>
+                <FluentAutocomplete TOption="IAssigneeVm"
+                                    AutoComplete="on"
+
+                                    OnOptionsSearch="OnAssigneeSearch"
+                                    Placeholder="Select assignee"
+                                    MaximumSelectedOptions="1"
+                                    OptionText="@(p => p.LongName)"
+                                    @bind-SelectedOptions="@SelectedAssignee"
+                                    Height="550px"
+                                    Width="200px" />
+                <FluentButton Appearance="Appearance.Accent" OnClick="@UpdateAssets"
+                              Disabled="@(!SelectedAssignee.Any())">
+                    Update
+                </FluentButton>
+            </FluentStack>
+
+        </div>
+        if (errorMessageUpdate.Any())
+        {
+            <h2>Error</h2>
+            @errorMessageUpdate
+        }
+        <div>
+            
+
+                
+            
+        </div>
+
+    }
+}
+
+
+
+@code {
+    #region Properties
+    private IQueryable<AssetDTO> products;
+    private IQueryable<AssetDTO> filteredProducts => products.Where(x =>
+        filterColumns.All(column => string.IsNullOrWhiteSpace(column.Filter) ||
+                                    column.Property(x).Contains(column.Filter, StringComparison.CurrentCultureIgnoreCase)) &&
+        ((isAll && x.StateVmId != 5 && x.StateVmId !=7) ||
+         (isSold && x.StateVmId == 7) || 
+          (isScrapped && x.StateVmId == 5))
+    );
+
+
+    // IQueryable<AssetDTO> filteredProducts => products.Where(x =>
+    //     filterColumns.All(column => string.IsNullOrWhiteSpace(column.Filter) ||
+    //                                 column.Property(x).Contains(column.Filter, StringComparison.CurrentCultureIgnoreCase)));
+            // && ((!isSold || x.StateVmId != 7) && (!isScrapped || x.StateVmId != 5)));
+    
+    private bool isSold = true; 
+    private bool isScrapped = true;
+    private bool isAll = true;
+    
+    readonly PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
+    PaginationState paginationAssets = new PaginationState { ItemsPerPage = 5 };
+
+    private DebounceDispatcher debounceDispatcher = new DebounceDispatcher();
+
+    private ClaimsPrincipal? user { get; set; }
+    private string username { get; set; }
+
+    private IQueryable<AssetDTO> assetsToChange { get; set; }
+    private List<AssetDTO> assetsToChangeList = new List<AssetDTO>();
+    private IQueryable<EmployeeVm> itemEmployeesList { get; set; }
+    private IQueryable<DepartmentVm> itemDepartmentsList { get; set; }
+    private IQueryable<WarehouseVm> itemWarehousesList { get; set; }
+    private IQueryable<StateVm> itemStatesList { get; set; }
+    private IQueryable<IAssigneeVm> itemAssigneesList { get; set; }
+    private IEnumerable<IAssigneeVm> SelectedAssignee = Array.Empty<IAssigneeVm>();
+    private string errorMessageUpdate = string.Empty;
+    private bool showUpdate = false;
+    private bool deleteConfirm = false;
+    private bool actionsDisabled = true;
+
+    private List<FilterColumn<AssetDTO>> filterColumns = new List<FilterColumn<AssetDTO>>
+    {
+        new FilterColumn<AssetDTO> { FirstRow = true, Label = "ID", Property = c => c.Id.ToString(), IsVisible = false },
+        new FilterColumn<AssetDTO> { FirstRow = true, Label = "Asset Number", Property = c => c.AssetTagNumber, IsVisible = true, Width = "1FR" },
+        new FilterColumn<AssetDTO> { FirstRow = true, Label = "Serial Number", Property = c => c.SerialNumber, IsVisible = true , Width = "1FR" },
+        new FilterColumn<AssetDTO> { FirstRow = true, Label = "Part", Property = c => c.PartVmName, IsVisible = true , Width = "1FR" },
+        new FilterColumn<AssetDTO> { FirstRow = true, Label = "Assignee", Property = c => c.AssigneeVmName, IsVisible = true , Width = "1FR" },
+         new FilterColumn<AssetDTO> { FirstRow = true, Label = "InvNr", Property = c => c.invoiceVm.Number, IsVisible = false , Width = "1FR" },
+        // Add other columns as needed
+        new FilterColumn<AssetDTO> { FirstRow = false, Label = "State", Property = c => c.StateVmName, IsVisible = true , Width = "1FR" },
+        new FilterColumn<AssetDTO> { FirstRow = false, Label = "Warehouse", Property = c => c.WarehouseVmNumber, IsVisible = false , Width = "1FR" },
+        new FilterColumn<AssetDTO> { FirstRow = false, Label = "Invoice", Property = c => c.InvoiceVmNumber, IsVisible = false , Width = "1FR" },
+        new FilterColumn<AssetDTO> { FirstRow = false, Label = "Price", Property = c => c.Price.ToString(), IsVisible = false , Width = "1FR" },
+        new FilterColumn<AssetDTO> { FirstRow = false, Label = "Purchase Date", Property = c => c.PurchaseDate.ToDateOnly().ToString(), IsVisible = false , Width = "1FR" },
+        new FilterColumn<AssetDTO> { FirstRow = false, Label = "Warranty", Property = c => c.WarrantyUntil.ToDateOnly().ToString(), IsVisible = false , Width = "1FR" },
+        new FilterColumn<AssetDTO> { FirstRow = false, Label = "EndOfSupport", Property = c => c.EndOfSupport.ToDateOnly().ToString(), IsVisible = false , Width = "1FR" },
+        new FilterColumn<AssetDTO> { FirstRow = false, Label = "Leasing", Property = c => c.Leasing.ToString(), IsVisible = false },
+        new FilterColumn<AssetDTO> { FirstRow = false, Label = "EndOfContract", Property = c => c.EndOfContract.ToDateOnly().ToString(), IsVisible = false , Width = "1FR" },
+        new FilterColumn<AssetDTO> { FirstRow = true, Label = "IMEI", Property = c => c.Imei?.ToString() ?? string.Empty, IsVisible = false , Width = "1FR" },
+        new FilterColumn<AssetDTO> { FirstRow = true, Label = "MAC Address", Property = c => c.Mac?.ToString() ?? string.Empty, IsVisible = false , Width = "1FR" }
+    };
+
+    private FormUserContext _userContext = new FormUserContext("Technician", "Administrator");
+    private string env { get; set; } 
+    #endregion Properties
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Utils.GetUserName(AuthenticationStateProvider, _userContext, _mediator);
+        await GetUserName();
+        env = _configuration["Environment"];
+        await Load();
+    }
+
+    private async Task Load()
+    {
+        _logger.LogInformation("AssetsPage | Load() | Start");
+        products = await _mediator.Send(new GetAllAssetsDTOQuery());
+        itemEmployeesList = await _mediator.Send(new GetAllEmployeesQuery());
+        itemDepartmentsList = await _mediator.Send(new GetAllDepartmentsQuery());
+        itemStatesList = await _mediator.Send(new GetAllStatesQuery());
+        itemWarehousesList = await _mediator.Send(new GetAllWarehousesQuery());
+
+        var assignees = new List<IAssigneeVm>();
+        assignees.AddRange(itemEmployeesList.Select(employee => (IAssigneeVm)new EmployeeVm { Id = employee.EnovaEmpId, LongName = employee.LongName, typeName = "EmployeeVm" }));
+        assignees.AddRange(itemDepartmentsList.Select(department => (IAssigneeVm)new DepartmentVm { Id = department.Id, LongName = department.LongName, typeName = "DepartmentVm" }));
+        itemAssigneesList = assignees.AsQueryable();
+
+        assetsToChangeList = new List<AssetDTO>();
+        assetsToChange = Enumerable.Empty<AssetDTO>().AsQueryable();
+        SelectedAssignee = Array.Empty<IAssigneeVm>();
+        showUpdate = false;
+        actionsDisabled = false;
+        isScrapped = false;
+        isSold = false;
+        StateHasChanged();
+    }
+
+    // private void HandleClearFilter(ref string filter) => filter = string.IsNullOrWhiteSpace(filter) ? string.Empty : filter;
+
+    private void HandleFilterDebounced(FilterColumn<AssetDTO> column, ChangeEventArgs args)
+    {
+        debounceDispatcher.Debounce(500, _ =>
+        {
+            column.Filter = args.Value.ToString();
+            InvokeAsync(StateHasChanged);
+        });
+    }
+
+    private async Task EditType(AssetDTO item)
+    {
+        ToastIntent intent;
+        string message = string.Empty;
+        int i = 0;
+
+
+        _logger.LogInformation("AssetsPage | EditType(item) | Opening dialog...");
+        var dialog = await _dialogService.ShowDialogAsync<Asset_Edit_Component>(item, new DialogParameters()
+            {
+                Height = "950px",
+                Width = "720px",
+                Title = item.Id > 0 ? "Update Asset..." : "Create new Asset...",
+                PreventDismissOnOverlayClick = false,
+                PreventScroll = true,
+
+            });
+        _logger.LogInformation("AssetsPage | EditType(item) | Dialog Closed...");
+        actionsDisabled = true;
+        var result = await dialog.Result;
+
+        if (!result.Cancelled && result.Data != null)
+        {
+            var final = (AssetDTO)result.Data;
+            DateTime date = final.PurchaseDate ?? DateTime.Now;
+            if (final.Id > 0)
+            {
+                _logger.LogInformation("AssetsPage | EditType(item) | Update Asset start...");
+                i = await _mediator.Send(new UpdateAssetCommand(final.Id, final.PartVmId, final.InvoiceVmId, final.InvoiceItemID, final.AssetTagNumber, final.StateVmId, final.SerialNumber, final.LastSeen, final.AssigneeVmId, final.AssigneeVmType, final.AssigneeVmName, final.WarehouseVmId, final.Price, final.CurrencyVmId, date, final.Leasing, final.EndOfContract, final.WarrantyUntil, final.Imei, final.Mac, final.EndOfSupport, final.SaleFormId, final.ScrappingFormId, final.ScrappingReason, username));
+                _logger.LogInformation("AssetsPage | EditType(item) | Update Asset finished...");
+                intent = ToastIntent.Success;
+                message = "Asset has been updated!";
+                await Load();
+            }
+            else if (final.Id == 0)
+            {
+                _logger.LogInformation("AssetsPage | EditType(item) | Create Asset start...");
+                i = await _mediator.Send(new CreateAssetCommand(final.PartVmId, final.InvoiceVmId, final.InvoiceItemID, final.AssetTagNumber, final.StateVmId, final.SerialNumber, final.LastSeen, final.AssigneeVmId, final.AssigneeVmType, final.AssigneeVmName, final.WarehouseVmId, final.Price, final.CurrencyVmId, date, final.Leasing, final.EndOfContract,final.WarrantyUntil, final.Imei, final.Mac, final.EndOfSupport, username));
+                _logger.LogInformation("AssetsPage | EditType(item) | Create Asset finished...");
+                await Load();
+
+                intent = ToastIntent.Success;
+                message = "Asset has been created!";
+
+            }
+            else
+            {
+                intent = ToastIntent.Warning;
+                message = "Something went realy wrong!";
+                actionsDisabled = false;
+            }
+        }
+        else if (result.Cancelled)
+        {
+            intent = ToastIntent.Info;
+            message = "Operation Cancelled...";
+            actionsDisabled = false;
+        }
+        else
+        {
+            intent = ToastIntent.Error;
+            message = "Something went wrong!";
+            actionsDisabled = false;
+        }
+
+        _toastService.ShowToast(intent, message, 3000);
+    }
+
+    private async Task AddPanel()
+    {
+        var item = new AssetDTO();
+        await EditType(item);
+    }
+
+    private async Task View(AssetDTO item)
+    {
+        await _dialogService.ShowInfoAsync(message: $"Asset id: {item.Id}, name: {item.AssetTagNumber}");
+    }
+
+    private async Task Delete(AssetDTO item)
+    {
+
+        var dialog = await _dialogService.ShowConfirmationAsync("You are about to delete Asset: " + item.AssetTagNumber + "\n Are you sure?", "Yes", "No", "Confirm delete operation");
+        var result = await dialog.Result;
+        deleteConfirm = result.Cancelled;
+
+        ToastIntent intent;
+        string message = string.Empty;
+
+        if (deleteConfirm)
+        {
+            intent = ToastIntent.Error;
+            message = "Asset has not been deleted" ;
+
+        } 
+        else 
+        {
+            var i = await _mediator.Send(new DeleteAssetCommand(item.Id));
+            intent = ToastIntent.Success;
+            message = "Asset has been deleted" ;
+
+        }
+
+        _toastService.ShowToast(intent, message, 3000);
+        await Load();
+    }
+
+    private void AddToList(AssetDTO item)
+    {
+
+        if (!assetsToChangeList.Any(a => a.AssetTagNumber == item.AssetTagNumber))
+        {
+            assetsToChangeList.Add(item);
+        }
+
+        showUpdate = true;
+        assetsToChange = assetsToChangeList.AsQueryable();
+
+    }
+
+    private void OnAssigneeSearch(OptionsSearchEventArgs<IAssigneeVm> e)
+    {
+        e.Items = itemAssigneesList.Where(a => a.LongName.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private async void UpdateAssets()
+    {
+        var selectedAssignee = SelectedAssignee.FirstOrDefault();
+        Console.WriteLine(selectedAssignee.LongName);
+
+        Console.WriteLine("ACTION WORKING!!!!" + SelectedAssignee.Count());
+        try
+        {
+            if (selectedAssignee != null)
+            {
+                var newEmpl = new EmployeeVm();
+                var newDept = new DepartmentVm();
+                var wh = new WarehouseVm();
+                // var newAssignee = new AssigneeVm();
+
+                // Content.AssigneeVmId = selectedAssignee.Id;
+                // Content.AssigneeVmName = selectedAssignee.LongName;
+                // Content.AssigneeVmType = selectedAssignee.typeName;
+
+                if (selectedAssignee.typeName == "EmployeeVm")
+                {
+                    newEmpl = itemEmployeesList.Where(p => p.EnovaEmpId == selectedAssignee.Id).FirstOrDefault();
+                    wh = itemWarehousesList.FirstOrDefault(p => p.Number.ToString() == newEmpl.SapNumber);
+                }
+                else if (selectedAssignee.typeName == "DepartmentVm")
+                {
+                    newDept = itemDepartmentsList.FirstOrDefault(p => p.Id == selectedAssignee.Id);
+                    wh = itemWarehousesList.FirstOrDefault(p => p.Number.ToString() == newDept.SapNumber);
+                }
+                foreach(AssetDTO asst in assetsToChangeList)
+                {
+                    asst.AssigneeVmId = selectedAssignee.Id;
+                    asst.AssigneeVmName = selectedAssignee.LongName;
+                    asst.AssigneeVmType = selectedAssignee.typeName;
+
+                    asst.warehouseVm = wh;
+                    asst.WarehouseVmId = wh.Id;
+                    asst.WarehouseVmName = wh.Name;
+                    asst.WarehouseVmNumber = wh.Number.ToString();
+
+                    if (asst.StateVmId == 1)
+                    {
+                        var stateProd = itemStatesList.Where(p => p.Id == 2).FirstOrDefault();
+                        asst.stateVm = stateProd;
+                        asst.StateVmId = stateProd.Id;
+                        asst.StateVmName = stateProd.Name;
+                    }
+
+                    var i = await _mediator.Send(new UpdateAssetCommand(asst.Id, asst.PartVmId, asst.InvoiceVmId, asst.InvoiceItemID, asst.AssetTagNumber, asst.StateVmId, asst.SerialNumber, asst.LastSeen, asst.AssigneeVmId, asst.AssigneeVmType, asst.AssigneeVmName, asst.WarehouseVmId, asst.Price, asst.CurrencyVmId, asst.PurchaseDate, asst.Leasing, asst.EndOfContract, asst.WarrantyUntil, asst.Imei, asst.Mac, asst.EndOfSupport, asst.ScrappingFormId, asst.SaleFormId, asst.ScrappingReason, username));
+
+                    Console.WriteLine();
+
+                }
+                await Load();
+                errorMessageUpdate = string.Empty;
+
+
+                Console.WriteLine("dupa");
+
+            }
+            else
+            {
+                throw new Exception("No assignee selected");
+            }
+
+        }
+        catch (Exception ex)
+        {
+            errorMessageUpdate = ex.Message.ToString();
+            return;
+        }
+
+    }
+
+    private async Task OpenSaleComponent(List<AssetDTO> assetsToSale)
+    {
+        // var ogn = _userContext.Employee.SapNumber;
+        var org = await _mediator.Send(new GetOrganisationByEmpSapNumberQuery(_userContext.Employee.SapNumber));
+        var sales = await _mediator.Send(new GetAllITSaleFormsQuery());
+        foreach(var sale in sales)
+        {
+            sale.Assets = new List<AssetDTO>();
+            foreach(var asId in sale.AssetIds)
+            {
+                var asdto = await _mediator.Send(new GetAssetDTObyIdQuery(asId));
+                sale.Assets.Add(asdto);
+            }
+        }
+        // var assetMinimals = AppUtils.ConvertAssetDTO2Minimal(assetsToSale, _mapper);
+        // await _mediator.Send(new GetActiveITSaleFormsQuery());
+        var dataParameter = new ITSalesAssetsDialogParameter
+            {
+                AssetsLists = assetsToSale,
+                Sales = sales,
+                SelectedSaleId = 0,
+                FormUserContext = _userContext,
+                OrganisationVm = org
+            };
+
+        var dialog = await _dialogService.ShowDialogAsync<Asset_Sale_Component>(dataParameter, new DialogParameters
+        {
+                Height = "400px",
+                Width = "600px",
+                Title = "Assing Assets for Sale",
+                PreventDismissOnOverlayClick = false,
+                PreventScroll = true,
+        });
+        var result = await dialog.Result;
+        if (!result.Cancelled)
+        {
+            var updatedData = (dynamic)result.Data;
+            // var updatedAssets = updatedData.AssetsLists as List<AssetDTO>;
+            var selectedSale = updatedData.SelectedSale as ITSaleFormVm;
+            if (selectedSale.Id > 0)
+            {
+                showUpdate = false; 
+                assetsToChangeList.Clear();
+                assetsToChange = assetsToChangeList.AsQueryable();
+                foreach (var ass in assetsToSale)
+                {
+                    DateTime date = ass.PurchaseDate ?? DateTime.Now;
+                    ass.StateVmId = 7;
+                    ass.SaleFormId = selectedSale.Id;
+                    var i = await _mediator.Send(new UpdateAssetCommand(ass.Id, ass.PartVmId, ass.InvoiceVmId, ass.InvoiceItemID, ass.AssetTagNumber, ass.StateVmId, ass.SerialNumber, ass.LastSeen, ass.AssigneeVmId, ass.AssigneeVmType, ass.AssigneeVmName, ass.WarehouseVmId, ass.Price, ass.CurrencyVmId, date, ass.Leasing, ass.EndOfContract, ass.WarrantyUntil, ass.Imei, ass.Mac, ass.EndOfSupport, ass.ScrappingFormId, ass.SaleFormId, ass.ScrappingReason, username));
+                    _logger.LogInformation("AssetsPage | EditType(item) | Update Asset finished...");
+                }
+                await _mediator.Send(new UpdateITSaleFormCommand(selectedSale));
+            } 
+        }
+    }
+
+    private async Task SaveAsync()
+    {
+        var selectedAssignee = SelectedAssignee.FirstOrDefault();
+        Console.WriteLine(selectedAssignee.LongName);
+
+        // try
+        // {
+        //     var selectedAssignee = SelectedAssignee.FirstOrDefault();
+        //     if (selectedAssignee != null)
+        //     {
+        //         var newEmpl = new EmployeeVm();
+        //         var newDept = new DepartmentVm();
+        //         var wh = new WarehouseVm();
+
+        //         Content.AssigneeVmId = selectedAssignee.Id;
+        //         Content.AssigneeVmName = selectedAssignee.LongName;
+        //         Content.AssigneeVmType = selectedAssignee.typeName;
+
+        //         if (Content.AssigneeVmType == "EmployeeVm")
+        //         {
+        //             newEmpl = itemEmployeesList.Where(p => p.EnovaEmpId == Content.AssigneeVmId).FirstOrDefault();
+        //             wh = itemWarehousesList.Where(p => p.Number.ToString() == newEmpl.SapNumber).FirstOrDefault();
+        //         }
+        //         else if (Content.AssigneeVmType == "DepartmentVm")
+        //         {
+        //             newDept = itemDepartmentsList.Where(p => p.Id == Content.AssigneeVmId).FirstOrDefault();
+        //             wh = itemWarehousesList.Where(p => p.Number.ToString() == newDept.SapNumber).FirstOrDefault();
+        //         }
+
+        //         Content.warehouseVm = wh;
+        //         Content.WarehouseVmId = wh.Id;
+        //         Content.WarehouseVmName = wh.Title;
+        //         Content.WarehouseVmNumber = wh.Number.ToString();
+
+        //         if (Content.StateVmId == 1)
+        //         {
+        //             var stateProd = itemStatesList.Where(p => p.Id == 2).FirstOrDefault();
+        //             Content.stateVm = stateProd;
+        //             Content.StateVmId = stateProd.Id;
+        //             Content.StateVmName = stateProd.Title;
+        //         }
+
+
+        //     }
+        //     else
+        //     {
+        //         throw new Exception("No assignee selected");
+        //     }
+
+        // }
+        // catch (Exception ex)
+        // {
+        //     errorMessage = "Please select new Assignee... \n";
+        //     return;
+        // }
+        // Console.WriteLine($"Id :: {Content.Id} | PartVmId :: {Content.PartVmId} | InvoiceId :: {Content.InvoiceVmId} | StateVmId :: {Content.StateVmId} | EmployeeVmId :: {Content.AssigneeVmId} | WarehouseVmId :: {Content.WarehouseVmId} | CurrencyVmId :: {Content.CurrencyVmId}");
+
+        // await Dialog.CloseAsync(Content);
+
+    }
+
+    private void RemoveFromList(AssetDTO item)
+    {
+        var assetToRemove = assetsToChangeList.FirstOrDefault(a => a.Id == item.Id);
+
+        if (assetToRemove != null)
+        {
+            assetsToChangeList.Remove(assetToRemove);
+        }
+
+        // foreach (AssetDTO asst in assetsToChangeList)
+        // {
+        //     if (asst.AssetTagNumber == item.AssetTagNumber)
+        //     {
+        //         assetsToChangeList.RemoveAt(asst.)
+        //         return;
+        //     }
+        //     else
+        //     {
+        //         assetsToChangeList.Add(item);
+        //     }
+        // }
+
+        assetsToChange = assetsToChangeList.AsQueryable();
+        if(assetsToChange.Count() == 0)
+        {
+            showUpdate = false;
+        }
+    }
+
+    private async Task GetUserName()
+    {
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        user = authenticationState.User;
+        var claimType = "name"; // or use ClaimTypes.Title
+        var usernameClaim = user.Claims.FirstOrDefault(c => c.Type == claimType);
+        if (usernameClaim != null)
+        {
+            username = usernameClaim.Value;
+        }
+        else
+        {
+            username = "unknown";
+            Console.WriteLine($"No claim of type {claimType} found.");
+        }
+
+    }
+
+    private Expression<Func<AssetDTO, string>> GetPropertyExpression(Func<AssetDTO, string> propertyFunc)
+    {
+        return x => propertyFunc(x);
+    }
+
+    private async Task DownloadCsv()
+    {
+        var selectedItems = @Utils.ApplyFilters(products, filterColumns);
+
+        IQueryable<AssetExportModel> exportModels = selectedItems.ProjectTo<AssetDTO, AssetExportModel>(_mapper);
+        // Assuming you have an IQueryable variable named 'records'
+        var csvContent = Utils.GenerateCsvPL(exportModels);
+
+        var base64csv = Convert.ToBase64String(csvContent);
+
+        string date = DateTime.Now.ToString("yyyyMMdd");
+        string filename = $"{date}_lista.csv";
+
+        // Invoke the JavaScript method to download the CSV
+        await JS.InvokeVoidAsync("downloadFilePL", filename, base64csv);
+    }
+    
+    private void ToggleAll()
+    {
+        isAll = !isAll;
+        if (isAll)
+        {
+            isSold = true;
+            isScrapped = true;
+        }
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void ToggleSold()
+    {
+        isSold = !isSold;
+        // if (!isSold && !isScrapped) isAll = false;
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void ToggleScrapped()
+    {
+        isScrapped = !isScrapped;
+        // if (!isSold && !isScrapped) isAll = false;
+        InvokeAsync(StateHasChanged);
+    }
+}
+
+
+<style>
+   .center-vertically {
+       display: flex;
+       align-items: center;
+       padding-top: 20px;
+       padding-right: 20px;
+   }
+   .margin-left-20{
+       padding-left: 20px;
+   }
+   .margin-vert-20{
+       padding-left: 20px;
+       padding-right: 20px;
+   }
+   
+   
+</style>

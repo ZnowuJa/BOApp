@@ -1,0 +1,76 @@
+﻿@using Application.ITWarehouseCQRS.CategoryTypes
+@using Application.ITWarehouseCQRS.CategoryTypes.Queries
+@using MediatR
+
+@inject IMediator _mediator;
+
+<h3>CategoryTypeDG_C</h3>
+@if (Visible){
+<FluentDataGrid Items="@CatTypes" TGridItem="CategoryTypeVm">
+        <PropertyColumn Property="@(c => c.Id)" Sortable="true" Align="Align.Start" Tooltip="true" />
+    <PropertyColumn Property="@(c => c.Name)" Sortable="true" Align="Align.Start" Tooltip = "true" />
+    <PropertyColumn Property="@(c => c.Name)" Sortable="true" Align="Align.Start" Tooltip = "true" />
+        <TemplateColumn Title="Actions" Align="Align.End">
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => ViewCatType(context.Id))"/>
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => EditCatType(context.Id))"/>
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => DeleteCatType(context.Id))"/>
+
+        </TemplateColumn>
+</FluentDataGrid>
+}
+@code {
+
+    // private IQueryable<CategoryTypeVm> catTypeList;
+    
+    // private bool showList = false;
+
+    // protected override void OnInitialized()
+    // {
+    //     // showList = true;
+    //     LoadCatTypes();
+    //     // base.OnInitialized();
+    // }
+
+    // private async void LoadCatTypes()
+    // {
+    //     var result = await _mediator.Send(new GetAllCategoryTypesQuery());
+    //     catTypeList = result;
+    // }
+
+    // to ponizej to jak w demo
+
+    [Parameter]
+    public bool Visible { get; set; }
+    
+    [Parameter]
+    public IQueryable<CategoryTypeVm> CatTypes { get; set; }
+
+    [Parameter]
+    public EventCallback<int> DeleteCatTypeClicked { get; set; }
+
+    [Parameter]
+    public EventCallback<int> EditCatTypeClicked { get; set; }
+
+    [Parameter]
+    public EventCallback<int> ViewCatTypeClicked { get; set; }
+
+    private async Task DeleteCatType(int ctId)
+    {
+        await DeleteCatTypeClicked.InvokeAsync(ctId);
+    }
+
+    private async Task EditCatType(int ctId)
+    {
+        await EditCatTypeClicked.InvokeAsync(ctId);
+    }
+
+    private async Task ViewCatType(int ctId)
+    {
+        await ViewCatTypeClicked.InvokeAsync(ctId);
+    }
+
+    // private async void DeleteCatType(int ctId)
+    // {
+    //     await DeleteCatTypeClicked.InvokeAsync(ctId);
+    // }
+}

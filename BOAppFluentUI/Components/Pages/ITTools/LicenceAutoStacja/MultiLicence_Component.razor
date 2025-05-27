@@ -1,0 +1,155 @@
+@using Application.CQRS.ITToolsCQRS.LicenceAutoStacja.Command
+@using Application.ViewModels.AutoStacja
+
+@inject IMediator _mediator
+@inject IDialogService DialogService
+
+<h3>Przełączanie licencji</h3>
+
+<EditForm EditContext="_context">
+    <DataAnnotationsValidator />
+    <FluentTextField @bind-Value="Content.Nazwa" Label="Nazwa licencji"></FluentTextField>
+    <FluentValidationMessage For="@(() => Content.Nazwa)" />
+    <div>
+        <hr style="width: 830px;" />
+        <FluentStack Orientation="Orientation.Vertical">
+            @foreach (var salon in Salons)
+            {
+                <FluentCheckbox @bind-Value="@salon.IsSelected">
+                    @salon.Name (@salon.Id)
+                </FluentCheckbox>
+            }
+        </FluentStack>
+    </div>
+    @if (IsLoading)
+    {
+        <FluentProgressRing/>
+    }
+    <div style="margin-top: 10px;">
+        <FluentButton Appearance="Appearance.Accent" OnClick="@SaveAsync">Przypisz punkty</FluentButton>
+    </div>
+</EditForm>
+
+@code {
+    private MysystemPunktLicenceVm Content { get; set; } = new MysystemPunktLicenceVm();
+    private EditContext _context;
+    private string Message { get; set; }
+    private bool IsLoading { get; set; } = false;
+
+    protected override void OnInitialized()
+    {
+        _context = new EditContext(Content);
+    }
+
+    private List<Salon> Salons { get; set; } = new List<Salon>
+    {
+        new Salon { Name = "Bentley Katowice", Id = 997 },
+        new Salon { Name = "Bentley Poznań", Id = 998 },
+        new Salon { Name = "Bentley Warszawa", Id = 999 },
+        new Salon { Name = "Porsche Poznań", Id = 502 },
+        new Salon { Name = "Porsche Warszawa Okęcie", Id = 506 },
+        new Salon { Name = "Porsche Warszawa Połczyńska", Id = 501 },
+        new Salon { Name = "Skoda Kraków", Id = 91 },
+        new Salon { Name = "Skoda Krańcowa", Id = 220 },
+        new Salon { Name = "Skoda Libertów", Id = 257 },
+        new Salon { Name = "Skoda Poznań", Id = 27 },
+        new Salon { Name = "Skoda Ruda Śląska", Id = 178 },
+        new Salon { Name = "Skoda Rybnik", Id = 171 },
+        new Salon { Name = "Skoda Tarnów", Id = 227 },
+        new Salon { Name = "Skoda Tychy", Id = 212 },
+        new Salon { Name = "Skoda Warszawa Połczyńska", Id = 58 },
+        new Salon { Name = "Skoda Warszawa Okęcie", Id = 209 },
+        new Salon { Name = "Audi Poznań", Id = 122 },
+        new Salon { Name = "Audi Warszawa Audi City", Id = 143 },
+        new Salon { Name = "Audi Warszawa Okęcie", Id = 132 },
+        new Salon { Name = "Audi Warszawa Połczyńska", Id = 75 },
+        new Salon { Name = "Audi Kraków", Id = 149 },
+        new Salon { Name = "Audi Kraków Libertów", Id = 187 },
+        new Salon { Name = "VW Katowice", Id = 103 },
+        new Salon { Name = "VW Kraków", Id = 140 },
+        new Salon { Name = "VW Obornicka", Id = 78 },
+        new Salon { Name = "VW Poznań", Id = 6 },
+        new Salon { Name = "VW Rybnik", Id = 47 },
+        new Salon { Name = "VW Sosnowiec", Id = 80 },
+        new Salon { Name = "VW Tychy", Id = 77 },
+        new Salon { Name = "VW Warszawa Okęcie", Id = 133 },
+        new Salon { Name = "VW Warszawa Połczyńska", Id = 11 }
+    };
+
+    private async Task SaveAsync()
+    {
+        Content.Nazwa = Content.Nazwa?.Trim().ToUpper();
+        IsLoading = true;
+        if (_context.Validate())
+        {
+            try
+            {
+                var selectedDealers = Salons
+                    .Where(d => d.IsSelected)
+                    .Select(d => d.Id)
+                    .ToList();
+
+                if (!selectedDealers.Any())
+                {
+                    Message = "Nie zaznaczono żadnego salonu.";
+                    await ShowDialogAsync(Message, isError: true);
+                    return;
+                }
+
+                var result = await _mediator.Send(new AssignLicenseToLocationCommand(Content.Nazwa, selectedDealers));
+                if (result.AssignedCount == 0)
+                {
+                    Message = $"Nie dodano żadnych punktów dla licencji <b>{Content.Nazwa}</b>.";
+                    if (result.Messages.Any())
+                        Message += "<br><br>" + string.Join("<br>", result.Messages);
+                    await ShowDialogAsync(Message, isError: true);
+                }
+                else
+                {
+                    Message = Message = $"Pomyślnie przypisano licencję {Content.Nazwa} do {result.AssignedCount} salon{(result.AssignedCount == 1 ? "u" : "ów")}."; ;
+                    if (result.Messages.Any())
+                        Message += "<br><br><i>Uwagi:</i><br>" + string.Join("<br>", result.Messages);
+                    await ShowDialogAsync(Message, isError: false);
+
+                    // Czyszczenie formularza
+                    Content.Nazwa = string.Empty;
+                    foreach (var salon in Salons)
+                    {
+                        salon.IsSelected = false;
+                    }
+
+                    _context = new EditContext(Content); // Odtworzenie EditContext, aby zresetować walidację
+                }
+            }
+            catch (Exception ex)
+            {
+                Message = $"Błąd: {ex.Message}";
+                await ShowDialogAsync(Message, isError: true);
+            }
+            finally
+            {
+                IsLoading = false;
+            }
+        }
+        else
+        {
+            Console.WriteLine("EditContext Validation NOT OK!...");
+        }
+    }
+
+    private async Task ShowDialogAsync(string message, bool isError)
+    {
+        var dialog = isError
+            ? await DialogService.ShowErrorAsync(message)
+            : await DialogService.ShowSuccessAsync(message);
+
+        await dialog.Result;
+    }
+
+    private class Salon
+    {
+        public string Name { get; set; }
+        public int Id { get; set; }
+        public bool IsSelected { get; set; }
+    }
+}

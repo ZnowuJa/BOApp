@@ -1,0 +1,672 @@
+﻿@page "/accountingnote3"
+@page "/notaksiegowa/{id:int}"
+
+@using Application.CQRS.ITWarehouseCQRS.Companies.Queries
+@using Application.Forms
+@using Application.CQRS.ITWarehouseCQRS.Employees.Queries
+@using Application.ViewModels.Accounting
+@using Application.ViewModels.General
+@using Microsoft.AspNetCore.Authorization
+@using System.Security.Claims
+@using Application.Interfaces
+@using Application.CQRS.AccountingCQRS.AccountingNote.Commands
+@using Application.CQRS.AccountingCQRS.AccountingNote.Queries
+@using Application.CQRS.General.Organisations.Queries
+@using Application.CQRS.AccountingCQRS.BusinessPartners.Queries
+@using System.Text.RegularExpressions
+
+@attribute [Authorize(Policy = "User")]
+
+@inject IMediator _mediator
+@* @implements IDialogContentComponent<AccountingNoteFormVm> *@
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager _navigationManager
+@inject IWebHostEnvironment Environment
+
+<h3>Noty księgowe</h3>
+@if (_editContext != null)
+{
+
+    <EditForm EditContext="_editContext">
+        <FluentValidationValidator @ref="_fluentValidator" />
+        <table class="table-container">
+            <thead>
+                <tr class="table-caption">
+                    <th colspan="2" style="text-align: left; border-right: none; font-size: large;">
+                        Informacje Ogólne
+                    </th>
+                    <th colspan="2" style="text-align: right; border-left: none; font-size: large;">
+                        Status: @Content.Status | Numer: @Content.NoteNumber
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <th>Doradca serwisowy:</th>
+                    <td>
+                        <FluentTextField @bind-Value="@Content.ServiceAdvisor" Style="width: 250px;" />
+                    </td>
+                    <th>Data:</th>
+                    <td>
+                        <FluentDatePicker @bind-Value="Content.Date"
+                                          Style="width: 250px;" />
+                        <FluentValidationMessage For="@(() => Content.Date)" />
+                    </td>
+                </tr>
+                <tr class="alt-row">
+                    <th>Dealer:</th>
+                    <td>
+                        <FluentAutocomplete TOption="LocationVm"
+                                            SelectValueOnTab="true"
+                                            AutoComplete="on"
+                                            OnOptionsSearch="@OnLocationSearch"
+                                            Placeholder="Wybierz lokalizacje..."
+                                            Width="250px"
+                                            Height="250px"
+                                            OptionText="@(p => p.SapNumber + ' ' + p.Description)"
+                                            OptionValue="@(p => p.SapNumber)"
+                                            MaximumSelectedOptions="1"
+                                            @bind-SelectedOptions="@_selectedLocation"
+                                            @bind-SelectedOptions:after="@HandleLocationChange" />
+                    </td>
+                    <th>Ubezpieczyciel:</th>
+                    <td>
+                        <FluentCombobox TOption="string"
+                                        Items="@insurer"
+                                        Id="InsurerId"
+                                        Autocomplete="ComboboxAutocomplete.Both"
+                                        Width="250px"
+                                        Height="250px"
+                                        @bind-Value="@Content.Insurer" />
+                    </td>
+                </tr>
+                <tr>
+                    <th>VIN:</th>
+                    <td>
+                        <FluentTextField Id="VIN"
+                                         @bind-Value="@Content.VIN"
+                                         Placeholder="Wpisz VIN"
+                                         Style="width: 250px;" />
+                        <FluentValidationMessage For="@(() => Content.VIN)" />
+                    </td>
+                    <th>Rejestracja:</th>
+                    <td>
+                        <FluentTextField Id="Registration"
+                                         @bind-Value="@Content.Registration"
+                                         Placeholder="Wpisz rejestrację"
+                                         Style="width: 250px;" />
+                        <FluentValidationMessage For="@(() => Content.Registration)" />
+                    </td>
+                </tr>
+                <tr class="alt-row">
+                    <th>Numer zlecenia:</th>
+                    <td>
+                        <FluentTextField Id="OrderNumber"
+                                         @bind-Value="Content.OrderNumber"
+                                         Placeholder="Wpisz numer zlecenia"
+                                         Style="width: 250px;" />
+                        <FluentValidationMessage For="@(() => Content.OrderNumber)" />
+                    </td>
+                    <th>Numer szkody:</th>
+                    <td>
+                        <FluentTextField Id="DamageNumber"
+                                         @bind-Value="Content.DamageNumber"
+                                         Placeholder="Wpisz numer szkody"
+                                         Style="width: 250px;" />
+                        <FluentValidationMessage For="@(() => Content.DamageNumber)" />
+                    </td>
+                </tr>
+
+                <tr class="table-caption">
+                    <th colspan="4" style="font-size: large; text-align:center;">Płatności</th>
+                </tr>
+
+                <tr>
+                    <th>Metoda płatności:</th>
+                    <td colspan="3">
+                        <FluentSelect Items="@PaymentMethodsInt"
+                                      OptionText="@(i => i.Text)"
+                                      OptionValue="@(a => a.Value.ToString())"
+                                      OptionSelected="@(a => a.Selected)"
+                                      @bind-Value="@PaymentCashString"
+                                      @bind-Value:after="@OnPaymentChanged"
+                                      Style="width: 250px;" />
+                    </td>
+                </tr>
+                <tr class="alt-row">
+                    <th>Kwota:</th>
+                    <td>
+                        <FluentNumberField Id="Amount"
+                                           @bind-Value="Content.Amount"
+                                           Placeholder="Wpisz kwotę"
+                                           Style="width: 250px;" />
+                        <FluentValidationMessage For="@(() => Content.Amount)" />
+                    </td>
+                    <th>Termin płatności:</th>
+                    <td>
+                        <FluentDatePicker Style="width: 250px;"
+                                          @bind-Value="Content.PaymentDeadline" />
+                        <FluentValidationMessage For="@(() => Content.PaymentDeadline)" />
+                    </td>
+                </tr>
+                @if (Content.Status != "Rejestracja")
+                {
+                    <tr>
+                        <th>Wpłata TU:</th>
+                        <td>
+                            <FluentNumberField Id="AmountPaid"
+                                               @bind-Value="Content.AmountPaid"
+                                               Style="width: 250px;" />
+                        </td>
+                        <th>Pozostało do zapłaty:</th>
+                        <td>
+                            <FluentNumberField Id="AmountRemaining"
+                                               @bind-Value="Content.AmountRemaining"
+                                               Style="width: 250px;" />
+                        </td>
+                    </tr>
+                }
+
+                <tr class="table-caption">
+                    <th colspan="4" style="font-size: large; text-align:center;">Treść noty i załącznik</th>
+                </tr>
+
+                <tr>
+                    <th>Treść noty:</th>
+                    <td colspan="3">
+                        <FluentTextField @bind-Value="Content.NoteContent" Style="width: 100%" />
+                        <FluentValidationMessage For="@(() => Content.NoteContent)" />
+                    </td>
+                </tr>
+                <tr class="alt-row">
+                    <th>Załącznik:</th>
+                    <td colspan="3">
+                        <FluentInputFile Id="my-file-uploader"
+                                         Mode="InputFileMode.SaveToTemporaryFolder"
+                                         Multiple="true"
+                                         MaximumFileCount="4"
+                                         MaximumFileSize="@(10 * 1024 * 1024)"
+                                         Accept="image/*"
+                                         @bind-ProgressPercent="@ProgressPercent"
+                                         OnCompleted="@OnCompletedAsync"
+                                         Style="height: 80px;">
+                            <ChildContent>
+@*                                 <label for="my-file-uploader">
+                                    <FluentIcon Value="@(new @Icons.Regular.Size24.ArrowUpload())" />
+                                </label>
+ *@
+                                <div>
+                                    Przeciągnij tutaj pliki, które chcesz przesłać,
+                                    lub <label for="my-file-uploader">przeglądaj</label>
+                                    je na swoim urządzeniu<span style="color: red;">*</span>.
+                                    <br />
+                                    <em>Maksymalnie 4 pliki.</em>
+                                </div>
+                            </ChildContent>
+                        </FluentInputFile>
+                    </td>
+                </tr>
+                @if ((Content.Attachments ?? new List<Attachment>()).Any())
+                {
+                    <tr>
+                        <th>Przesłane pliki:</th>
+                        <td colspan="3">
+                            <ul>
+                                @foreach (var attachment in Content.Attachments)
+                                {
+                                    <li>
+                                        <b>@attachment.OriginalFileName</b>🔹
+                                        <a href="@attachment.AttUrl" target="_blank">Otwórz</a>🔹
+                                        <a @onclick="() => RemoveAttachment(attachment)">🗑️ Usuń</a>
+                                    </li>
+                                }
+                            </ul>
+                        </td>
+                    </tr>
+                }
+                <tr>
+                    <td colspan="4" style="text-align: center;">
+                        @if (strej)
+                        {
+                            <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
+                                          Id="SendFormId"
+                                          Appearance="Appearance.Accent"
+                                          OnClick="@SendForm"
+                                          BackgroundColor="var(--accent-fill-rest)"
+                                          Style="width: 100px">
+                                Wyślij
+                            </FluentButton>
+                        }
+
+                        @if (stwtr)
+                        {
+                            <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
+                                          Id="SaveFormId"
+                                          Appearance="Appearance.Accent"
+                                          OnClick="@SendForm"
+                                          BackgroundColor="var(--accent-fill-rest)"
+                                          Style="width: 100px">
+                                Zapisz
+                            </FluentButton>
+                        }
+
+                        <FluentSpacer Width="@buttonSpacer" />
+
+                        <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
+                                      Appearance="Appearance.Accent"
+                                      Id="CancelFormId"
+                                      OnClick="@CancelForm"
+                                      BackgroundColor="var(--info)"
+                                      Style="width: 100px">
+                            Anuluj
+                        </FluentButton>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+    </EditForm>
+
+}
+else
+{
+    <p>Ładowanie formularza...</p>
+}
+
+@code {
+    #region [PARAMETRY / MODELE]
+    [Parameter]
+    public int Id { get; set; }
+
+    public AccountingNoteFormVm Content { get; set; } = new();
+    private AccountingNoteFormVm CurrentAttachmentForUpload = new();
+    #endregion
+
+    #region [FORMULARZ / WALIDACJA]
+    private EditContext _editContext;
+    private FluentValidationValidator? _fluentValidator;
+    private bool showForm { get; set; } = true;
+    #endregion
+
+    #region [UŻYTKOWNIK / CONTEXT]
+    private ClaimsPrincipal? user { get; set; }
+    private string username { get; set; }
+    private EmployeeVm emp { get; set; }
+    #endregion
+
+    #region [DATY]
+    private DateTime? SelectedValue { get; set; } = DateTime.Today;
+    private DateTime? SelectedValueTo { get; set; } = DateTime.Today.AddDays(14);
+    #endregion
+
+    #region [FIRMY / LOKALIZACJE]
+    private IQueryable<CompanyVm> itemCompaniesList { get; set; }
+    private List<CompanyVm> orgs { get; set; }
+    private CompanyVm selectedCompany;
+
+    private IQueryable<string> insurer { get; set; }
+
+    private IEnumerable<LocationVm> _locations { get; set; } = new List<LocationVm>().AsQueryable();
+    private IEnumerable<LocationVm> _selectedLocation = Array.Empty<LocationVm>();
+    #endregion
+
+    #region [STANY / FLAGI]
+    private bool isLoading { get; set; } = true;
+    private string _srcPage = "view";
+
+    private bool strej { get; set; } = false;
+    private bool stwtr { get; set; } = false;
+    private bool stzak { get; set; } = false;
+    private bool _formUploading;
+    #endregion
+
+    #region [UPLOADER / ZAŁĄCZNIKI]
+    FluentInputFile? myFileUploader = default!;
+    FluentInputFileEventArgs[] Files = Array.Empty<FluentInputFileEventArgs>();
+
+    int ProgressPercent = 0;
+    int? progressPercent;
+    string? progressTitle;
+    #endregion
+
+    #region [POMOCNICZE]
+    private int buttonSpacer = 100;
+    #endregion
+
+    #region [WŁASNOŚCI]
+    public string PaymentCashString
+    {
+        get => Content.PaymentMethod;
+        set => Content.PaymentMethod = value;
+    }
+    #endregion
+
+    void OnCompleted(IEnumerable<FluentInputFileEventArgs> files)
+    {
+        Files = files.ToArray();
+        progressPercent = myFileUploader!.ProgressPercent;
+        progressTitle = myFileUploader!.ProgressTitle;
+
+        // For the demo, delete these files.
+        foreach (var file in Files)
+        {
+            file.LocalFile?.Delete();
+        }
+        _formUploading = false;
+        StateHasChanged();
+    }
+    private async Task OnCompletedAsync(IEnumerable<FluentInputFileEventArgs> files)
+    {
+        var currentTime = DateTime.Now;
+
+        foreach (var file in files)
+        {
+            if (file.LocalFile == null)
+                continue;
+            var newID = Guid.NewGuid();
+            var newFilePath = Path.Combine(
+                Environment.WebRootPath,
+                "Attachments",
+                "AccountingNotes",
+                currentTime.ToString("yyyy"),
+                currentTime.ToString("yyyyMM"),
+                currentTime.ToString("yyyyMMdd"));
+
+            Directory.CreateDirectory(newFilePath);
+
+            var finalPath = Path.Combine(
+                newFilePath,
+                $"{Guid.NewGuid()}{Path.GetExtension(file.Name)}");
+
+            // Przenosimy plik z folderu tymczasowego
+            FileUtils.MoveFile(file.LocalFile.FullName, finalPath);
+
+            // Dodajemy do listy Attachmentów
+            Content.Attachments.Add(new Attachment
+                {
+                    Id = newID,
+                    OriginalFileName = file.Name,
+                    FilePath = finalPath,
+                    AttUrl = FileUtils.GenerateUrl(finalPath, Environment.WebRootPath)
+                });
+        }
+
+        await Task.Delay(500);
+        ProgressPercent = 0;
+    }
+
+    private void RemoveAttachment(Attachment attachment)
+    {
+        FileUtils.RemoveFile(attachment.FilePath);
+        Content.Attachments.Remove(attachment);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Id != 0)
+        {
+            Content = await _mediator.Send(new GetAccountingNoteByIdQuery(Id));
+            if (Content == null)
+            {
+                showForm = false;
+                isLoading = false;
+                return;
+            }
+        }
+        if (Content.Dealer != null)
+        {
+            _selectedLocation = new[]
+            {
+        new LocationVm
+        {
+            SapNumber = Content.DG,
+            Description = Content.Dealer
+        }
+         };
+        }
+        else
+        {
+            _selectedLocation = Array.Empty<LocationVm>();
+        }
+
+        _editContext = new EditContext(Content);
+        var dealIq = await _mediator.Send(new GetAllCompaniesByTypeIdQuery(4));
+        //orgs = dealIq.Select(dealer => dealer.Name).AsQueryable();
+        orgs = dealIq.ToList();
+        _locations = await _mediator.Send(new GetLocationsQuery());
+
+        var insurerObject = await _mediator.Send(new GetAllBusinessPartnersByTypeNameQuery("Ubezpieczyciel"));
+        //insurer = insurerObject.Select(dealer => Regex.Replace(dealer.LongName.Trim(), @"-\s*$", "").TrimEnd()).AsQueryable();
+
+        insurer = insurerObject.Select(dealer => dealer.Name).AsQueryable();
+
+        // Console.WriteLine($"Liczba elementów: {itemCompaniesList.Count()}");
+        // foreach (var company in itemCompaniesList)
+        // {
+        //     Console.WriteLine($"Firma: {company.Name} (ID: {company.Id})");
+        // }
+        SetSrcPage();
+        AssignStatusBool();
+
+        if (strej)
+        {
+            Content.Date = SelectedValue;
+            Content.PaymentDeadline = SelectedValueTo;
+        }
+
+        //GenerateNoteNumber();
+        await RefreshClaims();
+    }
+
+    private void OnCompanyChanged(CompanyVm company)
+    {
+        if (company != null)
+        {
+            Content.Dealer = company.Name;
+            Content.DG = company.Name;
+        }
+    }
+
+    // private async Task OnDateChanged(string type, DateTime? newDate)
+    // {
+    //     switch ((type))
+    //     {
+    //         case ("Date1"):
+    //             SelectedValue = newDate;
+    //             Content.Date = SelectedValue;
+    //             break;
+    //         case ("Date2"):
+    //             SelectedValueTo = newDate;
+    //             Content.PaymentDeadline = SelectedValueTo;
+    //             break;
+    //         default:
+    //             throw new ArgumentException($"Nieobsługiwane wartości: {type}");
+    //     }
+    // }
+
+    private void OnLocationSearch(OptionsSearchEventArgs<LocationVm> e)
+    {
+        if (e.Text != null)
+        {
+            e.Items = _locations.Where(a =>
+                a.Description.Contains(e.Text, StringComparison.OrdinalIgnoreCase) ||
+                a.SapNumber.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
+        }
+    }
+
+    private async Task HandleFileUpload(InputFileChangeEventArgs e)
+    {
+        // if(CurrentAttachmentForUpload != null)
+        // {
+        //     var uploadedFile = e.File;
+        //     if(uploadedFile != null)
+        //     {
+        //         var filePath = await FileUtils.UploadFile(uploadedFile, CurrentAttachmentForUpload.Id.ToString(), Environment.WebRootPath);
+        //         var attachmentFile = new Attachment
+        //             {
+        //                 Id = CurrentAttachmentForUpload.Attachments.Count + 1,
+        //                 FilePath = filePath,
+        //                 OriginalFileName = uploadedFile.Name,
+        //                 AttUrl = FileUtils.GenerateUrl(filePath, Environment.WebRootPath)
+        //             };
+        //         CurrentAttachmentForUpload.Attachments.Add(attachmentFile);
+        //     }
+        // }
+        // _editContext.Validate();
+    }
+
+    private async Task HandleLocationChange()
+    {
+        var selectedLocation = _selectedLocation.FirstOrDefault();
+
+        if (selectedLocation == null)
+        {
+            Content.Dealer = null;
+            Content.DG = null;
+            return;
+        }
+
+        Content.Dealer = selectedLocation.Description;
+        Content.DG = selectedLocation.SapNumber;
+    }
+
+
+    private void OnPaymentChanged()
+    {
+        Console.WriteLine("PaymentChanged");
+    }
+
+    private List<Option<int>> PaymentMethodsInt = new()
+        {
+            { new Option<int> { Value = 0, Text = "Przelew"} },
+            { new Option<int> { Value = 1, Text = "Gotówka" } },
+        };
+
+
+
+    private async Task CancelForm()
+    {
+        if (_srcPage == "view")
+        {
+            _navigationManager.NavigateTo($"/notyksiegowe");
+            return;
+        }
+        _navigationManager.NavigateTo($"/notyksiegowe/{_srcPage}");
+    }
+
+    // private void HandleCompanyChange(ChangeEventArgs e)
+    // {
+    //     var selectedComapany = itemCompaniesList.FirstOrDefault(c => c.Id == int.Parse(e.Value.ToString()));
+    //     Content.CompanyVmId = selectedComapany.Id;
+    //     Content.CompanyVmName = selectedComapany.Title;
+
+    // }
+
+    private void AssignStatusBool()
+    {
+        strej = Content.Status == "Rejestracja";
+        stwtr = Content.Status == "Otwarte";
+        stzak = Content.Status == "Zamkniete";
+    }
+
+    private async Task RefreshClaims()
+    {
+        try
+        {
+            var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authenticationState.User;
+            var nameClaim = user.Claims.FirstOrDefault(c => c.Type == "name");
+            Content.ServiceAdvisor = nameClaim?.Value;
+        }
+        catch (Exception ex)
+        {
+            // Handle any errors
+        }
+    }
+
+    // private void GenerateNoteNumber()
+    // {
+    //     var dateNow = DateTime.Now;
+    //     Content.NoteNumber = $"NT_{dateNow.Year - 2000:D2}{dateNow.Month:D2}{dateNow.Day:D2}_{dateNow.Hour:D2}{dateNow.Minute:D2}{dateNow.Second:D2}";
+    // }
+
+    private async Task SendForm()
+    {
+        if (_editContext.Validate())
+        {
+            if (stwtr)
+            {
+                if (Content.Amount >= Content.AmountPaid)
+                {
+                    Console.WriteLine("Kwota nie opłacona");
+                }
+                else
+                {
+                    Content.Status = GetNextStatus(Content);
+                }
+            }
+            else
+            {
+                Content.Status = GetNextStatus(Content);
+            }
+
+            if (Content.Id == 0)
+            {
+                var savedId = await _mediator.Send(new CreateAccountingNoteCommand(Content));
+            }
+            else
+            {
+                var updatedForm = await _mediator.Send(new UpdateAccountingNoteCommand(Content)); ;
+            }
+            _navigationManager.NavigateTo($"/notyksiegowe/{_srcPage}");
+        }
+    }
+
+    private void SetSrcPage()
+    {
+        var uri = new Uri(_navigationManager.Uri);
+        var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+
+        if (query.TryGetValue("srcPage", out var sourcePageValue))
+        {
+
+            if (sourcePageValue == "pracownik" || sourcePageValue == "employee" || sourcePageValue == "ksiegowe" || sourcePageValue == "accountants" || sourcePageValue == "view")
+            {
+                _srcPage = sourcePageValue; // Valid sourcePage is set
+            }
+            else
+            {
+                return;
+            }
+        }
+        else
+        {
+            _srcPage = "view";
+            return;
+        }
+    }
+
+    private string GetNextStatus(AccountingNoteFormVm content)
+    {
+        string newStatus = string.Empty;
+        switch (content.Status)
+        {
+            case "Rejestracja":
+                newStatus = "Otwarte";
+                break;
+
+            case "Otwarte":
+                newStatus = "Zamkniete";
+                break;
+
+            default:
+                throw new InvalidOperationException("Nieznany status: " + content.Status);
+        }
+        return newStatus;
+    }
+}
+<style>
+    .alt-row {
+        background-color: #eaeaea;
+    }
+</style>

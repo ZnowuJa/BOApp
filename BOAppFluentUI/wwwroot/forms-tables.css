@@ -1,0 +1,329 @@
+﻿valid.disabled.outline {
+    color: black !important; /* Change font color to black */
+}
+
+div {
+    /*flex-shrink: 0; /* Prevent shrinking of elements */
+}
+
+.flex-container {
+    display: flex; /* Enables horizontal alignment */
+    align-items: center; /* Vertically centers items */
+    gap: 10px; /* Adds space between elements */
+    flex-wrap: wrap; /* Wraps to the next line if there's not enough space */
+}
+
+    .flex-container > * {
+        flex-shrink: 0; /* Prevents items from shrinking */
+        margin: 0; /* Optional: Resets any margin */
+    }
+
+.form-group {
+    display: flex;
+    align-items: center; /* Align label and control vertically */
+    gap: 10px; /* Space between the label and the control */
+    flex-wrap: nowrap; /* Ensure label and control stay on the same line */
+    flex: 1 1 auto; /* Allow the group to resize */
+    justify-content: flex-start; /* Align items to the left */
+}
+
+
+.form-section {
+    display: flex;
+    flex-wrap: wrap; /* Allows wrapping if content overflows */
+    gap: 15px; /* Spacing between child divs */
+    margin-bottom: 15px;
+}
+
+    .form-section > div {
+        display: flex;
+        align-items: center; /* Vertically centers content within each div */
+        gap: 10px; /* Spacing between elements inside the div */
+    }
+
+.new-form-sectionbbb {
+    display: flex;
+    flex-wrap: wrap; /* Allows wrapping if content overflows */
+    gap: 15px; /* Spacing between child divs */
+    margin-bottom: 15px; /* Matches other form sections */
+    border: 2px solid;
+    border-radius: 8px; /* Rounded corners */
+    padding: 10px; /* Space inside the border */
+    margin: 10px 0; /* Space outside the div */
+    align-items: center; /* Vertically center content */
+}
+
+.new-form-section {
+    display: flex; /* Enable horizontal alignment */
+    flex-wrap: nowrap; /* Prevent wrapping to the next line */
+    align-items: center; /* Vertically align content */
+    justify-content: flex-start; /* Align items to the start of the line */
+    border: 2px solid;
+    border-radius: 8px; /* Rounded corners */
+    padding: 10px;
+    margin: 10px 0;
+    background-color: lightblue; /* Default background color */
+    gap: 15px; /* Spacing between child divs */
+    width: fit-content;
+}
+
+    /* Child divs inside the form section */
+    .new-form-section > div {
+        display: flex;
+        align-items: center; /* Center content within the div */
+    }
+
+    /* Background color for "Kasa" status */
+    .new-form-section.kasa {
+        background-color: #a2b3d4;
+        border-color: #a2b3d4; /* Matching blue border */
+    }
+
+    /* Background color for "Ksiegowosc" status */
+    .new-form-section.ksiegowosc {
+        background-color: #d3d3d3;
+        border-color: #d3d3d3; /* Matching grey border */
+    }
+
+.fluent-grid-item {
+    flex-shrink: 0; /* Prevents shrinking of elements */
+}
+
+.autocomplete-container {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Adjust spacing as needed */
+}
+
+    .autocomplete-container .fluent-autocomplete {
+        display: flex;
+        flex-direction: row; /* Forces label and control to align horizontally */
+        align-items: center;
+    }
+
+table {
+    border-collapse: collapse; /* Optional: For a cleaner look */
+    /*width: 750px; /* Optional: Adjust to fit your container */
+}
+
+th, td {
+    padding: 5px; /* Adds padding inside each cell */
+    text-align: center; /* Optional: Align text to the left */
+}
+
+    td:first-child, th:first-child {
+        padding-left: 0; /* Removes padding on the left of the first cell */
+    }
+
+tr:first-child .od-column {
+    border-top-left-radius: 10px;
+}
+
+tr:first-child .do-column {
+    border-top-right-radius: 10px;
+}
+
+tr:last-child .od-column {
+    border-bottom-left-radius: 10px;
+}
+
+tr:last-child .do-column {
+    border-bottom-right-radius: 10px;
+}
+
+.info-table {
+    width: 650px;
+    margin-bottom: 10px;
+}
+
+    .info-table td {
+        padding: 10px;
+    }
+
+.fluent-grid {
+    display: flex;
+    gap: 10px; /* Adjust the gap as needed */
+}
+
+.fluent-grid-item {
+    display: flex;
+    flex-direction: row;
+    gap: 10px; /* Adjust the gap between date and time pickers */
+}
+
+.custom-grid-item {
+    width: 150px;
+}
+
+.bold-label {
+    font-weight: bold;
+}
+
+.validation-error {
+    color: red;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+.fluent-table {
+    border-collapse: collapse;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.fluent-caption {
+    caption-side: top;
+    text-align: left;
+    font-size: 1em;
+    font-weight: bold;
+    padding: 5px;
+    background-color: dimgrey;
+    color: white;
+}
+
+.fluent-thead {
+    background-color: lightgrey;
+    color: dimgray;
+}
+
+    .fluent-thead th {
+        padding: 5px;
+        text-align: left;
+    }
+
+.fluent-row {
+}
+
+    .fluent-row td {
+        padding: 5px;
+    }
+
+    .fluent-row div {
+        display: flex;
+        align-items: center;
+    }
+
+        .fluent-row div FluentButton {
+            margin-right: 5px;
+        }
+
+html, body {
+    height: 100%;
+    margin: 0;
+}
+
+.page {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.bodybody {
+    flex: 1; /* This makes the body content take up the remaining space */
+    padding-bottom: 125px; /* Ensure content doesn't overlap the footer */
+}
+
+.footerfooter {
+    height: 125px;
+    background-color: #f1f1f1; /* Example background color */
+    text-align: center; /* Center the footer content */
+    line-height: 75px; /* Vertically center the text */
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+}
+
+.emptytemp {
+}
+
+.disabled {
+    color: black !important;
+    opacity: 1 !important;
+}
+
+fluent-select[disabled] {
+    --disabled-opacity: 1 !important;
+}
+
+.all-tables-wrapper {
+    display: flex;
+    flex-direction: column; /* Arrange the tables vertically */
+    justify-content: flex-start;
+    align-items: flex-start; /* Center everything horizontally */
+    gap: 20px; /* Add spacing between the groups */
+}
+
+.tables-wrapper {
+    display: flex;
+    justify-content: flex-start; /* Dynamically adjust based on content width */
+    gap: 20px; /* Space between the left and right tables */
+}
+
+.third-table-wrapper {
+    display: flex;
+    justify-content: flex-start; /* Center the third table */
+    width: 100%;
+}
+
+.table-container {
+    max-height: 60px;
+    width: 100%;
+    max-width: 1000px; /* Restrict table width */
+    border-collapse: separate;
+    border-spacing: 0;
+    font-family: Arial, sans-serif;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    overflow: visible;
+}
+
+    .table-container thead tr:first-child th {
+        max-height: 60px;
+        color: white;
+        font-weight: bold;
+        text-align: center;
+        padding: 8px;
+    }
+
+
+    .table-container th {
+        max-height: 60px;
+        padding: 8px;
+        font-size: 12px;
+        border: 1px solid #ddd;
+        white-space: nowrap; /* Prevent line breaks */
+        overflow: visible; /* Prevent content from spilling out */
+        text-overflow: ellipsis; /* Add "..." for overflowing text */
+        align-items: center; /* Vertically center content */
+        justify-content: space-between; /* Push text and icon to the edges */
+    }
+
+    .table-container td {
+        max-height: 60px;
+        padding: 8px;
+        font-size: 12px;
+        border: 1px solid #ddd;
+        white-space: nowrap; /* Prevent line breaks */
+        overflow: visible;
+        text-overflow: ellipsis; /* Add "..." for overflowing text */
+    }
+
+.table-header-left {
+    max-height: 60px;
+    background-color: var(--accent-fill-rest);
+}
+
+.table-header-right {
+    background-color: color-mix(in srgb, white 40%, var(--accent-fill-rest) 60%);
+}
+
+.table-caption {
+    max-height: 60px;
+    caption-side: top; /* Place caption above the table */
+    background-color: var(--accent-fill-rest); /* Match header background */
+    color: white; /* Match header text color */
+    font-weight: bold; /* Make it bold */
+    text-align: left; /* Center the text */
+    padding: 8px; /* Add padding for spacing */
+    border: 1px solid #ddd; /* Optional: Match table border */
+    border-bottom: none; /* Remove bottom border for seamless look with the table */
+}

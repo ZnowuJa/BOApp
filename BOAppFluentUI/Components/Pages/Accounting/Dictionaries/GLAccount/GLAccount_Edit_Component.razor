@@ -1,0 +1,97 @@
+﻿@* GLAccount Edit Component *@
+@using Application.ViewModels.Accounting
+
+@inject IMediator _mediator
+@implements IDialogContentComponent<GLAccountVm>
+
+<head>
+    <link href="forms-tables.css" rel="stylesheet" />
+</head>
+
+<!-- Header -->
+<FluentDialogHeader ShowDismiss="true">
+    <FluentStack VerticalAlignment="VerticalAlignment.Center">
+        <FluentIcon Value="@(new Icons.Regular.Size24.WindowApps())" />
+        <FluentLabel Typo="Typography.PaneHeader">
+            @Dialog.Instance.Parameters.Title
+        </FluentLabel>
+    </FluentStack>
+</FluentDialogHeader>
+
+<!-- Body -->
+<FluentDialogBody Style="overflow-y: auto; overflow-x: auto;">
+    <EditForm EditContext="_editContext">
+        @* <FluentValidationValidator @ref="_fluentValidator" /> *@
+        <DataAnnotationsValidator />
+        <table class="table-container">
+            <tbody>
+                <tr>
+                    <td class="table-caption" style="text-align: left; border-right: none;">KontoGl:</td>
+                    <td>
+                        <FluentTextField Id="AccountNumber" @bind-Value="@Content.AccountNumber" Placeholder="Wpisz KontoGl" style="width: 200px;"></FluentTextField>
+                        <FluentValidationMessage For="@(() => Content.AccountNumber)" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="table-caption" style="text-align: left; border-right: none;">Opis:</td>
+                    <td>
+                        <FluentTextField Id="Description" @bind-Value="@Content.Description" Placeholder="Wpisz opis" style="width: 200px;"></FluentTextField>
+                        <FluentValidationMessage For="@(() => Content.Description)" />
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+    </EditForm>
+</FluentDialogBody>
+
+<!-- Footer -->
+<FluentDialogFooter>
+    <FluentButton Appearance="Appearance.Accent" OnClick="@SaveAsync">Zapisz</FluentButton>
+    <FluentButton Appearance="Appearance.Neutral" OnClick="@CancelAsync">Anuluj</FluentButton>
+</FluentDialogFooter>
+
+@code {
+
+    [Parameter]
+    public GLAccountVm Content { get; set; } = default!;
+
+    [CascadingParameter]
+    public FluentDialog Dialog { get; set; } = default!;
+
+    private EditContext _editContext;
+
+    private FluentValidationValidator? _fluentValidator;
+
+    private bool isFormValid;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _editContext = new EditContext(Content);
+        base.OnInitialized();
+    }
+
+    private async Task SaveAsync()
+    {
+        Console.WriteLine("SaveAsync starts...");
+        if (_editContext.Validate())
+        {
+            Console.WriteLine("EditContext Validation OK!...");
+            await Dialog.CloseAsync(Content);
+        }
+        else
+        {
+            Console.WriteLine("EditContext Validation NOT OK!...");
+            return;
+        }
+        if (Content.Id != 0)
+        {
+            await Dialog.CloseAsync(Content);
+        }
+    }
+
+    private async Task CancelAsync()
+    {
+        await Dialog.CancelAsync();
+    }
+}

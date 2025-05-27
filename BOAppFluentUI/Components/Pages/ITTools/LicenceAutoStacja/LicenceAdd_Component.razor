@@ -1,0 +1,147 @@
+@using Application.CQRS.ITToolsCQRS.LicenceAutoStacja.Command
+@using Application.ViewModels.AutoStacja
+
+@inject IMediator _mediator
+@inject IDialogService DialogService
+
+<h3>Nowa licencja</h3>
+
+<EditForm EditContext="_context">
+    <DataAnnotationsValidator />
+    <FluentTextField @bind-Value="Content.Nazwa" Label="Nazwa licencji"></FluentTextField>
+    <FluentValidationMessage For="@(() => Content.Nazwa)" />
+    <FluentTextField @bind-Value="Content.PunktTelefon" Label="Nazwa komputera"></FluentTextField>
+    <FluentValidationMessage For="@(() => Content.PunktTelefon)" />
+    <hr style="width: 830px;"/>
+    <FluentRadioGroup TValue="string" Required="true" @bind-Value="SelectedSalonId" name="Salons" Orientation="Orientation.Vertical">
+        @foreach (var salon in Salons)
+        {
+            <FluentRadio Value="@salon.Id">
+                @salon.Name (@salon.Id)
+            </FluentRadio>
+        }
+    </FluentRadioGroup>
+    @if (IsLoading)
+    {
+        <FluentProgressRing />
+    }
+    <div style="margin-top: 10px;">
+        <FluentButton Appearance="Appearance.Accent" OnClick="@SaveAsync">Dodaj licencję</FluentButton>
+    </div>
+</EditForm>
+
+@code {
+    private MysystemPunktVm Content { get; set; } = new MysystemPunktVm();
+    private EditContext _context;
+    private string SelectedSalonId { get; set; }
+    private string Message { get; set; }
+    private bool IsLoading { get; set; } = false;
+
+    protected override void OnInitialized()
+    {
+        _context = new EditContext(Content);
+    }
+
+    private List<Salon> Salons { get; set; } = new List<Salon>
+    {
+        new Salon { Name = "Bentley Katowice", Id = "997" },
+        new Salon { Name = "Bentley Poznań", Id = "998" },
+        new Salon { Name = "Bentley Warszawa", Id = "999" },
+        new Salon { Name = "Porsche Poznań", Id = "502" },
+        new Salon { Name = "Porsche Warszawa Okęcie", Id = "506" },
+        new Salon { Name = "Porsche Warszawa Połczyńska", Id = "501" },
+        new Salon { Name = "Skoda Kraków", Id = "91" },
+        new Salon { Name = "Skoda Krańcowa", Id = "220" },
+        new Salon { Name = "Skoda Libertów", Id = "257" },
+        new Salon { Name = "Skoda Poznań", Id = "27" },
+        new Salon { Name = "Skoda Ruda Śląska", Id = "178" },
+        new Salon { Name = "Skoda Rybnik", Id = "171" },
+        new Salon { Name = "Skoda Tarnów", Id = "227" },
+        new Salon { Name = "Skoda Tychy", Id = "212" },
+        new Salon { Name = "Skoda Warszawa Połczyńska", Id = "58" },
+        new Salon { Name = "Skoda Warszawa Okęcie", Id = "209" },
+        new Salon { Name = "Audi Poznań", Id = "122" },
+        new Salon { Name = "Audi Warszawa Audi City", Id = "143" },
+        new Salon { Name = "Audi Warszawa Okęcie", Id = "132" },
+        new Salon { Name = "Audi Warszawa Połczyńska", Id = "75" },
+        new Salon { Name = "Audi Kraków", Id = "149" },
+        new Salon { Name = "Audi Kraków Libertów", Id = "187" },
+        new Salon { Name = "VW Katowice", Id = "103" },
+        new Salon { Name = "VW Kraków", Id = "140" },
+        new Salon { Name = "VW Obornicka", Id = "78" },
+        new Salon { Name = "VW Poznań", Id = "6" },
+        new Salon { Name = "VW Rybnik", Id = "47" },
+        new Salon { Name = "VW Sosnowiec", Id = "80" },
+        new Salon { Name = "VW Tychy", Id = "77" },
+        new Salon { Name = "VW Warszawa Okęcie", Id = "133" },
+        new Salon { Name = "VW Warszawa Połczyńska", Id = "11" }
+    };
+
+    private async Task SaveAsync()
+    {
+        Console.WriteLine("SaveAsync starts...");
+        Content.Nazwa = Content.Nazwa?.Trim().ToUpper();
+        Content.PunktTelefon = Content.PunktTelefon?.Trim().ToUpper();
+
+        if (_context.Validate())
+        {
+            try
+            {
+                IsLoading = true;
+                // Znajdź wybrany salon
+                var selectedSalon = Salons.FirstOrDefault(s => s.Id == SelectedSalonId);
+                if (selectedSalon == null)
+                {
+                    Message = "Wybrany salon nie istnieje.";
+                    return;
+                }
+
+                Console.WriteLine($"Wybrano salon: {selectedSalon.Name}");
+
+                // Wywołanie komendy Mediatora
+                await _mediator.Send(new AddLicenseCommand(Content.Nazwa, int.Parse(selectedSalon.Id), Content.PunktTelefon));
+
+                // Ustawienie wiadomości sukcesu
+                Message = $"Dodano licencję {Content.Nazwa} dla komputera {Content.PunktTelefon} - salon {selectedSalon.Name}.";
+                await ShowDialogAsync(Message, isError: false);
+
+                // Czyszczenie pól po sukcesie
+                Content.Nazwa = string.Empty;
+                Content.PunktTelefon = string.Empty;
+                SelectedSalonId = null;
+
+                _context = new EditContext(Content); // Reset walidacji
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Błąd: {ex.Message}");
+                await ShowDialogAsync(ex.Message, isError: true);
+                Message = $"Błąd: {ex.Message}";
+            }
+            finally
+            {
+                IsLoading = false;
+            }
+        }
+        else
+        {
+            Console.WriteLine("EditContext Validation NOT OK!...");
+        }
+    }
+
+    private async Task ShowDialogAsync(string message, bool isError)
+    {
+        var dialog = isError
+            ? await DialogService.ShowErrorAsync(message) // Dialog dla błędu
+            : await DialogService.ShowSuccessAsync(message); // Dialog dla sukcesu
+
+        var result = await dialog.Result;
+    }
+
+    private class Salon
+    {
+        public string Name { get; set; }
+        public string Id { get; set; }
+        public bool IsSelected { get; set; }
+    }
+}

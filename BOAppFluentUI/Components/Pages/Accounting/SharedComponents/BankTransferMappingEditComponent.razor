@@ -1,0 +1,247 @@
+﻿@using Application.CQRS.AccountingCQRS.CostCenters.Queries
+@using Application.CQRS.AccountingCQRS.GLAccounts.Queries
+@using Application.CQRS.AccountingCQRS.VATRates.Queries
+@using Application.CQRS.General.Organisations.Queries
+@using Application.Forms.Accounting.Enums
+@using Application.ViewModels.Accounting
+@using Application.ViewModels.General
+<div class = "tableBT-wrapper" >
+    <table class="table-container" style="width: 1000px;">
+        <thead>
+            <tr class="table-header-left">
+                <th style="width: 150px;">Data księgowania</th>
+                <th style="width: 150px;">Data waluta</th>
+                <th style="width: 150px;">Formularz SAP</th>
+                @* <th style="width: 150px;">MPK</th> *@
+                <th style="width: 150px;">KontoGL</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr >
+                <td>
+                    <FluentDatePicker  Disabled="@DisabledPostingDate"
+                    @bind-Value="@BTItem.PostingDate" 
+                    Style="width: 200px;" />
+                </td>
+                <td>
+                    <FluentDatePicker  Disabled = "@DisabledCurrencyExchangeDate"
+                    @bind-Value="@BTItem.CurrencyExchangeDate"
+                    Style="width: 200px;"
+                    />
+
+                </td>
+                <td>
+                    <FluentAutocomplete TOption="string"
+                    Disabled="@DisabledSapFormType"
+                    SelectValueOnTab="true"
+                    AutoComplete="on"
+                    OnOptionsSearch="@OnSapFormTypeSearch"
+                    Placeholder="..."
+                    MaximumSelectedOptions="1"
+
+                    @bind-SelectedOptions="@_selectedSapFormType"
+                    @bind-SelectedOptions:after="@HandleSapFormTypeChange"
+                    Width="200px"
+                    class="left-align-text" />
+                </td>
+@*                 <td>
+                    <FluentAutocomplete TOption="CostCenterVm"
+                    Disabled="@DisabledCostCenter"
+                    SelectValueOnTab="true"
+                    AutoComplete="on"
+                    OnOptionsSearch="@OnCostCenterSearch"
+                    Placeholder="Wybierz MPK..."
+                    MaximumSelectedOptions="1"
+                    OptionText="@(p => p.MPK + ' ' + p.Description)"
+                    @bind-SelectedOptions="@_selectedCostCenter"
+                    @bind-SelectedOptions:after="@HandleCostCenterChange"
+                    Width="200px"
+                    class="left-align-text" />
+                </td> *@
+                <td>
+                    <FluentAutocomplete TOption="GLAccountVm"
+                    Disabled="@DisabledGlAccount"
+                    SelectValueOnTab="true"
+                    AutoComplete="on"
+                    OnOptionsSearch="@OnGLAccountSearch"
+                    Placeholder="Wybierz konto..."
+                    MaximumSelectedOptions="1"
+                    OptionText="@(p => p.AccountNumber + ' ' + p.Description)"
+                    @bind-SelectedOptions="@_selectedGlAccount"
+                    @bind-SelectedOptions:after="@HandleGlAccountChange"
+                    Width="200px"
+                    class="left-align-text" />
+                </td>
+
+            </tr>
+        </tbody>
+    </table>
+    <table class="table-container" style="width: 1000px;">
+        <thead>
+            <tr class="table-header-left">
+                <th style="width: 150px;">Wprowadzone do SAP</th>
+                <th style="width: 150px;">Sprawdzone</th>
+                <th style="width: 150px;">Numer dokumentu SAP</th>
+                <th style="width: 150px;">Klucz patności SAP</th>
+                <th style="width: 150px;">Komentarz</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td style="text-align: center;">
+                    <FluentSwitch @bind-Value="@BTItem.InSAP" Style="width: 150px;" />
+                </td>
+                <td style="text-align: center;">
+                    <FluentSwitch @bind-Value="@BTItem.TLChecked" Style="width: 150px;" />
+                </td>
+                <td>
+                    <FluentTextField @bind-Value="@BTItem.SapDocNumber" Style="width: 200px;" Required="_accountant" />
+                </td>
+                <td>
+                    <FluentTextField @bind-Value="@BTItem.SapPaymentKey" Style="width: 200px;" Required="_accountant" />
+                </td>
+                <td>
+                    <FluentTextField @bind-Value="@BTItem.Comment" Style="width: 300px;" />
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="table-container" style="width: 1000px;">
+        <thead>
+            <tr class="table-header-left">
+                <th style="width: 200px">Tytuł przelewu </th>
+                <th style="width: 200px">Księgowa </th>
+                <th style="width: 125px">Data </th>
+                <th style="width: 200px">TeamLeader </th>
+                <th style="width: 125px">Data </th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    <FluentTextField @bind-Value="@BTItem.BankTrasferTitle" Disabled="true" Style = "width: 200px;"/>
+                </td>
+                <td>
+                    <FluentTextField @bind-Value="@BTItem.AccountantName" Disabled="true" Style="width: 200px;" />
+                </td>
+                <td>
+                    <FluentTextField @bind-Value="@_accountantTime" Disabled="true" Style="width: 200px;" />
+                </td>
+                <td>
+                    <FluentTextField @bind-Value="@BTItem.AccountantTLName" Disabled="true" Style="width: 200px;" />
+                </td>
+                <td>
+                    <FluentTextField @bind-Value="@_accountantTLTime" Disabled="true" Style="width: 200px;" />
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+@code {
+    [Parameter] public BankTransferMapping BTItem { get; set; }
+    [Parameter] public bool Disabled { get; set; } = false;
+    // [Parameter] public IEnumerable<CostCenterVm> CostCenters { get; set; }
+    [Parameter] public IEnumerable<GLAccountVm> GLAccounts { get; set; }
+    [Parameter] public string FormStatus { get; set; } = string.Empty;
+    [Parameter] public FormUserContext UserContext { get; set; }
+
+    // IEnumerable<CostCenterVm> _selectedCostCenter = Array.Empty<CostCenterVm>();
+    IEnumerable<GLAccountVm> _selectedGlAccount = Array.Empty<GLAccountVm>();
+    private IQueryable<string> _sapformtypes = Enum.GetValues(typeof(SapFormType))
+    .Cast<SapFormType>().Select(c => c.ToString()).AsQueryable();
+    IEnumerable<string> _selectedSapFormType = Array.Empty<string>();
+    private bool _accountant = false;
+    private bool _accountantTL = false;
+    private string _accountantTime { get; set; } = string.Empty;
+    private string _accountantTLTime { get; set; } = string.Empty;
+    private bool DisabledPostingDate = false;
+    private bool DisabledCurrencyExchangeDate = false;
+    private bool DisabledSapFormType = false;
+    // private bool DisabledCostCenter = false;
+    private bool DisabledGlAccount = false;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        if (FormStatus == "ZaliczkaKsiegowosc" || FormStatus == "Ksiegowosc")
+        {
+            _accountant = true;
+            BTItem.AccountantEmpId = int.Parse(UserContext.EnovaEmpId);
+            BTItem.AccountantName = UserContext.LongName;
+            BTItem.AccountantEmail = UserContext.Employee.Email;
+            BTItem.AccountantTime = DateTime.Now;
+            _accountantTime = BTItem.AccountantTime.HasValue ? BTItem.AccountantTime.Value.ToString() : string.Empty;
+            _selectedGlAccount = new[] { GLAccounts.Where(g => g.AccountNumber == "240000").First() };
+            DisabledPostingDate = true;
+            DisabledCurrencyExchangeDate = true;
+        }
+        if (FormStatus == "ZaliczkaKsiegowoscTL" || FormStatus == "KsiegowoscTL")
+        {
+            _accountant = true;
+            _accountantTL = true;
+            BTItem.AccountantTLEmpId = int.Parse(UserContext.EnovaEmpId);
+            BTItem.AccountantTLName = UserContext.LongName;
+            BTItem.AccountantTLEmail = UserContext.Employee.Email;
+            BTItem.AccountantTLTime = DateTime.Now;
+            _accountantTLTime = BTItem.AccountantTLTime.HasValue ? BTItem.AccountantTLTime.Value.ToString() : string.Empty;
+
+            DisabledPostingDate = true;
+            DisabledCurrencyExchangeDate = true;
+        }
+        if(BTItem.SapFormType != null){
+            _selectedSapFormType = new List<string>() { BTItem.SapFormType };
+        }
+        // if(BTItem.CostCenter != null){
+        //     _selectedCostCenter = new List<CostCenterVm> { BTItem.CostCenter };
+        // }
+        if(BTItem.GLAccount != null){
+            _selectedGlAccount = new List<GLAccountVm> { BTItem.GLAccount };
+        }
+
+    }
+
+    // private void HandleCostCenterChange()
+    // {
+    //     BTItem.CostCenter = _selectedCostCenter.FirstOrDefault();
+
+    //     // Console.WriteLine();
+    // }
+    private void HandleGlAccountChange()
+    {
+        BTItem.GLAccount = _selectedGlAccount.FirstOrDefault();
+
+        // Console.WriteLine();
+    }
+    private void HandleSapFormTypeChange()
+    {
+        BTItem.SapFormType = _selectedSapFormType.FirstOrDefault();
+
+        // Console.WriteLine();
+    }
+
+    private void OnSapFormTypeSearch(OptionsSearchEventArgs<string> e)
+    {
+        e.Items = _sapformtypes
+        .Where(g => g.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
+    }
+    // private void OnCostCenterSearch(OptionsSearchEventArgs<CostCenterVm> e)
+    // {
+    //     e.Items = CostCenters
+    //     .Where(g => g.MPK.Contains(e.Text, StringComparison.OrdinalIgnoreCase)
+    //     || g.Description.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
+    // }
+    private void OnGLAccountSearch(OptionsSearchEventArgs<GLAccountVm> e)
+    {
+        e.Items = GLAccounts.Where(g => g.AccountNumber.Contains(e.Text, StringComparison.OrdinalIgnoreCase)
+        || g.Description.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
+    }
+}
+
+<style>
+    .left-align-text .fluent-option {
+        text-align: left;
+    }
+
+</style>

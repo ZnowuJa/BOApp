@@ -1,0 +1,54 @@
+﻿<h5>Select Employee role:</h5>
+<FluentSpacer/>
+<div class="roles-container">
+        @foreach (var role in AllRoles)
+        {
+            <div class="role-item">
+                
+                <FluentCheckbox 
+                    Value = "SelectedRoles.Contains(role)" 
+                    ValueChanged = "@(e => ToggleRoleSelection(role, e))"
+                    />
+            <FluentSpacer Width="20"/>
+                <FluentLabel>@role</FluentLabel>
+            </div>
+            
+        }
+</div>
+@code {
+    [Parameter]
+    public List<string> SelectedRoles { get; set; }
+    [Parameter]
+    public List<string> AllRoles { get; set; }
+
+    private void ToggleRoleSelection (string role, bool isSelected)
+    {
+        if (isSelected)
+        {
+            SelectedRoles.Add(role);
+        }
+        else
+        {
+            SelectedRoles.Remove(role);
+        }
+    }
+
+}
+
+
+<style>
+    .roles-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+
+    .role-item {
+        display: flex;
+        align-items: center;
+    }
+
+    .role-item FluentCheckbox {
+        margin-right: 10px; /* Adjust the value as needed */
+    }
+</style>

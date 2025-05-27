@@ -1,0 +1,294 @@
+﻿@page "/accountingnote2"
+@* Accounting Note Edit Component *@
+@using Application.CQRS.ITWarehouseCQRS.Companies.Queries
+@using Application.Forms
+@using Application.CQRS.ITWarehouseCQRS.Employees.Queries
+@using Application.ViewModels.Accounting
+@using Application.ViewModels.General
+@using Microsoft.AspNetCore.Authorization
+@using System.Security.Claims
+@using Application.Interfaces
+
+@inject IMediator _mediator
+@* @implements IDialogContentComponent<AccountingNoteFormVm> *@
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+
+<EditForm EditContext="_editContext">
+<div class="form-container">
+    <div class="form-header">
+        <h2 style="text-align: center;">Noty księgowe</h2>
+        <div class="form-subheader">
+            <div>Informacje Ogólne</div>
+            <div>Status: @Content.Status | Numer: @Content.NoteNumber</div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="ServiceAdvisor">Doradca serwisowy:</label>
+        <FluentTextField Id="ServiceAdvisor" @bind-Value="@Content.ServiceAdvisor" Width="300px" Height="250px" />
+    </div>
+
+    <div class="form-group">
+        <label for="OrgId">Dealer:</label>
+        <FluentCombobox TOption="string" Items="@orgs" Id="OrgId" Width="300px" Height="250px" @bind-Value="@Content.Dealer" />
+    </div>
+
+    <div class="form-group">
+        <label for="InsurerId">Ubezpieczyciel:</label>
+        <FluentCombobox TOption="string" Items="@insurer" Id="InsurerId" Width="300px" Height="250px" @bind-Value="@Content.Insurer" />
+    </div>
+
+    <div class="form-group">
+        <label for="NoteDate">Data:</label>
+        <FluentDatePicker Id="NoteDate" @bind-Value="@SelectedValue" />
+    </div>
+
+    <div class="form-group">
+        <label for="VIN">VIN:</label>
+        <FluentTextField Id="VIN" @bind-Value="@Content.VIN" Placeholder="Wpisz VIN" />
+    </div>
+
+    <div class="form-group">
+        <label for="Registration">Rejestracja:</label>
+        <FluentTextField Id="Registration" @bind-Value="@Content.Registration" Placeholder="Wpisz rejestrację" />
+    </div>
+
+    <div class="form-group">
+        <label for="OrderNumber">Numer zlecenia:</label>
+        <FluentTextField Id="OrderNumber" @bind-Value="Content.OrderNumber" Placeholder="Wpisz numer zlecenia" />
+    </div>
+
+    <div class="form-group">
+        <label for="DamageNumber">Numer szkody:</label>
+        <FluentTextField Id="DamageNumber" @bind-Value="Content.DamageNumber" Placeholder="Wpisz numer szkody" />
+    </div>
+
+    <div class="form-group">
+        <label for="PaymentMethod">Metoda płatności:</label>
+        <FluentSelect Id="PaymentMethod"
+                      Items=@PaymentMethodsInt
+                      OptionText="@(i => i.Text)"
+                      OptionValue="@(a => a.Value.ToString())"
+                      OptionSelected="@(a => a.Selected)"
+                      @bind-Value="@PaymentCashString"
+                      @bind-Value:after="@OnPaymentChanged" />
+    </div>
+
+    <div class="form-group">
+        <label for="Amount">Kwota:</label>
+        <FluentNumberField Id="Amount" @bind-Value="Content.Amount" Placeholder="Wpisz kwotę" />
+    </div>
+
+    <div class="form-group">
+        <label for="PaymentDueDate">Termin płatności:</label>
+        <FluentDatePicker Id="PaymentDueDate" @bind-Value="@SelectedValueTo" />
+    </div>
+
+    <div class="form-group">
+        <label for="NoteText">Treść noty:</label>
+        <FluentTextField Id="NoteText" />
+    </div>
+
+    <div class="form-group">
+        <label for="FileUpload">Załącznik:</label>
+        <FluentInputFile @ref="@myFileUploader"
+                         Id="FileUpload"
+                         DragDropZoneVisible="false"
+                         Mode="InputFileMode.SaveToTemporaryFolder"
+                         Multiple="true"
+                         AnchorId="MyUploadLoadingButton"
+                         MaximumFileSize="@(100 * 1024 * 1024)"
+                         Accept=".mp4, .mov, .avi"
+                         OnProgressChange="@(e => {
+                             _formUploading = true;
+                             progressPercent = e.ProgressPercent;
+                             progressTitle = e.ProgressTitle;
+                         })"
+                         OnCompleted="@OnCompleted" />
+        <FluentProgress Min="0" Max="100" Visible="@(progressPercent > 0)" Value="@progressPercent" />
+        <FluentLabel Alignment="HorizontalAlignment.Center">
+            @progressTitle
+        </FluentLabel>
+        <FluentButton Id="MyUploadLoadingButton" Loading="_formUploading" Appearance="Appearance.Accent">
+            Wybierz...
+        </FluentButton>
+    </div>
+
+    @if (Files.Any())
+    {
+        <div class="form-group">
+            <h4>Plik(i) przesłane:</h4>
+            <ul>
+                @foreach (var file in Files)
+                {
+                    <li>
+                        <b>@file.Name</b> 🔹
+                        @($"{Decimal.Divide(file.Size, 1024):N} KB") 🔹
+                        @file.ContentType 🔹
+                        @file.LocalFile?.FullName
+                        @file.ErrorMessage
+                    </li>
+                }
+            </ul>
+        </div>
+    }
+</div>
+
+</EditForm>
+
+
+@code {
+    [Parameter] public int Id { get; set; }
+    private EditContext _editContext;
+    private bool isLoading { get; set; } = true;
+    public AccountingNoteFormVm Content { get; set; } = new AccountingNoteFormVm();
+    private ClaimsPrincipal? user { get; set; }
+    private string username { get; set; }
+    private EmployeeVm emp { get; set; }
+    private DateTime? SelectedValue { get; set; } = DateTime.Today;
+    private DateTime? SelectedValueTo { get; set; } = DateTime.Today.AddDays(14);
+    private IQueryable<CompanyVm> itemCompaniesList { get; set; }
+
+    private CompanyVm selectedCompany;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _editContext = new EditContext(Content);
+        var dealIq = await _mediator.Send(new GetAllCompaniesByTypeIdQuery(4));
+        orgs = dealIq.Select(dealer => dealer.Name).AsQueryable();
+
+        var insurerIq = await _mediator.Send(new GetAllCompaniesByTypeIdQuery(2));
+        insurer = insurerIq.Select(dealer => dealer.Name).AsQueryable();
+
+        // Console.WriteLine($"Liczba elementów: {itemCompaniesList.Count()}");
+        // foreach (var company in itemCompaniesList)
+        // {
+        //     Console.WriteLine($"Firma: {company.Name} (ID: {company.Id})");
+        // }
+
+        GenerateNoteNumber();
+        await RefreshClaims();
+    }
+    private IQueryable<string> orgs { get; set; }
+    private IQueryable<string> insurer { get; set; }
+
+    bool _formUploading;
+    FluentInputFile? myFileUploader = default!;
+    int? progressPercent;
+    string? progressTitle;
+
+    FluentInputFileEventArgs[] Files = Array.Empty<FluentInputFileEventArgs>();
+
+    public string PaymentCashString
+    {
+        get => Content.PaymentMethod;  // Teraz przechowujemy stringa
+        set => Content.PaymentMethod = value;
+    }
+    private void OnPaymentChanged()
+    {
+        Console.WriteLine("PaymentChanged");
+    }
+
+    private List<Option<int>> PaymentMethodsInt = new()
+        {
+            { new Option<int> { Value = 0, Text = "Przelew"} },
+            { new Option<int> { Value = 1, Text = "Gotówka" } },
+        };
+
+    void OnCompleted(IEnumerable<FluentInputFileEventArgs> files)
+    {
+        Files = files.ToArray();
+        progressPercent = myFileUploader!.ProgressPercent;
+        progressTitle = myFileUploader!.ProgressTitle;
+
+        // For the demo, delete these files.
+        foreach (var file in Files)
+        {
+            file.LocalFile?.Delete();
+        }
+        _formUploading = false;
+        StateHasChanged();
+    }
+
+    // private void HandleCompanyChange(ChangeEventArgs e)
+    // {
+    //     var selectedComapany = itemCompaniesList.FirstOrDefault(c => c.Id == int.Parse(e.Value.ToString()));
+    //     Content.CompanyVmId = selectedComapany.Id;
+    //     Content.CompanyVmName = selectedComapany.Title;
+
+    // }
+
+    private async Task RefreshClaims()
+    {
+        try
+        {
+            var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authenticationState.User;
+            var nameClaim = user.Claims.FirstOrDefault(c => c.Type == "name");
+            Content.ServiceAdvisor = nameClaim?.Value;
+        }
+        catch (Exception ex)
+        {
+            // Handle any errors
+        }
+    }
+
+    private void GenerateNoteNumber()
+    {
+        var dateNow = DateTime.Now;
+        Content.NoteNumber = $"NT_{dateNow.Year - 2000:D2}{dateNow.Month:D2}{dateNow.Day:D2}_{dateNow.Hour:D2}{dateNow.Minute:D2}{dateNow.Second:D2}";
+    }
+
+    private async Task SaveAsync()
+    {
+        // Console.WriteLine("SaveAsync starts...");
+        // if (_editContext.Validate())
+        // {
+        //     Console.WriteLine("EditContext Validation OK!...");
+        //     Content.Date = SelectedValue;
+        //     await Dialog.CloseAsync(Content);
+        // }
+        // else
+        // {
+        //     Console.WriteLine("EditContext Validation NOT OK!...");
+        //     return;
+        // }
+        // if (Content.Id != 0)
+        // {
+        //     await Dialog.CloseAsync(Content);
+        // }
+    }
+}
+
+<style>
+    .form-container {
+    max-width: 800px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1.2em;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group label {
+    font-weight: 600;
+    margin-bottom: 0.3em;
+}
+
+.form-header {
+    margin-bottom: 2em;
+}
+
+.form-subheader {
+    display: flex;
+    justify-content: space-between;
+    font-size: 1.1em;
+    font-weight: 500;
+}
+
+</style>

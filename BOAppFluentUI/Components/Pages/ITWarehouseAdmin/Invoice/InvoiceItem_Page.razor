@@ -1,0 +1,274 @@
+﻿@page "/invoiceitems"
+@using Application.ITWarehouseCQRS.InvoiceItems.Queries
+@using Application.ITWarehouseCQRS.Invoices.Commands
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize(Policy = "Technician")]
+
+@inject IMediator _mediator
+@inject ILogger<InvoiceItem_Page> _logger
+@inject IDialogService _dialogService
+@inject IToastService _toastService
+
+
+<h3>Invoice Items</h3>
+
+@if (invoiceItems == null)
+{
+    <FluentProgressRing>Loading...</FluentProgressRing>
+
+}
+else
+{
+    <p>
+        <FluentStack Orientation="Orientation.Horizontal">
+            <FluentLabel Typo="Typography.Subject"> Show columns:  </FluentLabel>
+            <FluentCheckbox @bind-Value="@shName" Label="Item Name" />
+            <FluentCheckbox @bind-Value="@shPart" Label="Part Name" />
+            <FluentCheckbox @bind-Value="@shUnit" Label="Unit" />
+            <FluentCheckbox @bind-Value="@shInvId" Label="Invoice Id" />
+            <FluentCheckbox @bind-Value="@shCurrency" Label="Currency" />
+            <FluentCheckbox @bind-Value="@applyFilterBasedOnAssets" Label="Filter assets by generated" />
+            @if (applyFilterBasedOnAssets)
+            {
+                <FluentCheckbox @bind-Value="@shAssetsNotGenerate" Label="Assets generated" />
+            }
+        </FluentStack>
+
+    </p>
+
+    <FluentDataGrid Items="@filteredInvoiceItems" Pagination="@pagination" TGridItem="InvoiceItemVm" GridTemplateColumns="80px repeat(4, 1fr) 0.5fr 0.5fr" ResizableColumns=true>
+
+        <PropertyColumn Property="@(c => c.Id)" Sortable="true" InitialSortDirection="SortDirection.Descending" Align="Align.Start" Title="Id" Tooltip="true" IsDefaultSortColumn=true />
+
+        @* Item Name *@
+        @if (shName)
+        {
+            <PropertyColumn Title="Item Name" Property="@(c => c.Name)" Sortable="true" Align="Align.Start" Tooltip="true" Filtered="!string.IsNullOrWhiteSpace(nameFilter)">
+                <ColumnOptions>
+                    <div class="search-box">
+                        <FluentSearch type="search" Autofocus=true @bind-Value=nameFilter @oninput="(args) => HandleFilter(ref nameFilter, args)" @bind-Value:after="@(() => HandleClearFilter(ref nameFilter))" Placeholder="item name..." />
+                    </div>
+                </ColumnOptions>
+            </PropertyColumn>
+        }
+        @* Part Name *@
+        @if (shPart)
+        {
+            <PropertyColumn Title="Part Name" Property="@(c => c.PartVmName)" Sortable="true" Align="Align.Start" Tooltip="true" Filtered="!string.IsNullOrWhiteSpace(partFilter)">
+                <ColumnOptions>
+                    <div class="search-box">
+                        <FluentSearch type="search" Autofocus=true @bind-Value=partFilter @oninput="(args) => HandleFilter(ref partFilter, args)" @bind-Value:after="@(() => HandleClearFilter(ref partFilter))" Placeholder="enter part name..." />
+                    </div>
+                </ColumnOptions>
+            </PropertyColumn>
+        }
+        @* Unit Name *@
+        @if (shUnit)
+        {
+            <PropertyColumn Title="Unit Name" Property="@(c => c.UnitVmName)" Sortable="true" Align="Align.Start" Tooltip="true" Filtered="!string.IsNullOrWhiteSpace(unitFilter)">
+                <ColumnOptions>
+                    <div class="search-box">
+                        <FluentSearch type="search" Autofocus=true @bind-Value=unitFilter @oninput="(args) => HandleFilter(ref unitFilter, args)" @bind-Value:after="@(() => HandleClearFilter(ref unitFilter))" Placeholder="unit..." />
+                    </div>
+                </ColumnOptions>
+            </PropertyColumn>
+        }
+        @* Invoice Id *@
+        @if (shInvId)
+        {
+            <PropertyColumn Title="Invoice Id" Property="@(c => c.InvoiceVmId)" Sortable="true" Align="Align.Start" Tooltip="true">
+
+            </PropertyColumn>
+        }
+        @* Currency *@
+        @if (shCurrency)
+        {
+            <PropertyColumn Title="Currency" Property="@(c => c.CurrencyVm.Name)" Sortable="true" Align="Align.Start" Tooltip="true">
+
+            </PropertyColumn>
+        }
+
+        <TemplateColumn Title="Actions" Align="Align.End">
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" />
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => EditType(context))" />
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" />
+
+        </TemplateColumn>
+    </FluentDataGrid>
+    <FluentPaginator State="@pagination" />
+
+}
+
+@code {
+    #region InitComponent
+    private IQueryable<InvoiceItemVm> invoiceItems;
+    private IQueryable<InvoiceItemVm> filteredInvoiceItems => invoiceItems
+        .Where(x =>
+            (string.IsNullOrEmpty(nameFilter) || x.Name.Contains(nameFilter, StringComparison.CurrentCultureIgnoreCase)) &&
+            (string.IsNullOrEmpty(partFilter) || x.PartVmName.Contains(partFilter, StringComparison.CurrentCultureIgnoreCase)) &&
+            (string.IsNullOrEmpty(invoiceIdFilter) || x.InvoiceVmId.ToString().Contains(invoiceIdFilter, StringComparison.CurrentCultureIgnoreCase)) &&
+            ((applyFilterBasedOnAssets && x.ItemsGenerated == shAssetsNotGenerate) || !applyFilterBasedOnAssets));
+
+    PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
+
+    private string nameFilter = string.Empty;
+    private string partFilter = string.Empty;
+    private string invoiceIdFilter = string.Empty;
+    private string unitFilter = string.Empty;
+
+    private string currencyFilter = string.Empty;
+
+    bool shName = true;
+    bool shPart = true;
+    bool shUnit = true;
+    bool shInvId = true;
+    bool shCurrency = true;
+    bool shAssetsNotGenerate = false;
+    bool applyFilterBasedOnAssets = false;
+    #endregion InitComponent
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Load();
+    }
+    private async Task Load()
+    {
+        invoiceItems = await _mediator.Send(new GetAllInvoiceItemsQuery());
+        StateHasChanged();
+    }
+
+    private void HandleClearFilter(ref string filter) => filter = string.IsNullOrWhiteSpace(filter) ? string.Empty : filter;
+
+    private void HandleFilter(ref string filter, ChangeEventArgs args) => filter = args.Value is string value ? value : string.Empty;
+
+    // private async Task filterNotGenerated()
+    // {
+
+    //     var x = invoiceItems.Where(p => p.ItemsGenerated != true);
+    //     filteredInvoiceItems = x;
+
+    // }
+
+    private async Task EditType(InvoiceItemVm item)
+    {
+        ToastIntent intent;
+        string message = string.Empty;
+        int i = 0;
+        var data = item;
+
+        if (item.Id > 0)
+        {
+            data = await _mediator.Send(new GetInvoiceItemQuery(item.Id));
+        }
+
+        var dialog = await _dialogService.ShowDialogAsync<InvoiceItem_Edit_Component>(data, new DialogParameters()
+            {
+                Height = "700px",
+                Width = "1024px",
+                Title = data.Id > 0 ? "Edit Invoice Item..." : "Create Invoice Item...",
+                PreventDismissOnOverlayClick = false,
+                PreventScroll = true,
+            });
+        var result = await dialog.Result;
+
+        if (!result.Cancelled && result.Data != null)
+        {
+            var editedItem = (InvoiceItemVm)result.Data;
+
+            if (editedItem.Id > 0 )
+            {
+                if(editedItem.Name == null)
+                {
+                    editedItem.Name = string.Empty;
+                }
+                i = await _mediator.Send(new UpdateInvoiceItemCommand(
+                    editedItem.Id,
+                    editedItem.Name,
+                    editedItem.PartVmId,
+                    editedItem.Qty,
+                    editedItem.UnitVmId,
+                    editedItem.UnitNetPrice,
+                    editedItem.CurrencyVmId,
+                    editedItem.InvoiceVmId,
+                    editedItem.ItemsGenerated,
+                    editedItem.Leasing,
+                    editedItem.EndOfContract
+
+                
+                ));
+                intent = ToastIntent.Success;
+                message = "Invoice has been updated!";
+            }
+            // else if (editedItem.Id == 0)
+            // {
+
+            //     i = await _mediator.Send(new CreateInvoiceCommand(
+            //         editedItem.Number,
+            //         editedItem.CompanyVmId,
+            //         date,  // Use the non-nullable DateTime value
+            //         editedItem.TotalNet,
+            //         editedItem.CurrencyVmId));
+            //     intent = ToastIntent.Success;
+            //     message = "Invoice has been Created!";
+            // }
+            else
+            {
+                intent = ToastIntent.Warning;
+                message = "Something went really wrong!";
+            }
+        }
+        else if (result.Cancelled)
+        {
+            intent = ToastIntent.Info;
+            message = "Update Cancelled...";
+        }
+        else
+        {
+            intent = ToastIntent.Error;
+            message = "Something went wrong!!!";
+        }
+
+        await Load();
+        _toastService.ShowToast(intent, message, 3000);
+
+        Console.WriteLine(result.GetType());
+    }
+
+    // private async Task AddPanel()
+    // {
+    //     var item = new InvoiceVm { Id = 0, Number = string.Empty, CompanyVm = new CompanyVm(), currencyVm = new currencyVm(), TotalNet = new decimal(), Date = new DateTime() };
+    //     item.Date = DateTime.Today;
+    //     item.currencyVm = await _mediator.Send(new GetCurrencyQuery(1));
+    //     item.InvoiceItems = new List<InvoiceItemVm>();
+
+    //     await EditType(item);
+    // }
+
+    private async Task View(InvoiceItemVm item)
+    {
+        await _dialogService.ShowInfoAsync(message: $"InvoiceItem id: {item.Id}, name: {item.Name}, currency name: {item.CurrencyVm.Name}, Invoice Id: {item.InvoiceVmId}");
+    }
+
+    private async Task Delete(InvoiceItemVm item)
+    {
+        ToastIntent intent;
+        string message = string.Empty;
+
+        var i = await _mediator.Send(new DeleteInvoiceItemCommand(item.Id));
+
+        if (i == item.Id)
+        {
+            intent = ToastIntent.Success;
+            message = "Invoice has been deleted!";
+        }
+        else
+        {
+            intent = ToastIntent.Error;
+            message = "Something went wrong!!!";
+        }
+        await Load();
+        _toastService.ShowToast(intent, message, 3000);
+
+    }
+}

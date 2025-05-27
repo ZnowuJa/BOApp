@@ -1,0 +1,86 @@
+@using Application.CQRS.ITToolsCQRS.LicenceAutoStacja.Command
+@using Application.CQRS.ITToolsCQRS.LicenceAutoStacja.Queries
+@using Application.ViewModels.AutoStacja
+
+@inject IMediator _mediator
+
+<h3>Przypisanie komputera</h3>
+
+<EditForm EditContext="_editContext">
+    <DataAnnotationsValidator/>
+    <FluentTextField @bind-Value="Content.Nazwa" Label="Nazwa licencji"></FluentTextField>
+    <FluentValidationMessage For="@(() => Content.Nazwa)" />
+    <FluentTextField @bind-Value="Content.PunktTelefon" Label="Nazwa komputera"></FluentTextField>
+    <FluentValidationMessage For="@(() => Content.PunktTelefon)" />
+    <div>
+    <FluentButton Appearance="Appearance.Accent" OnClick="@SaveAsync">Przypisz komputer</FluentButton>
+    </div>
+</EditForm>
+<hr style="width: 830px;" />
+@if (isLoading)
+{
+    <div style="margin-top: 1rem;">
+        <FluentProgressRing />
+    </div>
+}
+else if (!string.IsNullOrEmpty(Message))
+{
+    <div>
+        <p>@Message</p>
+    </div>
+}
+
+@code {
+    private MysystemPunktVm Content { get; set; } = new MysystemPunktVm();
+    private EditContext _editContext;
+    private string Message { get; set; }
+    private string checkLicence { get; set; }
+    private bool isLoading = false;
+
+    protected override void OnInitialized()
+    {
+        _editContext = new EditContext(Content);
+    }
+    
+    private async Task SaveAsync()
+    {
+        Content.Nazwa = Content.Nazwa?.Trim().ToUpper();
+        Content.PunktTelefon = Content.PunktTelefon?.Trim().ToUpper();
+        //Console.WriteLine("SaveAsync starts...");
+        if (_editContext.Validate())
+        {
+            isLoading = true;
+            StateHasChanged();
+            try
+            {
+                //Console.WriteLine("EditContext Validation OK!...");
+                var result = await _mediator.Send(new CheckLicenseQuery(Content.Nazwa));
+
+                if (result)
+                {
+                    checkLicence = $"Licencja {Content.Nazwa} istnieje";
+                    await _mediator.Send(new AssignLicenseCommand(Content.Nazwa, Content.PunktTelefon));
+                    Message = $"Przypisano komputer {Content.PunktTelefon} do licencji {Content.Nazwa}";
+                }
+                else
+                {
+                    Message = "System nie może znaleźć podanej licencji";
+                }
+            }
+            catch (Exception ex)
+            {
+                //Console.WriteLine($"Błąd: {ex.Message}");
+                Message = $"Błąd: {ex.Message}";
+            }
+            finally
+            {
+                isLoading = false;
+                StateHasChanged();
+            }
+        }
+        else
+        {
+            //Console.WriteLine("EditContext Validation NOT OK!...");
+        }
+    }
+}

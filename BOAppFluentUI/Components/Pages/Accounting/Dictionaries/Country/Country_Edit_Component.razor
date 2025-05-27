@@ -1,0 +1,243 @@
+﻿@* Country Edit Component *@
+@using Application.ViewModels.Accounting
+@using Application.CQRS.ITWarehouseCQRS.Currencies.Queries
+@using Application.DTOs
+@using Application.ViewModels
+@using MediatR
+
+@inject IMediator _mediator
+@implements IDialogContentComponent<CountryVm>
+
+<!-- Header -->
+<FluentDialogHeader ShowDismiss="true">
+    <FluentStack VerticalAlignment="VerticalAlignment.Center">
+        <FluentIcon Value="@(new Icons.Regular.Size24.WindowApps())" />
+        <FluentLabel Typo="Typography.PaneHeader">
+            @Dialog.Instance.Parameters.Title
+        </FluentLabel>
+    </FluentStack>
+</FluentDialogHeader>
+
+<!-- Body -->
+<FluentDialogBody Orientation="Orientation.Horizontal">
+    <EditForm EditContext="_editContext">
+        <DataAnnotationsValidator />
+        <FluentGrid Justify="@Justification">
+            <FluentGridItem xs="6" sm="6">
+                <div class="card">
+                    <FluentTextField Id="Code" @bind-Value="@Content.CountryCode" Placeholder="Wpisz kod państwa">
+                        Kod państwa:
+                    </FluentTextField>
+                    <FluentValidationMessage For="@(() => Content.CountryCode)" />
+                </div>
+
+                <div class="card">
+                    <FluentTextField Id="Name" @bind-Value="@Content.Name" Placeholder="Wpisz nazwę państwa">
+                        Państwo:
+                    </FluentTextField>
+                    <FluentValidationMessage For="@(() => Content.Name)" />
+                </div>
+
+                <div class="card">
+                    <FluentCheckbox Id="IsPL" Value="Content.IsPL" ValueChanged="@(e => OnCheckboxChange("IsPL", e))"
+                                    Label="Czy jest to Polska?"></FluentCheckbox>
+                    <FluentValidationMessage For="@(() => Content.IsPL)" />
+                </div>
+
+                <div class="card">
+                    <FluentCheckbox Id="IsEU" Value="@Content.IsEU" ValueChanged="@(e => OnCheckboxChange("IsEU", e))"
+                                    Label="Czy należy do UE?"></FluentCheckbox>
+                    <FluentValidationMessage For="@(() => Content.IsEU)" />
+                </div>
+
+
+                <div class="card">
+                    <FluentSelect TOption="CurrencyVm"
+                                  Label="Waluta:"
+                                  Items="@itemCurrencyList"
+                                  Id="CurrencyId"
+                                  Width="150px"
+                                  Height="250px"
+                                  OptionValue="@(p => p.Id.ToString())"
+                                  OptionText="@(p => p.Name)"
+                                  @bind-SelectedOption="@Content.currencyVm"
+                                  @onchange="onChangeCurrency" />
+                </div>
+            </FluentGridItem>
+
+            <FluentGridItem xs="6" sm="6">
+                <div class="card">
+                    <FluentNumberField Id="Allowance"
+                                       Value="Content.Allowance"
+                                       ValueChanged="@((decimal e) => OnAmountChange(e))"
+                                       Placeholder="Wpisz wysokość diety">
+                        Wysokość diety:
+                    </FluentNumberField>
+                    <FluentValidationMessage For="@(() => Content.Allowance)" />
+                </div>
+
+                <div class="card">
+                    <FluentNumberField Id="MaxHotelCost" @bind-Value="@Content.MaxHotelCost">
+                        Maksymalny koszt hotelu:
+                    </FluentNumberField>
+                    <FluentValidationMessage For="@(() => Content.MaxHotelCost)" />
+                </div>
+
+                <div class="card">
+                    <FluentNumberField Id="TravelAllowance" @bind-Value="@Content.TravelAllowance">
+                        Dieta podróżna:
+                    </FluentNumberField>
+                    <FluentValidationMessage For="@(() => Content.TravelAllowance)" />
+                </div>
+                @*                 <div class="card">
+                    <FluentNumberField Id="LocalTravelAllowance" @bind-Value:get="@Content.LocalTravelAllowance">
+                        Dieta za podróż lokalną:
+                    </FluentNumberField>
+                    <FluentValidationMessage For="@(() => Content.LocalTravelAllowance)" />
+                </div> *@
+            </FluentGridItem>
+
+        </FluentGrid>
+
+    </EditForm>
+</FluentDialogBody>
+
+<!-- Footer -->
+<FluentDialogFooter>
+    <FluentButton Appearance="Appearance.Accent" OnClick="@SaveAsync" Disabled="isCalculated">Zapisz</FluentButton>
+    <FluentButton Appearance="Appearance.Neutral" OnClick="@CancelAsync">Anuluj</FluentButton>
+</FluentDialogFooter>
+
+@code {
+    [Parameter] public CountryVm Content { get; set; } = default!;
+
+    [CascadingParameter] public FluentDialog Dialog { get; set; } = default!;
+
+
+    private EditContext _editContext;
+    private FluentValidationValidator? _fluentValidator;
+    private IQueryable<CurrencyVm> itemCurrencyList { get; set; }
+    JustifyContent Justification = JustifyContent.FlexStart;
+    private bool isCalculated = true;
+    bool isPL, isEU;
+    Orientation orientation = Orientation.Horizontal;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _editContext = new EditContext(Content);
+        itemCurrencyList = await _mediator.Send(new GetAllCurrenciesForSelectQuery());
+        isCalculated = Content.Id <= 0;
+        base.OnInitialized();
+    }
+
+    // private void ChangeEditMode()
+    // {
+    //     editMode = !editMode;
+    // }
+
+    private void onChangeCurrency(ChangeEventArgs e)
+    {
+        var selected = itemCurrencyList.FirstOrDefault(c => c.Id == int.Parse(e.Value.ToString()));
+        Content.CurrencyId = selected.Id;
+        Content.CurrencyVmName = selected.Name;
+        // Console.WriteLine("e.Value " + e.Value);
+        // Console.WriteLine("Przed: " + Content.CurrencyVm.Id + " " + Content.CurrencyVm.Title);
+        // Console.WriteLine("Po: " + Content.CurrencyVmId + " " + Content.CurrencyVmName);
+    }
+
+    // private void HandleCurrencyChange(string newValue)
+    // {
+    //     if (Content.CurrencyVm.Id != null)
+    //     {
+    //         Content.CurrencyVmId = Content.CurrencyVm.Id;
+    //     }
+    //     else
+    //     {
+    //         Content.CurrencyVmId = 1;
+    //     }
+
+    // }
+
+
+    private void OnCheckboxChange(string fieldName, bool newValue)
+    {
+        Console.WriteLine($"Checkbox changed: {fieldName} = {newValue}");
+
+        if (fieldName == "IsPL")
+        {
+            Content.IsPL = newValue;
+        }
+        else if (fieldName == "IsEU")
+        {
+            Content.IsEU = newValue;
+        }
+
+        CalculateFields();
+    }
+
+    private void OnAmountChange(decimal newAmount)
+    {
+        Console.WriteLine($"Amount changed: Allowance = {newAmount}");
+        Content.Allowance = newAmount;
+        CalculateFields();
+    }
+
+    private void CalculateFields()
+    {
+        Console.WriteLine($"Calculating fields for Allowance: {Content.Allowance}");
+        if (Content.IsPL)
+        {
+            Console.WriteLine("Using PL rules");
+            Content.TravelAllowance = Content.Allowance * 0;
+            // Content.LocalTravelAllowance = Content.Allowance * 0.2m;
+            isCalculated = false;
+        }
+        else if (!Content.IsPL)
+        {
+            Console.WriteLine("Using EU rules");
+            Content.TravelAllowance = Content.Allowance * 0.5m;
+            // Content.LocalTravelAllowance = Content.Allowance * 0.1m;
+            isCalculated = false;
+        }
+        else
+        {
+            Console.WriteLine("Clearing fields");
+            Clear();
+        }
+    }
+
+    private void Clear()
+    {
+        Content.TravelAllowance = 0;
+        // Content.LocalTravelAllowance = 0;
+    }
+
+    private async Task SaveAsync()
+    {
+        Console.WriteLine("SaveAsync starts...");
+        if (_editContext.Validate())
+        {
+            Console.WriteLine("EditContext Validation OK!...");
+            await Dialog.CloseAsync(Content);
+        }
+        else
+        {
+            Console.WriteLine("EditContext Validation NOT OK!...");
+            return;
+        }
+
+        if (Content.Id != 0)
+        {
+            await Dialog.CloseAsync(Content);
+        }
+    }
+
+    private async Task CancelAsync()
+    {
+        await Dialog.CancelAsync();
+    }
+
+}
+<style>
+
+</style>

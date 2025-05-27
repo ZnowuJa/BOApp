@@ -1,0 +1,262 @@
+﻿@page "/Invoices"
+@using Application.ITWarehouseCQRS.Invoices.Commands
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize(Policy = "Technician")]
+
+@inject IMediator _mediator
+@inject ILogger<Invoice_Page> _logger
+@inject IDialogService _dialogService
+@inject IToastService _toastService
+
+<h3>Invoices</h3>
+
+@if (invoices == null)
+{
+    <FluentProgressRing>Loading...</FluentProgressRing>
+
+}
+else
+{
+    <p>
+        <FluentStack Orientation="Orientation.Horizontal">
+            <FluentLabel Typo="Typography.Subject"> Show columns:  </FluentLabel>
+            <FluentCheckbox @bind-Value="@shNumber" Label="Invoice Number" />
+            <FluentCheckbox @bind-Value="@shDate" Label="Invoice Date" />
+            <FluentCheckbox @bind-Value="@shCompany" Label="Company" />
+            <FluentCheckbox @bind-Value="@shTotal" Label="Total" />
+            <FluentCheckbox @bind-Value="@shCurrency" Label="Currency" />
+        </FluentStack>
+    </p>
+
+    <FluentDataGrid Items="@filteredInvoice" Pagination="@pagination" TGridItem="InvoiceVm" GridTemplateColumns="80px repeat(4, 1fr) 0.5fr 0.5fr" ResizableColumns=true>
+        <PropertyColumn Property="@(c => c.Id)" Sortable="true" Align="Align.Start" Title="Id" Tooltip="true" InitialSortDirection="SortDirection.Descending" IsDefaultSortColumn=true />
+        @* Invoice Number *@
+        @if (shNumber)
+        {
+            <PropertyColumn Title="Invoice Number" Property="@(c => c.Number)" Sortable="true" Align="Align.Start" Tooltip="true" Filtered="!string.IsNullOrWhiteSpace(numberFilter)">
+                <ColumnOptions>
+                    <div class="search-box">
+                        <FluentSearch 
+                            type="search" 
+                            Autofocus=true 
+                            @bind-Value=numberFilter 
+                            @oninput="(args) => HandleFilter(ref numberFilter, args)" 
+                            @bind-Value:after="@(() => HandleClearFilter(ref numberFilter))" Placeholder="invoice number..." />
+                    </div>
+                </ColumnOptions>
+            </PropertyColumn>
+        }
+        @* Invoice Date*@
+        @if (shDate)
+        {
+            <PropertyColumn Title="Invoice Date" Property="@(c => c.Date.ToString())" Sortable="true" Align="Align.Start" Tooltip="true" Filtered="!string.IsNullOrWhiteSpace(dateFilter)">
+                <ColumnOptions>
+                    <div class="search-box">
+                        <FluentSearch type="search" 
+                            Autofocus=true 
+                            @bind-Value=dateFilter 
+                            @oninput="(args) => HandleFilter(ref dateFilter, args)" 
+                            @bind-Value:after="@(() => HandleClearFilter(ref dateFilter))" Placeholder="enter date..." />
+                    </div>
+                </ColumnOptions>
+            </PropertyColumn>
+        }
+        @* Company Name *@
+        @if (shCompany)
+        {
+            <PropertyColumn Title="Company Name" Property="@(c => c.CompanyVm.Name)" Sortable="true" Align="Align.Start" Tooltip="true" Filtered="!string.IsNullOrWhiteSpace(companyFilter)">
+                <ColumnOptions>
+                    <div class="search-box">
+                        <FluentSearch type="search" 
+                            Autofocus=true 
+                            @bind-Value=companyFilter 
+                            @oninput="(args) => HandleFilter(ref companyFilter, args)" 
+                            @bind-Value:after="@(() => HandleClearFilter(ref companyFilter))" Placeholder="company..." />
+                    </div>
+                </ColumnOptions>
+            </PropertyColumn>
+        }
+        @* Total *@
+        @if (shTotal)
+        {
+            <PropertyColumn Title="Total" Property="@(c => c.TotalNet)" Sortable="true" Align="Align.Start" Tooltip="true" >
+
+            </PropertyColumn>
+        }
+        @* Currency *@
+        @if(shCurrency){
+            <PropertyColumn Title="Currency" Property="@(c => c.CurrencyVm.Name)" Sortable="true" Align="Align.Start" Tooltip="true" >
+
+            </PropertyColumn>
+        }
+        
+        <TemplateColumn Title="Actions" Align="Align.End">
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" />
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => EditType(context))" />
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" />
+        </TemplateColumn>
+
+    </FluentDataGrid>
+    <FluentPaginator State="@pagination" />
+    <FluentButton IconStart="@(new Icons.Regular.Size24.Add())" OnClick="@(() => AddPanel())" />
+}
+
+@code {
+    private IQueryable<InvoiceVm> invoices;
+    private IQueryable<InvoiceVm> filteredInvoice => invoices
+        .Where(x =>
+            (string.IsNullOrEmpty(numberFilter) || x.Number.Contains(numberFilter, StringComparison.CurrentCultureIgnoreCase)) &&
+            (string.IsNullOrEmpty(dateFilter) || x.Date.ToString().Contains(dateFilter, StringComparison.CurrentCultureIgnoreCase)) &&
+            (string.IsNullOrEmpty(companyFilter) || x.CompanyVm.Name.Contains(companyFilter, StringComparison.CurrentCultureIgnoreCase)));
+
+    PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
+
+    private string numberFilter = string.Empty;
+    private string dateFilter = string.Empty;
+    private string companyFilter = string.Empty;
+
+    private string currencyFilter = string.Empty;
+
+    bool shNumber = true; 
+    bool shDate = true; 
+    bool shCompany = true; 
+    bool shTotal = true; 
+    bool shCurrency = true;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Load();
+    }
+    private async Task Load()
+    {
+        invoices = await _mediator.Send(new GetAllInvoicesQuery());
+        StateHasChanged();
+    }
+
+    private void HandleClearFilter(ref string filter) => filter = string.IsNullOrWhiteSpace(filter) ? string.Empty : filter;
+
+    private void HandleFilter(ref string filter, ChangeEventArgs args) => filter = args.Value is string value ? value : string.Empty;
+
+    private async Task EditType(InvoiceVm item)
+    {
+        ToastIntent intent;
+        string message = string.Empty;
+        int i = 0;
+        var data = item;
+
+        if(item.Id > 0)
+        {
+            data = await _mediator.Send(new GetInvoiceQuery(item.Id));
+        }
+        var original = new InvoiceVm(data);
+        var dialog = await _dialogService.ShowDialogAsync<Invoice_Edit_Component>(data, new DialogParameters()
+            {
+                Height = "850px",
+                Width = "1024px",
+                Title = data.Id > 0 ? "Update Invoice..." : "Create Invoice...",
+                PreventDismissOnOverlayClick = false,
+                PreventScroll = true,
+            });
+        var result = await dialog.Result;
+
+        if (!result.Cancelled && result.Data != null)
+        {
+            var editedItem = (InvoiceVm)result.Data;
+
+            if (editedItem.Id > 0 || editedItem.Saved)
+            {
+                if(editedItem.Number == null)
+                {
+                    editedItem.Number = string.Empty;
+                }
+                i = await _mediator.Send(new UpdateInvoiceCommand(
+                    editedItem.Id,
+                    editedItem.Number,
+                    editedItem.CompanyVmId,
+                    editedItem.Date,
+                    
+                    editedItem.TotalNet,
+                    editedItem.CurrencyVmId));
+                intent = ToastIntent.Success;
+                message = "Invoice has been updated!";
+            }
+            else if (editedItem.Id == 0)
+            {
+                if (editedItem.Number == null)
+                {
+                    editedItem.Number = string.Empty;
+                }
+
+                i = await _mediator.Send(new CreateInvoiceCommand(
+                    editedItem.Number,
+                    editedItem.CompanyVmId,
+                    editedItem.Date,  // Use the non-nullable DateTime value
+                    editedItem.TotalNet,
+                    editedItem.CurrencyVmId));
+                intent = ToastIntent.Success;
+                message = "Invoice has been Created!";
+            }
+            else
+            {
+                intent = ToastIntent.Warning;
+                message = "Something went really wrong!";
+            }
+        }
+        else if (result.Cancelled)
+        {
+            intent = ToastIntent.Info;
+            message = "Update Cancelled...";
+        }
+        else
+        {
+            intent = ToastIntent.Error;
+            message = "Something went wrong!!!";
+        }
+
+        await Load();
+        _toastService.ShowToast(intent, message, 3000);
+
+        Console.WriteLine(result.GetType());
+    }
+
+    private async Task AddPanel()
+    {   
+        var item = new InvoiceVm { Id = 0, Number = string.Empty, CompanyVm = new CompanyVm(), CurrencyVm = new CurrencyVm(), TotalNet = new decimal(), Date = new DateTime() };
+        item.Date = DateTime.Today;
+        item.CurrencyVm = await _mediator.Send(new GetCurrencyQuery(1));
+        item.InvoiceItems = new List<InvoiceItemVm>();
+
+        await EditType(item);
+    }
+
+    private async Task View(InvoiceVm item)
+    {
+        await _dialogService.ShowInfoAsync(message: $"InvoiceVm id: {item.Id}, name: {item.Number}, currency name: {item.CurrencyVm.Name}, company name: {item.CompanyVm.Name}");
+    }
+
+    private async Task Delete(InvoiceVm item)
+    {
+        ToastIntent intent;
+        string message = string.Empty;
+
+        var i = await _mediator.Send(new DeleteInvoiceCommand(item.Id));
+
+        if (i == item.Id)
+        {
+            intent = ToastIntent.Success;
+            message = "Invoice has been deleted!";
+        }
+        else
+        {
+            intent = ToastIntent.Error;
+            message = "Something went wrong!!!";
+        }
+        await Load();
+        _toastService.ShowToast(intent, message, 3000);
+
+    }
+
+
+}

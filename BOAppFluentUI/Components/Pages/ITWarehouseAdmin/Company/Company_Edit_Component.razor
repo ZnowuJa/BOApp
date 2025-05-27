@@ -1,0 +1,206 @@
+﻿@* Company Edit Component *@
+
+@using Application.CQRS.ITWarehouseCQRS.CompanyTypes.Queries
+@using MediatR
+@using Application.CQRS.ITWarehouseCQRS.Companies.Commands
+@inject IMediator _mediator;
+@implements IDialogContentComponent<CompanyVm>
+
+@* Header *@
+<FluentDialogHeader ShowDismiss="true">
+    <FluentStack VerticalAlignment="VerticalAlignment.Center">
+        <FluentIcon Value="@(new Icons.Regular.Size24.WindowApps())" />
+        <FluentLabel Typo="Typography.PaneHeader">
+            @Dialog.Instance.Parameters.Title
+        </FluentLabel>
+    </FluentStack>
+</FluentDialogHeader>
+
+@* Footer *@
+<FluentDialogFooter>
+    <FluentButton Appearance="Appearance.Accent" OnClick="@SaveAsync"
+        Disabled="@(!_editContext.Validate())">Save
+    </FluentButton>
+    <FluentButton Appearance="Appearance.Neutral" OnClick="@CancelAsync">Cancel</FluentButton>
+</FluentDialogFooter>
+
+@* Body *@
+<FluentDialogBody Orientation="Orientation.Horizontal">
+    <EditForm Model="_editContext">
+        <FluentValidationValidator @ref="_fluentValidator"/>
+
+        <FluentGrid Justify="@Justification" >
+            <FluentGridItem xs="6" sm="4">
+                <div class="card">
+                    <FluentTextField Id="Name" @bind-Value="@Content.FullName" Placeholder="Enter full name"> Full Name: </FluentTextField>
+                    <FluentValidationMessage For="@(() => Content.FullName)" />
+                </div>
+            </FluentGridItem>    
+            <FluentGridItem xs="6" sm="4">
+                <div class="card">
+                    <FluentTextField Id="Name" @bind-Value="@Content.Name" Placeholder="Enter name"> Short Name: </FluentTextField>
+                    <FluentValidationMessage For="@(() => Content.Name)" />
+                </div>
+            </FluentGridItem>
+            <FluentGridItem xs="6" sm="4">
+                <div class="card">
+                    <FluentTextField Id="VATID" @bind-Value="@Content.VATID" Placeholder="Enter VATID with country code"> VATID: </FluentTextField>
+                    <FluentValidationMessage For="@(() => Content.VATID)" />
+                </div>
+            </FluentGridItem>
+            <FluentGridItem xs="6" sm="4">
+                <div class="card">
+                    <FluentTextField Id="Street" @bind-Value="@Content.Street" Placeholder="Enter Street Name"> Street: </FluentTextField>
+                    <FluentValidationMessage For="@(() => Content.Street)" />
+                </div>
+            </FluentGridItem>
+
+            <FluentGridItem xs="6" sm="4">
+                <div class="card">
+                    <FluentTextField Id="Building" @bind-Value="@Content.Building" Placeholder="Enter Building number"> Building number: </FluentTextField>
+                    <FluentValidationMessage For="@(() => Content.Building)" />
+                </div>
+            </FluentGridItem>
+            <FluentGridItem xs="6" sm="4">
+                <div class="card">
+                    <FluentTextField Id="City" @bind-Value="@Content.City" Placeholder="Enter City"> City: </FluentTextField>
+                    <FluentValidationMessage For="@(() => Content.City)" />
+                </div>
+            </FluentGridItem>
+            <FluentGridItem xs="6" sm="4">
+                <div class="card">
+                    <FluentTextField Id="PostalCode" @bind-Value="@Content.PostalCode" Placeholder="Enter PostalCode"> Postal Code: </FluentTextField>
+                    <FluentValidationMessage For="@(() => Content.PostalCode)" />
+                </div>
+            </FluentGridItem>
+            <FluentGridItem xs="6" sm="4">
+                <div class="card">
+                    <FluentTextField Id="Country" @bind-Value="@Content.Country" Placeholder="Enter Country"> Country: </FluentTextField>
+                    <FluentValidationMessage For="@(() => Content.Country)" />
+                </div>
+            </FluentGridItem>
+
+            <FluentGridItem xs="6" sm="4">
+                <div class="card">
+                    <FluentTextField Id="CountryCode" @bind-Value="@Content.CountryCode" Placeholder="Enter Country Code"> Country Code: </FluentTextField>
+                    <FluentValidationMessage For="@(() => Content.CountryCode)" />
+                </div>
+            </FluentGridItem>
+            <FluentGridItem xs="6" sm="4">
+                <div class="card">
+                    <FluentTextField Id="ContactPerson" @bind-Value="@Content.ContactPerson" Placeholder="Enter ContactPerson"> Contact Person: </FluentTextField>
+                    <FluentValidationMessage For="@(() => Content.ContactPerson)" />
+                </div>
+            </FluentGridItem>
+            <FluentGridItem xs="6" sm="4">
+                <div class="card">
+                    <FluentTextField Id="ContactPersonMobile" @bind-Value="@Content.ContactPersonMobile" Placeholder="Enter ContactPersonMobile"> Contact Person mobile: </FluentTextField>
+                    <FluentValidationMessage For="@(() => Content.ContactPersonMobile)" />
+                </div>
+            </FluentGridItem>
+            <FluentGridItem xs="6" sm="4">
+                <div class="card">
+                    <FluentTextField Id="ContactPersonEmail" @bind-Value="@Content.ContactPersonEmail" Placeholder="Enter ContactPersonEmail"> Contact Person e-mail: </FluentTextField>
+                    <FluentValidationMessage For="@(() => Content.ContactPersonEmail)" />
+                </div>
+            </FluentGridItem>
+            <FluentGridItem xs="6" sm="4">
+                <div class="card">
+                    @{
+                        // Check if it's an Edit operation
+
+                        if (Content.Id != 0)
+                        {
+                            <FluentSelect TOption="CompanyTypeVm"
+                                          Label="Select a Company type"
+                                          Items="@itemFieldList"
+                                          Id="Id"
+                                          Width="150px"
+                                          Height="250px"
+                                          OptionValue="@(p => p.Id.ToString())"
+                                          OptionText="@(p => p.Name)"
+                                          @bind-SelectedOption="@Content.CompanyTypeVm" />
+                        }
+                        else
+                        {
+                            // For new records, don't bind SelectedOption to Content.CompanyTypeVm
+                            <FluentSelect TOption="CompanyTypeVm"
+                                          Label="Select a Company xtype"
+                                          Items="@itemFieldList"
+                                          Id="Id"
+                                          Width="150px"
+                                          Height="250px"
+                                          OptionValue="@(p => p.Id.ToString())"
+                                          OptionText="@(p => p.Name)"
+                                          @bind-SelectedOption="@SelectedOption" />
+                        }
+                    }
+
+                    <FluentValidationMessage For="@(() => Content.CompanyTypeVm.Name)" />
+                </div>
+            </FluentGridItem>
+
+
+        </FluentGrid>
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="validation-error" ><p style="color:red;">@errorMessage</p></div>
+        }
+    </EditForm>
+</FluentDialogBody>
+
+
+@code {
+    [Parameter]
+    public CompanyVm Content { get; set; } = default!;
+
+    [CascadingParameter]
+    public FluentDialog Dialog { get; set; } = default!;
+
+    JustifyContent Justification = JustifyContent.FlexStart;
+
+    private EditContext _editContext;
+
+    private FluentValidationValidator? _fluentValidator;
+    private string errorMessage;
+
+    private IQueryable<CompanyTypeVm> itemFieldList { get; set; }
+    private CompanyTypeVm SelectedOption { get; set; } = new CompanyTypeVm { };
+
+    protected override async Task OnInitializedAsync()
+    {
+        _editContext = new EditContext(Content);
+        itemFieldList = await _mediator.Send(new GetAllCompanyTypesForSelectQuery());
+        base.OnInitialized();
+    }
+
+    private async Task SaveAsync()
+    {
+        if (Content.Id != 0)
+        {
+            await Dialog.CloseAsync(Content);
+        }
+        else
+        {
+            if(SelectedOption.Id != 0)
+            {
+                Content.CompanyTypeVm = SelectedOption;
+                await Dialog.CloseAsync(Content);
+            }
+            else
+            {
+                Console.WriteLine();
+                errorMessage = "Plese select Company EmployeeTypeVm!";
+            }
+        }
+    }
+
+    private async Task CancelAsync()
+    {
+        await Dialog.CancelAsync();
+    }
+
+}
+
+

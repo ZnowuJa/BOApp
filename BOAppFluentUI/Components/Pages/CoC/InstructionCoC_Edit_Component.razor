@@ -1,0 +1,247 @@
+﻿@using Application.CQRS.CoCCQRS.GroupCoCs.Queries
+@using Application.ViewModels.CoC
+
+@inject IMediator _mediator
+@inject ILogger<InstructionCoC_Edit_Component> _logger
+@implements IDialogContentComponent<InstructionCoCVm>
+
+<FluentDialogHeader ShowDismiss="true">
+    <FluentStack VerticalAlignment="VerticalAlignment.Center">
+        <FluentIcon Value="@(new Icons.Regular.Size24.WindowApps())" />
+        <FluentLabel Typo="Typography.PaneHeader">
+            @Dialog.Instance.Parameters.Title
+        </FluentLabel>
+    </FluentStack>
+</FluentDialogHeader>
+
+<FluentDialogFooter>
+    <FluentButton Appearance="Appearance.Accent" OnClick="@SaveAsync"
+                  Disabled="@(!_editContext.Validate())">Save</FluentButton>
+    <FluentButton Appearance="Appearance.Neutral" OnClick="@CancelAsync">Cancel</FluentButton>
+</FluentDialogFooter>
+
+<FluentDialogBody>
+    <EditForm EditContext="_editContext">
+        <FluentValidationValidator @ref="_fluentValidator" />
+        
+        <FluentGrid>
+            <FluentGridItem lg="4" xl="4" xxl="4" md="4" Class="width210">
+                <FluentTextField @bind-Value="@Content.Title" Placeholder="Title" Class="width200">Title:</FluentTextField>
+                <FluentValidationMessage For="@(() => Content.Title)" />
+            </FluentGridItem>
+
+            <FluentGridItem lg="4" xl="4" xxl="4" md="4" Class="width210">
+                <FluentTextField @bind-Value="@Content.Link" Placeholder="Link" Class="width200">Link:</FluentTextField>
+                <FluentValidationMessage For="@(() => Content.Link)" />
+            </FluentGridItem>
+
+            <FluentGridItem lg="4" xl="4" xxl="4" md="4" Class="width210">
+                <FluentTextField @bind-Value="@Content.Number" Placeholder="Number" Class="width200">Number:</FluentTextField>
+                <FluentValidationMessage For="@(() => Content.Number)" />
+            </FluentGridItem>
+            
+            <FluentGridItem lg="4" xl="4" xxl ="4" md="4">
+                <FluentCombobox TOption="PriorityLevel"
+                                Autocomplete="ComboboxAutocomplete.Inline"
+                                Label="Priorytet:"
+                                Items="Enum.GetValues(typeof(PriorityLevel)).Cast<PriorityLevel>()"
+                                Id="PriorityId"
+                                Width="200px"
+                                Height="250px"
+                                OptionValue="@(p => ((int)p).ToString())"
+                                OptionText="@(p => p.ToString())"
+                                @bind-SelectedOption="@Content.Priority"
+                                ValueChanged="HandlePriorityChange"
+                >
+                </FluentCombobox>
+            </FluentGridItem>
+            
+            <FluentGridItem lg="4" xl="4" xxl ="4" md="4">
+                <FluentCombobox TOption="string"
+                                Autocomplete="ComboboxAutocomplete.Inline"
+                                Label="Kolor:"
+                                Items="@colours"
+                                Id="ColourId"
+                                Width="200px"
+                                Height="250px"
+                                OptionValue="@(p => p.ToString())"
+                                OptionText="@(p => p.ToString())"
+                                @bind-Value="@Content.Colour"
+                                
+                >
+                                
+                </FluentCombobox>
+            </FluentGridItem>
+            
+            <FluentGridItem lg="4" xl="4" xxl="4" md="4" Class="width200">
+                <FluentTextArea @bind-Value="@Content.Description" Placeholder="Description" Class="width200">DescriptionTA: </FluentTextArea>
+            </FluentGridItem>
+
+        </FluentGrid>
+        <FluentValidationMessage For="@(() => Content.Description)" />
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="validation-error"><p style="color:red;">@errorMessage</p></div>
+        }
+        <p></p>
+        <FluentDivider Style="width: 100%; height: 20px;" Role="DividerRole.Separator" Orientation="Orientation.Horizontal"></FluentDivider>
+        <FluentDataGrid Items="@Content.Groups.AsQueryable()" TGridItem="GroupCoCVm" GridTemplateColumns="50px repeat(3, 1fr)" ResizableColumns=true>
+            <PropertyColumn Property="@(p=>p.Id)" Sortable="true" Align="Align.Start" Tooltip="true" />
+            <PropertyColumn Property="@(p=>p.GroupName)" Sortable="true" Align="Align.Start" Tooltip="true" />
+            <TemplateColumn Title="Actions" Align="Align.End">
+                <ChildContent Context="rowContext">
+                @{
+                        var deleteId = $"deleteid-{rowContext.Id}";
+                }
+
+                    <FluentButton Id="@deleteId" IconEnd="@(new Icons.Regular.Size20.Delete())" Disabled="IsEditDisabled(rowContext)" OnClick="@(() => RemoveGroup(rowContext))" />
+                <FluentTooltip Anchor="@deleteId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Remove Group</FluentTooltip>
+                </ChildContent>
+            </TemplateColumn>
+        </FluentDataGrid>
+        <p></p>
+        
+        <FluentGridItem>
+            <FluentCombobox TOption="GroupCoCVm"
+                            Autocomplete="ComboboxAutocomplete.Inline"
+                            Label="Group:"
+                            Items="@itemGroups"
+                            Id="GroupId"
+                            Width="200px"
+                            Height="250px"
+                            OptionValue="@(p => p.Id.ToString())"
+                            OptionText="@(p => p.GroupName)"
+                            @bind-SelectedOption="@selectedGroup" />
+        </FluentGridItem>
+
+        <p></p>
+        <FluentButton IconStart="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddGroup())" />
+
+
+
+    </EditForm>
+</FluentDialogBody>
+
+@code {
+    [Parameter]
+    public InstructionCoCVm Content { get; set; } = default!;
+
+    [CascadingParameter]
+    public FluentDialog Dialog { get; set; } = default!;
+
+    private EditContext _editContext;
+
+    private FluentValidationValidator? _fluentValidator;
+
+    private string errorMessage;
+    private IQueryable<GroupCoCVm> itemGroups { get; set; }
+    private GroupCoCVm selectedGroup { get; set; }
+
+    private IEnumerable<GroupCoCVm> SelectedGroups = Array.Empty<GroupCoCVm>();
+
+    private PriorityLevel selectedPriority { get; set; }
+    private List<string> colours { get; set; } = new List<string>() { "RED", "ORANGE", "GREEN", "BLUE" }; //these colours I want to use later in Onboarding Form to color list with instructions
+    private int controlsSpacer { get; set; } = 10;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _editContext = new EditContext(Content);
+        itemGroups = await _mediator.Send(new GetAllGroupCoCsQuery());
+        base.OnInitialized();
+    }
+
+
+    private async Task SaveAsync()
+    {
+        if (_fluentValidator.Validate())
+        {
+            Console.WriteLine("Validating....");
+        }
+        else
+        {
+            Console.WriteLine("Validation failed!!!");
+        }
+        // Content.Priority = selectedPriority;
+        itemGroups = new List<GroupCoCVm>().AsQueryable();  // Reinitialize as empty if needed
+
+        await Dialog.CloseAsync(Content);
+    }
+
+    private async Task CancelAsync()
+    {
+        await Dialog.CancelAsync();
+    }
+    private async Task AddGroup()
+    {
+        if (Content.Groups.Any(p => p.Id == selectedGroup.Id))
+        {
+            selectedGroup = new GroupCoCVm();
+            return;
+        }
+        Content.Groups.Add(selectedGroup);
+        selectedGroup = new GroupCoCVm();
+    }
+    private void OnGroupSearch(OptionsSearchEventArgs<GroupCoCVm> e)
+    {
+        e.Items = itemGroups.Where(g => g.GroupName.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
+    }
+    private async Task RemoveGroup(GroupCoCVm groupToRemove)
+    {
+        var existingGroup = Content.Groups.FirstOrDefault(p => p.Id == groupToRemove.Id); // Assuming Id is the unique identifier
+
+        if (existingGroup != null)
+        {
+            Content.Groups.Remove(existingGroup);
+            Console.WriteLine($"Group with Id {groupToRemove.Id} has been removed.");
+        }
+        else
+        {
+            Console.WriteLine($"Position with Id {groupToRemove.Id} not found in the list.");
+        }
+
+        StateHasChanged();
+    }
+    private bool IsEditDisabled(GroupCoCVm pos)
+    {
+        if (Content.Groups.Any(p => p.Id == pos.Id))
+        {
+            return false;
+        }
+
+        return true;
+    }
+    private void HandlePriorityChange(string newValue)
+    {
+        Content.Colour = newValue switch
+        {
+            "Highest" => "BLUE",
+            "High" => "RED",
+            "Medium" => "ORANGE",
+            "Low" => "GREEN",
+            _ => "UNKNOWN" 
+        };
+        
+
+    }
+}
+<style>
+    .width200{
+        width: 200px;
+    }
+
+    .width210 {
+        width: 210px;
+    }
+    .flex-column {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 50px;
+        width: 175px;
+    }
+    .flex-controls{
+        display: flex; 
+        gap: 10px;
+    }
+</style>
+

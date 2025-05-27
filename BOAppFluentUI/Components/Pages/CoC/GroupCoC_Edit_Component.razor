@@ -1,0 +1,197 @@
+﻿@using Application.CQRS.CoCCQRS.Positions.Queries
+@using Application.ViewModels.CoC
+
+@inject IMediator _mediator
+@inject ILogger<GroupCoC_Edit_Component> _logger
+@implements IDialogContentComponent<GroupCoCVm>
+
+<FluentDialogHeader ShowDismiss="true">
+    <FluentStack VerticalAlignment="VerticalAlignment.Center">
+        <FluentIcon Value="@(new Icons.Regular.Size24.WindowApps())" />
+        <FluentLabel Typo="Typography.PaneHeader">
+            @Dialog.Instance.Parameters.Title
+        </FluentLabel>
+    </FluentStack>
+</FluentDialogHeader>
+
+<FluentDialogFooter>
+    <FluentButton Appearance="Appearance.Accent" OnClick="@SaveAsync"
+                  Disabled="@(!_editContext.Validate())">Save</FluentButton>
+    <FluentButton Appearance="Appearance.Neutral" OnClick="@CancelAsync">Cancel</FluentButton>
+</FluentDialogFooter>
+
+<FluentDialogBody Style="overflow-y: auto; overflow-x: hidden;">
+    <EditForm EditContext="_editContext">
+        <FluentValidationValidator @ref="_fluentValidator" />
+        <div style="display: flex; align-items: center; ">
+            <FluentLabel Typo="Typography.Body">Nazwa grupy:</FluentLabel>
+            <FluentSpacer Width="15" />
+            <FluentTextField @bind-Value="@Content.GroupName" Placeholder="Enter group name"/>
+            <FluentValidationMessage For="@(() => Content.GroupName)" />
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="validation-error"><p style="color:red;">@errorMessage</p></div>
+            }
+        </div>
+        <FluentDivider Style="width: 100%; height: 20px; margin-top: 10px;" Orientation=Orientation.Horizontal Role="DividerRole.Presentation"></FluentDivider>
+        <FluentDataGrid Items="@Content.Positions.AsQueryable()" TGridItem="PositionVm" GridTemplateColumns="50px repeat(3, 1fr)" ResizableColumns=true>
+            <PropertyColumn Property="@(p=>p.Id)" Sortable="true" Align="Align.Start" Tooltip="true" />
+            <PropertyColumn Property="@(p=>p.Name)" Sortable="true" Align="Align.Start" Tooltip="true" />
+            <TemplateColumn Title="Actions" Align="Align.End">
+                <ChildContent Context="rowContext">
+                @{
+                        var deleteId = $"deleteid-{rowContext.Id}";
+                }
+
+                    <FluentButton Id="@deleteId" IconEnd="@(new Icons.Regular.Size20.Delete())" Disabled="IsEditDisabled(rowContext)" OnClick="@(() => RemovePosition(rowContext))" />
+                <FluentTooltip Anchor="@deleteId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Remove Position</FluentTooltip>
+                </ChildContent>
+            </TemplateColumn>
+        </FluentDataGrid>
+@*         <FluentCombobox TOption="PositionVm"
+                        Autocomplete="ComboboxAutocomplete.Both"
+                        Label="Position:"
+                        Items="@itemPositions"
+                        Id="PositionId"
+                        Width="300px"
+                        Height="250px"
+                        OptionValue="@(p => p.Id.ToString())"
+                        OptionText="@(p => p.Name)"
+                        @bind-SelectedOption="@selectedPosition"
+                         />
+        <FluentButton IconStart="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddPosition())" /> *@
+        <FluentDivider Style="width: 100%; height: 20px; margin-top: 10px;" Orientation=Orientation.Horizontal Role="DividerRole.Presentation"></FluentDivider>
+        <div style="display: flex; align-items: center; ">
+            <FluentLabel Typo="Typography.Body">Wybierz stanowiska: </FluentLabel>
+            <FluentSpacer Width="15" />
+            <FluentAutocomplete TOption="PositionVm"
+                                Id ="PositionIdControl"
+                                AutoComplete="on"
+                                OnOptionsSearch="OnPositionSearch"
+                                MaximumOptionsSearch = "168"
+                                OptionText="@(p => p.Name)"
+                                @bind-SelectedOptions="@SelectedPositions"
+                                Height="550px"
+                                Width="300px"
+                            />
+            <FluentSpacer Width="15" />
+            <FluentButton IconStart="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddPositions())" />
+        </div>
+    </EditForm>
+</FluentDialogBody>
+
+@code {
+    [Parameter]
+    public GroupCoCVm Content { get; set; } = default!;
+
+    [CascadingParameter]
+    public FluentDialog Dialog { get; set; } = default!;
+
+    private EditContext _editContext;
+
+    private FluentValidationValidator? _fluentValidator;
+
+    private string errorMessage;
+    private IQueryable<PositionVm> itemPositions { get; set; }
+    private PositionVm selectedPosition { get; set; }
+    private IEnumerable<PositionVm> SelectedPositions = Array.Empty<PositionVm>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _editContext = new EditContext(Content);
+        itemPositions = await _mediator.Send(new GetAllPositionsQuery());
+        base.OnInitialized();
+    }
+
+
+    private async Task SaveAsync()
+    {
+        if (_fluentValidator.Validate())
+        {
+            Console.WriteLine("Validating....");
+        }
+        else
+        {
+            Console.WriteLine("Validation failed!!!");
+        }
+        itemPositions = new List<PositionVm>().AsQueryable();  // Reinitialize as empty if needed
+
+        await Dialog.CloseAsync(Content);
+    }
+
+
+    private void OnPositionSearch(OptionsSearchEventArgs<PositionVm> e)
+    {
+        // e.Items = itemPositions.Where(g => g.Title.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
+        var addedPositionIds = Content.Positions.Select(p => p.Id).ToHashSet();
+        e.Items = itemPositions
+            .Where(p => !addedPositionIds.Contains(p.Id) && p.Name.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private async Task CancelAsync()
+    {
+        await Dialog.CancelAsync();
+    }
+    private async Task AddPosition()
+    {
+        if (Content.Positions.Any(p => p.Id == selectedPosition.Id))
+        {
+            selectedPosition = new PositionVm();
+            return;
+        }
+        Content.Positions.Add(selectedPosition);
+        selectedPosition = new PositionVm();
+    }
+    private async Task AddPositions()
+    {
+        if (SelectedPositions == null || !SelectedPositions.Any())
+        {
+            return;
+        }
+        // var selectedPositionFromArray = SelectedPositions.First();
+        foreach(var pos in SelectedPositions)
+        {
+            if (Content.Positions.Any(p => p.Id == pos.Id))
+            {
+                continue;
+            } else
+            {
+                Content.Positions.Add(pos);
+            }
+
+        }
+
+        SelectedPositions = Array.Empty<PositionVm>();
+    }
+    private async Task RemovePosition(PositionVm positionToRemove)
+    {
+        var existingPosition = Content.Positions.FirstOrDefault(p => p.Id == positionToRemove.Id); // Assuming Id is the unique identifier
+
+        if (existingPosition != null)
+        {
+            Content.Positions.Remove(existingPosition);
+            Console.WriteLine($"Position with Id {positionToRemove.Id} has been removed.");
+        }
+        else
+        {
+            Console.WriteLine($"Position with Id {positionToRemove.Id} not found in the list.");
+        }
+
+        StateHasChanged();
+    }
+    private bool IsEditDisabled(PositionVm pos)
+    {
+        if (Content.Positions.Any(p => p.Id == pos.Id))
+        {
+            return false;
+        }
+
+        return true;
+    }
+}
+<style>
+    .autocomplete-dropdown .fluent-autocomplete-options {
+        max-height: 300px; /* Adjust the height as needed */
+        overflow-y: scroll;
+    }
+</style>

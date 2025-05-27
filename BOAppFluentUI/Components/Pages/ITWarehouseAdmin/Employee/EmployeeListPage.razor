@@ -1,0 +1,334 @@
+﻿@page "/employees"
+@using Application.Entities
+@using Application.ExportModels
+@using Application.CQRS.ITWarehouseCQRS.Employees.Commands
+@using Application.CQRS.ITWarehouseCQRS.Employees.Queries
+@using Application.Interfaces
+@using Application.Interfaces.Identity.Services
+@using Application.ViewModels.General
+@using AutoMapper
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize(Policy = "Technician")]
+
+@inject IMediator _mediator
+@inject ILogger<Employee_Page> _logger
+@inject IDialogService _dialogService
+@inject IToastService _toastService
+@inject IPostAuthenticationService _postAuthSvc
+@inject IUserService _userService
+@inject IJSRuntime JS
+@inject IMapper _mapper
+@inject IAppDbContext _appDbContext
+@inject RoleManager<IdentityRole> _roleManager
+@inject UserManager<AppUser> _userManager
+@inject NavigationManager _navigationManager
+
+
+<h3>Employees</h3>
+
+@if (items == null)
+{
+    <FluentProgressRing>Loading...</FluentProgressRing>
+
+}
+else
+{
+    <FluentStack Orientation="Orientation.Horizontal">
+        <FluentLabel Typo="Typography.Subject"> Show columns:  </FluentLabel>
+        @foreach (var column in filterColumns)
+        {
+            if (column.FirstRow)
+            {
+                <FluentCheckbox @bind-Value="column.IsVisible" Label="@column.Label" />
+            }
+        }
+    </FluentStack>
+    <p></p>
+    <FluentStack Orientation="Orientation.Horizontal">
+        @foreach (var column in filterColumns)
+        {
+            if (!column.FirstRow)
+            {
+                <FluentCheckbox @bind-Value="column.IsVisible" Label="@column.Label" />
+            }
+        }
+    </FluentStack>
+
+    <FluentDataGrid Items="@Utils.ApplyFilters(items, filterColumns)" Pagination="@pagination" TGridItem="EmployeeVm" GridTemplateColumns="80px repeat(7, 1fr)" AutoFit="true" ResizableColumns="true">
+        @foreach (var column in filterColumns.Where(c => c.IsVisible))
+        {
+            if (column.IsDropdown)
+            {
+                <PropertyColumn TGridItem="EmployeeVm" TProp="string" Property="@(Utils.GetPropertyExpression<EmployeeVm>(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label" Filtered="column.SelectedValues.Any()">
+                    <ColumnOptions>
+                        <FluentSelect TOption="string"
+                        Items="@(column.DropdownValues)"
+                        Multiple="true"
+                        SelectedOptionsChanged="@(e => Utils.OnSelectedOptionsChanged<EmployeeVm>(e, column))">
+                            @foreach (var value in column.DropdownValues)
+                            {
+                                <FluentOption Value="@value">@value</FluentOption>
+                            }
+                        </FluentSelect>
+                    </ColumnOptions>
+                </PropertyColumn>
+            }
+            else
+            {
+                <PropertyColumn TGridItem="EmployeeVm" TProp="string" Property="@(Utils.GetPropertyExpression<EmployeeVm>(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label" Filtered="!string.IsNullOrWhiteSpace(column.Filter)">
+                    <ColumnOptions>
+                        <div class="search-box">
+                            <FluentSearch type="search" Autofocus="true" @bind-Value="column.Filter" @oninput="(args) => Utils.HandleFilterDebounced(column, args, debounceDispatcher, () => InvokeAsync(StateHasChanged))" Placeholder="@($"{column.Label.ToLower()}...")" />
+                        </div>
+                    </ColumnOptions>
+                </PropertyColumn>
+            }
+        }
+
+        <TemplateColumn Title="Actions" Align="Align.End">
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" />
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => EditEmployee(context))" />
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" />
+
+        </TemplateColumn>
+    </FluentDataGrid>
+    <FluentPaginator State="@pagination" />
+
+    <FluentButton IconStart="@(new Icons.Regular.Size24.Add())" OnClick="@(() => AddPanel())" />
+    <FluentButton OnClick="DownloadCsv">Pobierz CSV</FluentButton>
+    @* <FluentCheckbox Id="ScrapId" @bind-Value="@manager" @ValueChanged="@ToggleManagerFilter" Label="Manager" /> *@
+}
+
+
+
+@code {
+    private static IQueryable<EmployeeVm> items { get; set; }
+    // private static IQueryable<EmployeeVm> filteredItems => items.Where(x =>
+    //     filterColumns.All(column => string.IsNullOrWhiteSpace(column.Filter) ||
+    //                                 column.Property(x).Contains(column.Filter, StringComparison.CurrentCultureIgnoreCase)) &&
+    //     (x.IsManager = manager);
+
+    PaginationState pagination = new PaginationState { ItemsPerPage = 15};
+
+    private List<FilterColumn<EmployeeVm>> filterColumns = new List<FilterColumn<EmployeeVm>>
+    {
+        new FilterColumn<EmployeeVm> { FirstRow = true, Label = "EmpId", Property = c => c.EnovaEmpId.ToString(), IsVisible = true },
+        new FilterColumn<EmployeeVm> { FirstRow = true, Label = "Title", Property = c => c.LongName ?? string.Empty, IsVisible = true },
+        new FilterColumn<EmployeeVm> { FirstRow = true, Label = "Email", Property = c => c.Email ?? string.Empty, IsVisible = false },
+        new FilterColumn<EmployeeVm> { FirstRow = true, Label = "Manager", Property = c => c.Manager.LongName ?? string.Empty, IsVisible = true },
+        new FilterColumn<EmployeeVm> { FirstRow = true, Label = "Position", Property = c => c.Position ?? string.Empty, IsVisible = true },
+        new FilterColumn<EmployeeVm> { FirstRow = true, Label = "SAPNumber", Property = c => c.SapNumber ?? string.Empty, IsVisible = true},
+        new FilterColumn<EmployeeVm> { FirstRow = true, Label = "VCDCompany", Property = c => c.VcdCompanyNr ?? string.Empty, IsVisible = false },
+        new FilterColumn<EmployeeVm> { FirstRow = false, Label = "VCDEmpId", Property = c => c.VcdempId ?? string.Empty, IsVisible = false },
+        new FilterColumn<EmployeeVm> { FirstRow = false, Label = "VCDDept", Property = c => c.VcddeptNumber ?? string.Empty, IsVisible = true },
+        new FilterColumn<EmployeeVm> { FirstRow = false, Label = "FTEStartDate", Property = c => c.FTEStartDate ?? string.Empty, IsVisible = false },
+        new FilterColumn<EmployeeVm> { FirstRow = false, Label = "FTEEndDate", Property = c => c.FTEEndDate ?? string.Empty, IsVisible = false },
+        new FilterColumn<EmployeeVm> { FirstRow = false, Label = "DeptNumber", Property = c => c.DeptNumber ?? string.Empty, IsVisible = false },
+        new FilterColumn<EmployeeVm> { FirstRow = false, Label = "PersonalDeptNum", Property = c => c.PersonalDeptNumber ?? string.Empty, IsVisible = false },
+        new FilterColumn<EmployeeVm> { FirstRow = false, Label = "IsManager", Property = c => c.IsManager.ToString() ?? string.Empty, IsVisible = false }
+
+        // , IsDropdown = true, DropdownValues = SapNumberValues, SelectedValues = new List<string> ()
+    };
+
+    private DebounceDispatcher debounceDispatcher = new DebounceDispatcher();
+    private bool manager { get; set; }
+    private static List<string> SapNumberValues { get; set; } = new List<string> { "1556", "1557", "1558", "1559", "1561", "1562", "1563", "1565", "1571", "1573", "1574", "1575", "1576", "1578", "157891", "157892", "157893", "157894", "157895", "157896", "157899", "1581", "1582", "1583" };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Load();
+    }
+    private void ToggleManagerFilter()
+    {
+        manager = !manager;
+        // if (!isSold && !isScrapped) isAll = false;
+        InvokeAsync(StateHasChanged);
+    }
+    private async Task Load()
+    {
+        items = await _mediator.Send(new GetAllEmployeesQuery());
+        SapNumberValues = items.Where(e => e.SapNumber != null)
+        .Select(e => e.SapNumber)
+        .Distinct().Order()
+        .ToList();
+
+        StateHasChanged();
+    }
+
+    private async Task DownloadCsv()
+    {
+        var selectedItems = @Utils.ApplyFilters(items, filterColumns);
+
+        IQueryable<EmployeeExportModel> exportModels = selectedItems.ProjectTo<EmployeeVm, EmployeeExportModel>(_mapper);
+        // Assuming you have an IQueryable variable named 'records'
+        var csvContent = Utils.GenerateCsvPL(exportModels);
+
+        var base64csv = Convert.ToBase64String(csvContent);
+
+        string date = DateTime.Now.ToString("yyyyMMdd");
+        string filename = $"{date}_Employees_List.csv";
+
+        // Invoke the JavaScript method to download the CSV
+        await JS.InvokeVoidAsync("downloadFilePL", filename, base64csv);
+    }
+
+    private async Task EditEmployee(EmployeeVm item)
+    {
+        ToastIntent intent;
+        var allAppRoles = _roleManager.Roles.ToList();
+        var allAppRolesNamesList = allAppRoles.Select(s => s.Name).ToList();
+        var allAppRolesNamesArray = allAppRolesNamesList.ToArray();
+        item.Roles = await _mediator.Send(new GetRolesForUserByAspNetIdQuery(item.AspNetUserId));
+        string message = string.Empty;
+        int i = 0;
+        var data = item;
+        var prevRoles = data.Roles.ToList();
+        var dialog = await _dialogService.ShowDialogAsync<Employee_Edit_Component>(data, new DialogParameters()
+            {
+                Height = "700px",
+                Width = "720px",
+                Title = data.Id > 0 ? "Update Employee..." : "Create new EmployeeVm...",
+                PreventDismissOnOverlayClick = true,
+                PreventScroll = true,
+            });
+        var result = await dialog.Result;
+
+        if (!result.Cancelled && result.Data != null)
+        {
+            var final = (EmployeeVm)result.Data;
+            if (final.Id > 0)
+            {
+                i = await _mediator.Send(new UpdateEmployeeNewCommand(final));
+
+                if (final.Roles.Count > 0)
+                {
+                    try
+                    {
+                        var appUser = await _userService.GetUserByAspNetUserId(final.AspNetUserId);
+                        if (appUser == null)
+                        {
+                            appUser = new AppUser()
+                            {
+                                    FirstName = final.FirstName,
+                                    LastName = final.LastName,
+                                    DisplayName = final.LongName,
+                                    AzureObjectId = new Guid("00000000-0000-0000-0000-000000000000"),
+                                    UserName = final.Email,
+                                    Email = final.Email,
+                                    NormalizedEmail = final.Email.ToUpper(),
+                            };
+                            await _userManager.CreateAsync(appUser);
+                            appUser = await _userService.GetUserByPreferredUsername(final.Email);
+                        }
+                        var rolesArray = final.Roles.ToArray();
+
+                        var res = await _userManager.RemoveFromRolesAsync(appUser, prevRoles);
+                        if (!res.Succeeded)
+                        {
+                            _logger.LogWarning("Roles are not removed!");
+                        }
+
+                        res = await _userManager.AddToRolesAsync(appUser, rolesArray);
+                        if (!res.Succeeded)
+                        {
+                            _logger.LogWarning("Roles are not added!");
+                        }
+
+                        await _userManager.UpdateAsync(appUser);
+
+                        // Console.WriteLine("dupa");
+
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex.Message);
+                    }
+
+                }
+
+                intent = ToastIntent.Success;
+                message = "EmployeeVm has been updated!";
+                await Load();
+            }
+            else if (item.Id == 0)
+            {
+                i = await _mediator.Send(new CreateEmployeeCommand(
+                    final.FirstName,
+                    final.LastName,
+                    final.Email,
+                    final.AzureObjectId,
+                    final.IdentityUserName = string.Empty,
+                    final.ThirdPartyId = string.Empty,
+                    final.MobileNumber, final.PhoneNumber,
+                    final.ManagerId, final.IsManager = false,
+                    final.EmployeeTypeVm));
+                await Load();
+
+                intent = ToastIntent.Success;
+                message = "EmployeeVm has been updated!";
+
+            }
+            else
+            {
+                intent = ToastIntent.Warning;
+                message = "Something went realy wrong!";
+            }
+
+        }
+        else if (result.Cancelled)
+        {
+            intent = ToastIntent.Info;
+            message = "Operation Cancelled...";
+        }
+        else
+        {
+            intent = ToastIntent.Error;
+            message = "Something went wrong!!!";
+        }
+
+        _toastService.ShowToast(intent, message, 3000);
+    }
+
+    private async Task AddPanel()
+    {
+        var item = new EmployeeVm();
+        await EditEmployee(item);
+    }
+
+    private async Task View(EmployeeVm item)
+    {
+        await _dialogService.ShowInfoAsync(message: $"EmployeeVm id: {item.Id}, name: {item.FirstName}, last name: {item.LastName}, manager name: {item.Manager.LongName}");
+    }
+
+    private async Task Delete(EmployeeVm item)
+    {
+        ToastIntent intent;
+        string message = string.Empty;
+
+        var i = await _mediator.Send(new DeleteEmployeeCommand(item.Id));
+
+        if (i == item.Id)
+        {
+            intent = ToastIntent.Success;
+            message = "EmployeeVm has been deleted!";
+        }
+        else
+        {
+            intent = ToastIntent.Error;
+            message = "Something went wrong!!!";
+        }
+
+        _toastService.ShowToast(intent, message, 3000);
+    }
+
+    void Refresh()
+    {
+        _navigationManager.NavigateTo(_navigationManager.Uri, true);
+    }
+
+    private void HandleClearFilter(ref string filter) => filter = string.IsNullOrWhiteSpace(filter) ? string.Empty : filter;
+
+    private void HandleFilter(ref string filter, ChangeEventArgs args) => filter = args.Value is string value ? value : string.Empty;
+}

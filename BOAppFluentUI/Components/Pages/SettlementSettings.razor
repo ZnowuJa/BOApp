@@ -1,0 +1,113 @@
+﻿@page "/accountingsettings"
+@page "/ksiegowoscustawienia"
+@using Microsoft.AspNetCore.Authorization
+@inject NavigationManager _navMan
+
+@attribute [Authorize(Policy = "Accountant")]
+
+<h3>Księgowość Ustawienia</h3>
+
+<FluentGrid Justify="@Justification">
+        <FluentGridItem xs="@xssize" sm="@smsize">
+        <FluentCard>
+            <FluentStack Orientation="Orientation.Vertical"
+                         HorizontalAlignment="HorizontalAlignment.Center"
+                         VerticalAlignment="VerticalAlignment.Center">
+                <FluentIcon Value="@(new Icons.Regular.Size24.MoneyCalculator())" />
+                <h4>MPK</h4>
+
+                <FluentButton BackgroundColor="var(--accent-fill-rest)"
+                              Color="var(--neutral-fill-rest)"
+                              OnClick="@(()=>_navMan.NavigateTo("/mpk"))">
+                    MPK
+                </FluentButton>
+            </FluentStack>
+        </FluentCard>
+    </FluentGridItem>
+    <FluentGridItem xs="@xssize" sm="@smsize">
+        <FluentCard>
+            <FluentStack Orientation="Orientation.Vertical"
+                         HorizontalAlignment="HorizontalAlignment.Center"
+                         VerticalAlignment="VerticalAlignment.Center">
+                <FluentIcon Value="@(new Icons.Regular.Size24.MoneyCalculator())" />
+                <h4>SAPMPK</h4>
+
+                <FluentButton BackgroundColor="var(--accent-fill-rest)"
+                              Color="var(--neutral-fill-rest)"
+                              OnClick="@(()=>_navMan.NavigateTo("/sapcostcenters"))">
+                    SAPMPK
+                </FluentButton>
+            </FluentStack>
+        </FluentCard>
+    </FluentGridItem>
+    <FluentGridItem xs="@xssize" sm="@smsize">
+        <FluentCard>
+            <FluentStack Orientation="Orientation.Vertical"
+                         HorizontalAlignment="HorizontalAlignment.Center"
+                         VerticalAlignment="VerticalAlignment.Center">
+                <FluentIcon Value="@(new Icons.Regular.Size24.Globe())" />
+                <h4>Państwa</h4>
+
+                <FluentButton BackgroundColor="var(--accent-fill-rest)"
+                              Color="var(--neutral-fill-rest)"
+                              OnClick="@(()=>_navMan.NavigateTo("/panstwa"))">
+                    Państwa
+                </FluentButton>
+            </FluentStack>
+        </FluentCard>
+    </FluentGridItem>
+    <FluentGridItem xs="@xssize" sm="@smsize">
+        <FluentCard>
+            <FluentStack Orientation="Orientation.Vertical"
+                         HorizontalAlignment="HorizontalAlignment.Center"
+                         VerticalAlignment="VerticalAlignment.Center">
+                <FluentIcon Value="@(new Icons.Regular.Size24.PersonAccounts())" />
+                <h4>Konta księgi głównej</h4>
+
+                <FluentButton BackgroundColor="var(--accent-fill-rest)"
+                              Color="var(--neutral-fill-rest)"
+                              OnClick="@(()=>_navMan.NavigateTo("/kontaksiegiglownej"))">
+                    Konta księgi głównej
+                </FluentButton>
+            </FluentStack>
+        </FluentCard>
+    </FluentGridItem>
+    <FluentGridItem xs="@xssize" sm="@smsize">
+        <FluentCard>
+            <FluentStack Orientation="Orientation.Vertical"
+                         HorizontalAlignment="HorizontalAlignment.Center"
+                         VerticalAlignment="VerticalAlignment.Center">
+                <FluentIcon Value="@(new Icons.Regular.Size24.DocumentMultiplePercent())" />
+                <h4>Stawki VAT</h4>
+
+                <FluentButton BackgroundColor="var(--accent-fill-rest)"
+                              Color="var(--neutral-fill-rest)"
+                              OnClick="@(()=>_navMan.NavigateTo("/stawkivat"))">
+                    Stawki VAT
+                </FluentButton>
+            </FluentStack>
+        </FluentCard>
+    </FluentGridItem>
+    <FluentGridItem xs="@xssize" sm="@smsize">
+        <FluentCard>
+            <FluentStack Orientation="Orientation.Vertical"
+                         HorizontalAlignment="HorizontalAlignment.Center"
+                         VerticalAlignment="VerticalAlignment.Center">
+                <FluentIcon Value="@(new Icons.Regular.Size24.Folder())" />
+                <h4>Kontrahenci</h4>
+
+                <FluentButton BackgroundColor="var(--accent-fill-rest)"
+                              Color="var(--neutral-fill-rest)"
+                              OnClick="@(()=>_navMan.NavigateTo("/kontrahencibiznesowi"))">
+                    Kontrahenci
+                </FluentButton>
+            </FluentStack>
+        </FluentCard>
+    </FluentGridItem>
+</FluentGrid>
+@code {
+    JustifyContent Justification = JustifyContent.Center;
+
+    public int xssize { get; set; } = 2;
+    public int smsize { get; set; } = 2;
+}

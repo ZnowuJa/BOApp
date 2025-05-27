@@ -1,0 +1,47 @@
+﻿@*Organisation Role List Component*@
+
+@using Application.ViewModels.General
+
+
+ 
+<FluentSpacer></FluentSpacer>
+      <p></p>
+        @foreach (var role in Roles)
+        {
+            
+                <p></p>
+                <OrganisationRoleEditorComponent Role="role" Employees="Employees" SetDefault="@SetDefaultRole" />
+                <FluentButton IconStart="@(new Icons.Regular.Size16.Subtract())" OnClick="() => RemoveRole(role)" />
+
+            
+        }
+    <FluentButton IconStart="@(new Icons.Regular.Size16.Add())" OnClick="AddRole" />
+
+@code {
+    [Parameter] public List<OrganisationRoleVm> Roles { get; set; }
+    [Parameter] public IQueryable<EmployeeVm> Employees { get; set; }
+    [Parameter] public string Title { get; set; }
+
+    private void AddRole()
+    {
+        Roles.Add(new OrganisationRoleVm());
+        StateHasChanged();
+    }
+
+    private void RemoveRole(OrganisationRoleVm role)
+    {
+        Roles.Remove(role);
+        StateHasChanged();
+    }
+
+    private async Task SetDefaultRole(OrganisationRoleVm selectedRole)
+    {
+        Console.WriteLine();
+        foreach (var role in Roles)
+        {
+            role.IsDefault = false;
+        }
+        selectedRole.IsDefault = true;
+        StateHasChanged(); 
+    }
+}

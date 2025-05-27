@@ -1,0 +1,178 @@
+﻿@page "/glaccounts"
+@page "/kontaksiegiglownej"
+
+@using Application.CQRS.AccountingCQRS.GLAccounts.Queries
+@using Application.CQRS.AccountingCQRS.GLAccounts.Commands
+@using Application.ViewModels.Accounting
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize(Policy = "Accountant")]
+
+@inject IMediator _mediator
+@inject IDialogService _dialogService
+@inject IToastService _toastService
+
+<h3>Konta księgi głównej</h3>
+
+@if (glaccount == null)
+{
+    <FluentProgressRing>Ładowanie...</FluentProgressRing>
+}
+else
+{
+    <FluentDataGrid Items="@filteredGlaccount" Pagination="@pagination" TGridItem="GLAccountVm" GridTemplateColumns="50px 200px 200px">
+
+        @foreach (var column in filterColumns.Where(c => c.IsVisible))
+        {
+            <PropertyColumn TGridItem="GLAccountVm" TProp="string" Property="@(Utils.GetPropertyExpression(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label" Filtered="!string.IsNullOrWhiteSpace(column.Filter)">
+                <ColumnOptions>
+                    <div class="search-box">
+                        <FluentSearch type="search" Autofocus="true" @bind-Value="column.Filter" @oninput="(args) => Utils.HandleFilterDebounced(column, args, debounceDispatcher, () => InvokeAsync(StateHasChanged))" Placeholder="@($"{column.Label.ToLower()}...")" />
+                    </div>
+                </ColumnOptions>
+            </PropertyColumn>
+        }
+
+        <TemplateColumn Title="Akcje" Align="Align.End">
+            @{
+                var viewId = $"viewid-{context.Id}";
+                var editId = $"editid-{context.Id}";
+                var deleteId = $"deleteid-{context.Id}";
+            }
+            <FluentButton Id="@viewId" IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" />
+            <FluentTooltip Anchor="@viewId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Szczegóły</FluentTooltip>
+
+            <FluentButton Id="@editId" IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => EditItem(context))" />
+            <FluentTooltip Anchor="@editId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Edytuj</FluentTooltip>
+
+            <FluentButton Id="@deleteId" IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" />
+            <FluentTooltip Anchor="@deleteId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Usuń</FluentTooltip>
+
+        </TemplateColumn>
+
+    </FluentDataGrid>
+    <FluentPaginator State="@pagination" />
+    <FluentButton IconStart="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddPanel())" />
+
+}
+
+@code {
+    private IQueryable<GLAccountVm> glaccount;
+    private IQueryable<GLAccountVm> filteredGlaccount => glaccount.Where(x =>
+    filterColumns.All(column => string.IsNullOrWhiteSpace(column.Filter) ||
+    column.Property(x).Contains(column.Filter, StringComparison.CurrentCultureIgnoreCase)));
+
+    private bool deleteConfirm = false;
+    PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
+    private DebounceDispatcher debounceDispatcher = new DebounceDispatcher();
+
+    private List<FilterColumn<GLAccountVm>> filterColumns = new List<FilterColumn<GLAccountVm>>
+    {
+        new FilterColumn<GLAccountVm> { FirstRow = true, Label = "ID", Property = c => c.Id.ToString(), IsVisible = true, Width = "80px" },
+        new FilterColumn<GLAccountVm> { FirstRow = true, Label = "KontoGl", Property = c => c.AccountNumber, IsVisible = true, Width = "1FR" },
+        new FilterColumn<GLAccountVm> { FirstRow = true, Label = "Opis", Property = c => c.Description, IsVisible = true , Width = "1FR" },
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Load();
+    }
+
+    private async Task Load()
+    {
+        glaccount = await _mediator.Send(new GetAllGLAccountQuery());
+    }
+
+    private async Task View(GLAccountVm item)
+    {
+        await _dialogService.ShowInfoAsync(message: $"Id: {item.Id}, Numer Konta: {item.AccountNumber}, Opis: {item.Description}");
+    }
+
+    private async Task Delete(GLAccountVm item)
+    {
+        var dialog = await _dialogService.ShowConfirmationAsync(
+            $"Czy na pewno chcesz usunąć konto księgi głównej: {item.Description}?",
+            "Usuń",
+            "Anuluj",
+            "Potwierdź usunięcie");
+        var result = await dialog.Result;
+        deleteConfirm = result.Cancelled;
+        ToastIntent intent;
+        string message = string.Empty;
+
+        if (deleteConfirm)
+        {
+            intent = ToastIntent.Error;
+            message = "Operacja anulowana";
+        }
+        else
+        {
+            var i = await _mediator.Send(new DeleteGLAccountCommand(item.Id));
+            intent = ToastIntent.Success;
+            message = "Konto księgi głównej zostało usunięte!";
+        }
+
+        _toastService.ShowToast(intent, message, 3000);
+        await Load();
+    }
+
+    private async Task EditItem(GLAccountVm item)
+    {
+        ToastIntent intent;
+        string message = string.Empty;
+        int resultId = 0;
+
+        var dialog = await _dialogService.ShowDialogAsync<GLAccount_Edit_Component>(item, new DialogParameters()
+            {
+                Height = "330px",
+                Width = "450px",
+                Title = item.Id > 0 ? "Aktualizuj konto księgi głównej" : "Dodanie nowego konta księgi głównej",
+                PreventDismissOnOverlayClick = false,
+                PreventScroll = true,
+            });
+
+        var result = await dialog.Result;
+
+        if (!result.Cancelled && result.Data != null)
+        {
+            var final = (GLAccountVm)result.Data;
+
+            if (final.Id > 0)
+            {
+                resultId = await _mediator.Send(new UpdateGLAccountCommand(final));
+                intent = ToastIntent.Success;
+                message = "Konto księgi głównej zostało zaktualizowane!";
+            }
+            else if (final.Id == 0)
+            {
+                resultId = await _mediator.Send(new CreateGLAccountCommand(final));
+                intent = ToastIntent.Success;
+                message = "Konto księgi głównej zostało utworzone!";
+            }
+            else
+            {
+                intent = ToastIntent.Warning;
+                message = "Coś poszło źle!";
+            }
+        }
+        else if (result.Cancelled)
+        {
+            intent = ToastIntent.Info;
+            message = "Operacja anulowana";
+        }
+        else
+        {
+            intent = ToastIntent.Error;
+            message = "Coś poszło źle!";
+        }
+
+        await Load();
+        _toastService.ShowToast(intent, message, 3000);
+    }
+
+    private async Task AddPanel()
+    {
+        var item = new GLAccountVm();
+        await EditItem(item);
+    }
+}

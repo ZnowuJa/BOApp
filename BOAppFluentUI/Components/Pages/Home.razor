@@ -1,0 +1,206 @@
+﻿@page "/"
+@using Application.Interfaces
+@using Application.ViewModels.General
+@using Microsoft.AspNetCore.Components.Server.Circuits
+@using System.Security.Claims
+
+
+@* @attribute [Authorize(Policy = "User")] *@
+
+
+@inject IMediator _mediator
+@inject ILogger<Home> _logger
+@inject IJSRuntime JS
+@inject IDialogService _dialogService
+@inject IToastService _toastService
+@inject IConfiguration _configuration
+@* @inject ISessionService _sessionService *@
+@* @inject ICircuitService _circuitService *@
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager _navigationManager
+
+
+<PageTitle>BackOfficeApp</PageTitle>
+
+<h3 style="text-align: center">Witaj @userDisplayName!</h3>
+
+
+<AuthorizeView Policy="User">
+
+
+    <FluentStack Orientation="Orientation.Horizontal"
+                 HorizontalAlignment="HorizontalAlignment.Left"
+                 VerticalAlignment="VerticalAlignment.Center"
+                 Spacing="20px"
+                 Style="padding: 20px;">
+
+        <FluentCard Style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); border-radius: 10px; overflow: hidden;">
+            <FluentStack Orientation="Orientation.Vertical"
+                         HorizontalAlignment="HorizontalAlignment.Center"
+                         VerticalAlignment="VerticalAlignment.Center"
+                         Spacing="10px"
+                         Style="padding: 20px;">
+                @(new Icons.Regular.Size24.BookCoins().ToMarkup("48px"))
+                <h4 style="margin: 0;">Wyciagi bankowe</h4>
+                <FluentButton BackgroundColor="var(--accent-fill-rest)"
+                              Color="var(--neutral-fill-rest)"
+                              OnClick="@(()=>_navigationManager.NavigateTo("/wyciagibankowe"))">
+                    Wyciagi bankowe
+                </FluentButton>
+            </FluentStack>
+        </FluentCard>
+        
+
+        
+        
+            <FluentCard Style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); border-radius: 10px; overflow: hidden;">
+                <FluentStack Orientation="Orientation.Vertical"
+                             HorizontalAlignment="HorizontalAlignment.Center"
+                             VerticalAlignment="VerticalAlignment.Center"
+                             Spacing="10px"
+                             Style="padding: 20px;">
+                    @(new Icons.Regular.Size24.FormMultiple().ToMarkup("48px"))
+                <h4 style="margin: 0;">Płatności Odroczone</h4>
+                    <FluentButton BackgroundColor="var(--accent-fill-rest)"
+                                  Color="var(--neutral-fill-rest)"
+                              OnClick="@(()=>_navigationManager.NavigateTo("/rozrachunki"))">
+                    Płatności Odroczone
+                    </FluentButton>
+                </FluentStack>
+            </FluentCard>
+        
+        
+            <FluentCard Style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); border-radius: 10px; overflow: hidden;">
+                <FluentStack Orientation="Orientation.Vertical"
+                             HorizontalAlignment="HorizontalAlignment.Center"
+                             VerticalAlignment="VerticalAlignment.Center"
+                             Spacing="10px"
+                             Style="padding: 20px;">
+                    @(new Icons.Regular.Size24.BookCoins().ToMarkup("48px"))
+                <h4 style="margin: 0;">Delegacje</h4>
+                    <FluentButton BackgroundColor="var(--accent-fill-rest)"
+                                  Color="var(--neutral-fill-rest)"
+                              OnClick="@(()=>_navigationManager.NavigateTo("/delegacje"))">
+                    Delegacje
+                    </FluentButton>
+                </FluentStack>
+            </FluentCard>
+        <FluentCard Style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); border-radius: 10px; overflow: hidden;">
+            <FluentStack Orientation="Orientation.Vertical"
+                         HorizontalAlignment="HorizontalAlignment.Center"
+                         VerticalAlignment="VerticalAlignment.Center"
+                         Spacing="10px"
+                         Style="padding: 20px;">
+                @(new Icons.Regular.Size24.BookCoins().ToMarkup("48px"))
+                <h4 style="margin: 0;">Zaliczki</h4>
+                <FluentButton BackgroundColor="var(--accent-fill-rest)"
+                              Color="var(--neutral-fill-rest)"
+                              OnClick="@(()=>_navigationManager.NavigateTo("/zaliczki"))">
+                    Zaliczki
+                </FluentButton>
+            </FluentStack>
+        </FluentCard>
+
+        </FluentStack>
+    <FluentStack Orientation="Orientation.Horizontal"
+                 HorizontalAlignment="HorizontalAlignment.Left"
+                 VerticalAlignment="VerticalAlignment.Center"
+                 Spacing="20px"
+                 Style="padding: 20px;">
+
+        <FluentCard Style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); border-radius: 10px; overflow: hidden;">
+            <FluentStack Orientation="Orientation.Vertical"
+                         HorizontalAlignment="HorizontalAlignment.Center"
+                         VerticalAlignment="VerticalAlignment.Center"
+                         Spacing="10px"
+                         Style="padding: 20px;">
+                @(new Icons.Regular.Size24.BookCoins().ToMarkup("48px"))
+                <h4 style="margin: 0;">Przelewy</h4>
+                <FluentButton BackgroundColor="var(--accent-fill-rest)"
+                              Color="var(--neutral-fill-rest)"
+                              OnClick="@(()=>_navigationManager.NavigateTo("/przelewy"))">
+                    Przelewy
+                </FluentButton>
+            </FluentStack>
+        </FluentCard>
+        <FluentCard Style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); border-radius: 10px; overflow: hidden;">
+            <FluentStack Orientation="Orientation.Vertical"
+                         HorizontalAlignment="HorizontalAlignment.Center"
+                         VerticalAlignment="VerticalAlignment.Center"
+                         Spacing="10px"
+                         Style="padding: 20px;">
+                @(new Icons.Regular.Size24.BookCoins().ToMarkup("48px"))
+                <h4 style="margin: 0;">Noty Księgowe</h4>
+                <FluentButton BackgroundColor="var(--accent-fill-rest)"
+                              Color="var(--neutral-fill-rest)"
+                              OnClick="@(()=>_navigationManager.NavigateTo("/notyksiegowe"))">
+                    Noty Księgowe
+                </FluentButton>
+            </FluentStack>
+        </FluentCard>
+        <FluentCard Style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); border-radius: 10px; overflow: hidden;">
+            <FluentStack Orientation="Orientation.Vertical"
+                         HorizontalAlignment="HorizontalAlignment.Center"
+                         VerticalAlignment="VerticalAlignment.Center"
+                         Spacing="10px"
+                         Style="padding: 20px;">
+                @(new Icons.Regular.Size24.Form().ToMarkup("48px"))
+                <h4 style="margin: 0;">Moje wyposażenie IT</h4>
+                <FluentButton BackgroundColor="var(--accent-fill-rest)"
+                              Color="var(--neutral-fill-rest)"
+                              OnClick="@(()=>_navigationManager.NavigateTo("/mojewyposazenieIT"))">
+                    Moje wyposażenie IT
+                </FluentButton>
+            </FluentStack>
+        </FluentCard>
+    </FluentStack>
+
+</AuthorizeView>
+
+
+
+@code {
+    private Claim[] claims;
+    // private bool isInRole;
+
+    private FormUserContext _userContext = new FormUserContext("Settlement", "Technician");
+    private ClaimsPrincipal? user { get; set; }
+    private string envi { get; set; } = string.Empty;
+    private string username { get; set; }
+    private string userDisplayName { get; set; }
+    private EmployeeVm emp { get; set; }
+    // private string SessionId { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        envi = _configuration["Environment"];
+        // await Utils.GetUserName(AuthenticationStateProvider, _userContext, _mediator);
+        // var SessionId = _circuitService.GetCircuitId();
+        // SessionId = _circuitService.GetSessionId(circuitId);
+        // _logger.LogInformation($"Home Page is initializing... SESSION_Service :: SessionID is: {SessionId} ");
+        await RefreshClaims();
+    }
+
+    private async Task RefreshClaims()
+    {
+        try
+        {
+
+            var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authenticationState.User;
+            claims = user.Claims.ToArray();
+            var nameClaim = claims.FirstOrDefault(c => c.Type == "name");
+            userDisplayName = nameClaim?.Value;
+
+
+        }
+        catch (Exception ex)
+        {
+            // Handle any errors
+        }
+        // _logger.LogInformation($"Home Page is refreshing claims... SESSION_Service :: SessionID is: {} ");
+    }
+
+}
+
+

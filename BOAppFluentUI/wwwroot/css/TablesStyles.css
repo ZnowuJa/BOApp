@@ -1,0 +1,262 @@
+﻿.table-container {
+    max-height: 60px;
+    width: 100%;
+    max-width: 1000px; /* Restrict table width */
+    border-collapse: separate;
+    border-spacing: 0;
+    font-family: Arial, sans-serif;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    overflow: visible;
+}
+
+    .table-container thead tr:first-child th {
+        max-height: 60px;
+        color: white;
+        font-weight: bold;
+        text-align: center;
+        padding: 3px 8px 3px 8px;
+    }
+    .table-container th {
+        max-height: 60px;
+        padding: 3px 8px 3px 8px;
+        font-size: 12px;
+        border: 1px solid #ddd;
+        white-space: nowrap; /* Prevent line breaks */
+        overflow: visible; /* Prevent content from spilling out */
+        text-overflow: ellipsis; /* Add "..." for overflowing text */
+        align-items: center; /* Vertically center content */
+        justify-content: space-between; /* Push text and icon to the edges */
+    }
+    .table-container td {
+        max-height: 60px;
+        padding: 3px 8px 3px 8px;
+        font-size: 12px;
+        border: 1px solid #ddd;
+        white-space: nowrap; /* Prevent line breaks */
+        overflow: visible;
+        text-overflow: ellipsis; /* Add "..." for overflowing text */
+    }
+    .table-header-left {
+    max-height: 60px;
+    background-color: var(--accent-fill-rest);
+    color: white; /* Match header text color */
+}
+    .table-header-right {
+        background-color: color-mix(in srgb, white 15%, var(--accent-fill-rest) 60%);
+        color: white; /* Match header text color */
+}
+    .table-caption {
+    max-height: 60px;
+    caption-side: top; /* Place caption above the table */
+    background-color: var(--accent-fill-rest); /* Match header background */
+    color: white; /* Match header text color */
+    font-weight: bold; /* Make it bold */
+    text-align: left; /* Center the text */
+    padding: 3px 8px 3px 8px; /* Add padding for spacing */
+    border: 1px solid #ddd; /* Optional: Match table border */
+    border-bottom: none; /* Remove bottom border for seamless look with the table */
+    }
+
+
+.table-container-light {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    overflow: visible;
+}
+
+.table-container-light th,
+.table-container-light td {
+    padding: 8px;
+    border: none; /* remove all default borders */
+    white-space: nowrap; /* Prevent line breaks */
+    overflow: visible;
+    text-overflow: ellipsis; /* Add "..." for overflowing text */
+}
+
+.table-container-light thead tr:last-child {
+    border-bottom: 2px solid grey; /* dark grey, bold line between header and body */
+}
+
+.table-container-light tbody tr {
+    border-bottom: 1px solid #d3d3d3; /* light line between rows */
+}
+
+.table-container-light th:first-child,
+.table-container-light td:first-child,
+.table-container-light th:last-child,
+.table-container-light td:last-child {
+    border-left: none;
+    border-right: none;
+}
+
+.table-container-light tbody tr:last-child td:first-child {
+    border-bottom-left-radius: 12px;
+}
+
+.table-container-light tbody tr:last-child td:last-child {
+    border-bottom-right-radius: 12px;
+}
+
+.table-container-light thead tr:first-child th:first-child {
+    border-top-left-radius: 12px;
+}
+
+.table-container-light thead tr:first-child th:last-child {
+    border-top-right-radius: 12px;
+}
+
+
+
+.table-caption-light {
+    max-height: 55px;
+    caption-side: top; /* Place caption above the table */
+    background-color: var(--accent-fill-rest); /* Match header background */
+    color: white; /* Match header text color */
+    font-weight: bold; /* Make it bold */
+    text-align: left; /* Center the text */
+    padding: 3px 8px 3px 8px; /* Add padding for spacing */
+    border: 1px solid #ddd; /* Optional: Match table border */
+    border-bottom: none; /* Remove bottom border for seamless look with the table */
+}
+
+@media (max-width: 768px) {
+    .truncate {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
+
+fluent-select[disabled] {
+    --disabled-opacity: 0.9 !important;
+}
+
+fluent-combobox[disabled] {
+    --disabled-opacity: 1 !important;
+}
+
+.disabled {
+    opacity: 0.8 !important;
+}
+
+.x_table-caption-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--accent-fill-rest);
+    color: white;
+    padding: 15px;
+    border-radius: 8px 8px 0 0;
+    font-weight: bold;
+    font-size: 1.2em;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.x_table-container {
+    width: 100%;
+    max-width: 1000px;
+    border-collapse: collapse;
+    font-family: Arial, sans-serif;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 0 0 8px 8px;
+    overflow: hidden;
+    margin-top: 10px;
+}
+
+.x_table-header {
+    background-color: var(--accent-fill-rest);
+    color: white;
+    text-align: left;
+    font-weight: bold;
+    font-size: 1em;
+}
+
+.x_table-container th, .x_table-container td {
+    padding: 15px;
+    border: 1px solid #ddd;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: background-color 0.3s ease;
+}
+
+.x_table-container th {
+    font-size: 1em;
+}
+
+.x_table-container td {
+    font-size: 0.9em;
+}
+
+.x_table-container tr:hover td {
+    background-color: #f1f1f1;
+}
+
+.x_validation-error {
+    color: red;
+    font-size: 0.8em;
+    margin-top: 5px;
+}
+
+
+
+
+.small-table-container {
+    max-height: 40px;
+    width: 100%;
+    max-width: 600px; /* Restrict table width */
+    border-collapse: separate;
+    border-spacing: 0;
+    font-family: Arial, sans-serif;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    overflow: visible;
+}
+
+    .small-table-container thead tr:first-child th {
+        max-height: 40px;
+        color: white;
+        font-weight: bold;
+        text-align: center;
+        padding: 3px 8px 3px 8px;
+    }
+
+
+    .small-table-container th {
+        max-height: 40px;
+        padding: 3px 8px 3px 8px;
+        font-size: 10px;
+        border: 1px solid #ddd;
+        white-space: nowrap; /* Prevent line breaks */
+        overflow: visible; /* Prevent content from spilling out */
+        text-overflow: ellipsis; /* Add "..." for overflowing text */
+        align-items: center; /* Vertically center content */
+        justify-content: space-between; /* Push text and icon to the edges */
+    }
+
+    .small-table-container td {
+        max-height: 40px;
+        padding: 3px 8px 3px 8px;
+        font-size: 10px;
+        border: 1px solid #ddd;
+        white-space: nowrap; /* Prevent line breaks */
+        overflow: visible;
+        text-overflow: ellipsis; /* Add "..." for overflowing text */
+    }
+
+.small-table-caption {
+    max-height: 20px !important;
+    caption-side: top; /* Place caption above the table */
+    background-color: color-mix(in srgb, white 15%, var(--accent-fill-rest) 60%); /* Match header background */
+    color: white; /* Match header text color */
+    font-weight: bold; /* Make it bold */
+    text-align: left; /* Center the text */
+    padding: 3px 8px 3px 8px; /* Add padding for spacing */
+    border: 1px solid #ddd; /* Optional: Match table border */
+    border-bottom: none; /* Remove bottom border for seamless look with the table */
+}

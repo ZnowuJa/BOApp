@@ -1,0 +1,124 @@
+﻿@page "/mojewyposazenieIT"
+
+@using Application.CQRS.ITWarehouseCQRS.Assets.Queries
+@using Application.CQRS.ITWarehouseCQRS.Employees.Queries
+@using Application.Interfaces
+@using Application.DTOs
+@using Application.CQRS.ITWarehouseCQRS.AssetHistories.Commands
+@using Application.ViewModels.General
+@using Microsoft.FluentUI.AspNetCore.Components.Extensions
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authorization
+@using System.Linq.Expressions
+
+@*
+    Na tej stronie pracownicy będą mogli :
+    - podejrzeć swoje wyposażenie (z datami kiedy mogą wymieniać),
+    - dodać wniosek o wymianę
+    - złożyć nowe zamówienie
+    - przeprowadzić self-inventory
+    
+*@
+
+@attribute [Authorize(Policy = "User")]
+
+@inject IMediator _mediator
+@inject ILogger<ITWarehouseForUsers> _logger
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<h3>Moje wyposażenie</h3>
+<p>To jest testowa strona która będzie rozbudowywana, ale dane są prawdziwe. Jeśli coś Ci tu nie pasuje - proszę zgłoś na Helpdesk! </p>
+
+<FluentDataGrid Items="@products" Pagination="@pagination" TGridItem="AssetDTO" GridTemplateColumns="80px repeat(6, 1fr)" ResizableColumns="true" AutoFit="true">
+       
+        @foreach (var column in filterColumns.Where(c => c.IsVisible))
+        {
+            <PropertyColumn TGridItem="AssetDTO" TProp="string" Property="@(GetPropertyExpression(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label">
+            </PropertyColumn>
+        }
+        </FluentDataGrid>
+
+
+@code {
+    private IQueryable<AssetDTO> products;
+    private IQueryable<AssetDTO> filteredProducts => products.Where(x =>
+    filterColumns.All(column => string.IsNullOrWhiteSpace(column.Filter) ||
+    column.Property(x).Contains(column.Filter, StringComparison.CurrentCultureIgnoreCase)));
+
+    PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
+    PaginationState paginationAssets = new PaginationState { ItemsPerPage = 10 };
+
+    private ClaimsPrincipal? user { get; set; }
+    private string username { get; set; }
+
+    private List<FilterColumn<AssetDTO>> filterColumns = new List<FilterColumn<AssetDTO>>
+    {
+        // new FilterColumn<AssetDTO> { FirstRow = true, Label = "ID", Property = c => c.Id.ToString(), IsVisible = true },
+        new FilterColumn<AssetDTO> { FirstRow = true, Label = "Numer Środka Trwałego", Property = c => c.AssetTagNumber, IsVisible = true, Width = "1FR" },
+        new FilterColumn<AssetDTO> { FirstRow = true, Label = "Numer seryjny", Property = c => c.SerialNumber, IsVisible = true , Width = "1FR" },
+        new FilterColumn<AssetDTO> { FirstRow = true, Label = "Nazwa części", Property = c => c.PartVmName, IsVisible = true , Width = "1FR" },
+        new FilterColumn<AssetDTO> { FirstRow = false, Label = "Data zakupu", Property = c => c.PurchaseDate.ToDateOnly().ToString(), IsVisible = true , Width = "1FR" },
+        new FilterColumn<AssetDTO> { FirstRow = false, Label = "Warranty", Property = c => c.WarrantyUntil.ToDateOnly().ToString(), IsVisible = false , Width = "1FR" },
+        new FilterColumn<AssetDTO> { FirstRow = false, Label = "EndOfSupport", Property = c => c.EndOfSupport.ToDateOnly().ToString(), IsVisible = false , Width = "1FR" },
+        // new FilterColumn<AssetDTO> { FirstRow = true, Label = "Assignee", Property = c => c.AssigneeVmName, IsVisible = true , Width = "1FR" },
+        // new FilterColumn<AssetDTO> { FirstRow = false, Label = "State", Property = c => c.StateVmName, IsVisible = false , Width = "1FR" },
+        // new FilterColumn<AssetDTO> { FirstRow = false, Label = "Warehouse", Property = c => c.WarehouseVmNumber, IsVisible = false , Width = "1FR" },
+        // new FilterColumn<AssetDTO> { FirstRow = false, Label = "Invoice", Property = c => c.InvoiceVmNumber, IsVisible = false , Width = "1FR" },
+        // new FilterColumn<AssetDTO> { FirstRow = false, Label = "Price", Property = c => c.Price.ToString(), IsVisible = false , Width = "1FR" },
+
+        // new FilterColumn<AssetDTO> { FirstRow = false, Label = "Leasing", Property = c => c.Leasing.ToString(), IsVisible = true },
+        // new FilterColumn<AssetDTO> { FirstRow = false, Label = "EndOfContract", Property = c => c.EndOfContract.ToDateOnly().ToString(), IsVisible = false , Width = "1FR" },
+        new FilterColumn<AssetDTO> { FirstRow = true, Label = "IMEI", Property = c => c.Imei?.ToString() ?? string.Empty, IsVisible = false , Width = "1FR" },
+        new FilterColumn<AssetDTO> { FirstRow = true, Label = "MAC Address", Property = c => c.Mac?.ToString() ?? string.Empty, IsVisible = false , Width = "1FR" }
+    };
+    private EmployeeVm emp { get; set; }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetUserName();
+        await Load();
+    }
+
+    private async Task Load()
+    {
+       products = await _mediator.Send(new GetAllAssetsDTObyEmpIdQuery(emp.EnovaEmpId));
+    }
+
+    private async Task GetUserName()
+    {
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        user = authenticationState.User;
+        var claimType = "name"; // or use ClaimTypes.Title
+        var claimTypeAID = "http://schemas.microsoft.com/identity/claims/objectidentifier";
+
+        var usernameClaim = user.Claims.FirstOrDefault(c => c.Type == claimType);
+        if (usernameClaim != null)
+        {
+            username = usernameClaim.Value;
+        }
+        else
+        {
+            username = "unknown";
+            // Console.WriteLine($"No claim of type {claimType} found.");
+        }
+
+        var aidClaim = user.Claims.FirstOrDefault(c => c.Type == claimTypeAID);
+        if (aidClaim != null)
+        {
+            Guid aidGuid;
+            Guid.TryParse(aidClaim.Value, out aidGuid);
+            emp = await _mediator.Send(new GetEmployeeByAIDQuery(aidGuid));
+        }
+        else
+        {
+            emp = new EmployeeVm();
+            // Console.WriteLine($"No claim of type {claimTypeAID} found.");
+        }
+    }
+
+    private Expression<Func<AssetDTO, string>> GetPropertyExpression(Func<AssetDTO, string> propertyFunc)
+    {
+        return x => propertyFunc(x);
+    }
+}

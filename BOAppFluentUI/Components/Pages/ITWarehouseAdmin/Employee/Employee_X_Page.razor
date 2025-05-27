@@ -1,0 +1,461 @@
+﻿@page "/employeesXX"
+@using Application.CQRS.ITWarehouseCQRS.Employees.Commands
+@using Application.CQRS.ITWarehouseCQRS.Employees.Queries
+@using Application.ViewModels.General
+@* @using BOAppFluentUI.Components.Pages.ITWarehouseAdmin.Employee *@
+
+@inject IMediator _mediator
+@inject ILogger<Employee_Page> _logger
+@inject IDialogService _dialogService
+@inject IToastService _toastService
+@inject NavigationManager _navigationManager
+
+
+<h3>Employees</h3>
+
+@if (employee == null)
+{
+    <FluentProgressRing>Loading...</FluentProgressRing>
+
+}
+else
+{
+    <p>
+        <FluentStack Orientation="Orientation.Horizontal">
+            <FluentLabel Typo="Typography.Subject"> Show columns:  </FluentLabel>
+            <FluentCheckbox @bind-Value="@shLongName" Label="Long Name" />
+            <FluentCheckbox @bind-Value="@shEmail" Label="Email" />
+            <FluentCheckbox @bind-Value="@shAzureObjectId" Label="AzureObjectId" />
+            <FluentCheckbox @bind-Value="@shPosition" Label="Position" />
+            <FluentCheckbox @bind-Value="@shMobileNumber" Label="MobileNumber" />
+            <FluentCheckbox @bind-Value="@shPhoneNumber" Label="PhoneNumber" />
+            <FluentCheckbox @bind-Value="@shManager" Label="Manager" />
+            <FluentCheckbox @bind-Value="@shVcdCompanyNr" Label="VcdCompanyNr" />
+        </FluentStack>
+        <p></p>
+        <FluentStack Orientation="Orientation.Horizontal">
+            <FluentCheckbox @bind-Value="@shVcdempId" Label="VcdempId" />
+            <FluentCheckbox @bind-Value="@shVcdempNumber" Label="VcdempNumber" />
+            <FluentCheckbox @bind-Value="@shVcddeptNumber" Label="VcddeptNumber" />
+            <FluentCheckbox @bind-Value="@shSapNumber" Label="SapNumber" />
+            <FluentCheckbox @bind-Value="@shFTEStartDate" Label="FTEStartDate" />
+            <FluentCheckbox @bind-Value="@shFTEEndDate" Label="FTEEndDate" />
+            <FluentCheckbox @bind-Value="@shDeptNumber" Label="DeptNumber" />
+        </FluentStack>
+    </p>
+
+    <FluentDataGrid Items="@filteredEmployee" Pagination="@pagination" TGridItem="EmployeeVm" GridTemplateColumns="100px repeat(6, 1fr)" ResizableColumns=true>
+
+
+
+<PropertyColumn Property="@(c => c.EnovaEmpId.ToString())" Sortable="true" Align="Align.Start" Tooltip="true" Title="EmpId:">
+        <ColumnOptions>
+            <div class="search-box">
+                <FluentSearch 
+                    type="search" 
+                    Autofocus=true 
+                    @bind-Value=enovaEmpIdFilter 
+                    @oninput="(args) => HandleFilter(ref enovaEmpIdFilter, args)"
+                    @bind-Value:after="@(() => HandleClearFilter(ref enovaEmpIdFilter))" />
+            </div>
+        </ColumnOptions>
+    </PropertyColumn>
+
+@if (shLongName)
+{
+    <PropertyColumn Property="@(c => c.LongName)" Sortable="true" Align="Align.Start" Tooltip="true" Title="Name:">
+        <ColumnOptions>
+            <div class="search-box">
+                <FluentSearch 
+                    type="search" 
+                    Autofocus=true 
+                    @bind-Value=nameFilter 
+                    @oninput="(args) => HandleFilter(ref nameFilter, args)"
+                    @bind-Value:after="@(() => HandleClearFilter(ref nameFilter))" />
+            </div>
+        </ColumnOptions>
+    </PropertyColumn>
+}
+
+@if (shEmail)
+{
+    <PropertyColumn Property="@(c => c.Email)" Sortable="true" Align="Align.Start" Tooltip="true" Title="Email address">
+        <ColumnOptions>
+            <div class="search-box">
+                <FluentSearch 
+                    type="search" 
+                    Autofocus=true 
+                    @bind-Value=emailFilter 
+                    @oninput="(args) => HandleFilter(ref emailFilter, args)"
+                    @bind-Value:after="@(() => HandleClearFilter(ref emailFilter))" />
+            </div>
+        </ColumnOptions>
+    </PropertyColumn>
+}
+
+@if (shManager)
+{
+    <PropertyColumn Property="@(c => c.Manager.LongName)" Sortable="true" Align="Align.Start" Tooltip="true" Title="Manager">
+        <ColumnOptions>
+            <div class="search-box">
+                <FluentSearch 
+                    type="search" 
+                    Autofocus=true 
+                    @bind-Value=managerFilter 
+                    @oninput="(args) => HandleFilter(ref managerFilter, args)"
+                    @bind-Value:after="@(() => HandleClearFilter(ref managerFilter))" />
+            </div>
+        </ColumnOptions>
+    </PropertyColumn>
+}
+
+@if (shPosition)
+{
+    <PropertyColumn Property="@(c => c.Position)" Sortable="true" Align="Align.Start" Tooltip="true" Title="Position">
+        <ColumnOptions>
+            <div class="search-box">
+                <FluentSearch 
+                    type="search" 
+                    Autofocus=true 
+                    @bind-Value=positionFilter 
+                    @oninput="(args) => HandleFilter(ref positionFilter, args)"
+                    @bind-Value:after="@(() => HandleClearFilter(ref positionFilter))" />
+            </div>
+        </ColumnOptions>
+    </PropertyColumn>
+}
+
+@if (shAzureObjectId)
+{
+    <PropertyColumn Property="@(c => c.AzureObjectId)" Sortable="true" Align="Align.Start" Tooltip="true" Title="Azure Object Id:" />
+}
+
+@if (shMobileNumber)
+{
+    <PropertyColumn Property="@(c => c.MobileNumber)" Sortable="true" Align="Align.Start" Tooltip="true" Title="Mobile Number:">
+        <ColumnOptions>
+            <div class="search-box">
+                <FluentSearch 
+                    type="search" 
+                    Autofocus=true 
+                    @bind-Value=mobileNumberFilter 
+                    @oninput="(args) => HandleFilter(ref mobileNumberFilter, args)"
+                    @bind-Value:after="@(() => HandleClearFilter(ref mobileNumberFilter))" />
+            </div>
+        </ColumnOptions>
+    </PropertyColumn>
+}
+
+@if (shPhoneNumber)
+{
+    <PropertyColumn Property="@(c => c.PhoneNumber)" Sortable="true" Align="Align.Start" Tooltip="true" Title="Phone Number:" />
+}
+
+@if (shDeptNumber)
+{
+    <PropertyColumn Property="@(c => c.DeptNumber)" Sortable="true" Align="Align.Start" Tooltip="true" Title="Department Number:">
+        <ColumnOptions>
+            <div class="search-box">
+                <FluentSearch 
+                    type="search" 
+                    Autofocus=true 
+                    @bind-Value=deptNumberFilter 
+                    @oninput="(args) => HandleFilter(ref deptNumberFilter, args)"
+                    @bind-Value:after="@(() => HandleClearFilter(ref deptNumberFilter))" />
+            </div>
+        </ColumnOptions>
+    </PropertyColumn>
+}
+
+@if (shVcdCompanyNr)
+{
+    <PropertyColumn Property="@(c => c.VcdCompanyNr)" Sortable="true" Align="Align.Start" Tooltip="true" Title="VCD Company Number:">
+        <ColumnOptions>
+            <div class="search-box">
+                <FluentSearch 
+                    type="search" 
+                    Autofocus=true 
+                    @bind-Value=vcdCompanyNrFilter 
+                    @oninput="(args) => HandleFilter(ref vcdCompanyNrFilter, args)"
+                    @bind-Value:after="@(() => HandleClearFilter(ref vcdCompanyNrFilter))" />
+            </div>
+        </ColumnOptions>
+    </PropertyColumn>
+}
+
+@if (shVcdempId)
+{
+    <PropertyColumn Property="@(c => c.VcdempId)" Sortable="true" Align="Align.Start" Tooltip="true" Title="VCD Employee Id:">
+        <ColumnOptions>
+            <div class="search-box">
+                <FluentSearch 
+                    type="search" 
+                    Autofocus=true 
+                    @bind-Value=vcdempIdFilter 
+                    @oninput="(args) => HandleFilter(ref vcdempIdFilter, args)"
+                    @bind-Value:after="@(() => HandleClearFilter(ref vcdempIdFilter))" />
+            </div>
+        </ColumnOptions>
+    </PropertyColumn>
+}
+
+@if (shVcdempNumber)
+{
+    <PropertyColumn Property="@(c => c.VcdempNumber)" Sortable="true" Align="Align.Start" Tooltip="true" Title="VCD Employee Number:">
+        <ColumnOptions>
+            <div class="search-box">
+                <FluentSearch 
+                    type="search" 
+                    Autofocus=true 
+                    @bind-Value=vcdempNumberFilter 
+                    @oninput="(args) => HandleFilter(ref vcdempNumberFilter, args)"
+                    @bind-Value:after="@(() => HandleClearFilter(ref vcdempNumberFilter))" />
+            </div>
+        </ColumnOptions>
+    </PropertyColumn>
+}
+
+@if (shVcddeptNumber)
+{ 
+    <PropertyColumn Property="@(c => c.VcddeptNumber)" Sortable="true" Align="Align.Start" Tooltip="true" Title="VCD Department Number:">
+    <ColumnOptions>
+            <div class="search-box">
+                <FluentSearch 
+                    type="search" 
+                    Autofocus=true 
+                    @bind-Value=vcddeptNumberFilter 
+                    @oninput="(args) => HandleFilter(ref vcddeptNumberFilter, args)"
+                    @bind-Value:after="@(() => HandleClearFilter(ref vcddeptNumberFilter))" />
+            </div>
+        </ColumnOptions>
+    </PropertyColumn>
+}
+
+@if (shSapNumber)
+{
+    <PropertyColumn Property="@(c => c.SapNumber)" Sortable="true" Align="Align.Start" Tooltip="true" Title="SAP Number:">
+        <ColumnOptions>
+            <div class="search-box">
+                <FluentSearch 
+                    type="search" 
+                    Autofocus=true 
+                    @bind-Value=sapNumberFilter 
+                    @oninput="(args) => HandleFilter(ref sapNumberFilter, args)"
+                    @bind-Value:after="@(() => HandleClearFilter(ref sapNumberFilter))" />
+            </div>
+        </ColumnOptions>
+    </PropertyColumn>
+}
+
+@if (shFTEStartDate)
+{
+    <PropertyColumn Property="@(c => c.FTEStartDate)" Sortable="true" Align="Align.Start" Tooltip="true" Title="FTE Start Date:" />
+}
+
+@if (shFTEEndDate)
+{
+    <PropertyColumn Property="@(c => c.FTEEndDate)" Sortable="true" Align="Align.Start" Tooltip="true" Title="FTE End Date:" />
+}
+
+        @* <PropertyColumn Property="@(c => c.EmployeeTypeVm.Name)" Sortable="true" Align="Align.Start" Tooltip="true" Title="Type of Employee" /> *@
+
+        <TemplateColumn Title="Actions" Align="Align.End">
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" />
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => EditType(context))" />
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" />
+
+        </TemplateColumn>
+    </FluentDataGrid>
+    <FluentPaginator State="@pagination" />
+
+    <FluentButton IconStart="@(new Icons.Regular.Size24.Add())" OnClick="@(() => AddPanel())" />
+}
+
+
+
+@code {
+    private IQueryable<EmployeeVm> employee;
+    private IQueryable<EmployeeVm> filteredEmployee => employee
+    .Where(x =>
+        (string.IsNullOrEmpty(nameFilter) || (x.LongName ?? "").Contains(nameFilter, StringComparison.CurrentCultureIgnoreCase))
+        &&
+        (string.IsNullOrEmpty(emailFilter) || (x.Email ?? "").Contains(emailFilter, StringComparison.CurrentCultureIgnoreCase))
+        &&
+        (string.IsNullOrEmpty(managerFilter) || (x.Manager.LongName ?? "").Contains(managerFilter, StringComparison.CurrentCultureIgnoreCase))
+        &&
+        (string.IsNullOrEmpty(sapNumberFilter) || (x.SapNumber ?? "").Contains(sapNumberFilter, StringComparison.CurrentCultureIgnoreCase))
+        &&
+        (string.IsNullOrEmpty(mobileNumberFilter) || (x.MobileNumber ?? "").Contains(mobileNumberFilter, StringComparison.CurrentCultureIgnoreCase))
+        &&
+        (string.IsNullOrEmpty(deptNumberFilter) || (x.DeptNumber ?? "").Contains(deptNumberFilter, StringComparison.CurrentCultureIgnoreCase))
+        &&
+        (string.IsNullOrEmpty(vcdCompanyNrFilter) || (x.VcdCompanyNr ?? "").Contains(vcdCompanyNrFilter, StringComparison.CurrentCultureIgnoreCase))
+        &&
+        (string.IsNullOrEmpty(vcdempIdFilter) || (x.VcdempId ?? "").Contains(vcdempIdFilter, StringComparison.CurrentCultureIgnoreCase))
+        &&
+        (string.IsNullOrEmpty(vcdempNumberFilter) || (x.VcdempNumber ?? "").Contains(vcdempNumberFilter, StringComparison.CurrentCultureIgnoreCase))
+        &&
+        (string.IsNullOrEmpty(vcddeptNumberFilter) || (x.VcddeptNumber ?? "").Contains(vcddeptNumberFilter, StringComparison.CurrentCultureIgnoreCase))
+        &&
+        (string.IsNullOrEmpty(positionFilter) || (x.Position ?? "").Contains(positionFilter, StringComparison.CurrentCultureIgnoreCase))
+        &&
+        (string.IsNullOrEmpty(enovaEmpIdFilter) || (x.EnovaEmpId.ToString() ?? "").Contains(enovaEmpIdFilter, StringComparison.CurrentCultureIgnoreCase))
+        );
+
+#region stringboolvars
+    string nameFilter = string.Empty;
+    string emailFilter = string.Empty;
+    string managerFilter = string.Empty;
+    string sapNumberFilter = string.Empty;
+    string mobileNumberFilter = string.Empty;
+    string deptNumberFilter = string.Empty;
+    string vcdCompanyNrFilter = string.Empty;
+    string vcdempIdFilter = string.Empty;
+    string vcdempNumberFilter = string.Empty;
+    string vcddeptNumberFilter = string.Empty;
+    string positionFilter = string.Empty;
+    string enovaEmpIdFilter = string.Empty;
+    bool shLongName = true;
+    bool shEmail = true;
+    bool shAzureObjectId = false;
+    bool shPosition = true;
+    bool shMobileNumber = false;
+    bool shPhoneNumber = false;
+    bool shManager = true;
+    bool shVcdCompanyNr = false;
+    bool shVcdempId = false;
+    bool shVcdempNumber = false;
+    bool shVcddeptNumber = false;
+    bool shSapNumber = true;
+    bool shFTEStartDate = false;
+    bool shFTEEndDate = false;
+    bool shDeptNumber = false;
+#endregion stringboolvars
+
+    PaginationState pagination = new PaginationState { ItemsPerPage = 15 };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Load();
+    }
+
+    private async Task Load()
+    {
+        employee = await _mediator.Send(new GetAllEmployeesQuery());
+        StateHasChanged();
+    }
+
+    private async Task EditType(EmployeeVm item)
+    {
+        ToastIntent intent;
+        string message = string.Empty;
+        int i = 0;
+        var data = item;
+        var dialog = await _dialogService.ShowDialogAsync<Employee_Edit_Component>(data, new DialogParameters()
+            {
+                Height = "500px",
+                Width = "720px",
+                Title = data.Id > 0 ? "Update Employee..." : "Create new EmployeeVm...",
+                PreventDismissOnOverlayClick = false,
+                PreventScroll = true,
+            });
+        var result = await dialog.Result;
+
+        if (!result.Cancelled && result.Data != null)
+        {
+            var final = (EmployeeVm)result.Data;
+            if (final.Id > 0)
+            {
+                i = await _mediator.Send(new UpdateEmployeeCommand(final.Id,
+                    final.FirstName,
+                    final.LastName,
+                    final.Email,
+                    final.MobileNumber,
+                    final.PhoneNumber,
+                    final.ManagerId,
+                    final.EmployeeTypeVm));
+
+                intent = ToastIntent.Success;
+                message = "EmployeeVm has been updated!";
+                await Load();
+            }
+            else if (item.Id == 0)
+            {
+                i = await _mediator.Send(new CreateEmployeeCommand(
+                    final.FirstName,
+                    final.LastName,
+                    final.Email,
+                    final.AzureObjectId,
+                    final.IdentityUserName = string.Empty,
+                    final.ThirdPartyId = string.Empty,
+                    final.MobileNumber, final.PhoneNumber,
+                    final.ManagerId, final.IsManager = false,
+                    final.EmployeeTypeVm));
+                await Load();
+
+                intent = ToastIntent.Success;
+                message = "EmployeeVm has been updated!";
+
+            }
+            else
+            {
+                intent = ToastIntent.Warning;
+                message = "Something went realy wrong!";
+            }
+
+        }
+        else if (result.Cancelled)
+        {
+            intent = ToastIntent.Info;
+            message = "Operation Cancelled...";
+        }
+        else
+        {
+            intent = ToastIntent.Error;
+            message = "Something went wrong!!!";
+        }
+
+        _toastService.ShowToast(intent, message, 3000);
+    }
+
+    private async Task AddPanel()
+    {
+        var item = new EmployeeVm();
+        await EditType(item);
+    }
+
+    private async Task View(EmployeeVm item)
+    {
+        await _dialogService.ShowInfoAsync(message: $"EmployeeVm id: {item.Id}, name: {item.FirstName}, last name: {item.LastName}, manager name: {item.Manager.LongName}");
+    }
+
+    private async Task Delete(EmployeeVm item)
+    {
+        ToastIntent intent;
+        string message = string.Empty;
+
+        var i = await _mediator.Send(new DeleteEmployeeCommand(item.Id));
+
+        if (i == item.Id)
+        {
+            intent = ToastIntent.Success;
+            message = "EmployeeVm has been deleted!";
+        }
+        else
+        {
+            intent = ToastIntent.Error;
+            message = "Something went wrong!!!";
+        }
+
+        _toastService.ShowToast(intent, message, 3000);
+    }
+
+    void Refresh()
+    {
+        _navigationManager.NavigateTo(_navigationManager.Uri, true);
+    }
+
+    private void HandleClearFilter(ref string filter) => filter = string.IsNullOrWhiteSpace(filter) ? string.Empty : filter;
+
+    private void HandleFilter(ref string filter, ChangeEventArgs args) => filter = args.Value is string value ? value : string.Empty;
+}

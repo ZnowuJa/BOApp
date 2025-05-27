@@ -1,0 +1,17 @@
+﻿@page "/signout"
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Authentication.OpenIdConnect
+
+@inject NavigationManager Navigation
+@inject IHttpContextAccessor HttpContextAccessor
+
+<h3>Sign Out</h3>
+<button @onclick="SignOut">Sign Out</button>
+
+@code {
+    private async Task SignOut()
+    {
+        await HttpContextAccessor.HttpContext.SignOutAsync(OpenIdConnectDefaults.AuthenticationScheme);
+        Navigation.NavigateTo("/");
+    }
+}

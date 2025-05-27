@@ -1,0 +1,17 @@
+﻿@page "/reloadclaims"
+@using Microsoft.AspNetCore.Authentication
+@inject NavigationManager Navigation
+@inject IHttpContextAccessor HttpContextAccessor
+
+<h3>Reload Claims</h3>
+<button @onclick="ReloadClaims">Reload Claims</button>
+
+@code {
+    private async Task ReloadClaims()
+    {
+        var user = HttpContextAccessor.HttpContext.User;
+        await HttpContextAccessor.HttpContext.SignOutAsync();
+        await HttpContextAccessor.HttpContext.SignInAsync(user);
+        Navigation.NavigateTo("/");
+    }
+}

@@ -1,0 +1,224 @@
+﻿@* Department Edit Component *@
+@using Application.CQRS.ITWarehouseCQRS.Employees.Queries
+@using Application.ViewModels.General
+@using Application.CQRS.ITWarehouseCQRS.Companies.Queries
+@using Application.CQRS.ITWarehouseCQRS.Warehouses.Queries
+
+@inject IMediator _mediator;
+@implements IDialogContentComponent<DepartmentVm>
+
+@* Header *@
+<FluentDialogHeader ShowDismiss="true">
+    <FluentStack VerticalAlignment="VerticalAlignment.Center">
+        <FluentIcon Value="@(new Icons.Regular.Size24.WindowApps())" />
+        <FluentLabel Typo="Typography.PaneHeader">
+            @Dialog.Instance.Parameters.Title
+        </FluentLabel>
+    </FluentStack>
+</FluentDialogHeader>
+
+@* Footer *@
+<FluentDialogFooter>
+    <FluentButton Appearance="Appearance.Accent" OnClick="@SaveAsync"
+        Disabled="@(!_editContext.Validate())">Save
+    </FluentButton>
+    <FluentButton Appearance="Appearance.Neutral" OnClick="@CancelAsync">Cancel</FluentButton>
+</FluentDialogFooter>
+
+@* Body *@
+<FluentDialogBody Orientation="Orientation.Horizontal">
+    <EditForm Model="_editContext">
+        <FluentValidationValidator @ref="_fluentValidator"/>
+
+        <FluentGrid Justify="@Justification" >
+            @* LongName *@
+            <FluentGridItem xs="6" sm="3">
+                <div class="card">
+                    <FluentTextField Id="Name"  @bind-Value="@Content.LongName" Placeholder="Enter full name"> Name: </FluentTextField>
+                    <FluentValidationMessage For="@(() => Content.LongName)" />
+                </div>
+            </FluentGridItem>
+            @* Department Number *@
+            <FluentGridItem xs="6" sm="3">
+                <div class="card">
+                    <FluentTextField Id="Number" @bind-Value="@Content.DeptNumber" Placeholder="Enter name"> Number: </FluentTextField>
+                    <FluentValidationMessage For="@(() => Content.DeptNumber)" />
+                </div>
+            </FluentGridItem>
+            @* CompanyVm *@
+            <FluentGridItem xs="6" sm="3">
+                <div class="card">
+                    @if (Content.Id != 0)
+                    {
+                        <FluentSelect TOption="CompanyVm"
+                                      Label="Select a Company"
+                                      Items="@itemCompanies"
+                                      Id="CompId"
+                                      Width="250px"
+                                      Height="250px"
+                                      OptionValue="@(p => p.Id.ToString())"
+                                      OptionText="@(p => p.Name)"
+                            @bind-SelectedOption="@Content.CompanyVm" />
+                    } else
+                    {
+                        <FluentSelect TOption="CompanyVm"
+                                      Label="Select a Company"
+                                      Items="@itemCompanies"
+                                      Id="CompId"
+                                      Width="150px"
+                                      Height="250px"
+                                      OptionValue="@(p => p.Id.ToString())"
+                                      OptionText="@(p => p.Name)"
+                                      @bind-SelectedOption="@SelectedCompany" />
+                    }
+                </div>
+            </FluentGridItem>
+            @* CostCenter *@
+            <FluentGridItem xs="6" sm="4">
+                <div class="card">
+                    <FluentTextField Id="CostCenter" @bind-Value="@Content.CostCenter" Placeholder="Enter Street Name"> CostCenter: </FluentTextField>
+                    <FluentValidationMessage For="@(() => Content.CostCenter)" />
+                </div>
+            </FluentGridItem>
+            @* SapNumber *@
+            <FluentGridItem xs="6" sm="4">
+                <div class="card">
+                    <FluentTextField Id="SapNumber" @bind-Value="@Content.SapNumber" Placeholder="Departments SapNumber"> SapNumber: </FluentTextField>
+                    <FluentValidationMessage For="@(() => Content.SapNumber)" />
+                </div>
+            </FluentGridItem>
+            @* Warehouse *@
+            <FluentGridItem xs="6" sm="4">
+                <div class="card">
+                    @if (Content.Id != 0)
+                    {
+                        <FluentSelect TOption="WarehouseVm"
+                                      Label="Select a Warehouse"
+                                      Items="@itemWarehouses"
+                                      Id="WhId"
+                                      Width="150px"
+                                      Height="250px"
+                                      OptionValue="@(p => p.Id.ToString())"
+                                      OptionText="@(p => p.Name)"
+                                      @bind-SelectedOption="@Content.WarehouseVm"/>
+                    }
+                    else
+                    {
+                        <FluentSelect TOption="WarehouseVm"
+                                      Label="Select a Warehouse"
+                                      Items="@itemWarehouses"
+                                      Id="WhId"
+                                      Width="150px"
+                                      Height="250px"
+                                      OptionValue="@(p => p.Id.ToString())"
+                                      OptionText="@(p => p.Name)"
+                                      @bind-SelectedOption="@SelectedWarehouse" />
+                    }
+                </div>
+            </FluentGridItem>
+            @* Manager *@
+            <FluentGridItem xs="6" sm="4">
+                <div class="card">
+                    @if (Content.Id != 0)
+                    {
+                        <FluentSelect TOption="EmployeeVm"
+                                      Label="Select a Manager"
+                                      Items="@itemManagers"
+                                      Id="ManId"
+                                      Width="150px"
+                                      Height="250px"
+                                      OptionValue="@(p => p.Id.ToString())"
+                                      OptionText="@(p => p.LongName)"
+                                      @bind-SelectedOption="@Content.ManagerVm" />
+                    }
+                    else
+                    {
+                        <FluentSelect TOption="EmployeeVm"
+                                      Label="Select a Manager"
+                                      Items="@itemManagers"
+                                      Id="ManId"
+                                      Width="150px"
+                                      Height="250px"
+                                      OptionValue="@(p => p.Id.ToString())"
+                                      OptionText="@(p => p.LongName)"
+                                      @bind-SelectedOption="@SelectedManager" />
+                    }
+                </div>
+            </FluentGridItem>
+        </FluentGrid>
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="validation-error" ><p style="color:red;">@errorMessage</p></div>
+        }
+    </EditForm>
+</FluentDialogBody>
+
+
+@code {
+    [Parameter]
+    public DepartmentVm Content { get; set; }
+
+    [CascadingParameter]
+    public FluentDialog Dialog { get; set; } = default!;
+
+    JustifyContent Justification = JustifyContent.FlexStart;
+
+    private EditContext _editContext;
+    // private EditContext _editContextCatgoryType;
+
+    private FluentValidationValidator? _fluentValidator;
+    private string errorMessage;
+
+    private IQueryable<WarehouseVm> itemWarehouses { get; set; }
+    private IQueryable<EmployeeVm> itemManagers { get; set; }
+    private IQueryable<CompanyVm> itemCompanies { get; set; }
+
+    private CompanyVm SelectedCompany { get; set; } = new CompanyVm();
+    private WarehouseVm SelectedWarehouse { get; set; } = new WarehouseVm();
+    private EmployeeVm SelectedManager { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _editContext = new EditContext(Content);
+        itemWarehouses = await _mediator.Send(new GetAllWarehousesForSelectQuery());
+        itemManagers = await _mediator.Send(new GetAllManagersAsEmployeesForSelectQuery());
+        itemCompanies = await _mediator.Send(new GetAllCompaniesForSelectQuery());
+        base.OnInitialized();
+    }
+
+    private async Task SaveAsync()
+    {
+        if (Content.Id != 0)
+        {
+            await Dialog.CloseAsync(Content);
+        }
+        else
+        {
+            if(SelectedCompany.Id != 0 || SelectedManager.EnovaEmpId !=0 || SelectedWarehouse.Id !=0)
+            {
+                Content.CompanyVm = SelectedCompany;
+                Content.CompanyId = SelectedCompany.Id;
+                Content.WarehouseVm = SelectedWarehouse;
+                Content.WarehouseID = SelectedWarehouse.Id;
+                Content.ManagerVm = SelectedManager;
+                Content.ManagerEmpId = SelectedManager.EnovaEmpId;
+
+                await Dialog.CloseAsync(Content);
+            }
+            else
+            {
+                Console.WriteLine();
+                errorMessage = "Plese select Company, Warehouse ot Manager!";
+            }
+        }
+    }
+
+    private async Task CancelAsync()
+    {
+        await Dialog.CancelAsync();
+    }
+
+}
+
+

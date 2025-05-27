@@ -1,0 +1,12 @@
+﻿@page "/users"
+@using Microsoft.AspNetCore.Authorization
+@* @inject ILogger<Index> logger *@
+@attribute [Authorize(Policy = "Manager")]
+
+<PageTitle>Users</PageTitle>
+
+<h1>Hello, Users!</h1>
+
+Welcome to your new app.
+
+<SurveyPrompt Title="How is Blazor working for you?" />

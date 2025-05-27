@@ -1,0 +1,179 @@
+﻿@page "/costcenters"
+@page "/mpk"
+
+@using Application.CQRS.AccountingCQRS.CostCenters.Queries
+@using Application.CQRS.AccountingCQRS.CostCenters.Commands
+@using Application.ViewModels.Accounting
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize(Policy = "Accountant")]
+
+@inject IMediator _mediator
+@inject IDialogService _dialogService
+@inject IToastService _toastService
+
+<h3>MPK</h3>
+
+@if (costCenter == null)
+{
+    <FluentProgressRing>Ładowanie...</FluentProgressRing>
+
+}
+else
+{
+
+    <FluentDataGrid Items="@filteredCostCenter" Pagination="@pagination" TGridItem="CostCenterVm" GridTemplateColumns="50px 200px 200px 200px">
+        @foreach (var column in filterColumns.Where(c => c.IsVisible))
+        {
+            <PropertyColumn TGridItem="CostCenterVm" TProp="string" Property="@(Utils.GetPropertyExpression(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label" Filtered="!string.IsNullOrWhiteSpace(column.Filter)">
+                <ColumnOptions>
+                    <div class="search-box">
+                        <FluentSearch type="search" Autofocus="true" @bind-Value="column.Filter" @oninput="(args) => Utils.HandleFilterDebounced(column, args, debounceDispatcher, () => InvokeAsync(StateHasChanged))" Placeholder="@($"{column.Label.ToLower()}...")" />
+                    </div>
+                </ColumnOptions>
+            </PropertyColumn>
+        }
+        <TemplateColumn Title="Akcje" Align="Align.End">
+            @{
+                var viewId = $"viewid-{context.Id}";
+                var editId = $"editid-{context.Id}";
+                var deleteId = $"deleteid-{context.Id}";
+            }
+            <FluentButton Id="@viewId" IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" />
+            <FluentTooltip Anchor="@viewId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Szczegóły</FluentTooltip>
+
+            <FluentButton Id="@editId" IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => EditItem(context))" />
+            <FluentTooltip Anchor="@editId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Edytuj</FluentTooltip>
+
+            <FluentButton Id="@deleteId" IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" />
+            <FluentTooltip Anchor="@deleteId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Usuń</FluentTooltip>
+
+        </TemplateColumn>
+    </FluentDataGrid>
+    <FluentPaginator State="@pagination" />
+    <FluentButton IconStart="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddPanel())" />
+}
+
+
+@code {
+    private IQueryable<CostCenterVm> costCenter;
+    private IQueryable<CostCenterVm> filteredCostCenter => costCenter.Where(x =>
+    filterColumns.All(column => string.IsNullOrWhiteSpace(column.Filter) ||
+    column.Property(x).Contains(column.Filter, StringComparison.CurrentCultureIgnoreCase)));
+
+    private bool deleteConfirm = false;
+    PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
+    private DebounceDispatcher debounceDispatcher = new DebounceDispatcher();
+
+    private List<FilterColumn<CostCenterVm>> filterColumns = new List<FilterColumn<CostCenterVm>>
+    {
+        new FilterColumn<CostCenterVm> { FirstRow = true, Label = "ID", Property = c => c.Id.ToString(), IsVisible = true, Width = "80px" },
+        new FilterColumn<CostCenterVm> { FirstRow = true, Label = "MPK", Property = c => c.MPK, IsVisible = true, Width = "1FR" },
+        new FilterColumn<CostCenterVm> { FirstRow = true, Label = "Opis", Property = c => c.Description, IsVisible = true , Width = "1FR" },
+        new FilterColumn<CostCenterVm> { FirstRow = true, Label = "Tekst", Property = c => c.Text, IsVisible = true , Width = "1FR" },
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Load();
+    }
+
+    private async Task Load()
+    {
+        costCenter = await _mediator.Send(new GetAllCostCenterQuery());
+    }
+
+    private async Task View(CostCenterVm item)
+    {
+        await _dialogService.ShowInfoAsync(message: $"Id: {item.Id}, MPK: {item.MPK}, opis: {item.Description}, tekst: {item.Text}");
+    }
+
+    private async Task Delete(CostCenterVm item)
+    {
+        var dialog = await _dialogService.ShowConfirmationAsync(
+            $"Czy na pewno chcesz usunąć MPK: {item.Text}?",
+            "Usuń",
+            "Anuluj",
+            "Potwierdź usunięcie");
+        var result = await dialog.Result;
+        deleteConfirm = result.Cancelled;
+        ToastIntent intent;
+        string message = string.Empty;
+
+        if (deleteConfirm)
+        {
+            intent = ToastIntent.Error;
+            message = "Operacja anulowana";
+        }
+        else
+        {
+            var i = await _mediator.Send(new DeleteCostCenterCommand(item.Id));
+            intent = ToastIntent.Success;
+            message = "MPK zostało usunięte!";
+        }
+
+        _toastService.ShowToast(intent, message, 3000);
+        await Load();
+    }
+
+    private async Task EditItem(CostCenterVm item)
+    {
+        ToastIntent intent;
+        string message = string.Empty;
+        int resultId = 0;
+
+        var dialog = await _dialogService.ShowDialogAsync<CostCenter_Edit_Component>(item, new DialogParameters()
+            {
+                Height = "370px",
+                Width = "450px",
+                Title = item.Id > 0 ? "Aktualizuj MPK" : "Dodanie nowego MPK",
+                PreventDismissOnOverlayClick = false,
+                PreventScroll = true,
+            });
+
+        var result = await dialog.Result;
+
+        if (!result.Cancelled && result.Data != null)
+        {
+            var final = (CostCenterVm)result.Data;
+
+            if (final.Id > 0)
+            {
+                resultId = await _mediator.Send(new UpdateCostCenterCommand(final));
+                intent = ToastIntent.Success;
+                message = "MPK zostało zaktualizowane!";
+            }
+            else if (final.Id == 0)
+            {
+                resultId = await _mediator.Send(new CreateCostCenterCommand(final));
+                intent = ToastIntent.Success;
+                message = "MPK zostało utworzone!";
+            }
+            else
+            {
+                intent = ToastIntent.Warning;
+                message = "Coś poszło źle!";
+            }
+        }
+        else if (result.Cancelled)
+        {
+            intent = ToastIntent.Info;
+            message = "Operacja anulowana";
+        }
+        else
+        {
+            intent = ToastIntent.Error;
+            message = "Coś poszło źle!";
+        }
+
+        await Load();
+        _toastService.ShowToast(intent, message, 3000);
+    }
+
+
+    private async Task AddPanel()
+    {
+        var item = new CostCenterVm();
+        await EditItem(item);
+    }
+}

@@ -1,0 +1,218 @@
+﻿@page "/parts"
+@using Application.ITWarehouseCQRS.Parts.Commands
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize(Policy = "Technician")]
+
+@inject IMediator _mediator
+@inject ILogger<Part_Page> _logger
+@inject IDialogService _dialogService
+@inject IToastService _toastService
+
+
+<h3>Parts</h3>
+
+@if (part == null)
+{
+    <FluentProgressRing>Loading...</FluentProgressRing>
+
+}
+else
+{
+
+    <FluentDataGrid Items="@part" TGridItem="PartVm" GridTemplateColumns="50px repeat(4, 1fr) 0.5fr 0.5fr" ResizableColumns=true>
+        <PropertyColumn Property="@(c => c.Id)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.Name)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.CategoryVm.Name)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.VendorVm.Name)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.WarrantyPeriod)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.isCurrentlyOrderable)" Sortable="true" Align="Align.Start" Tooltip="true" />
+
+        <TemplateColumn Title="Actions" Align="Align.End">
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" />
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => EditType(context))" />
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" />
+
+        </TemplateColumn>
+    </FluentDataGrid>
+    <FluentButton IconStart="@(new Icons.Regular.Size24.Add())" OnClick="@(() => AddPanel())" />
+}
+
+
+
+@code {
+    private IQueryable<PartVm> part;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Load();
+    }
+    private async Task Load()
+    {
+        part = await _mediator.Send(new GetAllPartsQuery());
+        foreach( var c in part)
+        {
+            Console.WriteLine( c.Name);
+        }
+
+    }
+    private async Task EditType(PartVm item)
+    {
+        ToastIntent intent;
+        string message = string.Empty;
+        int i = 0;
+
+        var data = item;
+        var dialog = await _dialogService.ShowDialogAsync<Part_Edit_Component>(data, new DialogParameters()
+            {
+                Height = "500px",
+                Width = "720px",
+                Title = data.Id > 0 ? "Update PartVm..." : "Create PartVm...",
+                PreventDismissOnOverlayClick = false,
+                PreventScroll = true,
+            });
+        var result = await dialog.Result;
+
+
+        if (!result.Cancelled && result.Data != null)
+        {
+            item = (PartVm)result.Data;
+            if (item.Id > 0)
+            {
+                i = await _mediator.Send(new UpdatePartCommand(item.Id, item.Name, item.CategoryVm, item.VendorVm, item.Description, item.Photo, item.WarrantyPeriod, item.isCurrentlyOrderable, item.EndOfSupport ));
+                intent = ToastIntent.Success;
+                message = "PartVm has been updated!";
+            }
+            else if (item.Id == 0)
+            {
+                Console.WriteLine("Tu weszlismy?" + item.Name + item.CategoryVm.Name + item.VendorVm.Name);
+
+                i = await _mediator.Send(new CreatePartCommand(item.Name, item.CategoryVm, item.VendorVm, item.Description, item.Photo, item.WarrantyPeriod, item.isCurrentlyOrderable, item.EndOfSupport));
+                intent = ToastIntent.Success;
+                message = "PartVm has been Created!";
+            }
+            else
+            {
+                intent = ToastIntent.Warning;
+                message = "Something went realy wrong!";
+            }
+
+        }
+        else if (result.Cancelled)
+        {
+            intent = ToastIntent.Info;
+            message = "Update Cancelled...";
+        }
+        else
+        {
+            intent = ToastIntent.Error;
+            message = "Something went wrong!!!";
+        }
+
+
+        await Load();
+        _toastService.ShowToast(intent, message, 3000);
+
+        Console.WriteLine(result.GetType());
+    }
+
+    private async Task AddPanel()
+    {
+        PartVm item = new PartVm { Id = 0, Name = string.Empty, CategoryVm = new CategoryVm(), VendorVm = new VendorVm(), Description = string.Empty, isCurrentlyOrderable = false, Photo = string.Empty, WarrantyPeriod = 0 };
+        // await EditCatTypePanel(ctVm);
+        await EditType(item);
+        
+    }
+
+    // private async Task EditTypePanel(PartVm item)
+    // {
+    //     ToastIntent intent;
+    //     string message = string.Empty;
+    //     int i = 0;
+
+    //     var data = item;
+    //     var dialog = await _dialogService.ShowPanelAsync<Part_Edit_Component>(data, new DialogParameters()
+    //         {
+    //             Height = "240px",
+    //             Width = "720px",
+    //             Title = data.Id > 0 ? "Update PartVm Title" : "Create new PartVm",
+    //             PreventDismissOnOverlayClick = false,
+    //             PreventScroll = true,
+    //         });
+    //     var result = await dialog.Result;
+
+
+    //     if (!result.Cancelled && result.Data != null)
+    //     {
+    //         item = (PartVm)result.Data;
+    //         if (item.Id > 0)
+    //         {
+    //             i = await _mediator.Send(new UpdatePartCommand(item.Id, item.Title, item.FullName, item.VATID, item.Street, item.Building, item.City, item.PostalCode, item.Country, item.CountryCode, item.ContactPerson, item.ContactPersonMobile, item.ContactPersonEmail, item.PartTypeVm));
+    //             intent = ToastIntent.Success;
+    //             message = "PartVm has been updated!";
+    //         }
+    //         else if (item.Id == 0)
+    //         {
+    //             i = await _mediator.Send(new CreatePartCommand(item.Title, item.FullName, item.VATID, item.Street, item.Building, item.City, item.PostalCode, item.Country, item.CountryCode, item.ContactPerson, item.ContactPersonMobile, item.ContactPersonEmail, item.PartTypeVm));
+    //             intent = ToastIntent.Success;
+    //             message = "PartVm has been Created!";
+    //         }
+    //         else
+    //         {
+
+    //             intent = ToastIntent.Warning;
+    //             message = "Something went realy wrong!";
+    //         }
+
+    //     }
+    //     else if (result.Cancelled)
+    //     {
+    //         intent = ToastIntent.Info;
+    //         message = "Changes Cancelled...";
+    //     }
+    //     else
+    //     {
+    //         intent = ToastIntent.Error;
+    //         message = "Something went wrong!!!";
+    //     }
+
+
+    //     await Load();
+    //     _toastService.ShowToast(intent, message, 3000);
+
+    //     Console.WriteLine(result.GetType());
+    // }
+
+    private async Task View(PartVm item)
+    {
+        await _dialogService.ShowInfoAsync(message: $"PartVm id: {item.Id}, name: {item.Name}, category name: {item.CategoryVm.Name}, vendor name: {item.VendorVm.Name}");
+    }
+
+    // private async Task Add()
+    // {
+    //     PartVm ctVm = new PartVm { Id = 0, Title = string.Empty, FullName = string.Empty, VATID = string.Empty, Street = string.Empty, Building = string.Empty, City = string.Empty, PostalCode = string.Empty, Country = string.Empty, CountryCode = string.Empty, ContactPerson = string.Empty, ContactPersonMobile = string.Empty, ContactPersonEmail = string.Empty, PartTypeVm = new PartTypeVm() };
+    //     await EditType(ctVm);
+    // }
+
+    private async Task Delete(PartVm item)
+    {
+        ToastIntent intent;
+        string message = string.Empty;
+
+        var i = await _mediator.Send(new DeletePartCommand(item.Id));
+
+        if (i == item.Id)
+        {
+            intent = ToastIntent.Success;
+            message = "PartVm has been deleted!";
+        }
+        else
+        {
+            intent = ToastIntent.Error;
+            message = "Something went wrong!!!";
+        }
+        await Load();
+        _toastService.ShowToast(intent, message, 3000);
+
+    }
+}

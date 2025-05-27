@@ -1,0 +1,86 @@
+﻿@page "/settlements"
+@page "/rozrachunki"
+
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize(Policy = "Settlements")]
+
+@inject IMediator _mediator
+@inject ILogger<DeferralPaymentListPage> _logger
+@inject IDialogService _dialogService
+@inject IToastService _toastService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager _navigationManager
+
+<p></p>
+<h3>Rozrachunki - Odroczone płatności</h3>
+
+<FluentStack Orientation="Orientation.Horizontal"
+             HorizontalAlignment="HorizontalAlignment.Left"
+             VerticalAlignment="VerticalAlignment.Center"
+             Spacing="20px"
+             Style="padding: 20px;">
+    <AuthorizeView Policy="User">
+    <FluentCard Style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); border-radius: 10px; overflow: hidden;">
+        <FluentStack Orientation="Orientation.Vertical"
+                     HorizontalAlignment="HorizontalAlignment.Center"
+                     VerticalAlignment="VerticalAlignment.Center"
+                     Spacing="10px"
+                     Style="padding: 20px;">
+                @(new Icons.Regular.Size24.Form().ToMarkup("48px"))
+            <h4 style="margin: 0;">Moje zgłoszenia</h4>
+            <FluentButton BackgroundColor="var(--accent-fill-rest)"
+                          Color="var(--neutral-fill-rest)"
+                          OnClick="@(()=>_navigationManager.NavigateTo("/platnosciodroczone/pracownik"))"
+                          >
+                Moje zgłoszenia
+            </FluentButton>
+        </FluentStack>
+    </FluentCard>
+    </AuthorizeView>
+    <AuthorizeView Policy="Manager">
+    <FluentCard Style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); border-radius: 10px; overflow: hidden;">
+        <FluentStack Orientation="Orientation.Vertical"
+                     HorizontalAlignment="HorizontalAlignment.Center"
+                     VerticalAlignment="VerticalAlignment.Center"
+                     Spacing="10px"
+                     Style="padding: 20px;">
+                @(new Icons.Regular.Size24.FormMultiple().ToMarkup("48px"))
+            <h4 style="margin: 0;">Zgłoszenia do akceptacji</h4>
+            <FluentButton BackgroundColor="var(--accent-fill-rest)"
+                          Color="var(--neutral-fill-rest)"
+                          OnClick="@(()=>_navigationManager.NavigateTo("/platnosciodroczone/kierownik"))"
+                          >
+                Zgłoszenia do akceptacji
+            </FluentButton>
+        </FluentStack>
+    </FluentCard>
+    </AuthorizeView>
+    <AuthorizeView Policy="Settlements">
+    <FluentCard Style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); border-radius: 10px; overflow: hidden;">
+        <FluentStack Orientation="Orientation.Vertical"
+                     HorizontalAlignment="HorizontalAlignment.Center"
+                     VerticalAlignment="VerticalAlignment.Center"
+                     Spacing="10px"
+                     Style="padding: 20px;">
+            @(new Icons.Regular.Size24.BookCoins().ToMarkup("48px"))
+            <h4 style="margin: 0;">Wszystkie zgłoszenia</h4>
+            <FluentButton BackgroundColor="var(--accent-fill-rest)"
+                          Color="var(--neutral-fill-rest)"
+                          OnClick="@(()=>_navigationManager.NavigateTo("/platnosciodroczone/rozrachunki"))">
+                Wszystkie zgłoszenia
+            </FluentButton>
+        </FluentStack>
+    </FluentCard>
+    </AuthorizeView>
+</FluentStack>
+
+
+@code {
+    // JustifyContent Justification = JustifyContent.Center;
+
+    public int xssize { get; set; } = 2;
+    public int smsize { get; set; } = 2;
+
+
+}

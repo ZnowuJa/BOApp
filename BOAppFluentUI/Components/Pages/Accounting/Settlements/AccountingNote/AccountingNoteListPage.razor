@@ -1,0 +1,232 @@
+﻿@page "/notyksiegowe/{role}"
+@page "/accountingnotes{role}"
+@using Application.CQRS.AccountingCQRS.AccountingNote.Queries
+@using Application.Forms
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize(Policy = "Technician")]
+
+@inject IMediator _mediator
+@inject IDialogService _dialogService
+@inject IToastService _toastService
+@inject NavigationManager _navigationManager
+
+<h3>AccountingNoteListPage</h3>
+
+@if (accountingNote == null)
+{
+    <FluentProgressRing>Loading...</FluentProgressRing>
+
+}
+else
+{
+    <div>
+        <FluentLabel Typo="Typography.Subject">
+            <FluentButton BackgroundColor="var(--accent-fill-rest)"
+                          Color="var(--neutral-fill-rest)"
+                          OnClick="ToggleVisibility">
+                Pokaż kolumny:
+                @ToggleIcon
+            </FluentButton>
+        </FluentLabel>
+
+
+        @if (isExpanded)
+        {
+            <div>
+                <FluentStack Orientation="Orientation.Horizontal">
+                    @foreach (var column in filterColumns)
+                    {
+                        if (column.FirstRow)
+                        {
+                            <FluentCheckbox @bind-Value="column.IsVisible" Label="@column.Label" />
+                        }
+                    }
+                </FluentStack>
+                <p></p>
+                <FluentStack Orientation="Orientation.Horizontal">
+                    @foreach (var column in filterColumns)
+                    {
+                        if (!column.FirstRow)
+                        {
+                            <FluentCheckbox @bind-Value="column.IsVisible" Label="@column.Label" />
+                        }
+                    }
+                </FluentStack>
+            </div>
+        }
+    </div>
+
+    <FluentDataGrid Items="@Utils.ApplyFilters(accountingNote, filterColumns)"
+                    Pagination="@pagination"
+                    TGridItem="AccountingNoteFormVm"
+                    Style="overflow: auto;"
+                    ShowHover="true"
+                    ResizableColumns="true">
+        @foreach (var column in filterColumns.Where(c => c.IsVisible))
+        {
+            if (column.IsDropdown)
+            {
+                <PropertyColumn TGridItem="AccountingNoteFormVm" TProp="string" Property="@(Utils.GetPropertyExpression<AccountingNoteFormVm>(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label" Filtered="column.SelectedValues.Any()">
+                    <ColumnOptions>
+                        <FluentSelect TOption="string"
+                                      Items="@(column.DropdownValues)"
+                                      Multiple="true"
+                                      SelectedOptionsChanged="@(e => Utils.OnSelectedOptionsChanged<AccountingNoteFormVm>(e, column))">
+                            @foreach (var value in column.DropdownValues)
+                            {
+                                <FluentOption Value="@value">@value</FluentOption>
+                            }
+                        </FluentSelect>
+                    </ColumnOptions>
+                </PropertyColumn>
+            }
+            else
+            {
+                <PropertyColumn TGridItem="AccountingNoteFormVm" TProp="string" Property="@(Utils.GetPropertyExpression<AccountingNoteFormVm>(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label" Filtered="!string.IsNullOrWhiteSpace(column.Filter)">
+                    <ColumnOptions>
+                        <div class="search-box">
+                            <FluentSearch type="search" Autofocus="true" @bind-Value="column.Filter" @oninput="(args) => Utils.HandleFilterDebounced(column, args, debounceDispatcher, () => InvokeAsync(StateHasChanged))" Placeholder="@($"{column.Label.ToLower()}...")" />
+                        </div>
+                    </ColumnOptions>
+                </PropertyColumn>
+            }
+        }
+
+        @* Actions *@
+        <TemplateColumn Title="Actions" Align="Align.End">
+            @{
+                var viewId = $"viewid-{context.Id}";
+                var editId = $"editid-{context.Id}";
+                var deleteId = $"deleteid-{context.Id}";
+            }
+
+            <FluentButton Id="@viewId" IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" Disabled="false" />
+            <FluentTooltip Anchor="@viewId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Left Delay=50>Podgląd</FluentTooltip>
+
+            <FluentButton Id="@editId" IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => Edit(context))" Disabled="false" />
+            <FluentTooltip Anchor="@editId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Edytuj</FluentTooltip>
+
+            <FluentButton Id="@deleteId" IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" Disabled="false" />
+            <FluentTooltip Anchor="@deleteId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Skasuj wniosek</FluentTooltip>
+
+        </TemplateColumn>
+    </FluentDataGrid>
+    <FluentButton IconStart="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddPanel())" />
+}
+
+@code {
+    [Parameter] public string role { get; set; }
+
+    private IQueryable<AccountingNoteFormVm> accountingNote;
+
+    private PaginationState pagination = new PaginationState { ItemsPerPage = 12 };
+    private DebounceDispatcher debounceDispatcher = new DebounceDispatcher();
+
+    private List<FilterColumn<AccountingNoteFormVm>> filterColumns = new List<FilterColumn<AccountingNoteFormVm>>
+    {
+        new FilterColumn<AccountingNoteFormVm> { FirstRow = true, Label = "Numer noty", Property = c => c.NoteNumber.ToString() ?? string.Empty, IsVisible = true, Width = "1FR" },
+        new FilterColumn<AccountingNoteFormVm> { FirstRow = true, Label = "Status", Property = c => c.Status.ToString() ?? string.Empty, IsVisible = true, IsDropdown = true, Width = "1FR" },
+        new FilterColumn<AccountingNoteFormVm> { FirstRow = true, Label = "DG", Property = c => c.DG.ToString() ?? string.Empty, IsVisible = false, Width = "1FR" },
+        new FilterColumn<AccountingNoteFormVm> { FirstRow = true, Label = "Dealer", Property = c => c.Dealer.ToString() ?? string.Empty, IsVisible = true, IsDropdown = true, Width = "1FR"},
+        new FilterColumn<AccountingNoteFormVm> { FirstRow = true, Label = "Ubezpieczyciel", Property = c => c.Insurer.ToString() ?? string.Empty, IsVisible = true, IsDropdown = true, Width = "1FR" },
+        new FilterColumn<AccountingNoteFormVm> { FirstRow = false, Label = "Data", Property = c => c.Date?.ToString("yyyy-MM-dd") ?? string.Empty, IsVisible = true, Width = "1FR" },
+        new FilterColumn<AccountingNoteFormVm> { FirstRow = false, Label = "Termin płatności", Property = c => c.PaymentDeadline?.ToString("yyyy-MM-dd") ?? string.Empty, IsVisible = true, Width = "1FR" },
+        new FilterColumn<AccountingNoteFormVm> { FirstRow = false, Label = "Kwota", Property = c => c.Amount.ToString("N2"), IsVisible = true, Width = "1FR" },
+        new FilterColumn<AccountingNoteFormVm> { FirstRow = false, Label = "Kwota zapłacona", Property = c => c.AmountPaid.ToString("N2"), IsVisible = true, Width = "1FR" },
+        new FilterColumn<AccountingNoteFormVm> { FirstRow = false, Label = "Pozostało do zapłaty", Property = c => c.AmountRemaining.ToString("N2"), IsVisible = false, Width = "1FR" }
+    };
+
+    private bool isExpanded = false;
+    private string ToggleIcon => isExpanded ? "▼" : "▶";
+    private void ToggleVisibility()
+    {
+        isExpanded = !isExpanded;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Load();
+    }
+
+    private async Task Load()
+    {
+        accountingNote = await _mediator.Send(new GetAllAccountingNoteQuery());
+    }
+
+    private async Task Delete(AccountingNoteFormVm item)
+    {
+    }
+
+    private async Task View(AccountingNoteFormVm item)
+    {
+    }
+
+    private async Task Edit(AccountingNoteFormVm item)
+    {
+        _navigationManager.NavigateTo($"/notaksiegowa/{item.Id}?srcPage={role}");
+
+
+
+
+        // ToastIntent intent;
+        // string message = string.Empty;
+        // int resultId = 0;
+
+        // var dialog = await _dialogService.ShowDialogAsync<AccountingNoteEditComponent>(item, new DialogParameters()
+        //     {
+        //         Height = "500px",
+        //         Width = "400px",
+        //         Title = item.Id > 0 ? "Update Accounting Note..." : "Create New Accounting Note",
+        //         PreventDismissOnOverlayClick = false,
+        //         PreventScroll = true,
+        //     });
+
+        // var result = await dialog.Result;
+
+        // ^ To działa ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+        // if (!result.Cancelled && result.Data != null)
+        // {
+        //     var final = (AccountingNoteFormVm)result.Data;
+
+        //     if (final.Id > 0)
+        //     {
+        //         resultId = await _mediator.Send(new UpdateAccountingNoteCommand(final));
+        //         intent = ToastIntent.Success;
+        //         message = "Cost Center has been updated!";
+        //     }
+        //     else if (final.Id == 0)
+        //     {
+        //         resultId = await _mediator.Send(new CreateAccountingNoteCommand(final));
+        //         intent = ToastIntent.Success;
+        //         message = "Cost Center has been created!";
+        //     }
+        //     else
+        //     {
+        //         intent = ToastIntent.Warning;
+        //         message = "Something went really wrong!";
+        //     }
+        // }
+        // else if (result.Cancelled)
+        // {
+        //     intent = ToastIntent.Info;
+        //     message = "Operation Cancelled...";
+        // }
+        // else
+        // {
+        //     intent = ToastIntent.Error;
+        //     message = "Something went wrong!!!";
+        // }
+
+        // await Load();
+        // _toastService.ShowToast(intent, message, 3000);
+    }
+
+    private async Task AddPanel()
+    {
+        var item = new AccountingNoteFormVm();
+        await Edit(item);
+    }
+
+}

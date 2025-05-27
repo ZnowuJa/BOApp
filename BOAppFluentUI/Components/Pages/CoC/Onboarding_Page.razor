@@ -1,0 +1,227 @@
+﻿@page "/coc/onboardings/{role}"
+
+@using Application.CQRS.CoCCQRS.Onboarding.Queries
+@using Application.Forms.CoC
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize(Policy = "User")]
+
+@inject IMediator _mediator
+@inject ILogger<Onboarding_Page> _logger
+@inject IDialogService _dialogService
+@inject IToastService _toastService
+@inject IJSRuntime JS
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager _navigationManager
+
+<h3>Onboarding_Page</h3>
+
+<FluentStack Orientation="Orientation.Horizontal">
+    <FluentLabel Typo="Typography.Subject"> Show columns:  </FluentLabel>
+    @foreach (var column in filterColumns)
+    {
+        if (column.FirstRow)
+        {
+            <FluentCheckbox @bind-Value="column.IsVisible" Label="@column.Label" />
+        }
+    }
+</FluentStack>
+<p></p>
+<FluentStack Orientation="Orientation.Horizontal">
+    @foreach (var column in filterColumns)
+    {
+        if (!column.FirstRow)
+        {
+            <FluentCheckbox @bind-Value="column.IsVisible" Label="@column.Label" />
+        }
+    }
+</FluentStack>
+<FluentDataGrid Items="@filteredItems" Pagination="@pagination" TGridItem="OnboardingFormVm" GridTemplateColumns="0.08fr 0.16fr 0.16fr 0.16fr 0.16fr 0.08fr 0.1fr" ResizableColumns="true">
+
+    @foreach (var column in filterColumns.Where(c => c.IsVisible))
+    {
+        <PropertyColumn TGridItem="OnboardingFormVm" TProp="string" Property="@(Utils.GetPropertyExpression<OnboardingFormVm>(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label" Filtered="!string.IsNullOrWhiteSpace(column.Filter)">
+            <ColumnOptions>
+                <div class="search-box">
+                    <FluentSearch type="search" Autofocus="true" @bind-Value="column.Filter" @oninput="(args) => Utils.HandleFilterDebounced(column, args, debounceDispatcher, () => InvokeAsync(StateHasChanged))" Placeholder="@($"{column.Label.ToLower()}...")" />
+                </div>
+            </ColumnOptions>
+        </PropertyColumn>
+    }
+
+    @* Actions *@
+    <TemplateColumn Title="Actions" Align="Align.End">
+
+        @{
+            var viewId = $"viewid-{context.Id}";
+            var editId = $"editid-{context.Id}";
+            var deleteId = $"deleteid-{context.Id}";
+            // var addId = $"addid-{context.ManagerId}";
+        }
+        <FluentButton Id="@viewId" IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" Disabled="@viewDisabled" />
+        <FluentTooltip Anchor="@viewId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Left Delay=50>View Onboarding</FluentTooltip>
+
+        <FluentButton Id="@editId" IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => Edit(context))" Disabled="@IsEditDisabled(context)" />
+        @*WARNING it is not tested if isEditDisabled works*@
+        <FluentTooltip Anchor="@editId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Edit Onboarding</FluentTooltip>
+
+        <FluentButton Id="@deleteId" IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" Disabled="@deleteDisabled" />
+        <FluentTooltip Anchor="@deleteId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Delete Onboarding</FluentTooltip>
+
+        @*             <FluentButton Id="@addId" IconEnd="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddToList(context))" Disabled="@actionsDisabled" />
+        <FluentTooltip Anchor="@addId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50>Add Asset to update</FluentTooltip> *@
+
+    </TemplateColumn>
+</FluentDataGrid>
+@if (string.IsNullOrEmpty(errorMessage))
+{
+    <div class="validation-error"><p style="color:red;">@errorMessage</p></div>
+}
+
+<FluentPaginator State="@pagination" />
+<FluentButton OnClick="DownloadCsv"> Pobierz CSV </FluentButton>
+
+@code {
+    #region props
+
+    [Parameter]
+    public string role { get; set; }
+
+    private IQueryable<OnboardingFormVm> items { get; set; } = Enumerable.Empty<OnboardingFormVm>().AsQueryable();
+
+    private IQueryable<OnboardingFormVm> filteredItems => items.Where(x =>
+    filterColumns.All(column => string.IsNullOrWhiteSpace(column.Filter) ||
+    column.Property(x).Contains(column.Filter, StringComparison.CurrentCultureIgnoreCase))).OrderByDescending(r => r.Number);
+
+    private DebounceDispatcher debounceDispatcher = new DebounceDispatcher();
+    private PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
+
+    private List<FilterColumn<OnboardingFormVm>> filterColumns = new List<FilterColumn<OnboardingFormVm>>
+    {
+        new FilterColumn<OnboardingFormVm> { FirstRow = true, Label = "ID", Property = c => c.Id.ToString(), IsVisible = true },
+        new FilterColumn<OnboardingFormVm> { FirstRow = true, Label = "Numer", Property = c => c.Number.ToString()??string.Empty, IsVisible = true },
+        new FilterColumn<OnboardingFormVm> { FirstRow = true, Label = "Status", Property = c => c.Status.ToString()??string.Empty, IsVisible = true },
+        new FilterColumn<OnboardingFormVm> { FirstRow = true, Label = "Pracownik", Property = c => c.EmployeeName.ToString(), IsVisible = true },
+        new FilterColumn<OnboardingFormVm> { FirstRow = true, Label = "Grupa", Property = c => c.Group.ToString(), IsVisible = true },
+        new FilterColumn<OnboardingFormVm> { FirstRow = true, Label = "Postęp", Property = c => c.Progress.ToString(), IsVisible = true },
+        new FilterColumn<OnboardingFormVm> { FirstRow = true, Label = "Utworzone", Property = c => c.Requested.ToString(), IsVisible = true },
+    };
+
+    private FormUserContext _userContext = new FormUserContext("Onboarding", "Technician");
+
+    private bool deleteDisabled = true;
+    private bool viewDisabled = false;
+
+    private ToastIntent intent { get; set; }
+    private string toastMessage { get; set; } = string.Empty;
+    private string? errorMessage { get; set; }
+
+    #endregion props
+
+    protected override async Task OnInitializedAsync()
+    {
+        // await GetUserName();
+        await Utils.GetUserName(AuthenticationStateProvider, _userContext, _mediator);
+        await Load();
+    }
+
+    private async Task Load()
+    {
+        try
+        {
+            items = role switch
+            {
+                "kierownik" or "manager" => await _mediator.Send(new GetOnboardingsByManagerIdQuery(_userContext.EnovaEmpId)),
+                "pracownik" or "employee" => await _mediator.Send(new GetOnboardingsByEmpIdQuery(_userContext.EnovaEmpId)),
+                "zapisane" or "saved" or "niezapisane" or "notsaved" => await HandleSavedCase(),
+                "complianceassistant" or "asystentkaregionalna" => await _mediator.Send(new GetOnboardingsByOpenerQuery(_userContext.EnovaEmpId)),
+                "compliance" or "coc" => await _mediator.Send(new GetAllOnboardingsQuery()),
+                _ => throw new ArgumentException("Błędny adres strony!")
+            };
+        }
+        catch (Exception ex)
+        {
+            items = new List<OnboardingFormVm>().AsQueryable();
+            errorMessage = ex.InnerException.Message;
+
+        }
+        if (role == "compliance" || role == "coc")
+        {
+            deleteDisabled = false;
+        }
+        else if (role == "pracownik" || role == "employee")
+        {
+
+        }
+    }
+    private async Task<IQueryable<OnboardingFormVm>> HandleSavedCase()
+    {
+
+        intent = ToastIntent.Success;
+        if (role is "zapisane" or "saved")
+        {
+            toastMessage = "Wniosek wysłany do aprobaty!";
+        }
+        else
+        {
+            toastMessage = "Wystąpił błąd, wniosek nie został zapisany!";
+        }
+
+        _toastService.ShowToast(intent, toastMessage, 3000);
+        var results = await _mediator.Send(new GetOnboardingsByEmpIdQuery(_userContext.EnovaEmpId));
+        return results;
+    }
+
+    private void HandleClearFilter(ref string filter) => filter = string.IsNullOrWhiteSpace(filter) ? string.Empty : filter;
+
+    private async Task Edit(OnboardingFormVm item = null)
+    {
+        _navigationManager.NavigateTo($"/coc/onboarding/{item.Id}");
+    }
+    private async Task Delete(OnboardingFormVm item = null)
+    {
+
+    }
+    private async Task View(OnboardingFormVm item = null)
+    {
+        // var dialog = await _dialogService.ShowPanelAsync<Onboarding_Edit_Component>(item, new DialogParameters()
+        //     {
+        //         Height = "240px",
+        //         Width = "720px",
+        //         Title = item.ManagerId > 0 ? "Wniosoek o Odroczoną płatność" : "Create new PartVm",
+        //         PreventDismissOnOverlayClick = false,
+        //         PreventScroll = true,
+        //     });
+
+    }
+
+    private bool IsEditDisabled(OnboardingFormVm context)
+    {
+        // return !(context.EmployeeId.ToString() == _userContext.EnovaEmpId );
+
+        return false;
+
+        // if (context.Status == "AprobataL1")
+        // {
+        //     return !(context.LVL1_EnovaEmpId == _userContext.EnovaEmpId);
+        // }
+        // if (context.Status == "AprobataL2")
+        // {
+        //     return !context.Level2Approvers.Any(approver => approver.EmpId.ToString() == _userContext.EnovaEmpId);
+        // }
+        // if(context.Status == "Rejestracja")
+        // {
+        //     return (context.EmployeeId.ToString() == _userContext.EnovaEmpId);
+        // }
+        // return true; // Default to disabled if none of the conditions match
+    }
+
+    private async Task DownloadCsv()
+    {
+        // Assuming you have an IQueryable variable named 'records'
+        var csvContent = Utils.GenerateCsv(filteredItems);
+
+        // Invoke the JavaScript method to download the CSV
+        await JS.InvokeVoidAsync("downloadFile", "records.csv", csvContent);
+    }
+}

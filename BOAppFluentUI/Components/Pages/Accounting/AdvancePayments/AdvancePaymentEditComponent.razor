@@ -1,0 +1,1479 @@
+﻿@page "/create-advance-payment/{id:int}"
+@page "/nowazaliczka/{id:int}"
+@page "/zaliczka/{id:int}"
+
+@using Application.CQRS.AccountingCQRS.AdvancePayments.Commands
+@using Application.CQRS.AccountingCQRS.AdvancePayments.Queries
+@using Application.CQRS.AccountingCQRS.CostCenters.Queries
+@using Application.CQRS.AccountingCQRS.GLAccounts.Queries
+@using Application.CQRS.General.ManagerDeputies.Queries
+@using Application.CQRS.ITWarehouseCQRS.Employees.Queries;
+@using Application.CQRS.General.Organisations.Queries;
+@using Application.Forms.Accounting;
+@using Application.Forms.Accounting.BuisnessTravelSmallClasses
+@using Application.ViewModels.General;
+@using BOAppFluentUI.Components.Pages.Accounting.Settlements
+@using BOAppFluentUI.Components.Pages.Accounting.SharedComponents
+@using Infrastructure.Services;
+@using Application.Forms.Accounting.Enums
+@using Application.ViewModels.Accounting
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize(Policy = "User")]
+
+@inject IMediator _mediator
+@inject IToastService _toastService
+@inject IDialogService _dialogService
+@inject NavigationManager _navigationManager
+@inject AuthenticationStateProvider _authenticationStateProvider
+
+@if (isLoading)
+{
+    <FluentProgressRing />
+}else     
+    {
+        if(showForm){
+<EditForm EditContext="_editContext" OnValidSubmit="HandleValidSubmit">
+
+    <FluentValidationValidator @ref="_fluentValidationValidator" />
+
+    <h3>@Title</h3>
+    <table class="table-container">
+        <thead>
+            <tr class="table-caption">
+                <th style="text-align: left; border-right: none; font-size: large;" colspan="2">
+                    Informacje Ogólne
+                </th>
+@*                 <th>
+                    <FluentSelect Items="@_Statuses"
+                                  @bind-Value="@formItem.Status"
+                                  @bind-Value:after="@HandleStatusChange" />
+                </th> *@
+                <th style="text-align: right; border-left: none; font-size: large;" colspan="2">
+                    Status: @formItem.Status | Numer: @formItem.Number
+                </th>
+            </tr>
+            <tr class="table-header-left table-caption">
+                <th>Zgłaszający</th>
+                @* <th style="width: 150px;">Oddział</th> *@
+                <th style="width: 250px;" colspan="2">Cel</th>
+                <th>Kwota</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    @formItem.EmployeeName
+                </td>
+                 @* <td> *@
+@*                     <FluentAutocomplete TOption="LocationVm"
+                            SelectValueOnTab="true"
+                            AutoComplete="on"
+                            OnOptionsSearch="@OnOrganisationSearch"
+                            Placeholder="Wybierz lokalizację..."
+                            MaximumSelectedOptions="1"
+                            OptionText="@(p => p.SapNumber + ' ' + p.Description)"
+                            Width="180px" /> *@
+
+                @* </td> *@
+                <td colspan="2"> 
+                    <FluentTextField TOption="string"
+                                  Placeholder="Wpisz cel zaliczki..."
+                                  Disabled="IsRegistrationFormDisabledForOthers"
+                                  @bind-Value="@formItem.Objective"
+                                  Style="width: 250px"/>
+                                  <FluentValidationMessage For="@(() => formItem.Objective)" class="validation-error" />
+                </td>
+
+                <td>
+                    <FluentNumberField @bind-Value:get="@formItem.AdvancePaymentAmount"
+                                       @bind-Value:set="@(value => formItem.AdvancePaymentAmount = value)"
+                                       Disabled="IsRegistrationFormDisabledForOthers"
+                                       Style="width: 100px" />
+                                       <FluentValidationMessage For="@(() => formItem.AdvancePaymentAmount)" class="validation-error" />
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    @* Wypłata przez: *@
+    <table class="table-container">
+        <tbody>
+            <tr>
+                <td class="table-caption" style="width: 170px">
+                    Wypłata przez:
+                </td>
+                <td style="text-align: left;" colspan="5">
+                    <FluentSelect Items=@AdvancePaymentMethodsInt
+                                  OptionText="@(i => i.Text)"
+                                  OptionValue="@(a => a.Value.ToString())"
+                                  OptionSelected="@(a => a.Selected)"
+                                  Disabled="IsRegistrationFormDisabledForOthers"
+                                  @bind-Value="@AdvancePaymentCashString"
+                                  @bind-Value:after="@OnAdvancePaymentChanged"/>
+                </td>
+                @if (!formItem.AdvancePaymentCash)
+                {
+                <td class="table-caption" style="width: 170px">
+                    Kasa:
+                </td>
+                <td style="text-align: left;" colspan="5">
+                     <FluentAutocomplete TOption="LocationVm"
+                                            SelectValueOnTab="true"
+                                            AutoComplete="on"
+                                            OnOptionsSearch="@OnLocationSearch"
+                                            Placeholder="Wybierz kase..."
+                                            MaximumSelectedOptions="1"
+                                            OptionText="@(p => p.SapNumber + ' ' + p.Description)"
+                                            @bind-SelectedOptions="@_selectedLocation"
+                                            @bind-SelectedOptions:after="@HandleLocationChange"
+                                            Width="220px"
+                                            Disabled="IsRegistrationFormDisabledForOthers"/>
+                <FluentValidationMessage For="@(() => formItem.CashPoint.SapNumber)" class="validation-error" />
+                </td>
+                }
+            </tr>
+            @if (formItem.AdvancePaymentCash)
+            {
+                <tr>
+                    <td class="table-caption" style="width: 170px">
+                        Odbiorca:
+                    </td>
+                    <td>
+                        @formItem.EmployeeName
+                    </td>
+                    <td class="table-caption" style="width: 150px">
+                        Numer konta bankowego:
+                    </td>
+                    <td>
+                        <FluentTextField Placeholder="Wprowadź numer konta"
+                                         @bind-Value="@formItem.BankAccountNumber"
+                                         Style="width: 250px;"
+                                         Disabled="IsRegistrationFormDisabledForOthers"/>
+                                         <FluentValidationMessage For="@(() => formItem.BankAccountNumber)" class="validation-error" />
+                        @*
+                    <FluentTextField @bind-Value="iban"
+                    Placeholder="Wpisz IBAN"
+                    style="width: 300px;" />
+                    <FluentButton @onclick="ValidateIban">Sprawdź IBAN</FluentButton>
+                    @if (!string.IsNullOrEmpty(validationResult))
+                    {
+                    <p>Wynik walidacji: @validationResult</p>
+                    }
+                    *@
+                    </td>
+                </tr>
+
+            }
+
+        </tbody>
+    </table>
+         @if (lastRejectReason != null && !string.IsNullOrEmpty(formItem.RejectReason) && (strej || stodrz ))
+                     { 
+                         <table class="table-container">
+                             <tbody>
+                                 <tr>
+                                     <td class="table-caption">
+                                         Powód odrzucenia:
+                                     </td>
+                                     <td><h3 style="color: red;">@lastRejectReason.RejectReasonText</h3></td>
+                                 </tr>
+                                 <tr>
+                                     <td class="table-caption">
+                                         Odrzucone przez:
+                                     </td>
+                                     <td>
+                                          @lastRejectReason.ApproverName
+                                     </td>
+                                     <td class="table-caption">
+                                         Data:
+                                     </td>
+                                     <td>
+                                         @lastRejectReason.RejectTime
+                                     </td>
+                                 </tr>
+                             </tbody>
+                         </table>
+                     }
+    @if (stks || stkstl || stwys || stblad)
+    {
+        <BankTransferMappingEditComponent BTItem="@formItem.BTMappingAdvancePayment" CostCenters="@_costCenters" GLAccounts="@_glAccounts" FormStatus="@formItem.Status" UserContext="@_userContext" />
+    }
+    @*Cashier Advance Payment*@
+    @if (strozk)
+    {
+        <table class="table-container">
+            <tbody>
+                <tr>
+                    <td class="table-caption">
+                        Wypłata zaliczki
+                    </td>
+                    <td class="table-caption">
+                        Kasjerka:
+                    </td>
+                    <td style="text-align: left;">
+                        <FluentTextField Disabled="true"
+                                         @bind-Value="@formItem.PayoutCashier.LongName" />
+                    </td>
+                    <td class="table-caption">
+                        Dokument AS:
+                    </td>
+                    <td style="text-align: left;">
+                        <FluentTextField @bind-Value="@formItem.CashPayoutNumber"
+                                         Style="width: auto;" />
+                        <FluentValidationMessage For="@(() => formItem.CashPayoutNumber)" class="validation-error" />
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    }
+    <hr />
+    @if (strej || stal1 || stal2 || stodrz)
+    {
+        <div>
+            <table class="table-container" style="width: 100%; max-width: 400px;">
+                <tr style="height: 40px;">
+                    <td class="table-caption">
+                        Aprobujący:
+                    </td>
+                    <td>
+                        @if (strej || stal1 || stal2 || stodrz)
+                        {
+                            <FluentSelect TOption="OrganisationRoleForFormVm"
+                                          Id="AL1Id"
+                                          Autofocus="true"
+                                          Items="@formItem.Level1Approvers"
+                                          Multiple="false"
+                                          OptionValue="@(p => p.EmpId.ToString())"
+                                          OptionText="@(p => p.LongName)"
+                                          OptionSelected="@(p => p.IsDefault)"
+                                          @bind-SelectedOption="@approverL1"
+                                          Height="200px"
+                                          @onchange="HandleChangeApproverL1" />
+                        }
+
+                        @if (formItem.AdvancePaymentCash)
+                        {
+                            <p></p>
+                            <FluentSelect TOption="OrganisationRoleForFormVm"
+                                          Id="AL5Id"
+                                          Autofocus="true"
+                                          Items="@formItem.Level5Approvers"
+                                          Multiple="false"
+                                          OptionValue="@(p => p.EmpId.ToString())"
+                                          OptionText="@(p => p.LongName)"
+                                          OptionSelected="@(p => p.IsDefault)"
+                                          @bind-SelectedOption="@approverL5"
+                                          Height="200px"
+                                          @onchange="HandleChangeApproverL5" />
+                        }
+                    </td>
+                </tr>
+            </table>
+        </div>
+    }
+@*      <FluentButton IconEnd="@(new Icons.Regular.Size16.Save())"
+                        Appearance="Appearance.Outline"
+                        Id="SaveFormId"
+                        BackgroundColor="var(--accent-fill-rest)" 
+                        Style="width: 100px"> 
+        Zapisz
+     </FluentButton> *@
+
+@*     @if (stal1 || stal2)
+    {
+        <FluentSpacer Width="@buttonSpacer" />
+
+        <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
+                      Appearance="Appearance.Accent"
+                      OnClick="@ApproveForm"
+                      Id="ApproveFormId"
+                      BackgroundColor="var(--success)"
+                      Style="width: 100px"
+                      Disabled="@DisableApproveButton">
+            Zatwierdź
+        </FluentButton>
+
+        <FluentSpacer Width="@buttonSpacer" />
+
+        <FluentButton IconEnd="@(new Icons.Regular.Size16.Dismiss())"
+                      Appearance="Appearance.Accent"
+                      Id = "RejectFormId"
+                      OnClick="@RejectForm"
+                      BackgroundColor="var(--error)"
+                      Style="width: 100px">
+            Odrzuć
+        </FluentButton>
+    }
+    <FluentSpacer Width="@buttonSpacer" />
+
+    <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
+                  Appearance="Appearance.Accent"
+                  OnClick="@SendForm"
+                  BackgroundColor="var(--accent-fill-rest)"
+                  Style="width: 100px" Disabled="@(!strej)">
+        Wyślij
+    </FluentButton>
+
+    <FluentSpacer Width="@buttonSpacer" />
+
+    <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
+                  Appearance="Appearance.Accent"
+                  Id = "CancelFormId"
+                  OnClick="@CancelForm"
+                  BackgroundColor="var(--info)"
+                  Style="width: 100px">
+        Anuluj
+    </FluentButton> *@
+
+    @if (stal1 || stal2)
+{
+    <FluentSpacer Width="@buttonSpacer" />
+
+    <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
+                  Appearance="Appearance.Accent"
+                  OnClick="@ApproveForm"
+                  Id="ApproveFormId"
+                  BackgroundColor="var(--success)"
+                  Style="width: 100px"
+                  Disabled="@DisableApproveButton">
+        Zatwierdź
+    </FluentButton>
+
+    <FluentSpacer Width="@buttonSpacer" />
+
+    <FluentButton IconEnd="@(new Icons.Regular.Size16.Dismiss())"
+                  Appearance="Appearance.Accent"
+                  Id="RejectFormId"
+                  OnClick="@RejectForm"
+                  BackgroundColor="var(--error)"
+                  Style="width: 100px">
+        Odrzuć
+    </FluentButton>
+}
+
+@if (strej || stks || stwys || stkstl || strozk || stblad || stodrz || stwyp)
+{
+    <FluentSpacer Width="@buttonSpacer" />
+
+    <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
+                  Id="SendFormId"
+                  Appearance="Appearance.Accent"
+                  OnClick="@ApproveOrSendForm"
+                  BackgroundColor="var(--accent-fill-rest)"
+                  Style="width: 100px">
+        Wyślij
+    </FluentButton>
+}
+
+<FluentSpacer Width="@buttonSpacer" />
+
+<FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
+              Appearance="Appearance.Accent"
+              Id="CancelFormId"
+              OnClick="@CancelForm"
+              BackgroundColor="var(--info)"
+              Style="width: 100px">
+    Anuluj
+</FluentButton>
+
+                <FluentTooltip Anchor="SaveFormId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Bottom Delay=50> Pozwala zapisać formularz do późniejszej edycji.</FluentTooltip>
+                <FluentTooltip Anchor="SendFormId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Bottom Delay=50> Wysła formularz do akceptacji.</FluentTooltip>
+                <FluentTooltip Anchor="ApproveFormId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Bottom Delay=50> Zatwierdza formularz.</FluentTooltip>
+                <FluentTooltip Anchor="RejectFormId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Bottom Delay=50> Odrzuca formularz.</FluentTooltip>
+                <FluentTooltip Anchor="CancelFormId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Bottom Delay=50> Zamyka formularz bez zapisywania zmian.</FluentTooltip>
+</EditForm>
+        }
+    }
+@code {
+    [Parameter]
+    public int Id { get; set; }
+    private string _srcPage;
+    private EditContext _editContext;
+    private FluentValidationValidator? _fluentValidationValidator; //TODO
+    private bool isLoading { get; set; } = true; // TODO
+    private bool userAllowed { get; set; } = false; // TODO
+
+    private AdvancePaymentFormVm formItem = new AdvancePaymentFormVm();
+    private FormUserContext _userContext = new FormUserContext("Accountant", "Technician");
+    private OrganisationRoleForFormVm approverL1 { get; set; }
+    private OrganisationRoleForFormVm approverL2 { get; set; }
+    private OrganisationRoleForFormVm approverL3 { get; set; }
+    private OrganisationRoleForFormVm approverL4 { get; set; }
+    private OrganisationRoleForFormVm approverL5 { get; set; }
+
+    private bool strej = false;
+    private bool stal1 = false;
+    private bool stal2 = false;
+    private bool stks = false;
+    private bool stwys = false;
+    private bool stblad = true;
+    private bool stkstl = false;
+    private bool strozk = false;
+    private bool stroz = false;
+    private bool stwyp = false;
+    private bool stodrz = false;
+
+    private bool DisableApproveButton = true; //TODO
+    private bool DisableSendButton = true; //TODO
+    private OrganisationVm _organisation { get; set; }
+    private int buttonSpacer = 100;
+    private string Title { get; set; } = string.Empty;
+
+    private IQueryable<EmployeeVm> _employees { get; set; }
+    private IEnumerable<EmployeeVm> SelectedEmpl { get; set; }
+    private IQueryable<string> _Statuses = Enum.GetValues(typeof(AdvancePaymentStatuses))
+    .Cast<AdvancePaymentStatuses>().Select(c => c.ToString()).AsQueryable();
+
+    private IEnumerable<CostCenterVm> _costCenters { get; set; }
+    private IEnumerable<GLAccountVm> _glAccounts { get; set; }
+    private IEnumerable<LocationVm> _locations { get; set; } = new List<LocationVm>().AsQueryable();
+    private IEnumerable<LocationVm> _selectedLocation = Array.Empty<LocationVm>();
+
+    private bool showForm { get; set; } = false;
+
+    private List<string> allowedEmp { get; set; } = new List<string>();
+    private List<string> allowedEditor { get; set; } = new List<string>();
+
+    private bool DisableRejectButton = true;
+    private bool IsRegistrationFormDisabledForOthers { get; set; } = true; // wyłącza wszystkie kontrolki do rejestracji dla osób innych niż rejestrujący użytkownik
+
+    private ApprovalVm approvalInfo { get; set; }
+    private RejectReason lastRejectReason { get; set; }
+
+    private void SetSrcPage()
+    {
+        var uri = new Uri(_navigationManager.Uri);
+        var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+
+        if (query.TryGetValue("srcPage", out var sourcePageValue))
+        {
+
+            if (sourcePageValue == "kierownikL1" || sourcePageValue == "managerL1" || sourcePageValue == "kierownikL11" || sourcePageValue == "managerL11" || sourcePageValue == "kierownikL12" || sourcePageValue == "managerL12" || sourcePageValue == "pracownik" || sourcePageValue == "employee" || sourcePageValue == "kasjer" || sourcePageValue == "cashier" || sourcePageValue == "ksiegowe" || sourcePageValue == "accountants")
+            {
+                _srcPage = sourcePageValue; // Valid sourcePage is set
+            }
+            else
+            {
+                return;
+            }
+        }
+        else
+        {
+            _srcPage = "pracownik";
+            return;
+        }
+    }
+
+    public string AdvancePaymentCashString
+    {
+        get => formItem.AdvancePaymentCash ? "1" : "0";
+        set => formItem.AdvancePaymentCash = value == "1";
+    }
+    private void OnAdvancePaymentChanged()
+    {
+        // Jeśli wybrana wartość to "1", ustawiamy BankAccountNumber
+        if (AdvancePaymentCashString == "1")
+        {
+            formItem.BankAccountNumber = _userContext.Employee.BankAccountNumber;
+        }
+        else
+        {
+            formItem.BankAccountNumber = string.Empty; // Opcjonalne czyszczenie pola
+        }
+    }
+
+    private async Task UpdateBankTransferMappings(EmployeeVm newEmployee)
+    {
+        var tglaccount = _glAccounts.Where(g => g.AccountNumber == "24000").FirstOrDefault();
+        var tlocation = _locations.Where(l => l.SapNumber == formItem.OrganisationSapNumber).FirstOrDefault();
+        var tcostcenter = _costCenters.Where(c => c.MPK == _userContext.Employee.DeptNumber).FirstOrDefault();
+
+        formItem.BTMappingAdvancePayment.SapFormType = "FreeForm";
+        //formItem.BTMappingAdvancePayment.CostCenter = tcostcenter;
+        formItem.BTMappingAdvancePayment.GLAccount = tglaccount;
+        formItem.BTMappingAdvancePayment.BusinessTravel = true;
+
+        formItem.BTMappingPayout.SapFormType = "FreeForm";
+        //formItem.BTMappingPayout.CostCenter = tcostcenter;
+        formItem.BTMappingPayout.GLAccount = tglaccount;
+
+    }
+
+    private async Task CancelForm()
+    {
+        _navigationManager.NavigateTo($"/zaliczki/{_srcPage}");
+    }
+
+    private async Task RejectForm()
+    {
+        string reason = string.Empty;
+
+        var dialog = await _dialogService.ShowDialogAsync<DeferralPaymentRejectComponent>(reason, new DialogParameters()
+            {
+                Height = "240px",
+                Title = $"Podaj powód odrzucenia...",
+                PreventDismissOnOverlayClick = true,
+                PreventScroll = true,
+            });
+        var result = await dialog.Result;
+
+        if (!result.Cancelled && (result.Data != null || (string)result.Data != string.Empty))
+        {
+            RejectReason rejreason = new() { 
+                RejectReasonText = (string)result.Data, 
+                ApproverName = _userContext.LongName,
+                ApproverEmpId = _userContext.EnovaEmpId,
+                RejectTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                RejectFormStatus = formItem.Status,
+            };
+            formItem.RejectReasons.Add(rejreason);
+            approvalInfo.IsApproved = false;
+            formItem.Approvals.Add(approvalInfo);
+            formItem.RejectReason = (string)result.Data;
+            approvalInfo.IsApproved = false;
+            formItem.Status = "Odrzucone";
+            await _mediator.Send(new UpdateAdvancePaymentCommand(formItem));
+            var message = $"Formularz został wysłany do {formItem.EmployeeName} w celu poprawienia.";
+            var intent = ToastIntent.Success;
+            _toastService.ShowToast(intent, message, 3000);
+            _navigationManager.NavigateTo($"/zaliczki/{_srcPage}");
+        }
+        else
+        {
+            return;
+        }
+    }
+
+    private async Task ApproveForm()
+    {
+        if (_editContext.Validate())
+        {
+            formItem.Approvals.Add(approvalInfo);
+            formItem.Status = GetNextStatus(formItem);
+            await _mediator.Send(new UpdateAdvancePaymentCommand(formItem));
+            var message = $"Zaliczka została zatwierdzona!";
+            var intent = ToastIntent.Success;
+            _toastService.ShowToast(intent, message, 3000);
+            _navigationManager.NavigateTo($"/zaliczki/{_srcPage}");
+        }
+    }
+
+    private async Task SendForm()
+    {
+        if (_editContext.Validate())
+        {
+            isLoading = true;
+            showForm = false;
+            formItem.Approvals.Add(approvalInfo);
+            formItem.Status = GetNextStatus(formItem);
+            AssignStatusBool();
+            var newId = await _mediator.Send(new CreateAdvanePaymentCommand(formItem));
+            var saveResult = await _mediator.Send(new GetAdvancePaymentByIdQuery(newId));
+            var message = $"Formularz został wysłany do {saveResult.LVL1_EmployeeName} w celu zatwierdzenia.";
+            var intent = ToastIntent.Success;
+            _toastService.ShowToast(intent, message, 3000);
+            _navigationManager.NavigateTo($"/zaliczki/{_srcPage}");
+        }
+    }
+
+    private async Task ApproveOrSendForm()
+    {
+        if (_editContext.Validate())
+        {
+            isLoading = true;
+            showForm = false;
+            formItem.Approvals.Add(approvalInfo);
+
+            // Sprawdzamy, czy jest to status strej (nowe zgłoszenie)
+            if (strej)
+            {
+                formItem.Status = GetNextStatus(formItem); 
+                var newId = await _mediator.Send(new CreateAdvanePaymentCommand(formItem));
+                var saveResult = await _mediator.Send(new GetAdvancePaymentByIdQuery(newId));
+            }
+            else // Inne statusy jak stks, stwys, stkstl, strozk
+            {
+                formItem.Status = GetNextStatus(formItem);
+                await _mediator.Send(new UpdateAdvancePaymentCommand(formItem));
+            }   
+
+            var message = $"Formularz został wysłany!";
+            var intent = ToastIntent.Success;
+            _toastService.ShowToast(intent, message, 3000);
+
+            _navigationManager.NavigateTo($"/zaliczki/{_srcPage}");
+        }   
+    }
+
+
+    private string GetNextStatus(AdvancePaymentFormVm formItem)
+    {
+
+        string newStatus = string.Empty;
+
+        switch (formItem.Status)
+        {
+            case "Rejestracja":
+                newStatus = "AprobataL1";
+                break;
+
+            case "AprobataL1":
+                newStatus = formItem.AdvancePaymentCash ? "AprobataL2" : "ZaliczkaKasa";
+                break;
+
+            case "AprobataL2":
+                newStatus = "ZaliczkaKsiegowosc";
+                break;
+
+            case "ZaliczkaKsiegowosc":
+                newStatus = "WyslaneDoRobota";
+                break;
+
+            case "WyslaneDoRobota":
+                newStatus = "ZaliczkaKsiegowoscTL"; // Jeśli nie było błędu robota
+                break;
+
+            case "BladRobota":
+                newStatus = "ZaliczkaKsiegowosc";
+                break;
+
+            case "ZaliczkaKsiegowoscTL":
+                newStatus = "Wyplacone";
+                break;
+
+            case "ZaliczkaKasa":
+                newStatus = "Wyplacone";
+                break;
+
+            case "Wyplacone":
+                newStatus = "Rozliczone";
+                break;
+
+            case "Odrzucone":
+                newStatus = "AprobataL1";
+                break;
+
+            default:
+                throw new InvalidOperationException("Nieznany status: " + formItem.Status);
+        }
+
+        return newStatus;
+    }
+
+    #region OnSearch
+    private void OnLocationSearch(OptionsSearchEventArgs<LocationVm> e)
+    {
+        if (e.Text != null)
+        {
+            e.Items = _locations.Where(a =>
+                a.Description.Contains(e.Text, StringComparison.OrdinalIgnoreCase) ||
+                a.SapNumber.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
+        }
+    }
+
+    private void OnOrganisationSearch(OptionsSearchEventArgs<LocationVm> e)
+    {
+        if (e.Text != null)
+        {
+            e.Items = _locations.Where(a =>
+            a.Name.Contains(e.Text, StringComparison.OrdinalIgnoreCase) ||
+            a.SapNumber.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
+        }
+    }
+    #endregion
+
+    private void HandleStatusChange()
+    {
+        AssignStatusBool();
+        SetupForm(formItem.Status);
+    }
+
+    private async Task HandleLocationChange()
+    {
+        var selectedCashPoint = _selectedLocation.FirstOrDefault();
+        if (formItem.CashPoint == null)
+        {
+            Console.WriteLine("Nie znaleziono lokalizacji, nie można pobrać organizacji.");
+            return;
+        }
+
+        formItem.CashPoint = selectedCashPoint;
+
+        var tempOrg = await _mediator.Send(new GetOrganisationByEmpSapNumberQuery(formItem.CashPoint.SapNumber));
+
+        if (tempOrg != null)
+        {
+            formItem.Level2Approvers = SetApprovers(tempOrg.Role_Cashiers);
+        }
+    }
+
+    private void AssignStatusBool()
+    {
+        strej = formItem.Status == "Rejestracja";
+        stal1 = formItem.Status == "AprobataL1";
+        stal2 = formItem.Status == "AprobataL2";
+        strozk = formItem.Status == "ZaliczkaKasa";
+        stks = formItem.Status == "ZaliczkaKsiegowosc";
+        stwys = formItem.Status == "WyslaneDoRobota";
+        stblad = formItem.Status == "BladRobota";
+        stkstl = formItem.Status == "ZaliczkaKsiegowoscTL";
+        stodrz = formItem.Status == "Odrzucone";
+        stwyp = formItem.Status == "Wyplacone";
+        stroz = formItem.Status == "Rozliczone";
+    }
+
+    private async Task HandleChangeApproverL1(ChangeEventArgs e)
+    {
+        var tempEmp = _employees.First(p => p.EnovaEmpId == int.Parse(e.Value.ToString()));
+        formItem.LVL1_EnovaEmpId = tempEmp.EnovaEmpId.ToString();
+        formItem.LVL1_EmployeeName = tempEmp.LongName;
+    }
+
+    private async Task HandleChangeApproverL5(ChangeEventArgs e)
+    {
+        var tempEmp = _employees.First(p => p.EnovaEmpId == int.Parse(e.Value.ToString()));
+        formItem.LVL5_EnovaEmpId = tempEmp.EnovaEmpId.ToString();
+        formItem.LVL5_EmployeeName = tempEmp.LongName;
+    }
+
+    // private void OnPaymentMethodChanged(ChangeEventArgs e)
+    // {
+    //     var value = e?.Value?.ToString();
+    //     IsCashPayment = value == true;
+    //     IsBankTransfer = value == false;
+    // }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Id != 0)
+        {
+            formItem = await _mediator.Send(new GetAdvancePaymentByIdQuery(Id));
+            if(formItem == null)
+            {
+                showForm = false;
+                isLoading = false;
+                return;
+            }
+            if(!string.IsNullOrEmpty(formItem.CashPoint.SapNumber))
+            {
+                _selectedLocation = new List<LocationVm> { formItem.CashPoint };
+            }
+
+        }
+
+        if (formItem.Status == "Odrzucone")
+        {
+            lastRejectReason = formItem.RejectReasons.Last();
+            if (new[] { "AprobataL1", "AprobataL2", "ZaliczkaKasa", "ZaliczkaKsiegowosc", "ZaliczkaKsiegowoscTL", "WyslaneDoRobota", "BladRobota" }.Contains(lastRejectReason.RejectFormStatus))
+            {
+                formItem.Status = "Odrzucone";
+            }
+        };
+
+        _editContext = new EditContext(formItem);
+        await Utils.GetUserName(_authenticationStateProvider, _userContext, _mediator);
+
+        _employees = await _mediator.Send(new GetAllEmployeesQuery());
+        _costCenters = await _mediator.Send(new GetAllCostCenterIEnumQuery());
+        _glAccounts = await _mediator.Send(new GetAllGLAccountIEnumQuery());
+        _locations = await _mediator.Send(new GetLocationsQuery());
+        _organisation = await _mediator.Send(new GetOrganisationByEmpSapNumberQuery(_userContext.Employee.SapNumber));
+
+        SetSrcPage();
+
+        if (stroz)
+        {
+            DisableApproveButton = true;
+        }
+
+        //AssignStatusBool();
+
+        approvalInfo = new ApprovalVm()
+            {
+                Status = formItem.Status,
+                EnovaEmpId = _userContext.EnovaEmpId,
+                LongName = _userContext.LongName,
+                Date = DateTime.Now,
+                IsApproved = true
+            };
+
+        await SetupForm(formItem.Status);
+        await GetAllowedPersons();
+    }
+
+
+    private async Task SetupForm(string status)
+    {
+        AssignStatusBool();
+        if (status == "Rejestracja") await SetupFormRejestracja();
+        else if (stal1 || stal2) await SetupFormAprobata(status);
+        else if (stks) await SetupFormKsiegowosc();
+        else if (stkstl) await SetupFormKsiegowoscTL();
+        else if (stwys) await SetupFormWyslaneDoRobota();
+        else if (strozk) await SetupFormKasa();
+        else if (stroz) await SetupFormZamkniete();
+        else if (stodrz) await SetupFormOdrzucone();
+
+        DisableApproveButton = false;
+        StateHasChanged();
+    }
+
+    private async Task SetupFormOdrzucone()
+    {
+        Title = "Wniosek o zaliczkę - Odrzucony";
+        IsRegistrationFormDisabledForOthers = false;
+    }
+
+    private async Task SetupFormKasa()
+    {
+        Title = "Wniosek o zaliczkę - Kasa";
+        formItem.PayoutCashier = _userContext.Employee;
+        formItem.PayoutCashierEmpId = _userContext.EnovaEmpId;
+    }
+
+    private async Task SetupFormZamkniete()
+    {
+        Title = "Wniosek o zaliczkę - Zamknięte";
+    }
+
+    private async Task SetupFormWyslaneDoRobota()
+    {
+        Title = "Wniosek o zaliczkę - WyslaneDoRobota";
+    }
+
+    private async Task SetupFormKsiegowosc()
+    {
+        Title = "Wniosek o zaliczkę - Księgowość";
+        formItem.BTMappingAdvancePayment.BankTrasferTitle = $"{formItem.Number} {formItem.EmployeeName}";
+    }
+
+    private async Task SetupFormKsiegowoscTL()  
+    {
+        Title = "Wniosek o zaliczkę - Księgowość TeamLeader";
+    }
+
+    private async Task SetupFormAprobata(string status)
+    {
+        Title = $"Wniosek o zaliczkę - {status}";
+
+    }
+
+    private async Task SetupFormRejestracja()
+    {
+        Title = "Wniosek o zaliczkę - Rejestracja";
+        await AddEmployee(_userContext.Employee);
+        await AssignAllApprovers(_userContext.Employee);
+        formItem.EmployeeName = _userContext.LongName;
+        formItem.EnovaEmpId = _userContext.EnovaEmpId;
+        formItem.OrganisationSapNumber = _organisation.SapNumber;
+        IsRegistrationFormDisabledForOthers = false;
+        StateHasChanged();
+    }
+
+    private async Task AddEmployee(EmployeeVm newEmployee)
+    {
+        formItem.EnovaEmpId = newEmployee.EnovaEmpId.ToString();
+        formItem.EmployeeName = newEmployee.LongName;
+        formItem.BankAccountNumber = newEmployee.BankAccountNumber;
+        UpdateBankTransferMappings(newEmployee);
+        var employeesList = new List<EmployeeVm>();
+
+        employeesList.Add(newEmployee);
+
+        SelectedEmpl = employeesList;
+    }
+
+    private async Task GetAllowedPersons()
+    {
+        if (strej)
+        {
+            allowedEmp.Add(_userContext.EnovaEmpId);
+            allowedEditor.Add(_userContext.EnovaEmpId);
+        }
+        if (stal1 || stal2)
+        {
+            allowedEmp.Add(formItem.EnovaEmpId);
+            allowedEmp.Add(formItem.LVL1_EnovaEmpId); 
+            allowedEmp.AddRange(formItem.Level2Approvers.Select(l => l.EmpId.ToString()));
+            allowedEditor.AddRange(formItem.Level2Approvers.Select(l => l.EmpId.ToString()));
+        }
+        else
+        {
+            allowedEmp.Add(formItem.EnovaEmpId);
+            allowedEmp.AddRange(formItem.Level2Approvers.Select(l => l.EmpId.ToString()));
+        }
+
+        showForm = allowedEmp.Contains(_userContext.EnovaEmpId);
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    private async Task AssignAllApprovers(EmployeeVm emp)
+    {
+        int lvl1managerId = 0;
+        int lvl2managerId = 0;
+        EmployeeVm empMan = _employees.FirstOrDefault(e => e.EnovaEmpId == emp.ManagerId) ?? new EmployeeVm();
+
+        if (emp.ManagerId == null)
+        {
+            lvl1managerId = 104;
+            lvl2managerId = 976;
+        }
+        else
+        {
+            if (empMan.ManagerId == 0)
+            {
+                lvl1managerId = emp.ManagerId;
+                lvl2managerId = 976;
+            }
+            else
+            {
+                lvl1managerId = emp.ManagerId;
+                lvl2managerId = empMan.ManagerId;
+            }
+        }
+
+        formItem.Level1Approvers.Clear();
+        formItem.Level1Approvers = await SetManagerAndDeputies(lvl1managerId);
+        approverL1 = formItem.Level1Approvers[0];
+        formItem.LVL1_EnovaEmpId = emp.ManagerId.ToString();
+        formItem.LVL1_EmployeeName = emp.Manager.LongName;
+        formItem.Level2Approvers = SetApprovers(_organisation.Role_Cashiers); // Kasjerki
+        formItem.Level3Approvers = SetApprovers(_organisation.Role_Accountants); // Księgowe
+        formItem.Level4Approvers = SetApprovers(_organisation.Role_AccountantsTeamLeader); // Księgowe TL
+        formItem.Level5Approvers = await SetManagerAndDeputies(lvl2managerId); // Dyrektor oddziału
+        approverL2 = formItem.Level5Approvers[0];
+        formItem.LVL5_EnovaEmpId = approverL2.EmpId.ToString();
+        formItem.LVL5_EmployeeName = approverL2.LongName;
+
+        StateHasChanged();
+    }
+
+        private async Task <List<OrganisationRoleForFormVm>> SetManagerAndDeputies(int manId)
+    {
+        var result = new List<OrganisationRoleForFormVm>();
+        var manDep = new ManagerDeputyVm();
+        var man = _employees.Where(e => e.EnovaEmpId == manId).First();
+        OrganisationRoleForFormVm apprL1 = new()
+            {
+                IsDefault = true,
+                EmpId = man.EnovaEmpId,
+                LongName = man.LongName
+            };
+        manDep = await _mediator.Send(new GetManagerDeputyByManagerIdQuery(man.EnovaEmpId));
+        if (manDep != null)
+        {
+            var managerDeputies = manDep.Deputies;
+
+            foreach (var item in manDep.Deputies)
+            {
+                result.Add(new OrganisationRoleForFormVm(item));
+            }
+        }
+
+        result.Insert(0, apprL1);
+
+        return result;
+
+
+    }
+
+    private List<OrganisationRoleForFormVm> SetApprovers(List<OrganisationRoleVm> rolesIn)
+    {
+        List<OrganisationRoleForFormVm> result = new();
+        foreach(var role in rolesIn){
+            result.Add(new OrganisationRoleForFormVm(role));
+        }
+        var defaultRole = result.FirstOrDefault(r => r.IsDefault);
+        if (defaultRole != null)
+        {
+            result.Remove(defaultRole);
+            result.Insert(0, defaultRole);
+        }
+
+        return result;
+    }
+
+    private void LoadAutocompleteControls()
+    {
+        if (!string.IsNullOrEmpty(formItem.EnovaEmpId))
+        {
+            var empl = _employees.Where(e => e.EnovaEmpId == int.Parse(formItem.EnovaEmpId)).First();
+            SelectedEmpl = new List<EmployeeVm>() { empl };
+        }
+    }
+
+    private List<Option<int>> AdvancePaymentMethodsInt = new()
+        {
+            { new Option<int> { Value = 0, Text = "Wypłata w kasie"} },
+            { new Option<int> { Value = 1, Text = "Wypłata przelewem" } },
+        };
+
+    private void HandleValidSubmit(EditContext arg)
+    {
+        throw new NotImplementedException();
+    }
+
+}
+
+<style>
+    valid.disabled.outline {
+        color: black !important; /* Change font color to black */
+    }
+
+    div {
+        /*flex-shrink: 0; /* Prevent shrinking of elements */
+    }
+
+    .flex-container {
+        display: flex; /* Enables horizontal alignment */
+        align-items: center; /* Vertically centers items */
+        gap: 10px; /* Adds space between elements */
+        flex-wrap: wrap; /* Wraps to the next line if there's not enough space */
+    }
+
+        .flex-container > * {
+            flex-shrink: 0; /* Prevents items from shrinking */
+            margin: 0; /* Optional: Resets any margin */
+        }
+
+    .form-group {
+        display: flex;
+        align-items: center; /* Align label and control vertically */
+        gap: 10px; /* Space between the label and the control */
+        flex-wrap: nowrap; /* Ensure label and control stay on the same line */
+        flex: 1 1 auto; /* Allow the group to resize */
+        justify-content: flex-start; /* Align items to the left */
+    }
+
+
+    .form-section {
+        display: flex;
+        flex-wrap: wrap; /* Allows wrapping if content overflows */
+        gap: 15px; /* Spacing between child divs */
+        margin-bottom: 15px;
+    }
+
+        .form-section > div {
+            display: flex;
+            align-items: center; /* Vertically centers content within each div */
+            gap: 10px; /* Spacing between elements inside the div */
+        }
+
+    .new-form-sectionbbb {
+        display: flex;
+        flex-wrap: wrap; /* Allows wrapping if content overflows */
+        gap: 15px; /* Spacing between child divs */
+        margin-bottom: 15px; /* Matches other form sections */
+        border: 2px solid;
+        border-radius: 8px; /* Rounded corners */
+        padding: 10px; /* Space inside the border */
+        margin: 10px 0; /* Space outside the div */
+        align-items: center; /* Vertically center content */
+    }
+
+    .new-form-section {
+        display: flex; /* Enable horizontal alignment */
+        flex-wrap: nowrap; /* Prevent wrapping to the next line */
+        align-items: center; /* Vertically align content */
+        justify-content: flex-start; /* Align items to the start of the line */
+        border: 2px solid;
+        border-radius: 8px; /* Rounded corners */
+        padding: 10px;
+        margin: 10px 0;
+        background-color: lightblue; /* Default background color */
+        gap: 15px; /* Spacing between child divs */
+        width: fit-content;
+    }
+
+        /* Child divs inside the form section */
+        .new-form-section > div {
+            display: flex;
+            align-items: center; /* Center content within the div */
+        }
+
+        /* Background color for "Kasa" status */
+        .new-form-section.kasa {
+            background-color: #a2b3d4;
+            border-color: #a2b3d4; /* Matching blue border */
+        }
+
+        /* Background color for "Ksiegowosc" status */
+        .new-form-section.ksiegowosc {
+            background-color: #d3d3d3;
+            border-color: #d3d3d3; /* Matching grey border */
+        }
+
+    .fluent-grid-item {
+        flex-shrink: 0; /* Prevents shrinking of elements */
+    }
+
+    .autocomplete-container {
+        display: flex;
+        align-items: center;
+        gap: 10px; /* Adjust spacing as needed */
+    }
+
+        .autocomplete-container .fluent-autocomplete {
+            display: flex;
+            flex-direction: row; /* Forces label and control to align horizontally */
+            align-items: center;
+        }
+
+    table {
+        border-collapse: collapse; /* Optional: For a cleaner look */
+        /*width: 750px; /* Optional: Adjust to fit your container */
+    }
+
+    th, td {
+        padding: 5px; /* Adds padding inside each cell */
+        text-align: center; /* Optional: Align text to the left */
+    }
+
+        td:first-child, th:first-child {
+            padding-left: 0; /* Removes padding on the left of the first cell */
+        }
+
+   
+
+    .info-table {
+        width: 650px;
+        margin-bottom: 10px;
+    }
+
+        .info-table td {
+            padding: 10px;
+        }
+
+    .fluent-grid {
+        display: flex;
+        gap: 10px; /* Adjust the gap as needed */
+    }
+
+    .fluent-grid-item {
+        display: flex;
+        flex-direction: row;
+        gap: 10px; /* Adjust the gap between date and time pickers */
+    }
+
+    .custom-grid-item {
+        width: 150px;
+    }
+
+    .bold-label {
+        font-weight: bold;
+    }
+
+    .validation-error {
+        color: red;
+        margin-top: 5px;
+        margin-bottom: 5px;
+        white-space: normal; /* Allow wrapping */
+        word-wrap: break-word; /* Ensure long words break */
+        display: block; /* Ensure it takes full width */
+        justify-content: center;
+    }
+
+        .validation-error::before {
+            font-size: 1.5em; /* Adjust size as needed */
+            margin-right: 5px; /* Space between icon and text */
+            vertical-align: middle; /* Align properly */
+        }
+
+    .fluent-table {
+        border-collapse: collapse;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .fluent-caption {
+        caption-side: top;
+        text-align: left;
+        font-size: 1em;
+        font-weight: bold;
+        padding: 5px;
+        background-color: dimgrey;
+        color: white;
+    }
+
+    .fluent-thead {
+        background-color: lightgrey;
+        color: dimgray;
+    }
+
+        .fluent-thead th {
+            padding: 5px;
+            text-align: left;
+        }
+
+    .fluent-row {
+    }
+
+        .fluent-row td {
+            padding: 5px;
+        }
+
+        .fluent-row div {
+            display: flex;
+            align-items: center;
+        }
+
+            .fluent-row div FluentButton {
+                margin-right: 5px;
+            }
+
+    html, body {
+        height: 100%;
+        margin: 0;
+    }
+
+    .page {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+    }
+
+    .bodybody {
+        flex: 1; /* This makes the body content take up the remaining space */
+        padding-bottom: 125px; /* Ensure content doesn't overlap the footer */
+    }
+
+    .footerfooter {
+        height: 125px;
+        background-color: #f1f1f1; /* Example background color */
+        text-align: center; /* Center the footer content */
+        line-height: 75px; /* Vertically center the text */
+        position: fixed;
+        bottom: 0;
+        width: 100%;
+    }
+    .emptytemp{
+        margin-top: 20 px;
+    }
+
+    .disabled {
+        opacity: 1 !important;
+    }
+
+    fluent-select[disabled] {
+        --disabled-opacity: 0.9 !important;
+    }
+    fluent-combobox[disabled] {
+        --disabled-opacity: 1 !important;
+    }
+
+</style>
+<style>
+    .all-tables-wrapper {
+        display: flex;
+        flex-direction: column; /* Arrange the tables vertically */
+        justify-content: flex-start;
+        align-items: flex-start; /* Center everything horizontally */
+        gap: 20px; /* Add spacing between the groups */
+    }
+
+    .tables-wrapper {
+        display: flex;
+        justify-content: flex-start; /* Dynamically adjust based on content width */
+        gap: 20px; /* Space between the left and right tables */
+    }
+
+    .third-table-wrapper {
+        display: flex;
+        justify-content: flex-start; /* Center the third table */
+        width: 100%;
+    }
+
+    .table-container {
+        max-height: 60px;
+        width: 100%;
+        max-width: 1000px; /* Restrict table width */
+        border-collapse: separate;
+        border-spacing: 0;
+        font-family: Arial, sans-serif;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        overflow: visible;
+    }
+
+        .table-container thead tr:first-child th {
+            max-height: 60px;
+            color: white;
+            font-weight: bold;
+            text-align: center;
+            padding: 8px;
+        }
+
+
+        .table-container th {
+            max-height: 60px;
+            padding: 8px;
+            font-size: 12px;
+            border: 1px solid #ddd;
+            white-space: nowrap; /* Prevent line breaks */
+            overflow: visible; /* Prevent content from spilling out */
+            text-overflow: ellipsis; /* Add "..." for overflowing text */
+            align-items: center; /* Vertically center content */
+            justify-content: space-between; /* Push text and icon to the edges */
+        }
+
+        .table-container td {
+            max-height: 60px;
+            padding: 8px;
+            font-size: 12px;
+            border: 1px solid #ddd;
+            white-space: nowrap; /* Prevent line breaks */
+            overflow: visible;
+            text-overflow: ellipsis; /* Add "..." for overflowing text */
+        }
+
+    .table-header-left {
+        max-height: 60px;
+        background-color: var(--accent-fill-rest);
+    }
+
+    .table-header-right {
+        background-color: color-mix(in srgb, white 15%, var(--accent-fill-rest) 60%);
+    }
+
+    .table-caption {
+        max-height: 60px;
+        caption-side: top; /* Place caption above the table */
+        background-color: var(--accent-fill-rest); /* Match header background */
+        color: white; /* Match header text color */
+        font-weight: bold; /* Make it bold */
+        text-align: left; /* Center the text */
+        padding: 8px; /* Add padding for spacing */
+        border: 1px solid #ddd; /* Optional: Match table border */
+        border-bottom: none; /* Remove bottom border for seamless look with the table */
+    }
+
+
+</style>
+<style>
+    .BillTable-container {
+        max-height: 60px;
+        width: 100%;
+        max-width: 1000px;
+        border-collapse: separate;
+        border-spacing: 0;
+        font-family: Arial, sans-serif;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        overflow: visible; /* Prevent content overflow */
+        table-layout: fixed; /* Ensures width enforcement */
+    }
+
+        .BillTable-container th,
+        .BillTable-container td {
+            max-height: 60px;
+            padding: 8px;
+            font-size: 12px;
+            border: 1px solid #ddd;
+            white-space: nowrap;
+            position: relative;
+            overflow: visible; /* Prevents width overflow */
+            text-overflow: ellipsis; /* Adds "..." for long text */
+        }
+
+        .BillTable-container thead tr:first-child th {
+            color: white;
+            font-weight: bold;
+            text-align: center;
+            padding: 8px;
+        }
+
+        .BillTable-container th:nth-child(2),
+        .BillTable-container th:nth-child(3),
+        .BillTable-container th:nth-child(4),
+        .BillTable-container th:nth-child(6),
+        .BillTable-container td:nth-child(2),
+        .BillTable-container td:nth-child(3),
+        .BillTable-container td:nth-child(4),
+        .BillTable-container td:nth-child(6) {
+            width: 120px; /* Enforce fixed column widths */
+        }
+
+    .BillTable-header-left {
+        background-color: var(--accent-fill-rest);
+    }
+
+    .BillTable-header-right {
+        background-color: color-mix(in srgb, white 40%, var(--accent-fill-rest) 60%);
+    }
+
+    @* .fluent-select-dropdown {
+        
+     *@}
+
+</style>
+<style>
+    .tableBT-wrapper {
+        display: table;
+        width: 100%;
+    }
+
+    .tableBT-container {
+        width: 100%;
+        max-width: 500px;
+        border-collapse: collapse; /* Ensure no space between tables */
+        font-family: Arial, sans-serif;
+    }
+
+        .tableBT-container thead tr:first-child th {
+
+            font-weight: bold;
+            text-align: center;
+            padding: 8px;
+        }
+
+        .tableBT-container th, .tableBT-container td {
+            padding: 8px;
+            font-size: 14px;
+            border: 1px solid #ddd;
+            white-space: nowrap; /* Prevent line breaks */
+            overflow: hidden; /* Prevent content from spilling out */
+            text-overflow: ellipsis; /* Add "..." for overflowing text */
+            align-items: center; /* Vertically center content */
+            justify-content: space-between; /* Push text and icon to the edges */
+        }
+
+    .tableBT-header-left {
+        background-color: var(--accent-fill-rest);
+    }
+
+    .tableBT-container td {
+        border-top: none; /* Remove border between tables */
+    }
+
+    .tableBT-fullwidth {
+        width: 100%; /* Allow the table to stretch within the parent container */
+        max-width: 500px; /* Match the max-width of the first two tables */
+        margin: 0 auto; /* Center the table horizontally within the parent */
+        table-layout: auto; /* Allow columns to adjust based on content */
+    }
+
+        .tableBT-fullwidth th,
+        .tableBT-fullwidth td {
+            white-space: nowrap; /* Keep content in a single line */
+            overflow: hidden; /* Prevent content overflow */
+            text-overflow: ellipsis; /* Truncate with "..." if content exceeds width */
+            padding: 8px; /* Standard padding */
+            text-align: center; /* Center-align text */
+        }
+</style>
+<style>
+    .validation-errors-list {
+        margin: 0;
+        padding-left: 20px; /* Indent the sub-list */
+    }
+
+        .validation-errors-list li {
+            margin-bottom: 5px; /* Adjust spacing between lines */
+            line-height: 1.2; /* Adjust line height for compactness */
+        }
+
+            .validation-errors-list li ul {
+                margin-top: 2px; /* Reduce space before nested lists */
+                padding-left: 15px; /* Indent nested lists */
+            }
+</style>

@@ -1,0 +1,122 @@
+﻿@* Manager Deputy Edit Component *@
+@using Application.CQRS.General.ManagerDeputies.Queries
+@using Application.CQRS.ITWarehouseCQRS.Employees.Queries
+@using Application.ViewModels.General
+@using System.Text.Json
+
+@inject IMediator _mediator
+@implements IDialogContentComponent<ManagerDeputyVm>
+
+<!-- Header -->
+<FluentDialogHeader ShowDismiss="true">
+    <FluentStack VerticalAlignment="VerticalAlignment.Center">
+        <FluentIcon Value="@(new Icons.Regular.Size24.WindowApps())" />
+        <FluentLabel Typo="Typography.PaneHeader">
+            @Dialog.Instance.Parameters.Title
+        </FluentLabel>
+    </FluentStack>
+</FluentDialogHeader>
+
+<!-- Body -->
+<FluentDialogBody Style="overflow-y: auto; overflow-x: auto;">
+    <EditForm EditContext="_editContext">
+        <DataAnnotationsValidator />
+
+        <div class="card">
+            <FluentTextField Id="LongName" @bind-Value="@Content.LongName" Disabled="true" Placeholder="Enter LongName">LongName:</FluentTextField>
+            <FluentValidationMessage For="@(() => Content.LongName)" />
+        </div>
+
+        <div class="card">
+            <FluentAutocomplete TOption="EmployeeVm"
+                                AutoComplete="off"
+                                Autofocus="true"
+                                Label="Select Deputies"
+                                Width="450px"
+                                MaxAutoHeight="200px"
+                                Placeholder="Search deputies"
+                                OnOptionsSearch="@OnSearchLongNameAsync"
+                                OptionText="@(item => item.LongName)"
+                                @bind-SelectedOptions="@_selectedManagerDeputies" />
+            <p>
+                <b>Selected Deputies:</b> @(String.Join(", ", _selectedManagerDeputies.Select(i => i.LongName)))
+            </p>
+        </div>
+
+    </EditForm>
+</FluentDialogBody>
+
+<!-- Footer --> 
+<FluentDialogFooter>
+    <FluentButton Appearance="Appearance.Accent" OnClick="@SaveAsync">Save</FluentButton>
+    <FluentButton Appearance="Appearance.Neutral" OnClick="@CancelAsync">Cancel</FluentButton>
+</FluentDialogFooter>
+
+@code {
+    [Parameter] public ManagerDeputyVm Content { get; set; } = default!;
+    [CascadingParameter] public FluentDialog Dialog { get; set; } = default!;
+
+    private EditContext _editContext;
+    private IQueryable<EmployeeVm> _allEmployees;
+    private List<EmployeeVm> _allManagerDeputies = new();
+    private IEnumerable<EmployeeVm> _selectedManagerDeputies = Enumerable.Empty<EmployeeVm>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _editContext = new EditContext(Content);
+
+        // Pobranie listy wszystkich pracowników
+        _allEmployees = await _mediator.Send(new GetAllEmployeesQuery());
+
+        // Filtrowanie tylko pracowników z rolą Managera
+        _allManagerDeputies = _allEmployees.Where(e => e.IsManager).ToList();
+
+        if (Content.Deputies == null || !Content.Deputies.Any())
+        {
+            _selectedManagerDeputies = Array.Empty<EmployeeVm>();
+        }
+        else
+        {
+            _selectedManagerDeputies = Content.Deputies.Select(d => d.Employee).ToArray();
+        }
+    }
+
+    private async Task OnSearchLongNameAsync(OptionsSearchEventArgs<EmployeeVm> e)
+    {
+        // Wyszukiwanie pracowników na podstawie tekstu w polu wyszukiwania
+        var filteredEmployees = _allManagerDeputies
+            .Where(emp => emp.LongName.Contains(e.Text, StringComparison.OrdinalIgnoreCase))
+            .OrderBy(emp => emp.LongName)
+            .ToList();
+
+        // Przypisanie wyników do `e.Items`
+        e.Items = filteredEmployees.Cast<EmployeeVm>();
+    }
+
+    private async Task SaveAsync()
+    {
+        if (!_editContext.Validate())
+        {
+            Console.WriteLine("Validation failed.");
+            return;
+        }
+
+        Content.Deputies = _selectedManagerDeputies
+            .Select(d => new OrganisationRoleVm { EmpId = d.EnovaEmpId, Employee=d})
+            .ToList();
+
+        try
+        {
+            await Dialog.CloseAsync(Content);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error closing dialog: {ex.Message}");
+        }
+    }
+
+    private async Task CancelAsync()
+    {
+        await Dialog.CancelAsync();
+    }
+}

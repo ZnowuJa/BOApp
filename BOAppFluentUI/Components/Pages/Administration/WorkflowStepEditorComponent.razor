@@ -1,0 +1,90 @@
+﻿@using Application.ViewModels.General
+@using System.Reflection
+<h3>WorkflowStepEditorComponent</h3>
+
+
+<FluentGrid>
+    <FluentGridItem xxl="1" xl="1">
+        
+            <FluentNumberField @bind-Value="@Step.StepNumber" Label="Krok numer:" />
+       
+        
+
+    </FluentGridItem>
+    <FluentGridItem xxl="4" xl="4">
+        
+        <FluentSelect TOption="string"
+                      Width="200px"
+                      Label="Status"
+                      Items="@statuses"
+                      @bind-Value="@Step.Status" />
+        
+    </FluentGridItem>
+    <FluentGridItem xxl="4" xl="4">
+        
+        <FluentSelect TOption="string"
+                      Width="200px"
+                      Label="Role"
+                      Items="@rolesList"
+                      @bind-Value="@Step.WorkflowRole"
+                       />
+       
+                    
+    </FluentGridItem>
+    
+    <FluentGridItem xxl="2" xl="2">
+        <FluentButton IconEnd="@(new Icons.Regular.Size20.Checkmark())" OnClick="@(() => AddTheStep())" />
+
+    </FluentGridItem>
+    @* <p>Selected Employee: @SelectedEmpl.FirstOrDefault()?.LongName</p> *@
+</FluentGrid>
+
+
+
+@code {
+    [Parameter] public WorkflowStepVm Step { get; set; }
+    [Parameter] public EventCallback<WorkflowStepVm> OnStepAdded { get; set; }
+    [Parameter] public string FormClassName { get; set; }
+
+    private List<string>? rolesList { get; set; }
+    private List<string>? statuses = new List<string>
+        {"Rejestracja", "Przelozony", "Rozrachunki", "Zakonczone" };
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        Type orgType = typeof(OrganisationVm);
+        rolesList = orgType.GetProperties()
+        .Where(p => p.PropertyType.IsGenericType && p.PropertyType.GetGenericTypeDefinition() == typeof(List<>)).Select(p =>p.Name).ToList();
+        Assembly assembly = Assembly.Load("Application");
+
+        var formNameInternal = $"Application.Forms.{FormClassName}";
+        Type formType = assembly.GetType(formNameInternal);
+        // Type.GetType("Application.Forms."+FormClassName);
+        Console.WriteLine();
+        if (formType != null)
+        {
+            MethodInfo method = formType.GetMethod("GetDefaultStatuses", BindingFlags.Public | BindingFlags.Static);
+            if (method != null)
+            {
+                statuses = (List<string>)method.Invoke(null, null);
+            }
+            else
+            {
+                Console.WriteLine("Method not found.");
+            }
+        }
+        else
+        {
+            Console.WriteLine("Type not found.");
+        }
+        
+
+    }
+    private async Task AddTheStep()
+    {
+        
+        await OnStepAdded.InvokeAsync(Step);
+    }
+
+}

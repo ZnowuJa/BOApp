@@ -1,0 +1,215 @@
+﻿@* Part Edit Component *@
+
+@inject IMediator _mediator;
+@implements IDialogContentComponent<PartVm>
+
+@* Header *@
+<FluentDialogHeader ShowDismiss="true">
+    <FluentStack VerticalAlignment="VerticalAlignment.Center">
+        <FluentIcon Value="@(new Icons.Regular.Size24.WindowApps())" />
+        <FluentLabel Typo="Typography.PaneHeader">
+            @Dialog.Instance.Parameters.Title
+        </FluentLabel>
+    </FluentStack>
+</FluentDialogHeader>
+
+@* Footer *@
+<FluentDialogFooter>
+    <FluentButton Appearance="Appearance.Accent" OnClick="@SaveAsync"
+                  Disabled="@(!_editContext.Validate())">
+        Save
+    </FluentButton>
+    <FluentButton Appearance="Appearance.Neutral" OnClick="@CancelAsync">Cancel</FluentButton>
+</FluentDialogFooter>
+
+@* Body *@
+<FluentDialogBody Orientation="Orientation.Horizontal">
+    <EditForm EditContext="_editContext">
+        <FluentValidationValidator @ref="_fluentValidator" />
+
+        <FluentGrid Justify="@Justification">
+            <FluentGridItem xs="6" sm="4">
+                <div class="card">
+
+                    <FluentTextField Id="Name" @bind-Value="@Content.Name" Placeholder="Enter name"> Name: </FluentTextField>
+                    <FluentValidationMessage For="@(() => Content.Name)" />
+
+                </div>
+            </FluentGridItem>
+            <FluentGridItem xs="6" sm="4">
+                <div class="card">
+                    <FluentTextField Id="Description" @bind-Value="@Content.Description" Placeholder="Enter description"> Description: </FluentTextField>
+                    <FluentValidationMessage For="@(() => Content.Description)" />
+                </div>
+            </FluentGridItem>
+
+            <FluentGridItem xs="6" sm="4">
+                <div class="card">
+                    <FluentNumberField Id="WarrantyPeriod" @bind-Value="@Content.WarrantyPeriod" Placeholder="Enter WarrantyPeriod"> Warranty Period: </FluentNumberField>
+                    <FluentValidationMessage For="@(() => Content.WarrantyPeriod)" />
+                </div>
+            </FluentGridItem>
+            <FluentGridItem xs="6" sm="4">
+                <div class="card">
+                    @{
+                        // Check if it's an Edit operation
+
+                        if (Content.Id != 0)
+                        {
+                            <FluentSelect TOption="CategoryVm"
+                                          Label="Select a category..."
+                                          Items="@itemCategoryList"
+                                          Id="CatId"
+                                          Width="150px"
+                                          Height="250px"
+                                          OptionValue="@(p => p.Id.ToString())"
+                                          OptionText="@(p => p.Name)"
+                                          @bind-SelectedOption="@Content.CategoryVm" />
+                        }
+                        else
+                        {
+                            // For new records
+                            <FluentSelect TOption="CategoryVm"
+                                          Label="Select a category..."
+                                          Items="@itemCategoryList"
+                                          Id="CatId"
+                                          Width="150px"
+                                          Height="250px"
+                                          OptionValue="@(p => p.Id.ToString())"
+                                          OptionText="@(p => p.Name)"
+                                          @bind-SelectedOption="@SelectedCategory" />
+                        }
+                    }
+
+                    <FluentValidationMessage For="@(() => Content.CategoryVm.Name)" />
+                </div>
+            </FluentGridItem>
+            <FluentGridItem xs="6" sm="4">
+                <div class="card">
+                    @{
+                        // Check if it's an Edit operation
+
+                        if (Content.Id != 0)
+                        {
+                            <FluentSelect TOption="VendorVm"
+                                          Label="Select a vendor..."
+                                          Items="@itemVendorList"
+                                          Id="VenId"
+                                          Width="150px"
+                                          Height="250px"
+                                          OptionValue="@(p => p.Id.ToString())"
+                                          OptionText="@(p => p.Name)"
+                                          @bind-SelectedOption="@Content.VendorVm" />
+                        }
+                        else
+                        {
+                            // For new records
+                            <FluentSelect TOption="VendorVm"
+                                          Label="Select a vendor..."
+                                          Items="@itemVendorList"
+                                          Id="VenId"
+                                          Width="150px"
+                                          Height="250px"
+                                          OptionValue="@(p => p.Id.ToString())"
+                                          OptionText="@(p => p.Name)"
+                                          @bind-SelectedOption="@SelectedVendor" />
+                        }
+                    }
+
+                    <FluentValidationMessage For="@(() => Content.VendorVm.Name)" />
+                </div>
+            </FluentGridItem>
+            <FluentGridItem xs="6" sm="4">
+                <div class="card">
+                    <FluentTextField Id="Photo" @bind-Value="@Content.Photo" Placeholder="Enter Photo"> Photo: </FluentTextField>
+                    <FluentValidationMessage For="@(() => Content.Photo)" />
+                </div>
+            </FluentGridItem>
+            <FluentGridItem xs="6" sm="4">
+                <div class="card">
+                    <FluentDatePicker Id="endOfSupport"
+                                      @bind-Value="@Content.EndOfSupport"
+                                      Placeholder="Enter date"
+                                      Label="End Of Support date">
+
+                    </FluentDatePicker>
+                </div>
+            </FluentGridItem>
+
+        </FluentGrid>
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="validation-error"><p style="color:red;">@errorMessage</p></div>
+        }
+    </EditForm>
+</FluentDialogBody>
+
+
+@code {
+    [Parameter]
+    public PartVm Content { get; set; } = default!;
+
+    [CascadingParameter]
+    public FluentDialog Dialog { get; set; } = default!;
+
+    JustifyContent Justification = JustifyContent.FlexStart;
+
+    private EditContext _editContext;
+
+    private FluentValidationValidator? _fluentValidator;
+    private string errorMessage;
+
+    private IQueryable<CategoryVm> itemCategoryList { get; set; }
+    private IQueryable<VendorVm> itemVendorList { get; set; }
+    private CategoryVm SelectedCategory { get; set; } = new CategoryVm { };
+    private VendorVm SelectedVendor { get; set; } = new VendorVm { };
+
+    protected override async Task OnInitializedAsync()
+    {
+        _editContext = new EditContext(Content);
+        itemCategoryList = await _mediator.Send(new GetAllCategoriesForSelectQuery());
+        itemVendorList = await _mediator.Send(new GetAllVendorsForSelectQuery());
+        base.OnInitialized();
+    }
+
+    private async Task SaveAsync()
+    {
+        Console.WriteLine("SaveAsync starts...");
+        if (_editContext.Validate())
+        {
+            Console.WriteLine("EditContext Validation OK!...");
+        }
+        else
+        {
+            Console.WriteLine("EditContext Validation NOT OK!...");
+            return;
+        }
+        if (Content.Id != 0)
+        {
+            await Dialog.CloseAsync(Content);
+        }
+        else
+        {
+            if (SelectedCategory.Id != 0 || SelectedVendor.Id != 0)
+            {
+                Content.CategoryVm = SelectedCategory;
+                Content.VendorVm = SelectedVendor;
+                await Dialog.CloseAsync(Content);
+            }
+            else
+            {
+                Console.WriteLine();
+                errorMessage = "Plese select Category or Vendor!";
+            }
+        }
+    }
+
+    private async Task CancelAsync()
+    {
+        await Dialog.CancelAsync();
+    }
+
+}
+
+

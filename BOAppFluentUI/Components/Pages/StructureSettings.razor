@@ -1,0 +1,110 @@
+﻿@page "/structuresettings"
+@inject NavigationManager _navMan
+
+<h3>StructureSettings</h3>
+
+<FluentGrid Justify="@Justification">
+
+    <FluentGridItem xs="@xssize" sm="@smsize">
+        <FluentCard>
+            <FluentStack Orientation="Orientation.Vertical"
+                         HorizontalAlignment="HorizontalAlignment.Center"
+                         VerticalAlignment="VerticalAlignment.Center">
+                <FluentIcon Value="@(new Icons.Regular.Size24.People())" />
+                <h4>Employees</h4>
+                <FluentButton BackgroundColor="var(--accent-fill-rest)"
+                              Color="var(--neutral-fill-rest)"
+                              OnClick="@(()=>_navMan.NavigateTo("/Employees"))">
+                    Employees
+                </FluentButton>
+            </FluentStack>
+        </FluentCard>
+    </FluentGridItem>
+    <FluentGridItem xs="@xssize" sm="@smsize">
+        <FluentCard>
+            <FluentStack Orientation="Orientation.Vertical"
+                         HorizontalAlignment="HorizontalAlignment.Center"
+                         VerticalAlignment="VerticalAlignment.Center">
+                <FluentIcon Value="@(new Icons.Regular.Size24.PeopleCommunity())" />
+                <h4>Employee Types</h4>
+                <FluentButton BackgroundColor="var(--accent-fill-rest)"
+                              Color="var(--neutral-fill-rest)"
+                              OnClick="@(()=>_navMan.NavigateTo("/employeetypes"))">
+                    Employee Types
+                </FluentButton>
+            </FluentStack>
+        </FluentCard>
+    </FluentGridItem>
+    <FluentGridItem xs="@xssize" sm="@smsize">
+        <FluentCard>
+            <FluentStack Orientation="Orientation.Vertical"
+                         HorizontalAlignment="HorizontalAlignment.Center"
+                         VerticalAlignment="VerticalAlignment.Center">
+                <FluentIcon Value="@(new Icons.Regular.Size24.Building())" />
+                <h4>Companies</h4>
+                <FluentButton BackgroundColor="var(--accent-fill-rest)"
+                              Color="var(--neutral-fill-rest)"
+                              OnClick="@(()=>_navMan.NavigateTo("/companies"))">
+                    Companies
+                </FluentButton>
+            </FluentStack>
+        </FluentCard>
+    </FluentGridItem>
+    <FluentGridItem xs="@xssize" sm="@smsize">
+        <FluentCard>
+            <FluentStack Orientation="Orientation.Vertical"
+                         HorizontalAlignment="HorizontalAlignment.Center"
+                         VerticalAlignment="VerticalAlignment.Center">
+                <FluentIcon Value="@(new Icons.Regular.Size24.Building())" />
+                <h4>Company Types</h4>
+                <FluentButton BackgroundColor="var(--accent-fill-rest)"
+                              Color="var(--neutral-fill-rest)"
+                              OnClick="@(()=>_navMan.NavigateTo("/companytypes"))">
+                    Company Types
+                </FluentButton>
+            </FluentStack>
+        </FluentCard>
+    </FluentGridItem>
+    <FluentGridItem xs="@xssize" sm="@smsize">
+        <FluentCard>
+            <FluentStack Orientation="Orientation.Vertical"
+                         HorizontalAlignment="HorizontalAlignment.Center"
+                         VerticalAlignment="VerticalAlignment.Center">
+                <FluentIcon Value="@(new Icons.Regular.Size24.Building())" />
+                <h4>Departments</h4>
+                <FluentButton BackgroundColor="var(--accent-fill-rest)"
+                              Color="var(--neutral-fill-rest)"
+                              OnClick="@(()=>_navMan.NavigateTo("/departments"))">
+                    Departments
+                </FluentButton>
+            </FluentStack>
+        </FluentCard>
+    </FluentGridItem>
+    <FluentGridItem xs="@xssize" sm="@smsize">
+        <FluentCard>
+            <FluentStack Orientation="Orientation.Vertical"
+                         HorizontalAlignment="HorizontalAlignment.Center"
+                         VerticalAlignment="VerticalAlignment.Center">
+                <FluentIcon Value="@(new Icons.Regular.Size24.BookStar())" />
+                <h4>Organisations</h4>
+
+                <FluentButton BackgroundColor="var(--accent-fill-rest)"
+                              Color="var(--neutral-fill-rest)"
+                              OnClick="@(()=>_navMan.NavigateTo("/organisations"))">
+                    Organisations
+                </FluentButton>
+            </FluentStack>
+        </FluentCard>
+    </FluentGridItem>
+
+</FluentGrid>
+
+
+
+@code {
+    JustifyContent Justification = JustifyContent.Center;
+
+    public int xssize { get; set; } = 2;
+    public int smsize { get; set; } = 2;
+
+}

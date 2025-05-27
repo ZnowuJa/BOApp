@@ -1,0 +1,144 @@
+﻿@page "/notes"
+@using Application.ITWarehouseCQRS.Notes.Commands
+@using Application.ITWarehouseCQRS.Notes.Queries
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize(Policy = "Technician")]
+
+@inject IMediator _mediator
+@inject ILogger<Note_Page> _logger
+@inject IDialogService _dialogService
+@inject IToastService _toastService
+
+
+<h3>Notes</h3>
+
+@if (_items == null)
+{
+    <FluentProgressRing>Loading...</FluentProgressRing>
+    
+}
+else
+{
+
+    <FluentDataGrid Items="@_items" TGridItem="NoteVm" GridTemplateColumns="50px 1fr 0.5fr">
+        
+        
+        <PropertyColumn Property="@(c => c.Id)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.Text)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <TemplateColumn Title="Actions" Align="Align.End">
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" />
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => EditItem(context))" />
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" />
+
+        </TemplateColumn>
+    </FluentDataGrid>
+    <FluentButton IconStart="@(new Icons.Regular.Size20.Add())" OnClick="@(() => Add())" />
+}
+
+
+
+@code {
+    // public NoteVm Selected { get; set; }
+
+    // CreateNoteCommandValidator cctcV = new();
+
+    private IQueryable<NoteVm> _items;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Load();
+    }
+
+    private async Task Load()
+    {
+        _items = await _mediator.Send(new GetAllNotesQuery());
+        Console.WriteLine(_items.Count());
+    }
+
+    private async Task EditItem(NoteVm item)
+    {
+        ToastIntent intent;
+        string message = string.Empty;
+        int i = 0;
+
+        var data = item;
+        var dialog = await _dialogService.ShowDialogAsync<Note_Edit_Component>(data, new DialogParameters()
+        {
+                Height = "240px",
+                Title = data.Id > 0 ? "Update Note" : "Write new Note",
+                PreventDismissOnOverlayClick = false,
+                PreventScroll = true,
+        });
+        var result = await dialog.Result;
+        if(!result.Cancelled && result.Data != null)
+        {
+            item = (NoteVm)result.Data;
+            if (item.Id > 0)
+            {
+                i = await _mediator.Send(new UpdateNoteCommand(item.Id, item.Text));
+                intent = ToastIntent.Success;
+                message = "Note has been updated!";
+            } else if (item.Id == 0)
+            {
+                i = await _mediator.Send(new CreateNoteCommand(item.Text));
+                intent = ToastIntent.Success;
+                message = "Note has been Created!";
+            } else
+            {
+                intent = ToastIntent.Warning;
+                message = "Something went realy wrong!";
+            }
+
+        } else if (result.Cancelled)
+        {
+            intent = ToastIntent.Info;
+            message = "Update Cancelled...";
+        } else
+        {
+            intent = ToastIntent.Error;
+            message = "Something went wrong!!!";
+        }
+
+
+        await Load();
+        _toastService.ShowToast(intent, message, 3000);
+
+        Console.WriteLine(result.GetType());
+    }
+
+    private async Task View(NoteVm item)
+    {
+        await _dialogService.ShowInfoAsync(message: $"Category type id: {item.Id}, name: {item.Text}");
+    }
+
+    private async Task Add()
+    {
+        NoteVm item = new NoteVm { Id = 0, Text = string.Empty };
+        await EditItem(item);
+    }
+
+    private async Task Delete(NoteVm item)
+    {
+        ToastIntent intent;
+        string message = string.Empty;
+
+        var i = await _mediator.Send(new DeleteNoteCommand(item.Id));
+
+        if (i == item.Id)
+        {
+            intent = ToastIntent.Success;
+            message = "Note has been deleted!";
+        }
+        else
+        {
+            intent = ToastIntent.Error;
+            message = "Something went wrong!!!";
+        }
+        await Load();
+        _toastService.ShowToast(intent, message, 3000);
+
+    }
+}
+@* Disabled="@(string.IsNullOrEmpty(Content.Name) || string.IsNullOrWhiteSpace(Content.Name))" *@

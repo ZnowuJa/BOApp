@@ -1,0 +1,12 @@
+﻿@page "/employeesa"
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize (Policy = "Administrator")]
+
+<PageTitle>Employees</PageTitle>
+
+<h1>Hello, Employees!</h1>
+
+Welcome to your new app.
+
+<SurveyPrompt Title="How is Blazor working for you?" />

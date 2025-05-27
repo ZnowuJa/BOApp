@@ -1,0 +1,284 @@
+﻿@page "/organisationsall"
+
+@using Application.CQRS.General.Organisations.Commands
+@using Application.CQRS.General.Organisations.Queries
+@using Application.ViewModels.General
+@using System.Security.Claims
+@using System.Linq.Expressions
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize(Policy = "Technician")]
+
+@inject IMediator _mediator
+@inject ILogger<OrganisationVm> _logger
+@inject IDialogService _dialogService
+@inject IToastService _toastService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<h3>OrganisationsPage</h3>
+
+@if (orgs == null)
+{
+    <FluentProgressRing>Loading...</FluentProgressRing>
+}
+else
+{
+    <p>
+        <FluentStack Orientation="Orientation.Horizontal">
+            <FluentLabel Typo="Typography.Subject"> Show columns:  </FluentLabel>
+            @foreach (var column in filterColumns)
+            {
+                if (column.FirstRow)
+                {
+                    <FluentCheckbox @bind-Value="column.IsVisible" Label="@column.Label" />
+                }
+                
+            }
+            </FluentStack>
+    @* <p></p>
+        <FluentStack Orientation="Orientation.Horizontal">
+            @foreach (var column in filterColumns)
+            {
+                if (!column.FirstRow)
+                {
+                <FluentCheckbox @bind-Value="column.IsVisible" Label="@column.Label" />
+                }
+
+            }
+        </FluentStack> *@
+    </p>
+
+    <FluentDataGrid Items="@filteredOrgs" Pagination="@pagination" TGridItem="OrganisationVm" GridTemplateColumns="80px repeat(6, 0.75fr)" ResizableColumns="true">
+       
+        @foreach (var column in filterColumns.Where(c => c.IsVisible))
+        {
+            <PropertyColumn TGridItem="OrganisationVm" TProp="string" Property="@(GetPropertyExpression(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label" Filtered="!string.IsNullOrWhiteSpace(column.Filter)">
+                <ColumnOptions>
+                    <div class="search-box">
+                        <FluentSearch type="search" Autofocus="true" @bind-Value="column.Filter" @oninput="(args) => HandleFilterDebounced(column, args)" Placeholder="@($"{column.Label.ToLower()}...")" />
+                    </div>
+                </ColumnOptions>
+            </PropertyColumn>
+        }
+
+        @* Actions *@
+        <TemplateColumn Title="Actions" Align="Align.End">
+
+            @{
+                // var viewId = $"viewid-{context.Id}";
+                var editId = $"editid-{context.Id}";
+                var deleteId = $"deleteid-{context.Id}";
+                // var addId = $"addid-{context.Id}";
+            }
+@*             <FluentButton Id="@viewId" IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" Disabled="@actionsDisabled" />
+            <FluentTooltip Anchor="@viewId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Left Delay=50>View Asset</FluentTooltip> *@
+
+            <FluentButton Id="@editId" IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => EditOrganisation(context))" Disabled="@actionsDisabled" />
+            <FluentTooltip Anchor="@editId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Edit Asset</FluentTooltip>
+
+            <FluentButton Id="@deleteId" IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" Disabled="@actionsDisabled" />
+            <FluentTooltip Anchor="@deleteId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Delete Asset</FluentTooltip>
+
+@*             <FluentButton Id="@addId" IconEnd="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddToList(context))" Disabled="@actionsDisabled" />
+            <FluentTooltip Anchor="@addId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right Delay=50>Add Asset to update</FluentTooltip> *@
+
+        </TemplateColumn>
+    </FluentDataGrid>
+    <FluentPaginator State="@pagination" />
+
+    
+    }
+<FluentButton IconStart="@(new Icons.Regular.Size20.Add())" OnClick="@(() => EditOrganisation())" />
+
+
+@code {
+
+    #region Properties
+    private IQueryable<OrganisationVm> orgs;
+    private IQueryable<OrganisationVm> filteredOrgs => orgs.Where(x =>
+    filterColumns.All(column => string.IsNullOrWhiteSpace(column.Filter) ||
+    column.Property(x).Contains(column.Filter, StringComparison.CurrentCultureIgnoreCase)));
+
+    PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
+    PaginationState paginationAssets = new PaginationState { ItemsPerPage = 5 };
+
+    private DebounceDispatcher debounceDispatcher = new DebounceDispatcher();
+    private ClaimsPrincipal? user { get; set; }
+    private string username { get; set; }
+    private EmployeeVm employee { get; set; }
+    private string EmplEnovaEmpId { get; set; }
+
+    private string errorMessageUpdate = string.Empty;
+    // private bool showUpdate = false;
+    private bool deleteConfirm = false;
+    private bool actionsDisabled = false;
+
+    private List<FilterColumn<OrganisationVm>> filterColumns = new List<FilterColumn<OrganisationVm>>
+    {
+        new FilterColumn<OrganisationVm> { FirstRow = true, Label = "ID", Property = c => c.Id.ToString(), IsVisible = true, Width = "80px" },
+        new FilterColumn<OrganisationVm> { FirstRow = true, Label = "Nazwa", Property = c => c.Name, IsVisible = true, Width = "1FR" },
+        new FilterColumn<OrganisationVm> { FirstRow = true, Label = "Marka", Property = c => c.Make, IsVisible = true , Width = "1FR" },
+        new FilterColumn<OrganisationVm> { FirstRow = true, Label = "Opis", Property = c => c.Description, IsVisible = true , Width = "1FR" },
+        new FilterColumn<OrganisationVm> { FirstRow = true, Label = "Numer SAP", Property = c => c.SapNumber, IsVisible = true , Width = "1FR" },        
+    };
+
+    #endregion Properties
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetUserName();
+        await Load();
+    }
+
+    private async Task Load()
+    {
+        // var orgsy = await _mediator.Send(new GetAllOrganisationsQuery());
+        var orgsy = await _mediator.Send(new GetAllOrganisationsQuery());
+        orgs = orgsy.AsQueryable();
+    }
+
+    private async Task EditOrganisation(OrganisationVm item = null)
+    {
+        ToastIntent intent;
+        string message = string.Empty;
+        int i = 0;
+        bool isNew = item == null;
+
+        if (isNew)
+        {
+            item = new OrganisationVm
+                {
+                    Role_ServiceManager = new List<OrganisationRoleVm> { new OrganisationRoleVm() },
+                    Role_SalesManager = new List<OrganisationRoleVm> { new OrganisationRoleVm() },
+                    Role_DealerDirector = new List<OrganisationRoleVm> { new OrganisationRoleVm() },
+                    Role_RegionDirector = new List<OrganisationRoleVm> { new OrganisationRoleVm() }
+                };
+        }
+
+        _logger.LogInformation("Organisations | Edit(item) | Opening dialog...");
+
+        var dialog = await _dialogService.ShowDialogAsync<OrganisationEditComponent>(item, new DialogParameters()
+            {
+                Height = "750px",
+                Width = "800px",
+                Title = item.Id > 0 ? "Update Organisation..." : "Create new Organisation...",
+                PreventDismissOnOverlayClick = true,
+                PreventScroll = false,
+            });
+
+        _logger.LogInformation("Organisations | Edit(item) | Dialog Closed...");
+        actionsDisabled = true;
+        var result = await dialog.Result;
+
+        if (!result.Cancelled && result.Data != null)
+        {
+            var final = (OrganisationVm)result.Data;
+
+            if (final.Id > 0)
+            {
+                _logger.LogInformation("Organisations | Edit(item) | Update Organisation start...");
+                i = await _mediator.Send(new UpdateOrganisationCommand(final));
+                _logger.LogInformation("Organisations | Edit(item) | Update Organisation finished...");
+                intent = ToastIntent.Success;
+                message = "Organisation has been updated!";
+            }
+            else
+            {
+                _logger.LogInformation("Organisations | Edit(item)| Create Organisation start...");
+                i = await _mediator.Send(new CreateOrganisationCommand(final));
+                _logger.LogInformation("Organisations | Edit(item) | Create Organisation finished...");
+                intent = ToastIntent.Success;
+                message = "Organisation has been created!";
+            }
+            await Load();
+        }
+        else if (result.Cancelled)
+        {
+            intent = ToastIntent.Info;
+            message = "Operation Cancelled...";
+        }
+        else
+        {
+            intent = ToastIntent.Error;
+            message = "Something went wrong!";
+        }
+
+        _toastService.ShowToast(intent, message, 3000);
+        actionsDisabled = false;
+    }
+
+    private async Task Delete(OrganisationVm item)
+    {
+
+        var dialog = await _dialogService.ShowConfirmationAsync("You are about to delete Organisation: " + item.SapNumber + "\n Are you sure?", "Yes", "No", "Confirm delete operation");
+        var result = await dialog.Result;
+        deleteConfirm = result.Cancelled;
+
+        ToastIntent intent;
+        string message = string.Empty;
+
+        if (deleteConfirm)
+        {
+            Console.WriteLine();
+            intent = ToastIntent.Error;
+            message = "Asset has not been deleted";
+
+        }
+        else
+        {
+            Console.WriteLine();
+            var i = await _mediator.Send(new DeleteOrganisationCommand(item.Id));
+            // var i = await _mediator.Send(new (item.Id));
+            intent = ToastIntent.Success;
+            message = "Asset has been deleted";
+
+        }
+
+        _toastService.ShowToast(intent, message, 3000);
+        await Load();
+    }
+    private void HandleClearFilter(ref string filter) => filter = string.IsNullOrWhiteSpace(filter) ? string.Empty : filter;
+    private void HandleFilterDebounced(FilterColumn<OrganisationVm> column, ChangeEventArgs args)
+    {
+        debounceDispatcher.Debounce(300, _ =>
+        {
+            column.Filter = args.Value.ToString();
+            InvokeAsync(StateHasChanged);
+        });
+    }
+    private async Task GetUserName()
+    {
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        user = authenticationState.User;
+        var claimType = "name"; // or use ClaimTypes.Title
+        var usernameClaim = user.Claims.FirstOrDefault(c => c.Type == claimType);
+        if (usernameClaim != null)
+        {
+            username = usernameClaim.Value;
+        }
+        else
+        {
+            username = "unknown";
+            Console.WriteLine($"No claim of type {claimType} found.");
+        }
+
+        claimType = "EnovaEmpId"; // or use ClaimTypes.Title
+        var EnovaEmpIdClaim = user.Claims.FirstOrDefault(c => c.Type == claimType);
+        if (EnovaEmpIdClaim != null)
+        {
+            EmplEnovaEmpId = EnovaEmpIdClaim.Value;
+            Console.WriteLine($"Claim of type {claimType} found, value {EmplEnovaEmpId}.");
+        }
+        else
+        {
+            EmplEnovaEmpId = "unknown";
+            Console.WriteLine($"No claim of type {claimType} found.");
+        }
+
+    }
+    private Expression<Func<OrganisationVm, string>> GetPropertyExpression(Func<OrganisationVm, string> propertyFunc)
+    {
+        return x => propertyFunc(x);
+    }
+}

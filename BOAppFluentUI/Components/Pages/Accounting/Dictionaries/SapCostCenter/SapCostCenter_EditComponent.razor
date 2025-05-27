@@ -1,0 +1,240 @@
+﻿@* Cost Center Edit Component *@
+@using Application.CQRS.ITWarehouseCQRS.Employees.Queries
+@using Application.ViewModels.Accounting
+@using Application.ViewModels.General
+
+@inject IMediator _mediator
+@implements IDialogContentComponent<SapCostCenterVm>
+
+<!-- Header -->
+<FluentDialogHeader ShowDismiss="true">
+    <FluentStack VerticalAlignment="VerticalAlignment.Center">
+        <FluentIcon Value="@(new Icons.Regular.Size24.WindowApps())" />
+        <FluentLabel Typo="Typography.PaneHeader">
+            @Dialog.Instance.Parameters.Title
+        </FluentLabel>
+    </FluentStack>
+</FluentDialogHeader>
+
+<!-- Body -->
+<FluentDialogBody Style="overflow-y: auto; overflow-x: auto;">
+    <EditForm EditContext="_editContext">
+        <FluentValidationValidator @ref="_fluentValidator" />
+        <div>
+            <table class="table-container">
+                @* <caption class="table-caption">SAP Cost Center</caption> *@
+ 
+                <tbody>
+                    <tr>
+                        <td class="table-caption" style="width: 200px;">
+                            Numer lokalizacji:
+                        </td>
+                        <td>
+                            <FluentTextField @bind-Value="@Content.LocationNumber" Placeholder="wprowadź numer..."/>
+                            <FluentValidationMessage For="@(() => Content.LocationNumber)" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="table-caption" style="width: 200px;">
+                            Opis:
+                        </td>
+                        <td>
+                            <FluentTextField @bind-Value="@Content.LocationName" Placeholder="wprowadź opis..."/>
+                            <FluentValidationMessage For="@(() => Content.LocationName)" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="table-caption" style="width: 200px;">
+                            Numer działu:
+                        </td>
+                        <td>
+                            <FluentTextField @bind-Value="@Content.DepartmentNumber" Placeholder="wprowadź numer..."/>
+                            <FluentValidationMessage For="@(() => Content.DepartmentNumber)" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="table-caption" style="width: 200px;">
+                            Opis:
+                        </td>
+                        <td>
+                            <FluentTextField @bind-Value="@Content.DepartmentName" Placeholder="wprowadź opis..."/>
+                            <FluentValidationMessage For="@(() => Content.DepartmentName)" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="table-caption" style="width: 200px;">
+                            Wybierz odpowiedzialnego:
+                        </td>
+                        <td>
+                            <FluentAutocomplete TOption="EmployeeVm"
+                                                Disabled="false"
+                                                Class="bold-label"
+                                                AutoComplete="on"
+                                                MaximumOptionsSearch="10"
+                                                OnOptionsSearch="@OnAssigneeSearch"
+                                                Placeholder="wybierz..."
+                                                MaximumSelectedOptions="1"
+                                                OptionText="@(p => p.LongName + ' ' + p.Position)"
+                                                @bind-SelectedOptions="@SelectedEmpl"
+                                                @bind-SelectedOptions:after="@HandleAssigneeChange"
+                                                Width="200px" />
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+
+
+
+    </EditForm>
+</FluentDialogBody>
+
+<!-- Footer -->
+<FluentDialogFooter>
+    <FluentButton Appearance="Appearance.Accent" OnClick="@SaveAsync">Save</FluentButton>
+    <FluentButton Appearance="Appearance.Neutral" OnClick="@CancelAsync">Cancel</FluentButton>
+</FluentDialogFooter>
+
+@code {
+    [Parameter]
+    public SapCostCenterVm Content { get; set; } = default!;
+
+    [CascadingParameter]
+    public FluentDialog Dialog { get; set; } = default!;
+
+    private EditContext _editContext;
+
+    private FluentValidationValidator? _fluentValidator;
+    private IQueryable<EmployeeVm> _employees { get; set; }
+    private IEnumerable<EmployeeVm> SelectedEmpl { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _editContext = new EditContext(Content);
+        var allEmployees = await _mediator.Send(new GetAllEmployeesQuery());
+        _employees = allEmployees.Where(e => e.IsManager );
+        if (Content.ResponsibleManagerEnovaId.HasValue)
+        {
+            var empl = _employees.Where(e => e.EnovaEmpId == Content.ResponsibleManagerEnovaId.Value).First();
+            SelectedEmpl = new List<EmployeeVm>() { empl };
+        }
+        base.OnInitialized();
+    }
+    private async Task HandleAssigneeChange()
+    {
+        Console.WriteLine(SelectedEmpl.Count());
+
+        if (SelectedEmpl.FirstOrDefault() == null)
+        {
+
+        }
+        else
+        {
+            var emp = SelectedEmpl.FirstOrDefault();
+            Content.ResponsibleManagerName = emp.LongName;
+            Content.ResponsibleManagerEnovaId = emp.EnovaEmpId;
+
+            
+        }
+
+        StateHasChanged();
+    }
+    private void OnAssigneeSearch(OptionsSearchEventArgs<EmployeeVm> e)
+    {
+        if (e.Text != null)
+        {
+            e.Items = _employees.Where(a => a.LongName.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
+        }
+    }
+    private async Task SaveAsync()
+    {
+        Console.WriteLine("SaveAsync starts...");
+        if (_editContext.Validate())
+        {
+            Console.WriteLine("EditContext Validation OK!...");
+            await Dialog.CloseAsync(Content);
+        }
+        else
+        {
+            Console.WriteLine("EditContext Validation NOT OK!...");
+            return;
+        }
+        if (Content.Id != 0)
+        {
+            await Dialog.CloseAsync(Content);
+        }
+    }
+
+    private async Task CancelAsync()
+    {
+        await Dialog.CancelAsync();
+    }
+
+}
+<style>
+    .table-container {
+        max-height: 60px;
+        width: 100%;
+        max-width: 1000px; /* Restrict table width */
+        border-collapse: separate;
+        border-spacing: 0;
+        font-family: Arial, sans-serif;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        overflow: visible;
+    }
+
+        .table-container thead tr:first-child th {
+            max-height: 60px;
+            color: white;
+            font-weight: bold;
+            text-align: center;
+            padding: 8px;
+        }
+
+
+        .table-container th {
+            max-height: 60px;
+            padding: 8px;
+            font-size: 12px;
+            border: 1px solid #ddd;
+            white-space: nowrap; /* Prevent line breaks */
+            overflow: visible; /* Prevent content from spilling out */
+            text-overflow: ellipsis; /* Add "..." for overflowing text */
+            align-items: center; /* Vertically center content */
+            justify-content: space-between; /* Push text and icon to the edges */
+        }
+
+        .table-container td {
+            max-height: 60px;
+            padding: 8px;
+            font-size: 12px;
+            border: 1px solid #ddd;
+            white-space: nowrap; /* Prevent line breaks */
+            overflow: visible;
+            text-overflow: ellipsis; /* Add "..." for overflowing text */
+        }
+
+    .table-header-left {
+        max-height: 60px;
+        background-color: var(--accent-fill-rest);
+    }
+
+    .table-header-right {
+        background-color: color-mix(in srgb, white 15%, var(--accent-fill-rest) 60%);
+    }
+
+    .table-caption {
+        max-height: 60px;
+        caption-side: top; /* Place caption above the table */
+        background-color: var(--accent-fill-rest); /* Match header background */
+        color: white; /* Match header text color */
+        font-weight: bold; /* Make it bold */
+        text-align: left; /* Center the text */
+        padding: 8px; /* Add padding for spacing */
+        border: 1px solid #ddd; /* Optional: Match table border */
+        border-bottom: none; /* Remove bottom border for seamless look with the table */
+    }
+
+</style>

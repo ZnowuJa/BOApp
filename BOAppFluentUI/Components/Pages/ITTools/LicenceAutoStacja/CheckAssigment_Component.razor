@@ -1,0 +1,101 @@
+@using Application.CQRS.ITToolsCQRS.LicenceAutoStacja.Queries
+@using Application.ViewModels.AutoStacja
+@using Microsoft.Data.SqlClient
+
+@inject IMediator _mediator
+
+<h3>Sprawdzenie licencji przypisanych do komputera</h3>
+
+<EditForm EditContext="_editContextCheck">
+    <DataAnnotationsValidator />
+    <FluentTextField @bind-Value="Content.PunktTelefon" Label="Nazwa komputera"></FluentTextField>
+    <FluentValidationMessage For="@(() => Content.PunktTelefon)" />
+    <div>
+        <FluentButton Appearance="Appearance.Accent" OnClick="@SaveAsync">Sprawdź przypisanie</FluentButton>
+    </div>
+</EditForm>
+<hr style="width: 830px;" />
+<div>
+    @if (isLoading)
+    {
+        <FluentProgressRing />
+    }
+    else
+    {
+        @if (!string.IsNullOrEmpty(LicenceName))
+        {
+            <p>Komputer: <b>@Content.PunktTelefon</b></p>
+            <p>Ma przypisaną licencję: <b>@LicenceName</b></p>
+        }
+    }
+</div>
+
+
+@code {
+    private MysystemPunktComputerVm Content { get; set; } = new MysystemPunktComputerVm();
+    private EditContext _editContextCheck;
+    string LicenceName { get; set; }
+    bool isValidate = false;
+    bool isLoading = false;
+
+    protected override void OnInitialized()
+    {
+        _editContextCheck = new EditContext(Content);
+    }
+
+    private async Task SaveAsync()
+    {
+        //Console.WriteLine($"PunktTelefon przed Trim = {Content.PunktTelefon}");
+        Content.PunktTelefon = Content.PunktTelefon?.Trim().ToUpper();
+        //Console.WriteLine($"Usunięcie białych znaków: PunktTelefon = {Content.PunktTelefon}");
+
+        isValidate = _editContextCheck.Validate();
+        if (isValidate)
+        {
+            try
+            {
+                isLoading = true;
+                var result = await _mediator.Send(new GetLicencesByPcQuery(Content.PunktTelefon));
+
+                if (string.IsNullOrWhiteSpace(result))
+                {
+                    LicenceName = "Do tego komputera nie jest przypisana żadna licencja.";
+                }
+                else
+                {
+                    LicenceName = result;
+                }
+            }
+            catch (SqlException ex) when (ex.Number == 4060 || ex.Number == 18456)
+            {
+                LicenceName = "Nie udało się połączyć z bazą danych. Sprawdź połączenie.";
+            }
+            catch (SqlException ex) when (ex.Number == 229)
+            {
+                LicenceName = "Brak uprawnień do odczytu danych. Skontaktuj się z administratorem.";
+            }
+            catch (Exception ex)
+            {
+                LicenceName = "Wystąpił nieoczekiwany błąd podczas sprawdzania licencji.";
+            }
+            finally
+            {
+                isLoading = false;
+                StateHasChanged();
+            }
+        }
+    else
+            {
+                //Console.WriteLine("EditContext Validation NOT OK!...");
+                LicenceName = "Błędne dane wejściowe.";
+            }
+            if (!isValidate)
+            {
+                //Console.WriteLine("Validation failed. Errors:");
+                // foreach (var message in _editContextCheck.GetValidationMessages())
+                // {
+                //     Console.WriteLine($"Validation Error: {message}");
+                // }
+            }
+        }
+    }

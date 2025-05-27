@@ -1,0 +1,20 @@
+﻿<h3>CategoryTypeAdd_C</h3>
+
+@if (Visible)
+{
+    <FluentStack>
+
+        <FluentButton Appearance="Appearance.Accent" OnClick="CreateCatType" IconStart="@(new Icons.Regular.Size24.Add())"> Add New Category Type</FluentButton>
+
+    </FluentStack>
+}
+@code {
+    [Parameter]
+    public bool Visible { get; set; }
+    [Parameter]
+    public EventCallback CreateCatTypeClicked { get; set; }
+    private async Task CreateCatType()
+    {
+        await CreateCatTypeClicked.InvokeAsync();
+    }
+}

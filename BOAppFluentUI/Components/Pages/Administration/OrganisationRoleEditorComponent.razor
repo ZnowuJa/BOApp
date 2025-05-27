@@ -1,0 +1,76 @@
+﻿@* Organisation Role Edit Component *@
+@using Application.ViewModels.General
+
+<div>
+    <FluentGrid>
+        <FluentGridItem xxl="6" xl="6">
+            <FluentAutocomplete TOption="EmployeeVm"
+                                AutoComplete="on"
+                                
+                                OnOptionsSearch="@OnAssigneeSearch"
+                                MaximumSelectedOptions="1"
+                                
+                                OptionText="@(p => p.LongName + ' ' + p.Position)"
+                                @bind-SelectedOptions="@SelectedEmpl"
+                                @bind-SelectedOptions:after="HandleEmployeeChange"
+                                 />
+        </FluentGridItem>
+        <FluentGridItem xxl="2" xl="2">
+            <FluentCheckbox Value="@Role.IsDefault"
+                            ValueChanged="@(() => SetDefault.InvokeAsync(Role))"
+                            Label="Is Default"></FluentCheckbox>
+        </FluentGridItem>
+        @* <p>Selected Employee: @SelectedEmpl.FirstOrDefault()?.LongName</p> *@
+</FluentGrid>
+
+</div>
+
+@code {
+    [Parameter] public OrganisationRoleVm Role { get; set; }
+    [Parameter] public IQueryable<EmployeeVm> Employees { get; set; }
+    [Parameter] public EventCallback<OrganisationRoleVm> SetDefault { get; set; }
+
+    private IEnumerable<EmployeeVm> SelectedEmpl { get; set; } 
+    
+    protected override async Task OnInitializedAsync()
+    {
+        if (Role.Employee == null)
+        {
+            
+            // Role.Employee = new EmployeeVm();
+        } else
+        {
+            SelectedEmpl = new[] { Role.Employee };
+        }
+
+        
+    }
+    // SelectedEmpl = Role.Employee != null ? new[] { Role.Employee } : Array.Empty<EmployeeVm>();
+    private void OnAssigneeSearch(OptionsSearchEventArgs<EmployeeVm> e)
+    {
+        if (e.Text != null)
+        {
+            e.Items = Employees.Where(a => a.LongName.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
+        }
+    }
+
+    private async Task HandleEmployeeChange()
+    {
+
+        Console.WriteLine(SelectedEmpl.Count());
+
+        if(SelectedEmpl.FirstOrDefault() == null)
+        {
+            Console.WriteLine(SelectedEmpl.Count());
+
+        } else
+        {
+            Role.Employee = SelectedEmpl.FirstOrDefault();
+            Role.EmpId = SelectedEmpl.FirstOrDefault().EnovaEmpId;
+        }
+
+        // Console.WriteLine(empl.EnovaEmpId);
+        StateHasChanged();
+    }
+    
+}

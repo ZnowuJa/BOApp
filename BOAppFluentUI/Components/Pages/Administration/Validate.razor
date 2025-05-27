@@ -1,0 +1,35 @@
+﻿@using Application.AdHocJobs;
+@page "/validate-iban"
+
+<h3>Validate</h3>
+<div>
+    <label>Enter IBAN:</label>
+    <input type="text" @bind="Iban" placeholder="e.g. DE44500105175407324931" />
+    <button @onclick="ValidateIban">Validate</button>
+</div>
+@if (IsProcessing)
+{
+    <p>Checking...</p>
+}
+else if (ValidationResult.HasValue)
+{
+    <p>IBAN is @(ValidationResult.Value ? "valid" : "invalid")</p>
+}
+@code {
+    private string Iban { get; set; } = string.Empty;
+    private bool? ValidationResult { get; set; }
+    private bool IsProcessing { get; set; }
+
+    private async Task ValidateIban()
+    {
+        if (string.IsNullOrWhiteSpace(Iban))
+        {
+            ValidationResult = false;
+            return;
+        }
+
+        IsProcessing = true;
+        ValidationResult = await AppUtils.ValidateIbanAsync(Iban);
+        IsProcessing = false;
+    }
+}

@@ -1,0 +1,134 @@
+﻿@using Application.CQRS.CoCCQRS.GroupCoCs.Queries
+@using Application.ViewModels.CoC
+@* PositionVm Edit Component *@
+
+@implements IDialogContentComponent<PositionVm>
+
+@inject IMediator _mediator
+
+<FluentDialogHeader ShowDismiss="true">
+    <FluentStack VerticalAlignment="VerticalAlignment.Center">
+        <FluentIcon Value="@(new Icons.Regular.Size24.WindowApps())" />
+        <FluentLabel Typo="Typography.PaneHeader">
+            @Dialog.Instance.Parameters.Title
+        </FluentLabel>
+    </FluentStack>
+</FluentDialogHeader>
+
+<FluentDialogFooter>
+    <FluentButton Appearance="Appearance.Accent" OnClick="@SaveAsync"
+    Disabled="@(!_editContext.Validate())">Save</FluentButton>
+    <FluentButton Appearance="Appearance.Neutral" OnClick="@CancelAsync">Cancel</FluentButton>
+</FluentDialogFooter>
+
+<FluentDialogBody>
+    <EditForm EditContext="_editContext">
+        <FluentValidationValidator @ref="_fluentValidator" />
+        @* <ValidationSummary /> *@
+        @* <FluentNumberField @bind-Value="@Content.Id"  Placeholder="Enter number">Number:</FluentNumberField> *@
+        <FluentTextField @bind-Value="@Content.Name" Placeholder="Enter name">Name:</FluentTextField>
+        @* <FluentSelect TOption="GroupCoCVm"
+            Items = "@_groups"
+            OptionValue="@(g => Content.GroupCoC)"
+            OptionText="@(g => g.GroupName)"
+            OptionSelected="@(g => g.IsSelected.Value)"
+            @bind-SelectedOption="@_selectedGroupCoC"
+            @bind-SelectedOption:after="@HandleGroupCoCVmChange"
+            Placeholder="Select GroupCoC"
+        /> *@
+        <FluentAutocomplete TOption="GroupCoCVm"
+        SelectValueOnTab="true"
+        OnOptionsSearch="@OnGroupSearch"
+        Placeholder="wybierz grupę..."
+        MaximumSelectedOptions="1"
+        OptionText="@( g => g.GroupName)"
+        @bind-SelectedOptions="@_selectedGroupCoC"
+        @bind-SelectedOptions:after="@HandleGroupCoCVmChange"
+        />
+
+        <FluentValidationMessage For="@(() => Content.Name)" />
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="validation-error"><p style="color:red;">@errorMessage</p></div>
+        }
+    </EditForm>
+</FluentDialogBody>
+
+@code {
+
+    [Parameter]
+    public PositionVm Content { get; set; } = default!;
+
+    [CascadingParameter]
+    public FluentDialog Dialog { get; set; } = default!;
+
+    private EditContext _editContext;
+
+    private FluentValidationValidator? _fluentValidator;
+
+    private string errorMessage;
+
+    private GroupCoCVm GroupVm = new GroupCoCVm();
+
+    private List<GroupCoCVm> _groups { get; set; }
+    private IEnumerable<GroupCoCVm> _selectedGroupCoC { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        
+        _editContext = new EditContext(Content);
+        var tempGroups = await _mediator.Send(new GetAllGroupCoCsQuery());
+        _groups = tempGroups.ToList();
+        GroupVm = _groups.Where(g => g.Id == 5).First();
+        if(Content.GroupCoCId > 0){
+            GroupVm = _groups.Where(g => g.Id == Content.GroupCoCId).First();
+            
+        } 
+        _selectedGroupCoC = new List<GroupCoCVm>() { GroupVm };
+        // _selectedGroupCoC = _groups.Where(g => g.Id == Content.GroupCoCId).First();
+        Content.GroupCoC = _selectedGroupCoC.First();
+        StateHasChanged();
+        base.OnInitialized();
+    }
+    private void OnGroupSearch(OptionsSearchEventArgs<GroupCoCVm> e)
+    {
+        if (e.Text != null)
+        {
+            e.Items = _groups.Where(a =>
+                a.GroupName.Contains(e.Text, StringComparison.OrdinalIgnoreCase)).ToList();
+        }
+    }
+    private void HandleGroupCoCVmChange(){
+        Console.WriteLine("GroupCoCVm changed");
+
+        var temp = _selectedGroupCoC.FirstOrDefault();
+        if (temp == null)
+        {
+            _selectedGroupCoC = new List<GroupCoCVm>();
+        } else {
+            Content.GroupCoC = temp;
+            Content.GroupCoCId = temp.Id;
+        }
+        
+    }
+
+    private async Task SaveAsync()
+    {
+        if (_fluentValidator.Validate())
+        {
+            Console.WriteLine("Walidujemy!!!!");
+
+        }
+        else
+        {
+            Console.WriteLine("NIE NIE Walidujemy!!!!");
+        }
+        await Dialog.CloseAsync(Content);
+    }
+
+    private async Task CancelAsync()
+    {
+        await Dialog.CancelAsync();
+    }
+
+}

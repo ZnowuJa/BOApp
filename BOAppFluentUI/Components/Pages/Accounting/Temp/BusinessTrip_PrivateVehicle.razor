@@ -1,0 +1,32 @@
+﻿@using Application.Forms.Accounting
+@using Application.Forms.Accounting.BuisnessTravelSmallClasses
+
+    <FluentTextField @bind-Value:get="@vehicle.PlateNumber" @bind-Value:set="@SetPlateNumber" Label="Numer rejestracyjny: "/>
+    <FluentNumberField @bind-Value:get="@vehicle.EngineSize" @bind-Value:set="@SetEngineSize" Label="Pojemność silnika: "></FluentNumberField>
+    <FluentNumberField @bind-Value:get="@vehicle.Mileage" @bind-Value:set="@SetMileage"  Label="Przebieg: "></FluentNumberField>
+    
+
+@code {
+    [Parameter]
+    public PrivateCar vehicle { get; set; }
+    
+    [Parameter]
+    public EventCallback<PrivateCar> VehicleChanged { get; set; }
+    
+    private async Task SetPlateNumber(string value)
+    {
+        vehicle.PlateNumber = value;
+        await VehicleChanged.InvokeAsync(vehicle);
+    }
+    private async Task SetEngineSize(int value)
+    {
+        vehicle.EngineSize = value;
+        await VehicleChanged.InvokeAsync(vehicle);
+    }
+    private async Task SetMileage(int value)
+    {
+        vehicle.Mileage = value;
+        await VehicleChanged.InvokeAsync(vehicle);
+    }
+    
+}

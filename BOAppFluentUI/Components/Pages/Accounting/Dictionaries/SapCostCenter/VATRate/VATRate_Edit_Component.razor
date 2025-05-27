@@ -1,0 +1,111 @@
+﻿@* VATRate Edit Component *@
+@using Application.ViewModels.Accounting
+
+@inject IMediator _mediator
+@implements IDialogContentComponent<VATRateVm>
+
+<head>
+    <link href="forms-tables.css" rel="stylesheet" />
+</head>
+
+<!-- Header -->
+<FluentDialogHeader ShowDismiss="true">
+    <FluentStack VerticalAlignment="VerticalAlignment.Center">
+        <FluentIcon Value="@(new Icons.Regular.Size24.WindowApps())" />
+        <FluentLabel Typo="Typography.PaneHeader">
+            @Dialog.Instance.Parameters.Title
+        </FluentLabel>
+    </FluentStack>
+</FluentDialogHeader>
+
+<!-- Body -->
+<FluentDialogBody Style="overflow-y: auto; overflow-x: auto;">
+    <EditForm EditContext="_editContext">
+        @* <FluentValidationValidator @ref="_fluentValidator" /> *@
+        <DataAnnotationsValidator />
+
+        <table class="table-container">
+            <tbody>
+                <tr>
+                    <td class="table-caption" style="text-align: left; border-right: none;">Nazwa:</td>
+                    <td>
+                        <FluentTextField Id="Name" @bind-Value="@Content.Name" Placeholder="Wpisz nazwę" style="width: 200px;"></FluentTextField>
+                        <FluentValidationMessage For="@(() => Content.Name)" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="table-caption" style="text-align: left; border-right: none;">Procent:</td>
+                    <td>
+                        <FluentNumberField Id="Percentage" @bind-Value="@Content.Percentage" HideStep=true Placeholder="Wpisz procent" style="width: 200px;"></FluentNumberField>
+                        <FluentValidationMessage For="@(() => Content.Percentage)" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="table-caption" style="text-align: left; border-right: none;">Informacje:</td>
+                    <td>
+                        <FluentTextField Id="Information" @bind-Value="@Content.Information" Placeholder="Wpisz informacje" style="width: 200px;"></FluentTextField>
+                        <FluentValidationMessage For="@(() => Content.Information)" />
+                    </td>
+                </tr>
+                <tr>
+                    <td class="table-caption" style="text-align: left; border-right: none;">Kolejność:</td>
+                    <td>
+                        <FluentNumberField Id="Order" @bind-Value="@Content.Order" HideStep=true Placeholder="Wpisz kolejność" style="width: 200px;"></FluentNumberField>
+                        <FluentValidationMessage For="@(() => Content.Order)" />
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+    </EditForm>
+</FluentDialogBody>
+
+<!-- Footer -->
+<FluentDialogFooter>
+    <FluentButton Appearance="Appearance.Accent" OnClick="@SaveAsync">Zapisz</FluentButton>
+    <FluentButton Appearance="Appearance.Neutral" OnClick="@CancelAsync">Anuluj</FluentButton>
+</FluentDialogFooter>
+
+@code {
+    [Parameter]
+    public VATRateVm Content { get; set; } = default!;
+
+    [CascadingParameter]
+    public FluentDialog Dialog { get; set; } = default!;
+
+    private EditContext _editContext;
+
+    private FluentValidationValidator? _fluentValidator;
+
+    private string errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _editContext = new EditContext(Content);
+        base.OnInitialized();
+    }
+
+    private async Task SaveAsync()
+    {
+        Console.WriteLine("SaveAsync starts...");
+        if (_editContext.Validate())
+        {
+            Console.WriteLine("EditContext Validation OK!...");
+            await Dialog.CloseAsync(Content);
+        }
+        else
+        {
+            Console.WriteLine("EditContext Validation NOT OK!...");
+            return;
+        }
+        if (Content.Id != 0)
+        {
+            await Dialog.CloseAsync(Content);
+        }
+    }
+
+    private async Task CancelAsync()
+    {
+        await Dialog.CancelAsync();
+    }
+}

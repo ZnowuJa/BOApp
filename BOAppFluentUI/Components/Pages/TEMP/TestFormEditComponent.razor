@@ -1,0 +1,329 @@
+﻿
+@page "/testformedit/{id:int}"
+@using Application.CQRS.AccountingCQRS.TestForms.Commands
+@using Application.CQRS.AccountingCQRS.TestForms.Queries
+@using Application.CQRS.General.Organisations.Queries
+@using Application.CQRS.ITWarehouseCQRS.Employees.Queries
+@using Application.Forms
+@using Application.ViewModels.Accounting
+@using Application.ViewModels.General
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.FluentUI.AspNetCore.Components.Extensions
+@using System.Security.Claims
+
+@attribute [Authorize(Policy = "Technician")]
+
+@inject IMediator _mediator
+@inject ILogger<TestFormEditComponent> _logger
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager _navigationManager
+
+<h3>Wniosek o udzielenie odroczonej płatności</h3>
+
+@if (formItem == null)
+{
+    <FluentProgressRing>Loading...</FluentProgressRing>
+}
+else
+{
+
+    <EditForm EditContext="_editContext">
+        <div>
+            <table>
+                <tr>
+                    <td><b>Numer:</b></td>
+                    <td>@formItem.Number</td>
+                    <td><b>Zgłoszone: </b></td>
+                    <td>@formItem.Requested.ToIsoDateString()</td>
+                </tr>
+                <tr>
+                    <td><b>Organizacja:</b></td>
+                    <td>@_organisation.Name</td>
+                    <td><b>Zgłaszający:</b></td>
+                    <td>@formItem.EmployeeName</td>
+                </tr>
+            </table>
+        </div>
+        <p></p>
+        <FluentStack VerticalAlignment="VerticalAlignment.Center" HorizontalAlignment="HorizontalAlignment.Start">
+
+            <div>
+                <FluentTextField Id="kontrahentId" @bind-Value="formItem.KontrahentId" ReadOnly="true" style="width: 100px;"> Numer (AS): </FluentTextField>
+            </div>
+            <div>
+                <FluentTextField Id="name" @bind-Value="formItem.KontrahentName" ReadOnly="true" style="width: 400px;"> Nazwa: </FluentTextField>
+            </div>
+@*             <div>
+                <FluentTextField Id="EmpName" @bind-Value="formItem.EmployeeName" ReadOnly="true" style="width: 400px;"> Nazwa użytkownika: </FluentTextField>
+            </div> *@
+        </FluentStack>
+        <h3> </h3>
+        <FluentTextArea @bind-Value="formItem.Note" Label="Proszę o włączenie odroczonej płatności ze względu na:" Cols="72" Required="true" Disabled = "true">
+        </FluentTextArea>
+
+        <p></p>
+        <h5>Aprobujący:</h5>
+        @if (al1 || al2)
+        {
+            <p></p>
+            
+            <FluentStack Orientation="Orientation.Horizontal">
+            <FluentSelect TOption="OrganisationRoleForFormVm"
+                          Style="align-items: center;"
+                          Id="AL1Id"
+                          Disabled="@(al1)"
+                          Label="Aprobata L1"
+                          Autofocus="true"
+                          Items="formItem.Level1Approvers"
+                          Multiple="false"
+                          OptionValue="@(p => p.EmpId.ToString())"
+                          OptionText="@(p => p.LongName)"
+                          OptionSelected="@(p => p.IsDefault)"
+                          @bind-SelectedOption="approverL1"
+                          Height="200px"
+                          @onchange="HandleChangeApproverL1" />
+
+
+            <FluentSelect TOption="OrganisationRoleForFormVm"
+                          Id="AL1Id"
+                          Autofocus="true"
+                          Label="Aprobata L2"
+                          Items="formItem.Level2Approvers"
+                          Multiple="false"
+                          OptionValue="@(p => p.EmpId.ToString())"
+                          OptionText="@(p => p.LongName)"
+                          OptionSelected="@(p => p.IsDefault)"
+                          @bind-SelectedOption="approverL2"
+                          Height="200px"
+                          @onchange="HandleChangeApproverL2" />
+            </FluentStack>
+        }
+
+        <p></p>
+        <p></p>
+
+
+
+        <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
+                      Appearance="Appearance.Accent" OnClick="() => Save(sent)" BackgroundColor="#509EDB" Style="width: 100px" Disabled="@SendButton"> 
+                      Wyślij</FluentButton>
+        <FluentSpacer Width="@buttonSpacer" />
+        <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
+                      Appearance="Appearance.Accent" OnClick="() => Save(approved)" BackgroundColor="#1FC91F" Style="width: 100px"> 
+                      Zatwierdź</FluentButton>
+        <FluentSpacer Width="@buttonSpacer" />
+        <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
+                      Appearance="Appearance.Accent" OnClick="() => Save(rejected)" BackgroundColor="#C21E56" Color="#FFFFFF" Style="width: 100px"> Odrzuć</FluentButton>
+        <FluentSpacer Width="@buttonSpacer" />
+        <FluentButton IconEnd="@(new Icons.Regular.Size16.Globe())"
+                      Appearance="Appearance.Accent" OnClick="() => Save(cancelled)" BackgroundColor="#808080" Color="#FFFFFF" Style="width: 100px"> Anuluj</FluentButton>
+
+        
+        <p></p>
+        <p></p>
+    </EditForm>
+}
+
+@code {
+    #region Deafault params
+
+    [Parameter]
+    public int Id { get; set; }
+
+    private TestFormVm formItem { get; set; }
+    private EditContext _editContext;
+
+    private CustomerVm customer { get; set; }
+    private string message { get; set; }
+    private string messageMissing { get; set; }
+    private bool showCustomer { get; set; }
+    // private bool showApproval = false;
+
+    private readonly string sent = "sent";
+    private readonly string rejected = "rejected";
+    private readonly string approved = "approved";
+    private readonly string cancelled = "cancelled";
+
+    // private bool caneditfields = false;
+
+    private ClaimsPrincipal? user { get; set; }
+    private string username { get; set; }
+    private EmployeeVm emp { get; set; }
+
+    private IQueryable<EmployeeVm> itemEmployeesList { get; set; }
+    private OrganisationRoleForFormVm approverL1 { get; set; }
+    private OrganisationRoleForFormVm approverL2 { get; set; }
+    private string ApproverL1Name { get; set; }
+    private bool al1 = false;
+    private bool al2 = false;
+    private bool fin = false;
+    // private bool ApproveButton = true;
+    private bool SendButton = true;
+
+    private ApprovalVm approval { get; set; }
+
+    private OrganisationVm _organisation { get; set; }
+    private WorkflowTemplateVm wf { get; set; }
+    // private string FormName = "TestFormVm";
+
+    private int buttonSpacer = 100;
+
+    #endregion
+
+    protected override async Task OnInitializedAsync()
+    {
+        messageMissing = "Loading";
+        try
+        {
+            formItem = await _mediator.Send(new GetTestFormQuery(Id));
+            _editContext = new EditContext(formItem);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading kontrahent: {ex.Message}");
+        }
+
+        await GetUserName();
+        await Load();
+    }
+
+    private async Task Load()
+    {
+        al1 = formItem.Status == "AprobataL1";
+        al2 = formItem.Status == "AprobataL2";
+        fin = formItem.Status == "Zakończone";
+
+        itemEmployeesList = await _mediator.Send(new GetAllEmployeesQuery());
+        _organisation = await _mediator.Send(new GetOrganisationByEmpSapNumberQuery(emp.SapNumber));
+        approval = new ApprovalVm()
+        {
+                Status = formItem.Status,
+                EnovaEmpId = emp.EnovaEmpId.ToString(),
+                LongName = emp.LongName,
+                Date = DateTime.Now,
+                IsApproved = true
+        };
+        if (al1)
+        {
+            formItem.Status = "AprobataL2";
+        }
+        else if (al2)
+        {
+            formItem.Status = "Zakończone";
+        }
+
+        messageMissing = "Loaded";
+        StateHasChanged();
+    }
+
+    private void HandleChangeApproverL1(ChangeEventArgs e)
+    {
+        var tempEmp = itemEmployeesList.First(p => p.EnovaEmpId == int.Parse(e.Value.ToString()));
+        formItem.LVL1_EnovaEmpId = tempEmp.EnovaEmpId.ToString();
+        formItem.LVL1_EmployeeName = tempEmp.LongName;
+        Console.WriteLine(tempEmp.LongName);
+    }
+    private void HandleChangeApproverL2(ChangeEventArgs e)
+    {
+        var tempEmp = itemEmployeesList.First(p => p.EnovaEmpId == int.Parse(e.Value.ToString()));
+        formItem.LVL2_EnovaEmpId = tempEmp.EnovaEmpId.ToString();
+        formItem.LVL2_EmployeeName = tempEmp.LongName;
+        Console.WriteLine(tempEmp.LongName);
+    }
+
+    private async Task Save(string buttonState)
+    {
+        if (buttonState == "approved")
+        {
+            if (formItem.Status == "AprobataL1")
+            {
+                formItem.Status = "AprobataL2";
+            }
+            else if (formItem.Status == "AprobataL2")
+            {
+                formItem.Status = "Zakończone";
+            }
+
+        } 
+        else if (buttonState == "rejected")
+        {
+            approval.IsApproved = false;
+            formItem.Status = "Odrzucone";
+        }
+        else if (buttonState == "cancelled")
+        {
+            _navigationManager.NavigateTo("/testforms");
+            return;
+        }
+
+        formItem.Approvals.Add(approval);
+
+        var saveResult = await _mediator.Send(new UpdateTestFormCommand(formItem));
+
+        message = $"Wniosek o numerze {saveResult.Number} o opóźnioną płatność dla {saveResult.KontrahentId}, {saveResult.KontrahentName} wysłana!";
+
+        _navigationManager.NavigateTo("/testforms");
+    }
+
+    private async Task Reject()
+    {
+        message = "Wniosek odrzucony!";
+        formItem.Status = "Odrzucony";
+        await _mediator.Send(new UpdateTestFormCommand(formItem));
+        ///deferralpayments
+        if (_navigationManager != null)
+        {
+            _navigationManager.NavigateTo("/testforms");
+        }
+        else
+        {
+            // Handle the null case appropriately
+            Console.WriteLine("NavigationManager is null");
+        }
+    }
+    private async Task GetUserName()
+    {
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        user = authenticationState.User;
+        var claimType = "name"; // or use ClaimTypes.Title
+        var claimTypeAID = "http://schemas.microsoft.com/identity/claims/objectidentifier";
+
+        var usernameClaim = user.Claims.FirstOrDefault(c => c.Type == claimType);
+        if (usernameClaim != null)
+        {
+            username = usernameClaim.Value;
+        }
+        else
+        {
+            username = "unknown";
+            Console.WriteLine($"No claim of type {claimType} found.");
+        }
+
+        var aidClaim = user.Claims.FirstOrDefault(c => c.Type == claimTypeAID);
+        if (aidClaim != null)
+        {
+            Guid aidGuid;
+            Guid.TryParse(aidClaim.Value, out aidGuid);
+            emp = await _mediator.Send(new GetEmployeeByAIDQuery(aidGuid));
+        }
+        else
+        {
+            emp = new EmployeeVm();
+            Console.WriteLine($"No claim of type {claimTypeAID} found.");
+        }
+    }
+}
+
+<style>
+        table {
+            border-collapse: collapse; /* Optional: For a cleaner look */
+            width: 450px; /* Optional: Adjust to fit your container */
+        }
+        th, td {
+            padding: 5px; /* Adds padding inside each cell */
+            text-align: left; /* Optional: Align text to the left */
+        }
+        td:first-child, th:first-child {
+            padding-left: 0; /* Removes padding on the left of the first cell */
+        }
+</style>

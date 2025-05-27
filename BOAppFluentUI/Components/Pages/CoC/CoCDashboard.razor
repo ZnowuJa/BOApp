@@ -1,0 +1,303 @@
+﻿@page "/coc"
+@page "/compliance"
+
+@using Application.AdHocJobs
+@using Application.BackgroundJobs
+@using Application.Interfaces
+@using Application.ViewModels.General
+@using Microsoft.AspNetCore.Authorization
+@using Quartz
+
+@attribute [Authorize(Policy = "User")]
+
+@inject IMediator _mediator
+@* @inject ILogger<DeferralPaymentListPage> _logger *@
+@inject IDialogService _dialogService
+@inject IToastService _toastService
+@inject IEmailService _mailService
+@inject IConfiguration _configuration;
+@inject IJobSchedulerService _jobSchedulerService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager _navigationManager
+
+<p></p>
+<h3>Compliance</h3>
+
+<FluentStack Orientation="Orientation.Horizontal"
+             HorizontalAlignment="HorizontalAlignment.Left"
+             VerticalAlignment="VerticalAlignment.Center"
+             Spacing="20px"
+             Style="padding: 20px;">
+    <AuthorizeView Policy="User">
+        <FluentCard Style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); border-radius: 10px; overflow: hidden;">
+            <FluentStack Orientation="Orientation.Vertical"
+                         HorizontalAlignment="HorizontalAlignment.Center"
+                         VerticalAlignment="VerticalAlignment.Center"
+                         Spacing="10px"
+                         Style="padding: 20px;">
+                @(new Icons.Regular.Size24.FormMultiple().ToMarkup("48px"))
+                <h4 style="margin: 0;">Moje zgłoszenia</h4>
+                <FluentButton BackgroundColor="var(--accent-fill-rest)"
+                              Disabled="false"
+                              Color="var(--neutral-fill-rest)"
+                              OnClick="@(()=>_navigationManager.NavigateTo("/coc/onboardings/pracownik"))">
+                    Moje zgłoszenia
+                </FluentButton>
+            </FluentStack>
+        </FluentCard>
+    </AuthorizeView>
+    <AuthorizeView Policy="Compliance Assistant">
+        <FluentCard Style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); border-radius: 10px; overflow: hidden;">
+            <FluentStack Orientation="Orientation.Vertical"
+                         HorizontalAlignment="HorizontalAlignment.Center"
+                         VerticalAlignment="VerticalAlignment.Center"
+                         Spacing="10px"
+                         Style="padding: 20px;">
+                @(new Icons.Regular.Size24.FormMultiple().ToMarkup("48px"))
+                <h4 style="margin: 0;">Asystentki</h4>
+                <FluentButton BackgroundColor="var(--accent-fill-rest)"
+                              Disabled="false"
+                              Color="var(--neutral-fill-rest)"
+                              OnClick="@(()=>_navigationManager.NavigateTo("/coc/onboardings/complianceassistant"))">
+                    Asystentki
+                </FluentButton>
+            </FluentStack>
+        </FluentCard>
+    </AuthorizeView>
+    <AuthorizeView Policy="Compliance">
+        <FluentCard Style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); border-radius: 10px; overflow: hidden;">
+            <FluentStack Orientation="Orientation.Vertical"
+                         HorizontalAlignment="HorizontalAlignment.Center"
+                         VerticalAlignment="VerticalAlignment.Center"
+                         Spacing="10px"
+                         Style="padding: 20px;">
+                @(new Icons.Regular.Size24.FormMultiple().ToMarkup("48px"))
+                <h4 style="margin: 0;">Dział Compliance</h4>
+                <FluentButton BackgroundColor="var(--accent-fill-rest)"
+                              Disabled="false"
+                              Color="var(--neutral-fill-rest)"
+                              OnClick="@(()=>_navigationManager.NavigateTo("/coc/onboardings/compliance"))">
+                    Dział Compliance
+                </FluentButton>
+            </FluentStack>
+        </FluentCard>
+    </AuthorizeView>
+</FluentStack>
+<p></p>
+<FluentStack Orientation="Orientation.Horizontal"
+             HorizontalAlignment="HorizontalAlignment.Left"
+             VerticalAlignment="VerticalAlignment.Center"
+             Spacing="20px"
+             Style="padding: 20px;">
+    <AuthorizeView Policy="Compliance">
+        <FluentCard Style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); border-radius: 10px; overflow: hidden;">
+            <FluentStack Orientation="Orientation.Vertical"
+                         HorizontalAlignment="HorizontalAlignment.Center"
+                         VerticalAlignment="VerticalAlignment.Center"
+                         Spacing="10px"
+                         Style="padding: 20px;">
+                @(new Icons.Regular.Size24.BookCompass().ToMarkup("48px"))
+                <h4 style="margin: 0;">Instrukcje</h4>
+                <FluentButton BackgroundColor="var(--accent-fill-rest)"
+                              Color="var(--neutral-fill-rest)"
+                              OnClick="@(()=>_navigationManager.NavigateTo("/coc/instructions"))">
+                    Instrukcje
+                </FluentButton>
+            </FluentStack>
+        </FluentCard>
+    </AuthorizeView>
+    <AuthorizeView Policy="Compliance">
+        <FluentCard Style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); border-radius: 10px; overflow: hidden;">
+            <FluentStack Orientation="Orientation.Vertical"
+                         HorizontalAlignment="HorizontalAlignment.Center"
+                         VerticalAlignment="VerticalAlignment.Center"
+                         Spacing="10px"
+                         Style="padding: 20px;">
+                @(new Icons.Regular.Size24.PeopleQueue().ToMarkup("48px"))
+                <h4 style="margin: 0;">Stanowiska</h4>
+                <FluentButton BackgroundColor="var(--accent-fill-rest)"
+                              Color="var(--neutral-fill-rest)"
+                              OnClick="@(()=>_navigationManager.NavigateTo("/coc/positions"))">
+                    Stanowiska
+                </FluentButton>
+            </FluentStack>
+        </FluentCard>
+    </AuthorizeView>
+    <AuthorizeView Policy="Compliance">
+        <FluentCard Style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); border-radius: 10px; overflow: hidden;">
+            <FluentStack Orientation="Orientation.Vertical"
+                         HorizontalAlignment="HorizontalAlignment.Center"
+                         VerticalAlignment="VerticalAlignment.Center"
+                         Spacing="10px"
+                         Style="padding: 20px;">
+                @(new Icons.Regular.Size24.Group().ToMarkup("48px"))
+                <h4 style="margin: 0;">Grupy</h4>
+                <FluentButton BackgroundColor="var(--accent-fill-rest)"
+                              Color="var(--neutral-fill-rest)"
+                              OnClick="@(()=>_navigationManager.NavigateTo("/coc/groups"))">
+                    Grupy
+                </FluentButton>
+            </FluentStack>
+        </FluentCard>
+    </AuthorizeView>
+    <AuthorizeView Roles="AppAdmin">
+        <FluentCard Style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); border-radius: 10px; overflow: hidden;">
+            <FluentStack Orientation="Orientation.Vertical"
+                         HorizontalAlignment="HorizontalAlignment.Center"
+                         VerticalAlignment="VerticalAlignment.Center"
+                         Spacing="10px"
+                         Style="padding: 20px;">
+                @(new Icons.Regular.Size24.BotSparkle().ToMarkup("48px"))
+                <h4 style="margin: 0;">Generuj Onboardingi </h4>
+                <FluentButton BackgroundColor="var(--accent-fill-rest)"
+                              Disabled="false"
+                              Color="var(--neutral-fill-rest)"
+                              OnClick="@(()=>Generate())">
+                    Generuj
+                </FluentButton>
+            </FluentStack>
+        </FluentCard>
+    </AuthorizeView>
+
+</FluentStack>
+<FluentStack Orientation="Orientation.Horizontal"
+             HorizontalAlignment="HorizontalAlignment.Left"
+             VerticalAlignment="VerticalAlignment.Center"
+             Spacing="20px"
+             Style="padding: 20px;">
+    <AuthorizeView Roles="Compliance">
+        <FluentCard Style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); border-radius: 10px; overflow: hidden;">
+            <FluentStack Orientation="Orientation.Vertical"
+                         HorizontalAlignment="HorizontalAlignment.Center"
+                         VerticalAlignment="VerticalAlignment.Center"
+                         Spacing="10px"
+                         Style="padding: 20px;">
+                @(new Icons.Regular.Size24.Bot().ToMarkup("48px"))
+                <h4 style="margin: 0;">Przypisz po stanowisku </h4>
+                <FluentButton BackgroundColor="var(--accent-fill-rest)"
+                              Disabled="false"
+                              Color="var(--neutral-fill-rest)"
+                              OnClick="@(()=>AssignWithPosition())">
+                    Przypisz po stanowisku
+                </FluentButton>
+            </FluentStack>
+        </FluentCard>
+    </AuthorizeView>
+    @* <AuthorizeView Roles="AppAdmin">
+        <FluentCard Style="box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); border-radius: 10px; overflow: hidden;">
+            <FluentStack Orientation="Orientation.Vertical"
+                         HorizontalAlignment="HorizontalAlignment.Center"
+                         VerticalAlignment="VerticalAlignment.Center"
+                         Spacing="10px"
+                         Style="padding: 20px;">
+                @(new Icons.Regular.Size24.BotSparkle().ToMarkup("48px"))
+                <h4 style="margin: 0;">Generuj Onboardingi po dacie</h4>
+                <FluentButton BackgroundColor="var(--accent-fill-rest)"
+                              Disabled="false"
+                              Color="var(--neutral-fill-rest)"
+                              OnClick="@(()=>GenerateCoCOnbByDate())">
+                    Generuj
+                </FluentButton>
+            </FluentStack>
+        </FluentCard>
+    </AuthorizeView> *@
+</FluentStack>
+
+
+@code {
+    // JustifyContent Justification = JustifyContent.Center;
+
+    public int xssize { get; set; } = 2;
+    public int smsize { get; set; } = 2;
+    // public /* AddCoCOnboardingsAdHocJob job = new AddCoCOnboardingsAdHocJob(); */
+
+    private async Task Generate()
+    {
+        ToastIntent intent;
+        string message = string.Empty;
+        var dialog = await _dialogService.ShowDialogAsync<AddOnboardingsTimeSpanComponent>(new DialogParameters()
+            {
+                Height = "450px",
+                Width = "400px",
+                Title =  "Generuj Onboardingi",
+                PreventDismissOnOverlayClick = true,
+                PreventScroll = false
+            });
+
+        var result = await dialog.Result;
+
+        if (!result.Cancelled)
+        {
+
+            intent = ToastIntent.Success;
+            message = "Organisation has been updated!";
+
+        }
+        else if (result.Cancelled)
+        {
+            intent = ToastIntent.Info;
+            message = "Operation Cancelled...";
+        }
+        else
+        {
+            intent = ToastIntent.Error;
+            message = "Something went wrong!";
+        }
+
+    }
+
+    private async Task AssignWithPosition()
+    {
+        ToastIntent intent = new ToastIntent();
+
+        string className = "Application.BackgroundJobs.AssignCoCGroupByPositionJob";
+        string assembly = "Application";
+
+        var result = await _jobSchedulerService.RunJobManuallyAsyncBool(className, assembly);
+
+        string message = string.Empty;
+
+        if (result)
+        {
+
+            intent = ToastIntent.Success;
+            message = "Job run successfully!";
+
+        }
+        else if (!result)
+        {
+            intent = ToastIntent.Error;
+            message = "Job run failed...";
+        }
+
+        _toastService.ShowToast(intent, message);
+
+    }
+
+    // private async Task GenerateCoCOnbByDate()
+    // {
+    //     string className = "Application.BackgroundJobs.AddCoCOnboardingsJob";
+    //     string assembly = "Application";
+    //     DateTime dateTime = DateTime.Now;
+
+    //     await _jobSchedulerService.RunJobManuallyAsyncWithDate(className, assembly, dateTime);
+
+    //     // BackgroundJobVm item = new BackgroundJobVm();
+    //     // // AdHoc job = new AdHoc(_mediator);
+    //     // SendCoCMonthlyReportAssistantsAdHocJob job = new SendCoCMonthlyReportAssistantsAdHocJob();
+    //     // job.Execute();
+    // }
+    // // private async Task SendReport()
+    // {
+    //     // AdHoc job = new AdHoc(_mediator);
+    //     SendCoCMonthlyReportAssistantsAdHocJob job = new SendCoCMonthlyReportAssistantsAdHocJob();
+    //     job.Execute();
+    // }
+
+    // private async Task Assign()
+    // {
+    //     // AdHoc job = new AdHoc(_mediator);
+    //     MarkEmpCoCGroupByJobCodeAdHocJob job = new MarkEmpCoCGroupByJobCodeAdHocJob(_mediator);
+    //     job.Execute();
+    // }
+}

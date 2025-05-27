@@ -1,0 +1,168 @@
+@using Application.CQRS.General.ErrorLogs.Commands
+@using Application.ViewModels.General
+@using System.Security.Claims
+@using BOAppFluentUI.Components.Pages
+@* @using static Microsoft.FluentUI.AspNetCore.Components.Icons.Filled.Size20 *@
+@inherits LayoutComponentBase
+@inject IDialogService DialogService
+@inject IConfiguration _configuration
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IMediator _mediator
+@inject IHostEnvironment HostEnvironment
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+@inject ILogger<MainLayout> Logger
+
+<FluentLayout>
+    <FluentHeader>
+        PIAPL BackOffice App
+        <FluentSpacer />
+        Ustawienia &nbsp;
+        <FluentIcon Value="@(new Icons.Regular.Size20.Settings())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Lightweight" OnClick="ShowSettingAsync" />
+    </FluentHeader>
+    <FluentStack Class="main" Orientation="Orientation.Horizontal" Width="100%">
+        <NavMenu />
+
+        <FluentBodyContent>
+            <ErrorBoundary @ref="errorBoundary">
+                <ChildContent>
+                    <div class="content">
+                        @Body
+                    </div>
+                </ChildContent>
+
+                <ErrorContent Context="Exception">
+                    <div class="error-container">
+                        <div class="error-box">
+                            <h3>Wystąpił błąd w aplikacji</h3>
+                            <h5>Typ błędu: @Exception.GetType()</h5>
+                            <h5>Komunikat błędu: @Exception.Message </h5> 
+                            <h5>@HandleCustomErrorAsync(Exception)</h5>
+                            <h5 style="color:red;">Skopiuj powyższe informacje i zgłoś na Helpdesk!</h5>
+                            <FluentButton IconStart="@(new Icons.Regular.Size16.ArrowCircleLeft())"
+                                          OnClick="() => GoBackJS()">
+                                          Wyczyść
+                            </FluentButton>
+@*                             <FluentButton IconStart="@(new Icons.Regular.Size16.ArrowClockwise())"
+                                          OnClick="() => RefreshPage()">
+                                Odśwież stronę
+                            </FluentButton> *@
+                            
+                        </div>
+                    </div>
+                </ErrorContent>
+            </ErrorBoundary>
+        </FluentBodyContent>
+
+    </FluentStack>
+    <FluentFooter style="display: flex; justify-content: space-between;">
+        <div>
+            <b>
+                 @if (envi == "DEV")
+                {
+                    <span style="color:red">Environment: @envi  |  Version: @appVersion</span>
+                }
+                else
+                {
+                    <span>Environment: @envi  |  Version: @appVersion</span>
+                }
+            </b>
+        </div>
+        <div class="link2">
+            <a href="https://sharepoint" target="_blank">Sharepoint</a>
+        </div>
+    </FluentFooter>
+</FluentLayout>
+
+<FluentDialogProvider />
+<FluentToastProvider MaxToastCount="5" />
+<FluentTooltipProvider />
+<FluentMenuProvider />
+
+
+
+<div id="blazor-error-ui">
+    An unhandled error has occurred.
+    <a href="" class="reload">Reload</a>
+    <a class="dismiss">🗙</a>
+</div>
+
+@code {
+    private string envi { get; set; } = string.Empty;
+    private string appVersion { get; set; } = string.Empty;
+    private ErrorBoundary errorBoundary;
+
+    protected override async Task OnInitializedAsync()
+    {
+        envi = _configuration["Environment"];
+        appVersion = _configuration["AppVersion"];
+        errorBoundary = new();
+    }
+    private async Task ShowSettingAsync()
+    {
+        await DialogService.ShowPanelAsync<Components.Pages.Settings>(new DialogParameters()
+            {
+                Title = "Ustawienia",
+                Alignment = HorizontalAlignment.Right,
+                SecondaryAction = null,
+
+            });
+    }
+    private async Task<string> HandleCustomErrorAsync(Exception exception)
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        ClaimsPrincipal user = authState.User;
+        var uri = Navigation.Uri;
+
+        var errorLog = new ErrorLogVm
+        {
+            User = user.Identity.Name,
+            PageUrl = uri,
+            Message = exception.Message,
+            StackTrace = exception.StackTrace
+        };
+
+
+        Logger.LogError(exception, $"Unhandled exception at {uri} by {user.Identity.Name}");
+        await _mediator.Send(new CreateErrorLogCommand(errorLog));
+        return "";
+    }
+    private void GoBack()
+    {
+        errorBoundary.Recover();
+        Navigation.NavigateTo(Navigation.Uri, forceLoad: false);
+
+    }
+    private async Task GoBackJS()
+    {
+        errorBoundary.Recover();
+        await JS.InvokeVoidAsync("history.back");
+        
+    }
+    private async Task RefreshPage()
+    {
+        errorBoundary.Recover();
+        await JS.InvokeVoidAsync("location.reload");
+    }
+}
+<style>
+
+    .error-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh; /* Full height of the viewport */
+            
+    }
+
+    .error-box {
+            width: 600px;
+            min-height: 200px;
+            padding: 40px;
+            
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+</style>

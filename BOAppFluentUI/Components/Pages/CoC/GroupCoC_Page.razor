@@ -1,0 +1,186 @@
+﻿@page "/coc/groups"
+
+@using Application.CQRS.CoCCQRS.GroupCoCs.Commands
+@using Application.CQRS.CoCCQRS.GroupCoCs.Queries
+@using Application.ViewModels.CoC
+@using System.Linq.Expressions
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize(Policy = "Compliance")]
+
+@inject IMediator _mediator
+@inject ILogger<GroupCoCVm> _logger
+@inject IDialogService _dialogService
+@inject IToastService _toastService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<h3>Group CoC</h3>
+
+@if (groups == null)
+{
+    <FluentProgressRing>Loading...</FluentProgressRing>
+}
+else
+{
+    <p>
+        <FluentStack Orientation="Orientation.Horizontal">
+            <FluentLabel Typo="Typography.Subject"> Show columns:  </FluentLabel>
+            @foreach (var column in filterColumns)
+            {
+                if (column.FirstRow)
+                {
+                    <FluentCheckbox @bind-Value="column.IsVisible" Label="@column.Label" />
+                }
+            }
+        </FluentStack>
+    </p>
+
+    <FluentDataGrid Items="@filteredGroups" Pagination="@pagination" TGridItem="GroupCoCVm" GridTemplateColumns="80px repeat(4, 1fr)" ResizableColumns="true" AutoFit="true" GenerateHeader="GenerateHeaderOption.Sticky">
+
+        @foreach (var column in filterColumns.Where(c => c.IsVisible))
+        {
+            <PropertyColumn TGridItem="GroupCoCVm" TProp="string" Property="@(GetPropertyExpression(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label" Filtered="!string.IsNullOrWhiteSpace(column.Filter)">
+                <ColumnOptions>
+                    <div class="search-box">
+                        <FluentSearch type="search" Autofocus="true" @bind-Value="column.Filter" @oninput="(args) => HandleFilterDebounced(column, args)" Placeholder="@($"{column.Label.ToLower()}...")" />
+                    </div>
+                </ColumnOptions>
+            </PropertyColumn>
+        }
+
+        <TemplateColumn Title="Actions" Align="Align.End">
+            @{
+                var editId = $"editid-{context.Id}";
+                var deleteId = $"deleteid-{context.Id}";
+            }
+
+            <FluentButton Id="@editId" IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => EditGroup(context))" />
+            <FluentTooltip Anchor="@editId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Edit Group</FluentTooltip>
+
+            <FluentButton Id="@deleteId" IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" />
+            <FluentTooltip Anchor="@deleteId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Delete Group</FluentTooltip>
+
+        </TemplateColumn>
+    </FluentDataGrid>
+    <FluentPaginator State="@pagination" />
+}
+<FluentButton IconStart="@(new Icons.Regular.Size20.Add())" OnClick="@(() => EditGroup())" />
+
+@code {
+    private IQueryable<GroupCoCVm> groups;
+    private IQueryable<GroupCoCVm> filteredGroups => groups.Where(x =>
+        filterColumns.All(column => string.IsNullOrWhiteSpace(column.Filter) ||
+        column.Property(x).Contains(column.Filter, StringComparison.CurrentCultureIgnoreCase)));
+
+    PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
+
+    private List<FilterColumn<GroupCoCVm>> filterColumns = new List<FilterColumn<GroupCoCVm>>
+    {
+        new FilterColumn<GroupCoCVm> { FirstRow = true, Label = "ID", Property = c => c.Id.ToString(), IsVisible = true, Width = "80px" },
+        new FilterColumn<GroupCoCVm> { FirstRow = true, Label = "Group Title", Property = c => c.GroupName, IsVisible = true, Width = "1FR" },
+        new FilterColumn<GroupCoCVm> { FirstRow = true, Label = "Positions", Property = c => c.Positions.Count.ToString(), IsVisible = true, Width = "100px" }
+    };
+
+    public bool deleteConfirm { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Load();
+    }
+
+    private async Task Load()
+    {
+        var result = await _mediator.Send(new GetAllGroupCoCsQuery());
+        groups = result.AsQueryable();
+    }
+
+    private async Task EditGroup(GroupCoCVm item = null)
+    {
+        ToastIntent intent;
+        string message = string.Empty;
+        bool isNew = item == null;
+
+        if (isNew)
+        {
+            item = new GroupCoCVm { Positions = new List<PositionVm>() };
+        }
+
+        var dialog = await _dialogService.ShowDialogAsync<GroupCoC_Edit_Component>(item, new DialogParameters()
+            {
+                Height = "750px",
+                Width = "800px",
+                Title = item.Id > 0 ? "Update Group..." : "Create new Group...",
+                PreventDismissOnOverlayClick = true,
+                PreventScroll = false
+            });
+
+        var result = await dialog.Result;
+        if (!result.Cancelled && result.Data != null)
+        {
+            var final = (GroupCoCVm)result.Data;
+
+            if (final.Id > 0)
+            {
+                await _mediator.Send(new UpdateGroupCoCCommand(final));
+                intent = ToastIntent.Success;
+                message = "Group has been updated!";
+            }
+            else
+            {
+                await _mediator.Send(new CreateGroupCoCCommand(final));
+                intent = ToastIntent.Success;
+                message = "Group has been created!";
+            }
+
+            await Load();
+        }
+        else
+        {
+            intent = ToastIntent.Info;
+            message = "Operation Cancelled...";
+        }
+
+        _toastService.ShowToast(intent, message, 3000);
+    }
+
+    private async Task Delete(GroupCoCVm item)
+    {
+        var dialog = await _dialogService.ShowConfirmationAsync("You are about to delete Group: " + item.GroupName + "\n Are you sure?", "Yes", "No", "Confirm delete operation");
+        var result = await dialog.Result;
+        deleteConfirm = result.Cancelled;
+
+        ToastIntent intent;
+        string message = string.Empty;
+
+        if (deleteConfirm)
+        {
+            Console.WriteLine();
+            intent = ToastIntent.Error;
+            message = "Group has not been deleted";
+
+        }
+        else
+        {
+            Console.WriteLine();
+            var i = await _mediator.Send(new DeleteGroupCoCCommand(item.Id));
+            // var i = await _mediator.Send(new (item.ManagerId));
+            intent = ToastIntent.Success;
+            message = "Group has been deleted";
+
+        }
+
+        _toastService.ShowToast(intent, message, 3000);
+        await Load();
+    }
+
+    private void HandleFilterDebounced(FilterColumn<GroupCoCVm> column, ChangeEventArgs args)
+    {
+        column.Filter = args.Value?.ToString() ?? string.Empty;
+        InvokeAsync(StateHasChanged);
+    }
+
+    private Expression<Func<GroupCoCVm, string>> GetPropertyExpression(Func<GroupCoCVm, string> propertyFunc)
+    {
+        return x => propertyFunc(x);
+    }
+}

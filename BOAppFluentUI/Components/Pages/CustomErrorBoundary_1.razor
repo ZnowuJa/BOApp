@@ -1,0 +1,67 @@
+﻿@using System.Security.Claims
+@using Application.CQRS.General.ErrorLogs.Commands
+@using Application.ViewModels.General
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+@inject ILogger<CustomErrorBoundary> Logger
+@inject IMediator Mediator
+
+<ErrorBoundary @ref="errorBoundary" OnError="HandleErrorAsync">
+    <ChildContent>
+        @ChildContent
+    </ChildContent>
+    <ErrorContent Context="exception">
+        <div class="error-container">
+            <div class="error-box">
+                <h3>Wystąpił błąd w aplikacji</h3>
+                <h5>Typ błędu: @exception.GetType()</h5>
+                <h5>Komunikat błędu: @exception.Message</h5>
+                <h5 style="color:red;">Skopiuj powyższe informacje i zgłoś na Helpdesk!</h5>
+                <FluentButton IconStart="@(new Icons.Regular.Size16.ArrowCircleLeft())" OnClick="GoBackJS">
+                    Wyczyść
+                </FluentButton>
+            </div>
+        </div>
+    </ErrorContent>
+</ErrorBoundary>
+
+@code {
+    [Parameter] public RenderFragment ChildContent { get; set; }
+
+    private ErrorBoundary errorBoundary;
+
+    private async Task HandleErrorAsync(Exception exception)
+    {
+        try
+        {
+            var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            var user = authState.User;
+            var pageUrl = Navigation.Uri;
+            var userAgent = await JS.InvokeAsync<string>("navigator.userAgent");
+
+            var errorLog = new ErrorLogVm
+            {
+                User = user.Identity?.Name ?? "Anonymous",
+                PageUrl = pageUrl,
+                Message = exception.Message,
+                StackTrace = exception.StackTrace,
+                // UserAgent = userAgent,
+                // InnerException = exception.InnerException?.ToString()
+            };
+
+            Logger.LogError(exception, $"Unhandled exception at {pageUrl} by {errorLog.User}");
+            await Mediator.Send(new CreateErrorLogCommand(errorLog));
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Failed to log the error.");
+        }
+    }
+
+    private async Task GoBackJS()
+    {
+        errorBoundary.Recover();
+        await JS.InvokeVoidAsync("history.back");
+    }
+}

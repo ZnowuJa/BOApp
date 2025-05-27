@@ -1,0 +1,518 @@
+﻿<style>
+    table {
+        border-collapse: collapse; /* Optional: For a cleaner look */
+        width: 450px; /* Optional: Adjust to fit your container */
+    }
+
+    th, td {
+        padding: 5px; /* Adds padding inside each cell */
+        text-align: left; /* Optional: Align text to the left */
+    }
+
+        td:first-child, th:first-child {
+            padding-left: 0; /* Removes padding on the left of the first cell */
+        }
+
+    .wrap-text {
+        white-space: normal;
+        word-wrap: break-word;
+    }
+
+    .justify-center {
+        display: flex; /* Use flexbox for alignment */
+        justify-content: center; /* Center the content horizontally */
+        align-items: center; /* Center the content vertically (optional) */
+    }
+
+    .align-right {
+        display: flex; /* Flexbox layout */
+        justify-content: flex-end; /* Align all child elements to the right */
+    }
+
+    .center-vertical {
+        display: flex;
+        justify-content: center; /* Center elements vertically */
+        height: 100%; /* Make sure the div has a height */
+    }
+
+    .high-priority-light {
+        color: #ff0000; /* Red for high priority */
+    }
+
+    .medium-priority-light {
+        color: #ff9900; /* Orange for medium priority */
+    }
+
+    .low-priority-light {
+        color: #009900; /* Green for low priority */
+    }
+
+    .high-priority-dark {
+        color: #ff6666; /* Light red for high priority in dark mode */
+    }
+
+    .medium-priority-dark {
+        color: #ffcc66; /* Light orange for medium priority in dark mode */
+    }
+
+    .low-priority-dark {
+        color: #66cc66; /* Light green for low priority in dark mode */
+    }
+
+</style>
+
+@page "/coc/onboarding/{FormId:int}"
+
+
+@using Application.CQRS.CoCCQRS.InstructionCoCs.Queries
+@using Application.CQRS.CoCCQRS.Onboarding.Commands
+@using Application.CQRS.General.Organisations.Queries
+@using Application.CQRS.CoCCQRS.Onboarding.Queries;
+@using Application.CQRS.ITWarehouseCQRS.Employees.Queries
+@using Application.Forms.CoC
+@using Application.ViewModels.CoC
+@using Application.ViewModels.General
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.FluentUI.AspNetCore.Components.Extensions
+@using System.Security.Claims
+
+@attribute [Authorize(Policy = "User")]
+
+@inject IMediator _mediator
+@inject IJSRuntime JS
+@inject ILogger<Onboarding_Edit_Component> _logger
+@inject IToastService _toastService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager _navigationManager
+
+@if (formItem == null)
+{
+    @if (showForm)
+    {
+        <FluentProgressRing>Loading...</FluentProgressRing>
+    }
+    else
+    {
+        <h1>Nie masz uprawnień do tego formularza!</h1>
+    }
+
+}
+else if (formItem != null)
+{
+    <EditForm EditContext="_editContext">
+        <p></p>
+        <h3>Onboarding - @formItem.EmployeeName</h3>
+        <div>
+            @* width="500px" *@
+            <div>
+                <table style="width: 1000px; table-layout: auto;">
+                    <tr>
+                        <td><b>Numer:</b></td>
+                        <td>@formItem.Number</td>
+                        <td><b>Utworzone: </b></td>
+                        <td>@formItem.Requested.ToIsoDateString()</td>
+                        <td><b>Organizacja:</b></td>
+                        <td>@_organisation.Name</td>
+                    </tr>
+                    <tr>
+
+                        <td><b>Pracownik:</b></td>
+                        <td>@formItem.EmployeeName</td>
+                        <td><b>Numer pracownika:</b></td>
+                        <td>@emp.EnovaEmpId</td>
+                        <td><b>Przełożony:</b></td>
+                        <td>@emp.Manager.LongName</td>
+                    </tr>
+                    <tr>
+                        <td><b>Stanowisko:</b></td>
+                        <td>@emp.Position</td>
+                        <td><b>Grupa:</b></td>
+                        <td>@formItem.Group</td>
+                    </tr>
+                </table>
+            </div>
+            <p></p>
+            <p></p>
+            Twój postęp:
+            <p></p>
+            <div>
+                <FluentProgress Min="0" Max="@_allFormInstructions.Count()" Value="@(instrRead)"
+                                Width="90%"
+                                Stroke="ProgressStroke.Large"
+                                Color="@OfficeColor.Access.ToString()" />
+            </div>
+            <p></p>
+            Zapoznano się z @instrRead instrukcjami z @_allFormInstructions.Count().
+            <p></p>
+            @if (_allFormInstructions.Count() > 10)
+            {
+                <div class="align-right">
+                    <FluentButton IconEnd="@(new Icons.Regular.Size20.Save())"
+                                  Appearance="Appearance.Accent" OnClick="@Save" BackgroundColor="#1FC91F" Style="width: 100px"> Zapisz</FluentButton>
+                    <FluentSpacer Width="@buttonSpacer" />
+                    <FluentButton IconEnd="@(new Icons.Regular.Size20.DismissCircle())"
+                                  Appearance="Appearance.Accent" OnClick="@Cancel" BackgroundColor="#dc3545" Color="#FFFFFF" Style="width: 100px"> Zamknij</FluentButton>
+                </div>
+            }
+
+        </div>
+        <p></p>
+
+        <FluentDataGrid Items="@_allFormInstructions" TGridItem="InstructionForFormVm" GridTemplateColumns="0.1fr 0.4fr 0.15fr 0.15fr 0.2fr" ResizableColumns="true" RowStyle="@rowStyle2" AutoFit="true" GenerateHeader="GenerateHeaderOption.Sticky">
+
+            @foreach (var column in instructions.Where(c => c.IsVisible))
+            {
+                <PropertyColumn TGridItem="InstructionForFormVm" TProp="string" Property="@(Utils.GetPropertyExpression<InstructionForFormVm>(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label" Filtered="!string.IsNullOrWhiteSpace(column.Filter)" Class="@column.CssClass">
+                    <ColumnOptions>
+                        <div class="search-box">
+                            <FluentSearch type="search" Autofocus="true" @bind-Value="column.Filter" @oninput="(args) => Utils.HandleFilterDebounced(column, args, debounceDispatcher, () => InvokeAsync(StateHasChanged))" Placeholder="@($"{column.Label.ToLower()}...")" />
+                        </div>
+                    </ColumnOptions>
+                </PropertyColumn>
+            }
+
+            @* Actions *@
+            <TemplateColumn Title="Actions" Align="Align.End" Class="center-vertical">
+                <ChildContent Context="instructionContext">
+                    @{
+                        var viewId = $"viewid-{instructionContext.InstructionId}";
+                        var editId = $"editid-{instructionContext.InstructionId}";
+
+                    }
+                    
+                    <FluentCheckbox @bind-Value:get=@instructionContext.IsRead @bind-Value:set=" c => Mark(instructionContext)" />
+                    <FluentSpacer Width="@buttonSpacer" />
+            
+
+                    <FluentButton Id="@editId" IconEnd="@(new Icons.Regular.Size20.Link())" OnClick="@(() => Edit(instructionContext))" />
+                    @*WARNING it is not tested if isEditDisabled works*@
+                    <FluentTooltip Anchor="@editId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Pokaż instrukcję</FluentTooltip>
+
+   
+                </ChildContent>
+            </TemplateColumn>
+        </FluentDataGrid>
+
+        <p></p>
+        <div class="align-right">
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.Save())"
+                          Appearance="Appearance.Accent" OnClick="@Save" BackgroundColor="#1FC91F" Style="width: 100px"> Zapisz</FluentButton>
+            <FluentSpacer Width="@buttonSpacer" />
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.DismissCircle())"
+                          Appearance="Appearance.Accent" OnClick="@Cancel" BackgroundColor="#dc3545" Color="#FFFFFF" Style="width: 100px"> Zamknij</FluentButton>
+            <FluentSpacer Width="@buttonSpacer" />
+        </div>
+    </EditForm>
+
+}
+else
+{
+    <h2>@message</h2>
+}
+
+
+@code {
+    #region Declarations
+    [Parameter]
+    public int FormId { get; set; }
+
+    private OnboardingFormVm formItem { get; set; }
+    private EditContext _editContext;
+
+    private string message { get; set; }
+    private string messageMissing { get; set; }
+
+    private readonly string sent = "sent";
+    private readonly string rejected = "rejected";
+    private readonly string approved = "approved";
+    private readonly string cancelled = "cancelled";
+
+    private string nextStatus { get; set; } = string.Empty;
+
+    private ClaimsPrincipal? user { get; set; }
+    private string username { get; set; }
+    private EmployeeVm emp { get; set; } //subject of form
+    private FormUserContext _userContext = new FormUserContext("Onboarding", "Technician"); //user who opens page
+
+    private IQueryable<EmployeeVm> itemEmployeesList { get; set; }
+
+    private bool canEditApprover = false;
+
+
+    private DebounceDispatcher debounceDispatcher = new DebounceDispatcher();
+    private PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
+
+    private IQueryable<InstructionForFormVm> _allFormInstructions { get; set; }
+    private List<FilterColumn<InstructionForFormVm>> instructions = new List<FilterColumn<InstructionForFormVm>>
+        {
+            new FilterColumn<InstructionForFormVm> { FirstRow = true, Label = "ID", Property = c => c.InstructionId.ToString(), IsVisible = true, Width = "80px" },
+            new FilterColumn<InstructionForFormVm> { FirstRow = true, Label = "Tytuł", Property = c => c.Title, IsVisible = true, Width = "2 FR", CssClass = "wrap-text" },
+            new FilterColumn<InstructionForFormVm> { FirstRow = true, Label = "Numer", Property = c => c.Number, IsVisible = true, Width = "1 FR", CssClass = "justify-center" },
+            new FilterColumn<InstructionForFormVm> { FirstRow = true, Label = "Obowiązuje od", Property = c => c.Published.ToString("yyyy-MM"), IsVisible = true, Width = "1 FR", CssClass = "justify-center" },
+            // new FilterColumn<InstructionForFormVm> { FirstRow = true, Label = "ID", Property = c => c.Link, IsVisible = true, Width = "80px" },
+            new FilterColumn<InstructionForFormVm> { FirstRow = true, Label = "ID", Property = c => c.Colour, IsVisible = false, Width = "80px" },
+            new FilterColumn<InstructionForFormVm> { FirstRow = true, Label = "Priorytet", Property = c => c.Priority.ToString(), IsVisible = false, Width = "80px" }
+        };
+
+    private int instrRead { get; set; }
+
+    private ApprovalVm approval { get; set; }
+
+    private OrganisationVm _organisation { get; set; }
+    private WorkflowTemplateVm wf { get; set; }
+
+    private int buttonSpacer = 10;
+
+    private List<string> allowedEmp { get; set; } = new List<string>();
+    private List<string> allowedEditor { get; set; } = new List<string>();
+    private bool showForm { get; set; }
+
+    private ToastIntent intent { get; set; }
+    private string toastMessage { get; set; } = string.Empty;
+
+    private string th { get; set; } = "light";
+    private bool isInitialized = false;
+    // private Func<InstructionForFormVm, string?> rowStyle;
+
+
+    #endregion Declarations
+
+    // protected override async Task OnAfterRenderAsync(bool firstRender)
+    // {
+    //     if (firstRender)
+    //     {
+    //         th = await JS.InvokeAsync<string>("getThemeMode");
+    //         isInitialized = true;
+    //         rowStyle = instruction =>
+    //             {
+    //                 var color = instruction.Priority switch
+    //                 {
+    //                     PriorityLevel.High => th == "dark" ? "#ff6666" : "#ff0000",
+    //                     PriorityLevel.Medium => th == "dark" ? "#ffcc66" : "#ff9900",
+    //                     PriorityLevel.Low => th == "dark" ? "#66cc66" : "#009900",
+    //                     _ => "inherit"
+    //                 };
+
+    //                 return $"color: {color};";
+    //             };
+
+    //         if (!isInitialized)
+    //         {
+
+    //             StateHasChanged();
+    //         }
+    //     }
+    // }
+    protected override async Task OnInitializedAsync()
+    {
+        messageMissing = "Loading";
+        try
+        {
+            formItem = await _mediator.Send(new GetOnboardingByIdQuery(FormId));
+            _editContext = new EditContext(formItem);
+        }
+        catch (Exception ex)
+        {
+            // Console.WriteLine($"Error loading kontrahent: {ex.Message}");
+            message = $"Formularz nie znaleziony! {ex.InnerException.Message}";
+            // formItem = new OnboardingFormVm();
+        }
+        itemEmployeesList = await _mediator.Send(new GetAllEmployeesQuery());
+        emp = itemEmployeesList.Where(e => e.EnovaEmpId == formItem.EmployeeId).FirstOrDefault();
+
+        await Utils.GetUserName(AuthenticationStateProvider, _userContext, _mediator);
+        await GetAllowedPersons(formItem);
+
+
+        showForm = allowedEmp.Contains(_userContext.EnovaEmpId);
+        if (!showForm)
+        {
+            formItem = null;
+            message = "Nie masz uprawnień do tego formularza";
+        }
+        canEditApprover = allowedEditor.Contains(_userContext.Employee.EnovaEmpId.ToString());
+
+        if (showForm)
+            await Load();
+    }
+
+    private async Task Load()
+    {
+        // al1 = formItem.Status == "AprobataL1";
+        // al2 = formItem.Status == "AprobataL2";
+        // fin = formItem.Status == "Zakończone";
+        var tempInstructionsVm = await _mediator.Send(new GetAllInstructionCoCsQuery());
+        var temptemp = new List<InstructionForFormVm>();
+
+        _allFormInstructions = await GetInstructionsForForm(formItem);
+        instrRead = _allFormInstructions.Where(i => i.IsRead == true).Count();
+        formItem.Progress = (int?)((double)(instrRead) / _allFormInstructions.Count() * 100);
+
+        _organisation = await _mediator.Send(new GetOrganisationByEmpSapNumberQuery(emp.SapNumber));
+        approval = new ApprovalVm()
+            {
+                Status = formItem.Status,
+                EnovaEmpId = _userContext.EnovaEmpId,
+                LongName = _userContext.LongName,
+                Date = DateTime.Now,
+                IsApproved = true
+            };
+
+        messageMissing = "Loaded";
+        StateHasChanged();
+    }
+    public async Task<IQueryable<InstructionForFormVm>> GetInstructionsForForm(OnboardingFormVm formItem)
+    {
+        // Get all instructions
+        var allInstructions = await _mediator.Send(new GetAllInstructionCoCsQuery());
+
+        // Map InstructionCoCVm to InstructionForFormVm and set IsRead based on InstructionStatus
+        var selectedInstructionsCoC = allInstructions.Where(p => formItem.Instructions.Select(i => i.InstructionId).Contains(p.Id));
+
+
+        var instructionsForForm = selectedInstructionsCoC.Select(instruction =>
+            new InstructionForFormVm
+                {
+
+                    InstructionId = instruction.Id,
+                    IsRead = formItem.Instructions.Where(s => s.InstructionId == instruction.Id).Select(o => o.IsRead).FirstOrDefault(),
+                    Title = instruction.Title,
+                    Number = instruction.Number,
+                    Description = instruction.Description,
+                    Published = instruction.Published,
+                    Link = instruction.Link,
+                    Colour = instruction.Colour,
+                    Priority = instruction.Priority
+                }).ToList().OrderBy(instruction => instruction.Priority).AsQueryable();
+
+        return instructionsForForm;
+    }
+    private async Task GetAllowedPersons(OnboardingFormVm form)
+    {
+        if (form.Status == "AprobataL1" || form.Status == "AprobataL2")
+        {
+            allowedEmp.Add(form.EmployeeId.ToString());
+            allowedEmp.Add("546");
+            allowedEmp.Add(form.LVL1_EnovaEmpId); //this is manager of requestor
+            allowedEmp.AddRange(form.Level1Approvers.Select(l => l.EmpId.ToString()));//this is Compliance representative in Regions
+            allowedEmp.AddRange(form.Level2Approvers.Select(l => l.EmpId.ToString()));//this is Compliance Department
+            allowedEditor.AddRange(form.Level2Approvers.Select(l => l.EmpId.ToString()));
+        }
+        else
+        {
+            allowedEmp.Add(form.EmployeeId.ToString());
+            allowedEmp.Add("546");
+            allowedEmp.AddRange(form.Level2Approvers.Select(l => l.EmpId.ToString()));
+            //Level2Approvers - those shall be our Compliance
+        }
+
+
+    }
+    Func<InstructionForFormVm, string?> rowStyle2 = x =>
+    {
+        if (x.Colour.Contains("RED"))
+        {
+            return "background-color: #ff6666"; // Light red
+        }
+        else if (x.Colour.Contains("GREEN"))
+        {
+            return "background-color: #66cc66"; // Light green
+        }
+        else if (x.Colour.Contains("ORANGE"))
+        {
+            return "background-color: #ffcc66"; // Light orange
+        }
+        else if (x.Colour.Contains("BLUE"))
+        {
+            return "background-color: #4C86E4";
+
+        }
+        else
+        {
+            return "background-color: #ffcc66"; // Default color
+        }
+    };
+
+    private async Task Edit(InstructionForFormVm item = null)
+    {
+        await JS.InvokeVoidAsync("openInNewTab", item.Link);
+        // _navigationManager.NavigateTo($"{item.Link}", true);
+    }
+
+    private async Task Mark(InstructionForFormVm item = null)
+    {
+        item.IsRead = !item.IsRead;
+
+        var instructionStatus = formItem.Instructions.FirstOrDefault(i => i.InstructionId == item.InstructionId);
+        if (instructionStatus != null)
+        {
+            instructionStatus.IsRead = item.IsRead;
+        }
+        instrRead = _allFormInstructions.Where(i => i.IsRead == true).Count();
+        var tempCountAllInstr = _allFormInstructions.Count();
+        formItem.Progress = (int?)((double)(instrRead) / tempCountAllInstr * 100);
+        Console.WriteLine();
+        // await JS.InvokeVoidAsync("openInNewTab", item.Link);
+        // _navigationManager.NavigateTo($"{item.Link}", true);
+    }
+
+    private async Task Save()
+    {
+        ApprovalVm approval = new ApprovalVm()
+            {
+                Status = formItem.Status,
+                EnovaEmpId = emp.EnovaEmpId.ToString(),
+                LongName = emp.LongName,
+                Date = DateTime.Now,
+                IsApproved = true
+            };
+
+        formItem.Approvals.Add(approval);
+
+        if (formItem.Progress == 100)
+        {
+            formItem.Status = "Zakończone";
+        }
+        else if (formItem.Progress > 0)
+        {
+            formItem.Status = "W trakcie";
+        }
+
+        var saveResult = await _mediator.Send(new UpdateOnboardingFormCommand(formItem));
+
+        message = $"Formularz o numerze {saveResult.Number} z postępem nauki dla {saveResult.EmployeeName} zapisany!";
+        _navigationManager.NavigateTo("/");
+        intent = ToastIntent.Success;
+        toastMessage = "Zmiany zapisane";
+        // GoBack();
+
+        _toastService.ShowToast(intent, message, 3000);
+    }
+
+    private async Task Cancel()
+    {
+        _navigationManager.NavigateTo("/");
+    }
+}
+
+
+<script>
+    function goBack() {
+        window.history.back();
+    }
+    function openInNewTab(url) {
+        window.open(url, '_blank');
+    }
+    window.getThemeModeFromHtml = () => {
+        const themeElement = document.querySelector('fluent-design-theme');
+        return themeElement ? themeElement.getAttribute('mode') : 'light';
+    }
+    getThemeMode = () => {
+        const theme = localStorage.getItem('theme');
+        if (theme) {
+            const themeObject = JSON.parse(theme);
+            return themeObject.mode;
+        }
+        return 'light';
+    }
+</script>

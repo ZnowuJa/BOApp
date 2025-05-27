@@ -1,0 +1,543 @@
+﻿@* Invoice Edit Component *@
+
+@using BOAppFluentUI.Components.Pages.ITWarehouseAdmin.Invoice
+@using Application.CQRS.ITWarehouseCQRS.Assets.Commands
+@using Application.CQRS.ITWarehouseCQRS.Companies.Queries
+@using Application.CQRS.ITWarehouseCQRS.Currencies.Queries
+@using Application.ITWarehouseCQRS.Invoices.Commands
+@using Application.CQRS.ITWarehouseCQRS.Units.Queries
+@using MediatR
+
+@inject IMediator _mediator;
+@inject ILogger<Invoice_Edit_Component> _logger;
+@implements IDialogContentComponent<InvoiceVm>
+@inject IToastService _toastService
+
+@* Header *@
+<FluentDialogHeader ShowDismiss="true">
+    <FluentStack VerticalAlignment="VerticalAlignment.Center">
+        <FluentIcon Value="@(new Icons.Regular.Size24.WindowApps())" />
+        <FluentLabel Typo="Typography.PaneHeader">
+            <h3>@Dialog.Instance.Parameters.Title</h3>
+        </FluentLabel>
+    </FluentStack>
+</FluentDialogHeader>
+
+@* Footer *@
+<FluentDialogFooter>
+    @* <FluentButton Appearance="Appearance.Neutral" OnClick="@GenerateAssets">Generate Assets</FluentButton> *@
+    <FluentButton Appearance="Appearance.Accent" OnClick="@SaveAsync">
+        Save
+    </FluentButton>
+    <FluentButton Appearance="Appearance.Neutral" OnClick="@CancelAsync">Cancel</FluentButton>
+
+
+
+</FluentDialogFooter>
+
+@* Body *@
+<FluentDialogBody Orientation="Orientation.Horizontal">
+    <EditForm EditContext="_editFormContext">
+        <FluentValidationValidator @ref="_fluentValidator" />
+
+        @* Invoice VM *@
+        <FluentGrid Justify="@Justification">
+            <p></p>
+            @* Invoice Number*@
+            <FluentGridItem xs="6" sm="4">
+                <div class="card">
+                    
+                    <FluentTextField 
+                        Id="Number"
+                        Class="width"
+                        @bind-Value="@Content.Number" 
+                        Placeholder="Enter number"> Invoice Number</FluentTextField>
+
+                    <FluentValidationMessage For="@(() => Content.Number)" />
+
+                </div>
+            </FluentGridItem>
+            @* Purchase Date *@
+            <FluentGridItem xs="6" sm="4">
+                <div class="card">
+
+                    <FluentDatePicker Id="PurchDate2"
+                                      @bind-Value="@Content.Date"
+                                      Placeholder="Enter purchase date"
+                                      Label="Purchase date">
+
+                    </FluentDatePicker>
+                    <FluentValidationMessage For="@(() => Content.Date)" />
+                </div>
+            </FluentGridItem>
+            @* Company *@
+            <FluentGridItem xs="6" sm="4">
+                <div class="card">
+                    <FluentSelect TOption="CompanyVm"
+                                  Label="Select company:"
+                                  Items="@itemCompanyList"
+                                  Id="CatId"
+                                  Width="150px"
+                                  Height="250px"
+                                  OptionValue="@(p => p.Id.ToString())"
+                                  OptionText="@(p => p.Name)"
+                                  @bind-SelectedOption="@Content.CompanyVm"
+                                  @onchange="onChangeCompany" />
+
+                    <FluentValidationMessage For="@(() => Content.CompanyVm.Name)" />
+                </div>
+            </FluentGridItem>
+            @* Total *@
+            <FluentGridItem xs="6" sm="4">
+                <div class="card">
+                    <FluentNumberField Id="TotalNet" Disabled="true" @bind-Value="@Content.TotalNet" Placeholder="total..."> Total: </FluentNumberField>
+                    <FluentValidationMessage For="@(() => Content.TotalNet)" />
+                </div>
+            </FluentGridItem>
+            @* Currency *@
+            <FluentGridItem xs="6" sm="4">
+                <div class="card">
+
+                    <FluentSelect TOption="CurrencyVm"
+                                  Label="Select currency..."
+                                  Items="@itemCurrencyList"
+                                  Id="CurrId"
+                                  Width="150px"
+                                  Height="250px"
+                                  OptionValue="@(p => p.Id.ToString())"
+                                  OptionText="@(p => p.Name)"
+                                  @bind-SelectedOption="@Content.CurrencyVm"
+                                  @onchange="onChangeCurrency" />
+
+                    <FluentValidationMessage For="@(() => Content.CurrencyVm.Name)" />
+                </div>
+            </FluentGridItem>
+        </FluentGrid>
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="validation-error"><p style="color:red;">@errorMessage</p></div>
+        }
+
+        @* Invoice Item List Component*@
+        @if (Content.InvoiceItems.Count > 0 && showIIList)
+        {
+            <br />
+            <h3> InvoiceItem List: </h3>
+            <FluentDataGrid Items="@itemInvoiceItems" Pagination="@paginationInvItems" TGridItem="InvoiceItemVm" GridTemplateColumns="80px repeat(4, 1fr) 0.5fr 0.5fr" ResizableColumns=true>
+                <PropertyColumn Property="@(i => i.Id)" Sortable="true" Align="Align.Start" Title="Id" Tooltip="true" />
+                <PropertyColumn Property="@(i => i.Name)" Sortable="true" Align="Align.Start" Title="Name" Tooltip="true" />
+                <PropertyColumn Property="@(i => i.PartVmName)" Sortable="true" Align="Align.Start" Title="PartName" Tooltip="true" />
+                <PropertyColumn Property="@(i => i.UnitNetPrice)" Sortable="true" Align="Align.Start" Title="Unit price" Tooltip="true" />
+                <PropertyColumn Property="@(i => i.Qty)" Sortable="true" Align="Align.Start" Title="Qty" Tooltip="true" />
+                @* <TemplateColumn Title="Actions" Align="Align.End">
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View())" />
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => Edit())" />
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete())" />
+            </TemplateColumn> *@
+            </FluentDataGrid>
+            <FluentPaginator State="@paginationInvItems" />
+            <p></p>
+        }
+        <p></p>
+        @* <FluentSplitter Orientation="Orientation.Vertical" /> *@
+        <p></p>
+
+        @* Add New Invoice Item Vm Button*@
+        @if (!ShowNewInvItem)
+        {
+            <FluentButton IconStart="@(new Icons.Regular.Size24.Add())" OnClick="@(() => AddInvoiceItem())"> Add Invoice Item</FluentButton>
+        }
+
+        <p></p>
+
+        @* New Invoice Item Vm*@
+        @if (ShowNewInvItem)
+        {
+            <br />
+            <h3> New InvoiceItem: </h3>
+            <FluentGrid Justify="@Justification">
+                @* InvoiceItemName*@
+                <div>
+                    <FluentTextField Id="Name" @bind-Value="@newInvItem.Name" Placeholder="Enter name"> InvoiceItem Name</FluentTextField>
+                </div>
+@*                 <div>
+                    <FluentSelect TOption="PartVm"
+                                  Label="Select part..."
+                                  Items="@itemPartsList"
+                                  Id="PartId"
+                                  OptionValue="@(p => p.Id.ToString())"
+                                  OptionText="@(p => p.Name)"
+                                  @bind-SelectedOption="@newInvItem.PartVm"
+                                  @onchange="onChangePart" 
+                                  Height="550px"/>
+                </div> *@
+                <div>
+                    <FluentAutocomplete TOption="PartVm"
+                                        AutoComplete="on"
+                                        Label="Select part..."
+                                        OnOptionsSearch="OnPartSearch"
+                                        Placeholder="Select Part"
+                                        MaximumSelectedOptions="1"
+                                        OptionText="@(p => p.Name)"
+                                        @bind-SelectedOptions="@SelectedPart"
+                                        
+                                        Height="550px"
+                                        Width="200px"/>
+                </div>
+                <div>
+                    <FluentNumberField Id="UPrice" @bind-Value="@newInvItem.UnitNetPrice" Placeholder="unit price..."> Unit net price </FluentNumberField>
+                </div>
+                <div>
+                    <FluentNumberField Id="Qty" @bind-Value="@newInvItem.Qty" Placeholder="quantity..."> Qty </FluentNumberField>
+                </div>
+                <div>
+                    <FluentSelect TOption="UnitVm"
+                                  Label="Select unit..."
+                                  Items="@itemUnitsList"
+                                  Id="UnitId"
+                                  Width="150px"
+                                  Height="250px"
+                                  OptionValue="@(p => p.Id.ToString())"
+                                  OptionText="@(p => p.Name)"
+                                  @bind-SelectedOption="@newInvItem.UnitVm" />
+                </div>
+                <br />
+
+
+            </FluentGrid>
+            <p></p>
+            <p>
+                <FluentGrid Justify="@Justification">
+                <div>
+                    <FluentCheckbox @bind-Value="@newInvItem.Leasing" Label="Leasing" />
+                </div>
+                @if (newInvItem.Leasing)
+                {
+                    <div style="margin-right: 10px;">
+                        <FluentDatePicker Label="End of contract: " AriaLabel="To" @bind-Value="@newInvItem.EndOfContract" />
+                    </div>
+                }
+                </FluentGrid>
+            </p>
+            <p>
+                @if (!validateII)
+                {
+                    <div class="validation-error"><p style="color:red;">@errorMessageII</p></div>
+                }
+            </p>
+            <p></p>
+            <FluentButton IconStart="@(new Icons.Regular.Size24.Add())" OnClick="@(() => AddNewInvoiceItem())"> Add Another Invoice Item</FluentButton>
+        }
+
+
+
+    </EditForm>
+</FluentDialogBody>
+
+
+
+@code 
+{
+    #region InitComponent
+
+    [Parameter]
+    public InvoiceVm Content { get; set; } = default!;
+
+    [CascadingParameter]
+    public FluentDialog Dialog { get; set; } = default!;
+
+    JustifyContent Justification = JustifyContent.FlexStart;
+
+    private EditContext _editFormContext;
+
+    private FluentValidationValidator? _fluentValidator;
+    private string errorMessage;
+    private string errorMessageII;
+
+    private IQueryable<CompanyVm> itemCompanyList { get; set; }
+    private IQueryable<CurrencyVm> itemCurrencyList { get; set; }
+    private IQueryable<PartVm> itemPartsList { get; set; }
+    private IQueryable<UnitVm> itemUnitsList { get; set; }
+    private IQueryable<InvoiceItemVm> itemInvoiceItems { get; set; }
+
+    private bool ShowNewInvItem = false;
+    private bool showIIList = true;
+    private bool validateII = false;
+    private InvoiceItemVm newInvItem { get; set; }
+    // private CompanyVm SelectedCompany { get; set; } = new CompanyVm { };
+    // private currencyVm SelectedCurrency { get; set; } = new currencyVm { };
+
+    private DateTime PickerDay = DateTime.Today;
+    PaginationState paginationInvItems = new PaginationState { ItemsPerPage = 4 };
+    // private PartVm selectedPart = new PartVm();
+    private IEnumerable<PartVm> SelectedPart = Array.Empty<PartVm>();
+
+    #endregion InitComponent
+
+    protected override async Task OnInitializedAsync()
+    {
+        _editFormContext = new EditContext(Content);
+
+        newInvItem = new InvoiceItemVm();
+        itemCompanyList = await _mediator.Send(new GetAllCompaniesForSelectQuery());
+        itemCurrencyList = await _mediator.Send(new GetAllCurrenciesForSelectQuery());
+        itemPartsList = await _mediator.Send(new GetAllPartsForSelectQuery());
+        itemUnitsList = await _mediator.Send(new GetAllUnitsForSelectQuery());
+        itemInvoiceItems = Content.InvoiceItems.AsQueryable();
+
+        base.OnInitialized();
+    }
+
+    private async Task SaveAsync()
+    {
+        Console.WriteLine("SaveAsync starts...");
+        if (_editFormContext.Validate())
+        {
+            Console.WriteLine("EditContext Validation OK!..." + Content.InvoiceItems.Count);
+            // await CalculateTotal();
+            Content.CompanyVmId = Content.CompanyVm.Id;
+            Content.CurrencyVmId = Content.CurrencyVm.Id;
+            if (ShowNewInvItem)
+            {
+                if (validateInvoiceItem(newInvItem))
+                {
+                    newInvItem.Id = await SaveInvoiceItem();
+                    if (newInvItem.Id == 0)
+                    {
+                        validateII = false;
+                        return;
+                    }
+                    Content.InvoiceItems.Add(new InvoiceItemVm(newInvItem));
+                }
+                else
+                {
+
+                    return;
+                }
+            }
+            
+            await CalculateTotal();
+            await Dialog.CloseAsync(Content);
+        }
+        else
+        {
+            Console.WriteLine("EditContext Validation NOT OK!...");
+            Console.WriteLine($"InvEdComp, SaveAsync, ContId<>0 :: {Content.Id}, {Content.Number}, {Content.CompanyVm.Id}, {Content.Date},{Content.CurrencyVm.Id}, {Content.TotalNet}");
+            return;
+        }
+        if (Content.Id != 0)
+        {
+            Console.WriteLine($"InvEdComp, SaveAsync, ContId<>0 :: {Content.Id}, {Content.Number}, {Content.CompanyVm.Id}, {Content.CompanyVmId},{Content.CurrencyVm.Id}, {Content.CurrencyVmId}");
+
+            await Dialog.CloseAsync(Content);
+        }
+
+    }
+
+    private async Task CancelAsync()
+    {
+        await Dialog.CancelAsync();
+    }
+
+    private async Task CalculateTotal()
+    {
+        decimal _total = 0;
+        HashSet<int> uniqueIds = new HashSet<int>();
+        foreach (var item in Content.InvoiceItems)
+        {
+            if (uniqueIds.Add(item.Id)) // This will return false if the item.Id is already in the HashSet
+            {
+                _total += (item.UnitNetPrice * item.Qty);
+            }
+        }
+        if (_total != 0)
+        {
+            Content.TotalNet = _total;
+        }
+    }
+    // private async Task CalculateTotal()
+    // {
+    //     decimal _total = 0;
+    //     foreach (var item in Content.InvoiceItems)
+    //     {
+    //         _total += (item.UnitNetPrice * item.Qty);
+    //     }
+    //     if (_total != 0)
+    //     {
+    //         Content.TotalNet = _total;
+    //     }
+
+        
+    //     // return Task.CompletedTask;
+    // }
+
+    private async Task AddInvoiceItem()
+    {
+        Console.WriteLine("AddInvoiceItem1");
+        if (_editFormContext.Validate())
+        {
+            // int invVmId =
+            newInvItem.InvoiceVmId = Content.Id = await SaveInvoice();
+
+        }
+        else
+        {
+            //UPDATE InvoiceVM???
+            return;
+        }
+
+        newInvItem.CurrencyVm = Content.CurrencyVm;
+        newInvItem.UnitVm = itemUnitsList.Where(p => p.Id == 1).FirstOrDefault();
+        ShowNewInvItem = true;
+        itemInvoiceItems = Content.InvoiceItems.AsQueryable();
+        // await CalculateTotal();
+        Console.WriteLine("AddInvoiceItem2");
+    }
+
+    private async Task AddNewInvoiceItem()
+    {
+        Console.WriteLine("AddNewInvoiceItem1 validateII :: " + validateII);
+        newInvItem.Id = await SaveInvoiceItem();
+
+        if (validateII)
+        {
+            Console.WriteLine("AddNewInvoiceItem3");
+            // Content.InvoiceItems.Add(new InvoiceItemVm(newInvItem));
+
+            newInvItem = new InvoiceItemVm();
+            newInvItem.InvoiceVmId = Content.Id;
+            newInvItem.CurrencyVm = Content.CurrencyVm;
+            //below we could change to something like preference.defaultUnit =
+            newInvItem.UnitVm = itemUnitsList.Where(p => p.Id == 1).FirstOrDefault();
+            // newInvItem.PartVm = itemPartsList.Where(p => p.Id == 1).FirstOrDefault();
+            itemInvoiceItems = Content.InvoiceItems.AsQueryable();      
+            ShowNewInvItem = false;
+            ShowNewInvItem = true;
+            // await CalculateTotal();
+            // StateHasChanged();
+        }
+        Console.WriteLine("AddNewInvoiceItem2");
+    }
+
+    private async Task<int> SaveInvoice()
+    {
+        int newInvId = Content.Id == 0 ?
+            await _mediator.Send(new CreateInvoiceCommand(Content.Number, Content.CompanyVm.Id, Content.Date, Content.TotalNet, Content.CurrencyVm.Id))
+            : Content.Id;
+
+        return newInvId;
+    }
+
+    private async Task<int> SaveInvoiceItem()
+    {
+        validateII = validateInvoiceItem(newInvItem);
+        Console.WriteLine("SaveInvoiceItem1 validateII :: " + validateII);
+        if (validateII)
+        {
+
+
+            newInvItem.Id = await _mediator.Send(new CreateInvoiceItemCommand(newInvItem.Name, newInvItem.PartVmId, newInvItem.Qty, newInvItem.UnitVmId, newInvItem.UnitNetPrice, newInvItem.CurrencyVmId, Content.Id, false, newInvItem.Leasing, newInvItem.EndOfContract));
+            Content.InvoiceItems.Add(newInvItem);
+        }
+        else
+        {
+            return 0;
+        }
+
+        Console.WriteLine("After SaveInvoiceItem() ");
+        // Content.InvoiceItems.Add(newInvItem);
+
+        return newInvItem.Id;
+    }
+
+    private void OnPartSearch (OptionsSearchEventArgs<PartVm> e)
+    {
+        e.Items = itemPartsList.Where(part => part.Name.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private void onChangeCompany(ChangeEventArgs e)
+    {
+        var selectedComapany = itemCompanyList.FirstOrDefault(c => c.Id == int.Parse(e.Value.ToString()));
+        Content.CompanyVmId = selectedComapany.Id;
+        Content.CompanyVmName = selectedComapany.Name;
+        Console.WriteLine("e.Value " + e.Value);
+        Console.WriteLine("Przed: " + Content.CompanyVm.Id + " " + Content.CompanyVm.Name);
+        Console.WriteLine("Po: " + Content.CompanyVmId + " " + Content.CompanyVmName);
+    }
+
+    private void onChangeCurrency(ChangeEventArgs e)
+    {
+        var selected = itemCurrencyList.FirstOrDefault(c => c.Id == int.Parse(e.Value.ToString()));
+        Content.CurrencyVmId = selected.Id;
+        Content.CurrencyVmName = selected.Name;
+        Console.WriteLine("e.Value " + e.Value);
+        Console.WriteLine("Przed: " + Content.CurrencyVm.Id + " " + Content.CurrencyVm.Name);
+        Console.WriteLine("Po: " + Content.CurrencyVmId + " " + Content.CurrencyVmName);
+    }
+
+    private void onChangePart(ChangeEventArgs e)
+    {
+        var selected = itemPartsList.FirstOrDefault(c => c.Id == int.Parse(e.Value.ToString()));
+        newInvItem.PartVmId = selected.Id;
+        newInvItem.PartVmName = selected.Name;
+        Console.WriteLine("e.Value " + e.Value);
+        Console.WriteLine("Przed: " + newInvItem.PartVmId + " " + newInvItem.PartVmName);
+    }
+    private void onChangePartV(ChangeEventArgs e)
+    {
+        var selected = itemPartsList.FirstOrDefault(c => c.Id == int.Parse(e.Value.ToString()));
+        newInvItem.PartVmId = selected.Id;
+        newInvItem.PartVmName = selected.Name;
+        Console.WriteLine("e.Value " + e.Value);
+        Console.WriteLine("Przed: " + newInvItem.PartVmId + " " + newInvItem.PartVmName);
+    }
+
+    private bool validateInvoiceItem(InvoiceItemVm item)
+    {
+        errorMessageII = string.Empty;
+
+        if (item.Name.Length == 0)
+        {
+            errorMessageII += "Please enter item Title... \n";
+        }
+        if (item.PartVm == null)
+        {
+            errorMessageII += "Please select Part... \n";
+        }
+        if (item.Qty == 0)
+        {
+            errorMessageII += "Please enter Qty... \n";
+        }
+        if (item.UnitNetPrice == 0)
+        {
+            errorMessageII += "Please enter price for unit... \n";
+        }
+        try
+        {
+            var selectedPartVm = SelectedPart.FirstOrDefault();
+            if (selectedPartVm != null)
+            {
+                newInvItem.PartVmId = SelectedPart.FirstOrDefault().Id;
+                newInvItem.PartVmName = SelectedPart.FirstOrDefault().Name;
+                newInvItem.PartVm = SelectedPart.FirstOrDefault();
+            }
+            else
+            {
+                throw new Exception("No part selected");
+            }
+
+        }
+        catch (Exception ex)
+        {
+            errorMessageII += "Please select new Part... \n";
+            return false;
+        }
+
+        Console.WriteLine("ErrorMessage II :: " + errorMessageII.Length + "\n :: " + errorMessageII);
+
+        return errorMessageII.Length == 0;
+    }
+
+}
+
+

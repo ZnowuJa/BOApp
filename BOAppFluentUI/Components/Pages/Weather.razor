@@ -1,0 +1,115 @@
+﻿@page "/weather"
+@using Application.Interfaces
+@using Microsoft.Graph.Models
+
+@inject IEmailService mailService;
+
+<PageTitle>Weather</PageTitle>
+
+<h1>Weather</h1>
+
+<p>This component demonstrates showing data.</p>
+
+<FluentTextField @bind-Value=recipient> Odbiorca: </FluentTextField>
+<FluentTextField @bind-Value=text> Text: </FluentTextField>
+<FluentButton @onclick="SendEmail">Change</FluentButton>
+
+
+@if (forecasts == null)
+{
+    <FluentProgressRing><p><em>Loading...</em></p></FluentProgressRing>
+}
+else
+{
+    <FluentDataGrid Id="weathergrid" Items=@forecasts GridTemplateColumns="1fr 1fr 1fr 2fr" TGridItem=WeatherForecast>
+        <PropertyColumn Title="Date" Property="@(c => c!.Date)" Sortable="true" Align=Align.Start/>
+        <PropertyColumn Title="Temp. (C)" Property="@(c => c!.TemperatureC)" Sortable="true" Align=Align.Center/>
+        <PropertyColumn Title="Temp. (F)" Property="@(c => c!.TemperatureF)" Sortable="true" Align=Align.Center/>
+        <PropertyColumn Title="Summary" Property="@(c => c!.Summary)" Sortable="true" Align=Align.End/>
+    </FluentDataGrid>
+}
+
+@code {
+    private IQueryable<WeatherForecast>? forecasts;
+    private string recipient { get; set; }
+    private string text { get; set; }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        // Simulate asynchronous loading to demonstrate a loading indicator
+        await Task.Delay(500);
+
+        var startDate = DateOnly.FromDateTime(DateTime.Now);
+        var summaries = new[] { "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching" };
+        forecasts = Enumerable.Range(1, 5).Select(index => new WeatherForecast
+        {
+            Date = startDate.AddDays(index),
+            TemperatureC = Random.Shared.Next(-20, 55),
+            Summary = summaries[Random.Shared.Next(summaries.Length)]
+        }).AsQueryable();
+    }
+
+    private async Task SendEmail()
+    {
+        var subject = "Masz wiadomość :)";
+        var body = @"
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <style>
+                        body { font-family: Arial, sans-serif; }
+                        .header { background-color: #f8f8f8; padding: 20px; text-align: center; }
+                        .content { padding: 20px; }
+                        .footer { background-color: #f8f8f8; padding: 10px; text-align: center; }
+                    </style>
+                </head>
+                <body>
+                    <div class=""header"">
+                        <h1>Welcome to BackOfficeApp!</h1>
+                    </div>
+                    <div class=""content"">
+                        <p>Dear User,</p>
+                        <p>Thank you for using our service. We are excited to have you on board.</p>
+                        <p>Best Regards,<br>Your Team</p>
+                    </div>
+                    <div class=""footer"">
+                        <p>© 2024 BackOfficeApp</p>
+                    </div>
+                </body>
+                </html>";
+
+
+        var message = new Microsoft.Graph.Models.Message
+            {
+                Subject = subject,
+                Body = new ItemBody
+                {
+                    ContentType = BodyType.Html,
+                    Content = body
+                },
+                ToRecipients = new List<Recipient>
+                {
+                    new Recipient
+                    {
+                        EmailAddress = new EmailAddress
+                        {
+                            Address = recipient
+                        }
+                    }
+                }
+            };
+              
+        await mailService.SendEmailAsync(message);
+    }
+
+
+    private class WeatherForecast
+    {
+        public DateOnly Date { get; set; }
+        public int TemperatureC { get; set; }
+        public string? Summary { get; set; }
+        public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+    }
+}

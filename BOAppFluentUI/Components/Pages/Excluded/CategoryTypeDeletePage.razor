@@ -1,0 +1,51 @@
+﻿@page "/ctd"
+@using Application.ITWarehouseCQRS.CategoryTypes
+@using Application.ITWarehouseCQRS.CategoryTypes.Queries
+@using Application.ITWarehouseCQRS.CategoryTypes.Commands
+@using MediatR
+@inject IMediator _mediator;
+
+@inject ILogger<CategoryTypeDeletePage> _logger
+<h3>CategoryTypeUpdatePage</h3>
+
+@if (list is null)
+{
+    <p>
+        Loading...
+    </p>
+}
+else
+{
+
+}
+
+
+
+@code {
+    private List<CategoryTypeVm> list = new();
+    // private CategoryTypeVm catTypesVm = new();
+    private SelectedCatTypeVm selected = new();
+    private class SelectedCatTypeVm
+    {
+        public int id  { get; set; }
+    }
+    private async Task RefreshData()
+    {
+        list = null;
+        list = await _mediator.Send(new GetAllCategoryTypesQuery());
+        // catTypesVm.CategoryTypes = list.CategoryTypes;
+        // return AntiforgeryRequestToken()
+    }
+    private async Task DeleteCatTypeVm()
+    {
+        int i = await _mediator.Send(new DeleteCategoryTypeCommand(selected.id));
+        selected.id = 0;
+        await RefreshData();
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        await RefreshData();
+    }
+
+
+}

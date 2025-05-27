@@ -1,0 +1,271 @@
+﻿@*SELECT SAPCostCenter Component*@
+@using Application.ViewModels.Accounting
+
+
+
+<tr>
+    <td>
+        <FluentAutocomplete TOption="SimpleLocation"
+            Disabled="@isEditable"
+            Class="bold-label"
+            AutoComplete="on"
+            MaximumOptionsSearch="40"
+            OnOptionsSearch="@OnLocationSearch"
+            Placeholder="wybierz..."
+            MaximumSelectedOptions="1"
+            OptionText="@(p => p.SAPLocationNumber + ' ' + p.SAPLocationName)"
+            @bind-SelectedOptions="@SelectedLocation"
+            @bind-SelectedOptions:after="@HandleSCCLocationChange"
+            Width="200px" />
+    </td>
+    <td>
+        <FluentAutocomplete 
+            TOption="SimpleDepartment"
+            Disabled="@isDeptEditable"
+            Class="bold-label"
+            AutoComplete="on"
+            MaximumOptionsSearch="80"
+            OnOptionsSearch="@OnDepartmentSearch"
+            Placeholder="wybierz..."
+            MaximumSelectedOptions="1"
+            OptionText="@(p => p.SAPDepartmentNumber + ' ' + p.SAPDepartmentName)"
+            @bind-SelectedOptions="@SelectedDepartment"
+            @bind-SelectedOptions:after="@HandleSCCDepartmentChange"
+            Width="220px" />
+    </td>
+    <td>
+        <InputNumber
+        style="width: 100px;"
+        Min = "0"
+        Max = "100"
+        @bind-Value="@_content.Share"
+        class="customFluentNumber" 
+        Disabled ="@isEditable"
+        />
+        %
+    </td>
+    <td>
+        <FluentTextField @bind-Value="@ManagerName" Disabled="true" style="width: 200px;"/>
+    </td>
+    <td style="width: 200px;">
+        <FluentButton IconStart="@(new Icons.Regular.Size16.Delete())" OnClick="() => RemoveSapCostCenter.InvokeAsync(_content)" Disabled="@isEditable" />
+
+    </td>
+</tr>
+
+<div style="display: flex; align-items: center;">
+</div>
+
+
+@code {
+    [Parameter] public SapCostCenterVm _content { get; set; }
+    [Parameter] public List<SapCostCenterVm> sapCostCenters { get; set; }
+    [Parameter] public EventCallback<SapCostCenterVm> RemoveSapCostCenter { get; set; }
+    [Parameter] public EventCallback<SapCostCenterVm> OnSapCostCenterChanged { get; set; }
+    [Parameter] public bool isEditable { get; set; }
+    private bool isDeptEditable
+    {
+        get
+        {
+            return isEditable || SelectedLocation == null;
+        }
+    }
+    private List<SimpleLocation> simpleLocations { get; set; }
+    private List<SimpleDepartment> simpleDepartments { get; set; }
+
+    IEnumerable<SapCostCenterVm> _SelectedSapCC { get; set; }
+    private IEnumerable<SimpleLocation> SelectedLocation { get; set; }
+    private IEnumerable<SimpleDepartment> SelectedDepartment { get; set; }
+    private string ManagerName = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _SelectedSapCC = new SapCostCenterVm[] { _content };
+        simpleLocations = sapCostCenters
+            .GroupBy(s => s.LocationNumber)
+            .Select(g => new SimpleLocation
+                {
+                    SAPLocationNumber = g.Key,
+                    SAPLocationName = g.First().LocationName
+                })
+            .ToList();
+
+        simpleDepartments = sapCostCenters
+            .Select(s => new SimpleDepartment
+                {
+                    SAPDepartmentNumber = s.DepartmentNumber,
+                    SAPDepartmentName = s.DepartmentName
+                })
+            .Distinct()
+            .ToList();
+        // SelectedLocation = new SimpleLocation[] { new SimpleLocation() };
+        // SelectedDepartment = new SimpleDepartment[] { new SimpleDepartment() };
+        ManagerName = _SelectedSapCC.FirstOrDefault().ResponsibleManagerName;
+        if(! string.IsNullOrEmpty(ManagerName)){
+            var tempSimpleLoc = new SimpleLocation()
+                {
+                    SAPLocationName = _content.LocationName,
+                    SAPLocationNumber = _content.LocationNumber
+                };
+            SelectedLocation = new List<SimpleLocation> { new SimpleLocation()
+                {
+                    SAPLocationName = _content.LocationName,
+                    SAPLocationNumber = _content.LocationNumber
+                } };
+
+            SelectedDepartment = new List<SimpleDepartment>{ new SimpleDepartment(){
+                SAPDepartmentName = _content.DepartmentName,
+                SAPDepartmentNumber = _content.DepartmentNumber
+            }};
+        }
+
+        // isDeptEditable = isEditable || SelectedLocation is null;
+        StateHasChanged();
+        // return base.OnInitializedAsync();
+    }
+    private void OnLocationSearch(OptionsSearchEventArgs<SimpleLocation> e)
+    {
+        if (e.Text != null)
+        {
+            e.Items = simpleLocations
+                .Where(a => a.SAPLocationNumber.Contains(e.Text, StringComparison.OrdinalIgnoreCase) || a.SAPLocationName.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
+        }
+    }
+    private void OnDepartmentSearch(OptionsSearchEventArgs<SimpleDepartment> e)
+    {
+
+        if (e.Text != null)
+        {
+            e.Items = simpleDepartments
+                .Where(a => a.SAPDepartmentNumber.Contains(e.Text, StringComparison.OrdinalIgnoreCase) || a.SAPDepartmentName.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
+        }
+    }
+    private async Task HandleSCCLocationChange()
+    {
+        var tempLocation = SelectedLocation.FirstOrDefault();
+        if (tempLocation is null)
+        {
+            SelectedDepartment = new SimpleDepartment[] { new SimpleDepartment() };
+        }
+        else if (!string.IsNullOrEmpty(tempLocation.SAPLocationNumber))
+        {
+            simpleDepartments = sapCostCenters
+            .Where(s => s.LocationNumber == tempLocation.SAPLocationNumber)
+            .Select(s => new SimpleDepartment
+                {
+                    SAPDepartmentNumber = s.DepartmentNumber,
+                    SAPDepartmentName = s.DepartmentName
+                })
+                .Distinct()
+                .ToList();
+        }
+        else
+        {
+            _SelectedSapCC = new List<SapCostCenterVm>();
+            SelectedLocation = new SimpleLocation[] { new SimpleLocation() };
+            SelectedDepartment = new SimpleDepartment[] { new SimpleDepartment() };
+        }
+
+        StateHasChanged();
+    }
+    private async Task HandleSCCDepartmentChange()
+    {
+        var tempDepartment = SelectedDepartment.FirstOrDefault();
+        var tempLocation = SelectedLocation.FirstOrDefault();
+        if (tempDepartment is null)
+        {
+            _SelectedSapCC  = new SapCostCenterVm[] { new SapCostCenterVm() };
+            _content = new SapCostCenterVm();
+        }
+        else if (!string.IsNullOrEmpty(tempDepartment.SAPDepartmentNumber))
+        {
+            var tempSAPCC = sapCostCenters.Where(s => s.LocationNumber == tempLocation.SAPLocationNumber && s.DepartmentNumber == tempDepartment.SAPDepartmentNumber).ToList();
+            if (tempSAPCC.Count() == 1)
+            {
+                _SelectedSapCC = tempSAPCC;
+                _content = tempSAPCC.FirstOrDefault();
+                ManagerName = _content.ResponsibleManagerName;
+               
+                await OnSapCostCenterChanged.InvokeAsync(_content);
+                
+            }
+            else
+            {
+
+            }
+        }
+        else
+        {
+            var emp = SelectedDepartment.FirstOrDefault();
+        }
+        await OnSapCostCenterChanged.InvokeAsync(_content);
+        StateHasChanged();
+    }
+
+}
+<style>
+    .table-container {
+        max-height: 60px;
+        width: 100%;
+        max-width: 1000px; /* Restrict table width */
+        border-collapse: separate;
+        border-spacing: 0;
+        font-family: Arial, sans-serif;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        overflow: visible;
+    }
+
+        .table-container thead tr:first-child th {
+            max-height: 60px;
+            color: white;
+            font-weight: bold;
+            text-align: center;
+            padding: 8px;
+        }
+
+
+        .table-container th {
+            max-height: 60px;
+            padding: 8px;
+            font-size: 12px;
+            border: 1px solid #ddd;
+            white-space: nowrap; /* Prevent line breaks */
+            overflow: visible; /* Prevent content from spilling out */
+            text-overflow: ellipsis; /* Add "..." for overflowing text */
+            align-items: center; /* Vertically center content */
+            justify-content: space-between; /* Push text and icon to the edges */
+        }
+
+        .table-container td {
+            max-height: 60px;
+            padding: 8px;
+            font-size: 12px;
+            border: 1px solid #ddd;
+            white-space: nowrap; /* Prevent line breaks */
+            overflow: visible;
+            text-overflow: ellipsis; /* Add "..." for overflowing text */
+        }
+
+    .table-header-left {
+        max-height: 60px;
+        background-color: var(--accent-fill-rest);
+    }
+
+    .table-header-right {
+        background-color: color-mix(in srgb, white 15%, var(--accent-fill-rest) 60%);
+    }
+
+    .table-caption {
+        max-height: 60px;
+        caption-side: top; /* Place caption above the table */
+        background-color: var(--accent-fill-rest); /* Match header background */
+        color: white; /* Match header text color */
+        font-weight: bold; /* Make it bold */
+        text-align: left; /* Center the text */
+        padding: 8px; /* Add padding for spacing */
+        border: 1px solid #ddd; /* Optional: Match table border */
+        border-bottom: none; /* Remove bottom border for seamless look with the table */
+    }
+
+</style>

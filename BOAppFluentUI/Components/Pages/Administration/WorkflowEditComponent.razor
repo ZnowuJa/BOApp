@@ -1,0 +1,243 @@
+﻿@*Workflow Edit Component*@
+
+@using Application.CQRS.General.Employees2Select.Queries
+@using Application.CQRS.General.Organisations.Commands
+@using Application.CQRS.General.Organisations.Queries
+@using Application.CQRS.General.Workflows.Queries
+@using Application.CQRS.ITWarehouseCQRS.Companies.Queries
+@using Application.ITWarehouseCQRS.Departments.Queries
+@using Application.ViewModels.General
+@using Microsoft.AspNetCore.Components.Forms
+@using Application.Interfaces
+@using System.Security.Claims
+@using MediatR
+@using System.Reflection
+
+@inject IMediator _mediator
+@inject ILogger<WorkflowEditComponent> _logger
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@implements IDialogContentComponent<WorkflowTemplateVm>
+
+<FluentDialogHeader ShowDismiss="true">
+    <FluentStack VerticalAlignment="VerticalAlignment.Center">
+        <FluentIcon Value="@(new Icons.Regular.Size24.WindowApps())" />
+        <FluentLabel Typo="Typography.PaneHeader">
+            @Dialog.Instance.Parameters.Title
+        </FluentLabel>
+    </FluentStack>
+</FluentDialogHeader>
+
+<FluentDialogFooter>
+    <FluentButton Appearance="Appearance.Accent" OnClick="@SaveAsync">Save</FluentButton>
+    <FluentButton Appearance="Appearance.Neutral" OnClick="@CancelAsync">Cancel</FluentButton>
+</FluentDialogFooter>
+
+<FluentDialogBody Orientation="Orientation.Horizontal">
+    <EditForm EditContext="_editContext">
+        <FluentValidationValidator @ref="_fluentValidator" />
+
+        @if (!isLoading)
+        {
+            <FluentGrid>
+                <FluentGridItem xxl="3" xl="3">
+                    <FluentNumberField Id="WFIdId" @bind-Value="@Content.Id"
+                                     Disabled="true"
+                                     Label="Id:"
+                                     Placeholder="Id">
+                    </FluentNumberField>
+                </FluentGridItem>
+
+                <FluentGridItem xxl="3" xl="3">
+                    <FluentTextField Id="WFNameId" @bind-Value="@Content.Name"
+                                     Disabled="false"
+                                     Label = "Nazwa:"
+                                     Placeholder="Nazwa..."/>
+                </FluentGridItem>
+                <FluentGridItem xxl="2" xl="2">
+                    <FluentSelect TOption="string"
+                                  Label="Internal Name"
+                                  Items="@classNames"
+                                  Placeholder="Select class"
+                                  @bind-Value="@Content.FormClassName"
+                                  SelectedOptionChanged="FormSelected"/>
+
+                </FluentGridItem>
+            </FluentGrid>
+        }
+        else
+        {
+            <p>Loading...</p>
+        }
+        @if (WfSteps.Count()>0)
+        {
+            <FluentDataGrid Items="@WfSteps" TGridItem="WorkflowStepVm">
+                <PropertyColumn Property="@(i => i.StepNumber)" Sortable="true" Align="Align.Start" Title="Krok numer" Tooltip="true" />
+                <PropertyColumn Property="@(i => i.Status)" Sortable="true" Align="Align.Start" Title="Status" Tooltip="true" />
+                <PropertyColumn Property="@(i => i.WorkflowRole)" Sortable="true" Align="Align.Start" Title="Rola" Tooltip="true" />
+
+                    @* <FluentSelect TOption="string"
+                        Label="Rola w Organizacji"
+                        Id="RoleSelectId"
+                        Width="200px"
+                        Height="250px"
+                        
+                        /> *@
+                <TemplateColumn Title="Actions" Align="Align.End">
+                    <ChildContent Context="stepContext">
+
+                    @{
+                        // var viewId = $"viewid-{context.Id}";
+                            var editId = $"editid-{stepContext.Id}";
+                            var deleteId = $"deleteid-{stepContext.Id}";
+                        // var addId = $"addid-{context.Id}";
+                    }
+
+                    <FluentButton Id="@editId" IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => Edit(stepContext))" Disabled="false" />
+
+                    <FluentTooltip Anchor="@editId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Edit Step</FluentTooltip>
+
+                    <FluentButton Id="@deleteId" IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(stepContext))" Disabled="false" />
+
+                    <FluentTooltip Anchor="@deleteId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Delete Asset</FluentTooltip>
+
+                    </ChildContent>
+                </TemplateColumn>
+                    
+
+            </FluentDataGrid>
+            
+            
+        }
+        
+        <FluentButton IconEnd="@(new Icons.Regular.Size20.Add())" OnClick="@(() => AddNewStep())" Disabled = "@buttonDisabled"> Enter Steps</FluentButton>
+        @if (showAddNewStep)
+        {
+            <WorkflowStepEditorComponent Step="@ANewStep" OnStepAdded="@OnStepAdded" FormClassName="@Content.FormClassName" />
+        }
+        @if (showEditStep)
+        {
+            <WorkflowStepEditorComponent Step="@EditedStep" OnStepAdded="@OnStepEdited" FormClassName="@Content.FormClassName" />
+        }
+
+    </EditForm>
+    @if (message != string.Empty)
+    {
+        <div class="validation-error"><p style="color:red;">@message</p></div>
+    }
+</FluentDialogBody>
+
+@code 
+{
+    [Parameter]
+    public WorkflowTemplateVm Content { get; set; }
+
+    [CascadingParameter]
+    public FluentDialog Dialog { get; set; } = default!;
+
+    private IQueryable<WorkflowStepVm> WfSteps { get; set; }
+    private IQueryable<EmployeeVm> empsList { get; set; }
+
+    private bool isLoading = true;
+
+    private EditContext _editContext;
+    private FluentValidationValidator _fluentValidator;
+
+    private bool editmode = false;
+    private bool showAddNewStep = false;
+    private bool showEditStep = false;
+    private bool buttonDisabled = true;
+    // private bool initLoad = true;
+    private WorkflowStepVm ANewStep = new();
+    private WorkflowStepVm EditedStep { get; set; }
+    private string message = string.Empty;
+
+    private List<string> classNames { get; set; }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        _editContext = new EditContext(Content);
+
+        if (Content.Id == 0)
+        {
+            editmode = true;
+        }
+        // WfSteps = Content?.Steps?.Any() == true ? Content.Steps.AsQueryable() : new List<WorkflowStepVm>().AsQueryable();
+        // Content.Steps = WfSteps.ToList();
+        WfSteps = Content.Steps.AsQueryable();
+        classNames = GetClassNames();
+        // buttonDisabled = Content.FormClassName == string.Empty ? true : false;
+
+        isLoading = false;
+    }
+
+    private async Task Edit(WorkflowStepVm step)
+    {
+        EditedStep = step;
+        showAddNewStep = false;
+        showEditStep = true;
+        Console.WriteLine();
+    }
+    private async Task Delete(WorkflowStepVm step)
+    {
+        Content.Steps.Remove(step);
+        WfSteps = Content.Steps.AsQueryable();
+    }
+
+    private async Task AddNewStep()
+    {
+        Console.WriteLine();
+        showAddNewStep = true;
+    }
+
+    private void OnStepAdded(WorkflowStepVm step)
+    {
+        Content.Steps.Add(step);
+        showAddNewStep = false;
+        ANewStep = new WorkflowStepVm(); 
+        WfSteps = Content.Steps.AsQueryable();
+    }
+    private void OnStepEdited(WorkflowStepVm step)
+    {
+        // Content.Steps.Add(step);
+        showEditStep = false;
+        ANewStep = new WorkflowStepVm();
+        WfSteps = Content.Steps.AsQueryable();
+    }
+    private async Task SaveAsync()
+    {
+        await Dialog.CloseAsync(Content);
+    }
+    private async Task FormSelected(string name)
+    {
+        if (!isLoading)
+        {
+            buttonDisabled = false;
+            Console.WriteLine(name);
+            Console.WriteLine(Content.FormClassName);
+        }
+
+    }
+    private async Task CancelAsync()
+    {
+        await Dialog.CancelAsync();
+    }
+    private List<string> GetClassNames()
+    {
+        Assembly assembly = Assembly.Load("Application");
+        var classes = assembly.GetTypes()
+        // .Where(t => t.IsClass && t.Title.EndsWith("FormVm"))
+        .Where(t => t.IsClass && typeof(IFormVm).IsAssignableFrom(t))
+        .Select(t => t.Name)
+        .ToList();
+        // if(Content.Id == 0)
+        // {
+        //     classes.Insert(0, "Select form");
+        // }
+
+        //remove below before publishing in production
+        
+
+        return classes;
+    }
+}

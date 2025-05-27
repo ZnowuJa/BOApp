@@ -1,0 +1,356 @@
+﻿@using Application.Forms.Accounting.BuisnessTravelSmallClasses
+<p xmlns="http://www.w3.org/1999/html"></p>
+
+<FluentSlider @bind-Value="@Spacing" Min="0" Max="10" Step="1" Style="max-width: 300px; margin-top: 18px;" />
+
+<FluentGrid Style="max-width: 1000px;" Spacing="@Spacing">
+    <FluentGridItem xs="12" Style="background-color: var(--neutral-layer-3); padding: 4px; border-radius: 8px;">
+        <div class="card">
+            <FluentLabel>Zapewnione posiłki</FluentLabel>
+        </div>
+    </FluentGridItem>
+    <FluentGridItem xs="1">
+        <div class="card">
+            <FluentLabel>Etap</FluentLabel>
+        </div>
+        
+    </FluentGridItem>
+    <FluentGridItem xs="1">
+        <div class="card">
+            <FluentLabel>Państwo</FluentLabel>
+        </div>
+        
+    </FluentGridItem>
+    <FluentGridItem xs="2">
+        <div class="card">
+            <FluentLabel>Śniadania</FluentLabel>
+        </div>
+        
+    </FluentGridItem>
+    <FluentGridItem xs="2">
+        <div class="card">
+            <FluentLabel>Obiady</FluentLabel>
+        </div>
+        
+    </FluentGridItem>
+    <FluentGridItem xs="2">
+        <div class="card">
+            <FluentLabel>Kolacje</FluentLabel>
+        </div>
+        
+    </FluentGridItem>
+    <FluentGridItem xs="1">
+        <div class="card">
+            <FluentLabel>Potrącenia</FluentLabel>
+        </div>
+        
+    </FluentGridItem>
+    <FluentGridItem xs="1">
+        <div class="card">
+            <FluentLabel>Waluta</FluentLabel>
+        </div>
+        
+    </FluentGridItem>
+    <FluentGridItem xs="1">
+        <div class="card">
+            <FluentLabel>Maks dni.</FluentLabel>
+        </div>
+        
+    </FluentGridItem>
+    
+    <p></p>
+    @{
+    var mealId = 0;
+    }
+    @foreach (var meal in _content)
+    {
+    mealId++;
+    var breakId = $"break_{mealId}";
+    var lunchId = $"lunch_{mealId}";
+    var dinnerId = $"dinner_{mealId}";
+    @if (meal.Duration > 0)
+    {
+    <FluentGridItem xs="1">
+        <div class="card">
+            <FluentLabel>@meal.StageId</FluentLabel>
+        </div>
+
+    </FluentGridItem>
+    <FluentGridItem xs="1">
+        <div class="card">
+            <FluentLabel>@meal.CountryName</FluentLabel>
+        </div>
+
+    </FluentGridItem>
+    <FluentGridItem xs="2">
+        <div class="card">
+            <InputNumber Id="@breakId"
+                             Min="0"
+                             Max="@meal.Duration.ToString()"
+                             @bind-Value:get="@meal.CoveredBreakfasts"
+                             @bind-Value:set="(value => HandleMealChanged(meal, value, nameof(meal.CoveredBreakfasts)))"
+                             class="customFluentNumber"
+                             Disabled = "@Disabled"
+                             @oninput="@(e => HandleInputChange(e, meal, nameof(meal.CoveredBreakfasts)))" />
+        </div>
+
+    </FluentGridItem>
+    <FluentGridItem xs="2">
+        <div class="card">
+            <FluentLabel><InputNumber Id="@lunchId"
+                             Min="0"
+                             Max="@meal.Duration.ToString()"
+                             @bind-Value:get="@meal.CoveredLunches"
+                             @bind-Value:set="(value => HandleMealChanged(meal, value, nameof(meal.CoveredLunches)))"
+                             class="customFluentNumber"
+                             Disabled="@Disabled"
+                             @oninput="@(e => HandleInputChange(e, meal, nameof(meal.CoveredLunches)))" /></FluentLabel>
+        </div>
+
+    </FluentGridItem>
+    <FluentGridItem xs="2">
+        <div class="card">
+            <FluentLabel>                <InputNumber Id="@dinnerId"
+                             Min="0"
+                             Max="@meal.Duration.ToString()"
+                             @bind-Value:get="@meal.CoveredDinners"
+                             @bind-Value:set="(value => HandleMealChanged(meal, value, nameof(meal.CoveredDinners)))"
+                             class="customFluentNumber"
+                             Disabled="@Disabled"
+                             @oninput="@(e => HandleInputChange(e, meal, nameof(meal.CoveredDinners)))" /></FluentLabel>
+        </div>
+
+    </FluentGridItem>
+    <FluentGridItem xs="1">
+        <div class="card">
+            <FluentLabel>@meal.Total</FluentLabel>
+        </div>
+
+            </FluentGridItem>
+    <FluentGridItem xs="1">
+        <div class="card">
+            <FluentLabel>@meal.AllowanceRateCurrency</FluentLabel>
+        </div>
+
+    </FluentGridItem>
+    <FluentGridItem xs="1">
+        <div class="card">
+            <FluentLabel>@meal.Duration</FluentLabel>
+        </div>
+
+    </FluentGridItem>
+    
+    }
+    }
+</FluentGrid>
+
+<p></p>
+
+<FluentSlider @bind-Value="@Spacing" Min="0" Max="10" Step="1" Style="max-width: 300px; margin-top: 18px;" />
+
+<FluentGrid Style="max-width: 1000px; margin-top: 16px;" Spacing="@Spacing">
+    <FluentGridItem xs="12">
+        <div class="card-header">
+            <FluentLabel Style="font-size: 1rem; font-weight: 600;">Zapewnione posiłki</FluentLabel>
+        </div>
+    </FluentGridItem>
+
+    @* Headers *@
+    @foreach (var header in new[] { "Etap", "Państwo", "Śniadania", "Obiady", "Kolacje", "Potrącenia", "Waluta", "Maks dni." })
+    {
+    <FluentGridItem xs="@(header == "Śniadania" || header == "Obiady" || header == "Kolacje" ? 2 : 1)">
+        <div class="card">
+            <FluentLabel class="fluent-label">@header</FluentLabel>
+        </div>
+    </FluentGridItem>
+    }
+
+    @* Meals content *@
+    @{
+    var mealId = 0;
+    }
+    @foreach (var meal in _content)
+    {
+    mealId++;
+    if (meal.Duration > 0)
+    {
+    <FluentGridItem xs="1">
+        <div class="card">
+            <FluentLabel class="fluent-label">@meal.StageId</FluentLabel>
+        </div>
+    </FluentGridItem>
+    <FluentGridItem xs="1">
+        <div class="card">
+            <FluentLabel class="fluent-label">@meal.CountryName</FluentLabel>
+        </div>
+    </FluentGridItem>
+
+    @* Inputs *@
+    @foreach (var (label, value, id) in new[]
+    {
+    ("Śniadania", meal.CoveredBreakfasts, $"break_{mealId}"),
+    ("Obiady", meal.CoveredLunches, $"lunch_{mealId}"),
+    ("Kolacje", meal.CoveredDinners, $"dinner_{mealId}")
+    })
+    {
+    <FluentGridItem xs="2">
+        <div class="card">
+            <InputNumber Id="@id"
+                         Min="0"
+                         Max="@meal.Duration.ToString()"
+                         @bind-Value:get="@value"
+                         @bind-Value:set="value => HandleMealChanged(meal, value, label)"
+                         class="customFluentNumber"
+                         Disabled="@Disabled"
+                         @oninput="e => HandleInputChange(e, meal, label)" />
+        </div>
+    </FluentGridItem>
+    }
+
+    <FluentGridItem xs="1">
+        <div class="card">
+            <FluentLabel class="fluent-label">@meal.Total</FluentLabel>
+        </div>
+    </FluentGridItem>
+    <FluentGridItem xs="1">
+        <div class="card">
+            <FluentLabel class="fluent-label">@meal.AllowanceRateCurrency</FluentLabel>
+        </div>
+    </FluentGridItem>
+    <FluentGridItem xs="1">
+        <div class="card">
+            <FluentLabel class="fluent-label">@meal.Duration</FluentLabel>
+        </div>
+    </FluentGridItem>
+    }
+    }
+</FluentGrid>
+
+<FluentTooltip Anchor="MealsInfoId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top MaxWidth="250px" Delay=50> Proszę podać ilość zapewnionych posiłków na poszczególnych etapach podróży.</FluentTooltip>
+<FluentTooltip Anchor="MealsToDeductionId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top MaxWidth="250px" Delay=50> Proszę podać ilość zapewnionych posiłków na poszczególnych etapach podróży.</FluentTooltip>
+<FluentTooltip Anchor="MealsTotalDeductionId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Right MaxWidth="250px" Delay=50> Kwota do potrącenia z diety.</FluentTooltip>
+
+@code {
+    [Parameter] public List<DailyMeal> _content { get; set; }
+    [Parameter] public EventCallback<List<DailyMeal>> OnDailyMealChanged { get; set; }
+    [Parameter] public bool Disabled { get; set; }
+    int Spacing = 0;
+    // private Timer _debounceTimer;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Console.WriteLine(_content.Count);
+       
+    }
+    // private void HandleDebouncedChange(ChangeEventArgs e, DailyMeal meal, string propertyName)
+    // {
+    //     if (_debounceTimer != null)
+    //     {
+    //         _debounceTimer.Dispose();
+    //     }
+
+    //     _debounceTimer = new Timer(async _ =>
+    //     {
+    //         await InvokeAsync(() => HandleMealPropertyChange(e, meal, propertyName));
+    //     }, null, 50, Timeout.Infinite);
+    // }
+    private async Task HandleMealChanged(DailyMeal m, int v, string p)
+    {
+        
+        var property = m.GetType().GetProperty(p);
+        if (property != null && property.CanWrite)
+        {
+            var currentValue = (int)property.GetValue(m);
+            if (currentValue != v)
+            {
+                property.SetValue(m, v);
+                await OnDailyMealChanged.InvokeAsync(_content);
+            }
+
+        }
+
+    }
+    private void HandleInputChange(ChangeEventArgs e, DailyMeal meal, string propertyName)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int result))
+        {
+            HandleMealChanged(meal, result, propertyName);
+        }
+        else
+        {
+            HandleMealChanged(meal, 0, propertyName);
+        }
+    }
+    private async Task HandleMealPropertyChange(ChangeEventArgs e, DailyMeal meal, string propertyName)
+    {
+        if (int.TryParse(e.Value.ToString(), out int newValue))
+        {
+            var property = meal.GetType().GetProperty(propertyName);
+            if (property != null && property.CanWrite)
+            {
+                var currentValue = property.GetValue(meal);
+                if (!currentValue.Equals(newValue))
+                {
+                    property.SetValue(meal, newValue);
+                    Console.WriteLine($"Updated value of {propertyName}: {newValue}");
+                    await OnDailyMealChanged.InvokeAsync(_content);
+                }
+            }
+        }
+    }
+}
+
+<style>
+    .card-header {
+        background-color: var(--neutral-layer-1);
+        padding: 4px;
+        border-radius: 4px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        transition: box-shadow 0.2s ease-in-out;
+    }
+    .card {
+        background-color: var(--neutral-layer-2);
+        padding: 4px;
+        border-radius: 4px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        transition: box-shadow 0.2s ease-in-out;
+    }
+
+    .card:hover {
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+    }
+
+    .customFluentNumber {
+        width: 100%;
+        font-size: 0.95rem;
+        padding: 6px 6px;
+        border-radius: 6px;
+        border: 1px solid var(--neutral-stroke-rest);
+        background-color: var(--neutral-layer-1);
+        box-sizing: border-box;
+        transition: border-color 0.2s;
+    }
+
+    .customFluentNumber:focus {
+        outline: none;
+        border-color: var(--accent-fill-rest);
+    }
+
+    .fluent-label {
+        font-weight: 500;
+        color: var(--neutral-foreground-rest);
+    }
+    .fluent-label-header {
+        font-weight: 900;
+        line-height: 2;
+        color: var(--neutral-foreground-rest);
+    }
+</style>

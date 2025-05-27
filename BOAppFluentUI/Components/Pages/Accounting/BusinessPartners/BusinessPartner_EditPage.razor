@@ -1,0 +1,292 @@
+﻿@* Business Partner Edit Component *@
+@using Application.ViewModels.Accounting
+@using Application.Forms.Accounting.Enums
+@using Application.CQRS.AccountingCQRS.Countries.Queries
+@using Application.ViewModels.General
+@using Application.CQRS.General.Organisations.Queries
+
+@inject IMediator _mediator
+@implements IDialogContentComponent<BusinessPartnerVm>
+
+<!-- Header -->
+<FluentDialogHeader ShowDismiss="true">
+    <FluentStack VerticalAlignment="VerticalAlignment.Center">
+        <FluentIcon Value="@(new Icons.Regular.Size24.BuildingBank())" />
+        <FluentLabel Typo="Typography.PaneHeader">
+            @Dialog.Instance.Parameters.Title
+        </FluentLabel>
+    </FluentStack>
+</FluentDialogHeader>
+
+<!-- Body -->
+<FluentDialogBody Style="overflow-y: auto; overflow-x: auto;">
+    <EditForm EditContext="_editContext">
+        <FluentValidationValidator @ref="_fluentValidator" />
+
+        <div class="form-section">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Nazwa:</label>
+                    <FluentTextField @bind-Value="@Content.Name" @oninput="OnInputChanged" style="width: 100%;" />
+                    <FluentValidationMessage For="@(() => Content.Name)" />
+                </div>
+
+                <div class="form-group">
+                    <label>Typ kontrahneta:</label>
+                    <FluentSelect Items="@_businessPartnerTypes" @bind-Value="Content.BusinessPartnerType" Width="100%" />
+                    <FluentValidationMessage For="@(() => Content.BusinessPartnerType)" />
+                </div>
+            </div>
+                <div class="form-grid-3">
+
+                    <div class="form-group">
+                        <label>Ulica:</label>
+                        <FluentTextField @bind-Value="@Content.Street" style="width: 100%;" />
+                        <FluentValidationMessage For="@(() => Content.Street)" />
+                    </div>
+
+                    <div class="form-group">
+                        <label>Kod pocztowy:</label>
+                        <FluentTextField @bind-Value="@Content.PostalCode" style="width: 100%;" />
+                        <FluentValidationMessage For="@(() => Content.PostalCode)" />
+                    </div>
+
+                    <div class="form-group">
+                        <label>Miasto:</label>
+                        <FluentTextField @bind-Value="@Content.City" style="width: 100%;" />
+                        <FluentValidationMessage For="@(() => Content.City)" />
+                    </div>
+
+                </div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label>Kraj:</label>
+                    <FluentCombobox TOption="string"
+                                    Items="@itemCountryNameList"
+                                    Autocomplete="ComboboxAutocomplete.Both"
+                                    @bind-Value="@Content.Country"
+                                    Height="200px"
+                                    style="width: 100%;" />
+                    <FluentValidationMessage For="@(() => Content.Country)" />
+                </div>
+
+                <div class="form-group">
+                    <label>Domyślna waluta:</label>
+                    <FluentSelect TOption="CurrencyVm"
+                                  Items="@itemCurrencyList"
+                                  OptionValue="@(p => p.Name)"
+                                  OptionText="@(p => p.Name)"
+                                  @bind-Value="@Content.DefaultCurrency"
+                                  Height="200px"
+                                  style="width: 100%;" />
+                    <FluentValidationMessage For="@(() => Content.DefaultCurrency)" />
+                </div>
+
+                <div class="form-group">
+                    <label>VAT ID:</label>
+                    <FluentTextField @bind-Value="@Content.VatId" style="width: 100%;" />
+                    <FluentValidationMessage For="@(() => Content.VatId)" />
+                </div>
+
+                <div class="form-group">
+                    <label>Identyfikator SAP:</label>
+                    <FluentTextField @bind-Value="@Content.SAPId" style="width: 100%;" />
+                    <FluentValidationMessage For="@(() => Content.SAPId)" />
+                </div>
+
+                <div class="form-group">
+                    <label>Nr konta bankowego:</label>
+                    <FluentTextField @bind-Value="@Content.BankAccountNumber" style="width: 100%;" />
+                    <FluentValidationMessage For="@(() => Content.BankAccountNumber)" />
+                </div>
+
+                <div class="form-group">
+                    <label>Lokalizacja:</label>
+                    @*                     <FluentSelect TOption="OrganisationVm"
+                    Items="@itemSAPNumberList"
+                    OptionValue="@(p => p.SapNumber)"
+                    OptionText="@(p => p.SapNumber)"
+                    @bind-Value="@Content.Location"
+                    style="width: 100%;" />
+                    <FluentValidationMessage For="@(() => Content.Location)" /> *@
+
+                    <FluentAutocomplete TOption="LocationVm"
+                                        SelectValueOnTab="true"
+                                        AutoComplete="on"
+                                        OnOptionsSearch="@OnLocationSearch"
+                                        MaximumSelectedOptions="1"
+                                        MaximumOptionsSearch="130"
+                                        OptionText="@(p => p.SapNumber + ' ' + p.Description)"
+                                        @bind-SelectedOptions="@_selectedLocation"
+                                        @bind-SelectedOptions:after="@HandleLocationChange"
+                                        style="width: 100%;">
+
+                        <MaximumSelectedOptionsMessage>
+                            Można wybrać tylko jedną lokalizację.
+                        </MaximumSelectedOptionsMessage>
+                    </FluentAutocomplete>
+
+                    <FluentValidationMessage For="@(() => Content.Location)" />
+
+                </div>
+
+                <div class="form-group">
+                    <label>Przelewy rodzaj:</label>
+                    <FluentSelect Items="@_bankTransferTypes" @bind-Value="Content.BankTransferType" Width="100%" Height="250px" />
+                    <FluentValidationMessage For="@(() => Content.BankTransferType)" />
+                </div>
+
+                <div class="form-group">
+                    <label>SAPFormType:</label>
+                    <FluentSelect Items="@_sapFormTypes" @bind-Value="Content.SAPFormType" Width="100%" />
+                    <FluentValidationMessage For="@(() => Content.SAPFormType)" />
+                </div>
+            </div>
+        </div>
+    </EditForm>
+
+
+</FluentDialogBody>
+
+<!-- Footer -->
+<FluentDialogFooter>
+    <FluentButton Appearance="Appearance.Accent" OnClick="@SaveAsync">Zapisz</FluentButton>
+    <FluentButton Appearance="Appearance.Neutral" OnClick="@CancelAsync">Anuluj</FluentButton>
+</FluentDialogFooter>
+
+
+@code {
+    [Parameter]
+    public BusinessPartnerVm Content { get; set; } = default!;
+    [Parameter]
+    public bool IsCreateMode { get; set; }
+    [CascadingParameter]
+    public FluentDialog Dialog { get; set; } = default!;
+
+    private EditContext _editContext;
+
+    private FluentValidationValidator? _fluentValidator;
+
+    private IQueryable<CurrencyVm> itemCurrencyList { get; set; }
+    private IQueryable<string> itemCountryNameList { get; set; }
+
+    private IEnumerable<LocationVm> _locations { get; set; } = new List<LocationVm>().AsQueryable();
+    private IEnumerable<LocationVm> _selectedLocation = Array.Empty<LocationVm>();
+    private IQueryable<string> _bankTransferTypes => BankTransferTypes.All.Select(c => c.Display).AsQueryable();
+
+    // private List<string> _bankTransferTypes = new List<string>
+    // {
+    //     "Zwrot do korekty","Uzywane","Polisy","Podatkowe","Inne","Zwrot nadplaty","Proforma","Zwrot do TU","Administracyjne","Okulary","Nowe od Dealera","Clo","PCC","CEPIK"
+    // };
+
+    private List<string> _businessPartnerTypes = new List<string>
+    {
+        "Ubezpieczyciel", "Dostawca", "Inny"
+    };
+
+    private List<string> _sapFormTypes = new List<string>
+    {
+        "FIBLA POP",
+        "FIBLA ROP",
+        "FREE FORM",
+    };
+
+    private void OnInputChanged(ChangeEventArgs e)
+    {
+        StateHasChanged();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _editContext = new EditContext(Content);
+        itemCurrencyList = await _mediator.Send(new GetAllCurrenciesForSelectQuery());
+        _locations = await _mediator.Send(new GetLocationsQuery());
+        if (!string.IsNullOrWhiteSpace(Content.Location))
+        {
+            var match = _locations.FirstOrDefault(x => x.SapNumber == Content.Location);
+            if (match is not null)
+            {
+                _selectedLocation = new List<LocationVm> { match };
+            }
+        }
+        if(Content.Id == 0)
+        {
+            ApplyDefaultsForNewItem();
+        }
+        var itemCountryNameListObject = await _mediator.Send(new GetAllCountryForSelectQuery());
+        itemCountryNameList = itemCountryNameListObject.Select(i => i.Name).AsQueryable();
+        base.OnInitialized();
+    }
+
+    private void ApplyDefaultsForNewItem()
+    {
+        Content.BankTransferType = string.IsNullOrWhiteSpace(Content.BankTransferType) ? _bankTransferTypes.FirstOrDefault() : Content.BankTransferType;
+        Content.BusinessPartnerType = string.IsNullOrWhiteSpace(Content.BusinessPartnerType) ? _businessPartnerTypes.FirstOrDefault() : Content.BusinessPartnerType;
+        Content.SAPFormType = string.IsNullOrWhiteSpace(Content.SAPFormType) ? _sapFormTypes.FirstOrDefault() : Content.SAPFormType;
+        Content.DefaultCurrency = string.IsNullOrWhiteSpace(Content.DefaultCurrency) ? itemCurrencyList.FirstOrDefault()?.Name : Content.DefaultCurrency;
+    }
+
+
+    private async Task OnLocationSearch(OptionsSearchEventArgs<LocationVm> e)
+    {
+        if (e.Text != null)
+        {
+            e.Items = _locations.Where(a =>
+                a.Description.Contains(e.Text, StringComparison.OrdinalIgnoreCase) ||
+                a.SapNumber.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
+        }
+    }
+
+    private async Task HandleLocationChange()
+    {
+        var loc = _selectedLocation.FirstOrDefault();
+        if (loc is not null)
+            Content.Location = loc.SapNumber;
+        _editContext?.NotifyFieldChanged(FieldIdentifier.Create(() => Content.Location));
+    }
+
+    private async Task SaveAsync()
+    {
+        Console.WriteLine("SaveAsync starts...");
+        if (_editContext.Validate())
+        {
+            Console.WriteLine("EditContext Validation OK!...");
+            await Dialog.CloseAsync(Content);
+        }
+        else
+        {
+            Console.WriteLine("EditContext Validation NOT OK!...");
+            return;
+        }
+        if (Content.Id != 0)
+        {
+            await Dialog.CloseAsync(Content);
+        }
+    }
+
+    private async Task CancelAsync()
+    {
+        await Dialog.CancelAsync();
+    }
+}
+
+<style>
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+    }
+
+    .form-grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+        margin-top: 15px;
+        margin-bottom: 15px;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+    }
+</style>

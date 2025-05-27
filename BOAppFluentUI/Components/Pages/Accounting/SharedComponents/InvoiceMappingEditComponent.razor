@@ -1,0 +1,185 @@
+﻿@using Application.CQRS.AccountingCQRS.CostCenters.Queries
+@using Application.CQRS.AccountingCQRS.GLAccounts.Queries
+@using Application.CQRS.AccountingCQRS.VATRates.Queries
+@using Application.CQRS.General.Organisations.Queries
+@using Application.ViewModels.Accounting
+@using Application.ViewModels.General
+@inject IMediator _mediator
+<EditForm EditContext="@ParentEditContext">
+
+
+    <table>
+        <tbody>
+            <tr class="fluent-row">
+                <td>
+                    <FluentAutocomplete TOption="LocationVm"
+                    Disabled="@Disabled"
+                    SelectValueOnTab="true"
+                    AutoComplete="on"
+                    OnOptionsSearch="@OnLocationSearch"
+                    Placeholder="Wybierz lokalizację..."
+                    MaximumSelectedOptions="1"
+                    OptionText="@(p => p.SapNumber + ' ' + p.Name)"
+                    @bind-SelectedOptions="@_selectedLocation"
+                    @bind-SelectedOptions:after="@HandleLocationChange"
+                    Width="150px"
+                    class="left-align-text"
+                    />
+                </td>
+                <td>
+                    <FluentAutocomplete TOption="CostCenterVm"
+                    Disabled="@Disabled"
+                    SelectValueOnTab="true"
+                    AutoComplete="on"
+                    OnOptionsSearch="@OnCostCenterSearch"
+                    Placeholder="Wybierz MPK..."
+                    MaximumSelectedOptions="1"
+                    OptionText="@(p => p.MPK + ' ' + p.Description)"
+                    @bind-SelectedOptions="@_selectedCostCenter"
+                    @bind-SelectedOptions:after="@HandleCostCenterChange"
+                    Width="150px"
+                    class="left-align-text"
+                    />
+                </td>
+                <td>
+                    <FluentAutocomplete TOption="GLAccountVm"
+                    Disabled="@Disabled"
+                    SelectValueOnTab="true"
+                    AutoComplete="on"
+                    OnOptionsSearch="@OnGLAccountSearch"
+                    Placeholder="Wybierz konto..."
+                    MaximumSelectedOptions="1"
+                    OptionText="@(p => p.AccountNumber + ' ' + p.Description)"
+                    @bind-SelectedOptions="@_selectedGlAccount"
+                    @bind-SelectedOptions:after="@HandleGlAccountChange"
+                    Width="150px"
+                    class="left-align-text"
+                    />
+                </td>
+                <td>
+                    <FluentAutocomplete TOption="VATRateVm"
+                    Disabled="@Disabled"
+                    SelectValueOnTab="true"
+                    AutoComplete="on"
+                    OnOptionsSearch="@OnVATRateSearch"
+                    Placeholder="Wybierz stawkę VAT..."
+                    MaximumSelectedOptions="1"
+                    OptionText="@(p => p.Percentage.ToString() + ' ' + p.Name)"
+                    @bind-SelectedOptions="@_selectedVatRate"
+                    @bind-SelectedOptions:after="@HandleVatRateChange"
+                    Width="150px"
+                    class="left-align-text"
+                    />
+                    @if (InvoiceMapping.VATRate != null)
+                    {
+                        <FluentValidationMessage For="@(() => InvoiceMapping.VATRate.Id)" class="validation-error" />
+                    }
+                    <FluentValidationMessage For="@(() => InvoiceMapping.VATRate)" class="validation-error" />
+                </td>
+                <td>
+                    <FluentNumberField @bind-Value="@InvoiceMapping.AmountNet" />
+                    <FluentValidationMessage 
+                    For="@(() => InvoiceMapping.AmountNet)"
+                    class="validation-error" />
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+</EditForm>
+
+@code {
+    [Parameter] public InvoiceMapping InvoiceMapping { get; set; }
+    [Parameter] public bool Disabled { get; set; } = false;
+    [Parameter] public IEnumerable<LocationVm> Locations { get; set; }
+    [Parameter] public IEnumerable<CostCenterVm> CostCenters { get; set; }
+    [Parameter] public IEnumerable<GLAccountVm> GLAccounts { get; set; }
+    [Parameter] public IEnumerable<VATRateVm> VatRates { get; set; }
+    [Parameter] public CostCenterVm? settledCostCenter { get; set; }
+    [Parameter] public LocationVm? settledLocation { get; set; }
+    [Parameter] public GLAccountVm? settledGLAccount { get; set; }
+    [Parameter] public VATRateVm? settledVatRate { get; set; }
+    [Parameter] public EditContext ParentEditContext { get; set; }
+
+    IEnumerable<LocationVm> _selectedLocation = Array.Empty<LocationVm>();
+    IEnumerable<CostCenterVm> _selectedCostCenter = Array.Empty<CostCenterVm>();
+    IEnumerable<GLAccountVm> _selectedGlAccount = Array.Empty<GLAccountVm>();
+    IEnumerable<VATRateVm> _selectedVatRate = Array.Empty<VATRateVm>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        Locations = await _mediator.Send(new GetLocationsQuery());
+        CostCenters = await _mediator.Send(new GetAllCostCenterIEnumQuery());
+        GLAccounts = await _mediator.Send(new GetAllGLAccountIEnumQuery());
+        VatRates = await _mediator.Send(new GetAllVatRateIEnumQuery());
+        if (InvoiceMapping.CostCenter != null)
+        {
+            _selectedCostCenter = new List<CostCenterVm> { InvoiceMapping.CostCenter };
+        }
+        if (InvoiceMapping.GLAccount != null)
+        {
+            _selectedGlAccount = new List<GLAccountVm> { InvoiceMapping.GLAccount };
+        }
+        if (InvoiceMapping.Location != null)
+        {
+            _selectedLocation = new List<LocationVm> { InvoiceMapping.Location };
+        }
+        if (InvoiceMapping.VATRate != null){
+            _selectedVatRate = new List<VATRateVm> { InvoiceMapping.VATRate };
+        }
+
+    }
+
+    private void HandleLocationChange()
+    {
+        InvoiceMapping.Location = _selectedLocation.FirstOrDefault();
+
+        Console.WriteLine();
+    }
+    private void HandleCostCenterChange()
+    {
+        InvoiceMapping.CostCenter = _selectedCostCenter.FirstOrDefault();
+
+        Console.WriteLine();
+    }
+    private void HandleGlAccountChange()
+    {
+        InvoiceMapping.GLAccount = _selectedGlAccount.FirstOrDefault();
+
+        Console.WriteLine();
+    }
+    private void HandleVatRateChange()
+    {
+        
+        InvoiceMapping.VATRate = _selectedVatRate.FirstOrDefault();
+
+        Console.WriteLine();
+    }
+    private void OnLocationSearch(OptionsSearchEventArgs<LocationVm> e)
+    {
+        e.Items = Locations.Where(g => g.Name.Contains(e.Text, StringComparison.OrdinalIgnoreCase)
+        || g.SapNumber.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
+    }
+    private void OnCostCenterSearch(OptionsSearchEventArgs<CostCenterVm> e)
+    {
+        e.Items = CostCenters.Where(g => g.MPK.Contains(e.Text, StringComparison.OrdinalIgnoreCase)
+        || g.Description.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
+    }
+    private void OnGLAccountSearch(OptionsSearchEventArgs<GLAccountVm> e)
+    {
+        e.Items = GLAccounts.Where(g => g.AccountNumber.Contains(e.Text, StringComparison.OrdinalIgnoreCase)
+        || g.Description.Contains(e.Text, StringComparison.OrdinalIgnoreCase));
+    }
+    private void OnVATRateSearch(OptionsSearchEventArgs<VATRateVm> e)
+    {
+        e.Items = VatRates.Where(g => g.Name.Contains(e.Text, StringComparison.OrdinalIgnoreCase)
+        || g.Percentage.ToString().Contains(e.Text, StringComparison.OrdinalIgnoreCase));
+    }
+}
+<style>
+    .left-align-text .fluent-option {
+        text-align: left;
+    }
+
+    
+</style>

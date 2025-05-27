@@ -1,0 +1,127 @@
+﻿@* Category Edit Component *@
+
+@using MediatR
+@inject IMediator _mediator;
+@implements IDialogContentComponent<CategoryVm>
+
+@* Header *@
+<FluentDialogHeader ShowDismiss="true">
+    <FluentStack VerticalAlignment="VerticalAlignment.Center">
+        <FluentIcon Value="@(new Icons.Regular.Size24.WindowApps())" />
+        <FluentLabel Typo="Typography.PaneHeader">
+            @Dialog.Instance.Parameters.Title
+        </FluentLabel>
+    </FluentStack>
+</FluentDialogHeader>
+
+@* Footer *@
+<FluentDialogFooter>
+    <FluentButton Appearance="Appearance.Accent" OnClick="@SaveAsync">Save</FluentButton>
+    <FluentButton Appearance="Appearance.Neutral" OnClick="@CancelAsync">Cancel</FluentButton>
+</FluentDialogFooter>
+
+@* Body *@
+<FluentDialogBody Orientation="Orientation.Horizontal">
+    <EditForm Model="_editContext">
+        @* <DataAnnotationsValidator/> *@
+
+        <FluentTextField Id="Name" @bind-Value="@Content.Name" Placeholder="Enter name" />
+        <FluentValidationMessage For="@(() => Content.Name)" />
+
+        <FluentTextField Id="Prefix" @bind-Value="@Content.Prefix" Placeholder="Enter prefix" />
+        <FluentValidationMessage For="@(() => Content.Prefix)" />
+
+        @{
+            // Check if it's an Edit operation
+
+            if (Content.Id != 0)
+            {
+                <FluentSelect TOption="CategoryTypeVm"
+                              Label="Select a category type"
+                              Items="@catTypeVmList"
+                              Id="Id"
+                              Width="150px"
+                              Height="250px"
+                              OptionValue="@(p => p.Id.ToString())"
+                              OptionText="@(p => p.Name)"
+                              @bind-SelectedOption="@Content.CategoryTypeVm" />
+            }
+            else
+            {
+                // For new records, don't bind SelectedOption to Content.CategoryTypeVm
+                <FluentSelect TOption="CategoryTypeVm"
+                              Label="Select a category xtype"
+                              Items="@catTypeVmList"
+                              Id="Id"
+                              Width="150px"
+                              Height="250px"
+                              OptionValue="@(p => p.Id.ToString())"
+                              OptionText="@(p => p.Name)"
+                              @bind-Value="@selectedValue" />
+                              
+            }
+        }
+
+        <FluentValidationMessage For="@(() => Content.CategoryTypeVm)" />
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="validation-error">
+                @errorMessage
+            </div>
+        }
+    </EditForm>
+</FluentDialogBody>
+
+
+@code {
+
+    // @bind-SelectedOption="@SelectedOption"
+
+    [Parameter]
+    public CategoryVm Content { get; set; } = default!;
+
+    [CascadingParameter]
+    public FluentDialog Dialog { get; set; } = default!;
+
+    private EditContext _editContext;
+    // private EditContext _editContextCatgoryType;
+
+    private string selectedValue = "0";
+
+    private string errorMessage;
+
+    private IQueryable<CategoryTypeVm> catTypeVmList { get; set; }
+    private CategoryTypeVm SelectedOption = new();
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        _editContext = new EditContext(Content);
+
+        catTypeVmList = await _mediator.Send(new GetAllCategoryTypesQuery());
+
+        base.OnInitialized();
+    }
+
+    private async Task SaveAsync()
+    {
+        if (Content.Id != 0)
+        {
+            await Dialog.CloseAsync(Content);
+        }
+        else
+        {
+            Content.CategoryTypeVm = SelectedOption;
+            await Dialog.CloseAsync(Content);
+        }
+    }
+
+    private async Task CancelAsync()
+    {
+        await Dialog.CancelAsync();
+    }
+
+}
+
+

@@ -1,0 +1,181 @@
+﻿@page "/departments"
+@using Application.ViewModels.General
+@using Application.ITWarehouseCQRS.Departments.Queries
+@using Application.ITWarehouseCQRS.Departments.Commands
+@using Application.ITWarehouseCQRS.Warehouses.Queries
+@using Application.CQRS.ITWarehouseCQRS.Employees.Queries
+@using Application.CQRS.ITWarehouseCQRS.Companies.Queries
+@using BOAppFluentUI.Components.Pages.ITWarehouseAdmin.Company
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize(Policy = "Technician")]
+@inject IMediator _mediator
+@inject ILogger<Company_Page> _logger
+@inject IDialogService _dialogService
+@inject IToastService _toastService
+
+
+<h3>Departments</h3>
+
+@if (depts == null)
+{
+    <FluentProgressRing>Loading...</FluentProgressRing>
+
+}
+else
+{
+
+    <FluentDataGrid Items="@filteredDepts" Pagination="@pagination" TGridItem="DepartmentVm" GridTemplateColumns="80px repeat(6, 0.75fr)" ResizableColumns="true">
+
+        @foreach (var column in filterColumns.Where(c => c.IsVisible))
+        {
+            <PropertyColumn TGridItem="DepartmentVm" TProp="string" Property="@(Utils.GetPropertyExpression(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label" Filtered="!string.IsNullOrWhiteSpace(column.Filter)">
+                <ColumnOptions>
+                    <div class="search-box">
+                        <FluentSearch type="search" Autofocus="true" @bind-Value="column.Filter" @oninput="(args) => Utils.HandleFilterDebounced(column, args, debounceDispatcher, () => InvokeAsync(StateHasChanged))" Placeholder="@($"{column.Label.ToLower()}...")" />
+                    </div>
+                </ColumnOptions>
+            </PropertyColumn>
+        }
+
+        <TemplateColumn Title="Actions" Align="Align.End">
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" />
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => EditCatType(context))" />
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" />
+
+        </TemplateColumn>
+    </FluentDataGrid>
+    <FluentPaginator State="@pagination" />
+    <FluentButton IconStart="@(new Icons.Regular.Size24.Add())" OnClick="@(() => Add())" />
+}
+
+
+
+@code {
+    private IQueryable<DepartmentVm> depts;
+    private IQueryable<DepartmentVm> filteredDepts => depts.Where(x =>
+    filterColumns.All(column => string.IsNullOrWhiteSpace(column.Filter) ||
+    column.Property(x).Contains(column.Filter, StringComparison.CurrentCultureIgnoreCase)));
+
+    PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
+    private DebounceDispatcher debounceDispatcher = new DebounceDispatcher();
+
+    private List<FilterColumn<DepartmentVm>> filterColumns = new List<FilterColumn<DepartmentVm>>
+    {
+        new FilterColumn<DepartmentVm> { FirstRow = true, Label = "ID", Property = c => c.Id.ToString(), IsVisible = true, Width = "80px" },
+        new FilterColumn<DepartmentVm> { FirstRow = true, Label = "Numer", Property = c => c.DeptNumber, IsVisible = true, Width = "1FR" },
+        new FilterColumn<DepartmentVm> { FirstRow = true, Label = "Nazwa", Property = c => c.LongName, IsVisible = true , Width = "1FR" },
+        new FilterColumn<DepartmentVm> { FirstRow = true, Label = "SAPNumber", Property = c => c.SapNumber, IsVisible = true , Width = "1FR" },
+        new FilterColumn<DepartmentVm> { FirstRow = true, Label = "CostCenter", Property = c => c.CostCenter, IsVisible = true , Width = "1FR" },
+        new FilterColumn<DepartmentVm> { FirstRow = true, Label = "WarehouseName", Property = c => c.WarehouseVm.Name, IsVisible = true , Width = "1FR" },
+        new FilterColumn<DepartmentVm> { FirstRow = true, Label = "Manager", Property = c => c.ManagerVm.LongName, IsVisible = true , Width = "1FR" },
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Load();
+    }
+    private async Task Load()
+    {
+        depts = await _mediator.Send(new GetAllDepartmentsQuery());
+        foreach( var d in depts)
+        {
+            Console.WriteLine( d.LongName, d.DeptNumber, d.ManagerEmpId, " | " , d.ManagerVm.LongName);
+        }
+        Console.WriteLine(depts.Count());
+    }
+    private async Task EditCatType(DepartmentVm item)
+    {
+        ToastIntent intent;
+        string message = string.Empty;
+        int i = 0;
+
+        var data = item;
+        var dialog = await _dialogService.ShowDialogAsync<Department_Edit_Component>(data, new DialogParameters()
+            {
+                Height = "400px",
+                Width = "600px",
+                Title = data.Id > 0 ? "Update Department" : "Create new Department",
+                PreventDismissOnOverlayClick = false,
+                PreventScroll = true,
+            });
+        var result = await dialog.Result;
+
+
+        if (!result.Cancelled && result.Data != null)
+        {
+            item = (DepartmentVm)result.Data;
+            if (item.Id > 0)
+            {
+                i = await _mediator.Send(new UpdateDepartmentCommand(item.Id, item.DeptNumber, item.LongName, item.CompanyId, item.CostCenter, item.SapNumber, item.WarehouseID, item.ManagerVm.EnovaEmpId));
+                intent = ToastIntent.Success;
+                message = "Department has been updated!";
+            }
+            else if (item.Id == 0)
+            {
+                // Console.WriteLine("Tu weszlismy?" + item.LongName + item.DeptNumber);
+                i = await _mediator.Send(new CreateDepartmentCommand(item.DeptNumber, item.LongName, item.CompanyId, item.CostCenter, item.SapNumber, item.WarehouseID, item.ManagerEmpId));
+                intent = ToastIntent.Success;
+                message = "Department has been Created!";
+            }
+            else
+            {
+                intent = ToastIntent.Warning;
+                message = "Something went realy wrong!";
+            }
+
+        }
+        else if (result.Cancelled)
+        {
+            intent = ToastIntent.Info;
+            message = "Update Cancelled...";
+        }
+        else
+        {
+            intent = ToastIntent.Error;
+            message = "Something went wrong!!!";
+        }
+
+
+        await Load();
+        _toastService.ShowToast(intent, message, 3000);
+
+        Console.WriteLine(result.GetType());
+    }
+
+    private async Task Add()
+    {
+        DepartmentVm item = new DepartmentVm { Id = 0, LongName = string.Empty, DeptNumber = string.Empty, CompanyId = 0, CompanyVm = new CompanyVm(), CostCenter = string.Empty, SapNumber = string.Empty, WarehouseID = 0, WarehouseVm = new WarehouseVm(), ManagerEmpId = 0, ManagerVm = new EmployeeVm() };
+        // await EditCatTypePanel(ctVm);
+        await EditCatType(item);
+        
+    }
+
+
+    private async Task View(DepartmentVm item)
+    {
+        await _dialogService.ShowInfoAsync(message: $"Department name: {item.LongName}, number: {item.DeptNumber}");
+    }
+
+    private async Task Delete(DepartmentVm deptVm)
+    {
+        ToastIntent intent;
+        string message = string.Empty;
+
+        var i = await _mediator.Send(new DeleteDepartmentCommand(deptVm.Id));
+
+        if (i == deptVm.Id)
+        {
+            intent = ToastIntent.Success;
+            message = "Department has been deleted!";
+        }
+        else
+        {
+            intent = ToastIntent.Error;
+            message = "Something went wrong!!!";
+        }
+        await Load();
+        _toastService.ShowToast(intent, message, 3000);
+
+    }
+}

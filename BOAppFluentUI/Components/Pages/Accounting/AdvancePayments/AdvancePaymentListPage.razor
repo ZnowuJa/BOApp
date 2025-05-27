@@ -1,0 +1,158 @@
+﻿@page "/zaliczki/{role}"
+@page "/advancepayments/{role}"
+
+@using Application.CQRS.AccountingCQRS.AdvancePayments.Queries
+@using Application.Forms.Accounting
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize(Policy = "User")]
+
+@inject IMediator _mediator
+@inject ILogger<AdvancePaymentListPage> _logger
+@inject IDialogService _dialogService
+@inject IToastService _toastService
+@inject IJSRuntime JS
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager _navigationManager
+
+<h3>Wnioski o zaliczkę</h3>
+
+<FluentStack Orientation="Orientation.Horizontal">
+    <FluentLabel Typo="Typography.Subject"> Pokaż kolumny:  </FluentLabel>
+    @foreach (var column in filterColumns)
+    {
+        if (column.FirstRow)
+        {
+            <FluentCheckbox @bind-Value="column.IsVisible" Label="@column.Label" />
+        }
+    }
+</FluentStack>
+<p></p>
+<FluentStack Orientation="Orientation.Horizontal">
+    @foreach (var column in filterColumns)
+    {
+        if (!column.FirstRow)
+        {
+            <FluentCheckbox @bind-Value="column.IsVisible" Label="@column.Label" />
+        }
+    }
+</FluentStack>
+
+<FluentDataGrid Items="@Utils.ApplyFilters(items, filterColumns)" Pagination="@pagination" TGridItem="AdvancePaymentFormVm" GridTemplateColumns="80px repeat(7, 1fr)" AutoFit="true" ResizableColumns="true">
+    @foreach (var column in filterColumns.Where(c => c.IsVisible))
+    {
+        if (column.IsDropdown)
+        {
+            <PropertyColumn TGridItem="AdvancePaymentFormVm" TProp="string" Property="@(Utils.GetPropertyExpression<AdvancePaymentFormVm>(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label" Filtered="column.SelectedValues.Any()">
+                <ColumnOptions>
+                    <FluentSelect TOption="string"
+                                  Items="@(column.DropdownValues)"
+                                  Multiple="true"
+                                  SelectedOptionsChanged="@(e => Utils.OnSelectedOptionsChanged<AdvancePaymentFormVm>(e, column))">
+                        @foreach (var value in column.DropdownValues)
+                        {
+                            <FluentOption Value="@value">@value</FluentOption>
+                        }
+                    </FluentSelect>
+                </ColumnOptions>
+            </PropertyColumn>
+        }
+        else
+        {
+            <PropertyColumn TGridItem="AdvancePaymentFormVm" TProp="string" Property="@(Utils.GetPropertyExpression<AdvancePaymentFormVm>(column.Property))" Sortable="true" Align="Align.Start" Tooltip="true" Title="@column.Label" Filtered="!string.IsNullOrWhiteSpace(column.Filter)">
+                <ColumnOptions>
+                    <div class="search-box">
+                        <FluentSearch type="search" Autofocus="true" @bind-Value="column.Filter" @oninput="(args) => Utils.HandleFilterDebounced(column, args, debounceDispatcher, () => InvokeAsync(StateHasChanged))" Placeholder="@($"{column.Label.ToLower()}...")" />
+                    </div>
+                </ColumnOptions>
+            </PropertyColumn>
+        }
+    }
+    @* Actions *@
+    <TemplateColumn Title="Actions" Align="Align.End">
+
+        @{
+            var viewId = $"viewid-{context.Id}";
+            var editId = $"editid-{context.Id}";
+            var deleteId = $"deleteid-{context.Id}";
+        }
+        @*         <FluentButton Id="@viewId" IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" Disabled="@viewDisabled" />
+        <FluentTooltip Anchor="@viewId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Left Delay=50>Podgląd</FluentTooltip> *@
+
+        <FluentButton Id="@editId" IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => Edit(context))" Disabled="false" />
+        <FluentTooltip Anchor="@editId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Edytuj</FluentTooltip>
+
+        <FluentButton Id="@deleteId" IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" Disabled="@actionsDisabled" />
+        <FluentTooltip Anchor="@deleteId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Top Delay=50>Skasuj wniosek</FluentTooltip>
+
+    </TemplateColumn>
+
+</FluentDataGrid>
+<FluentPaginator State="@pagination" />
+<FluentButton Id="createId" IconStart="@(new Icons.Regular.Size24.Add())" OnClick="@(() => _navigationManager.NavigateTo($"/zaliczka/0?srcPage=pracownik"))" />
+<FluentTooltip Anchor="createId" HideTooltipOnCursorLeave="true" Position=TooltipPosition.Bottom Delay=50>Nowy wniosek o zaliczkę</FluentTooltip>
+@code {
+    [Parameter] public string role { get; set; }
+
+    private IQueryable<AdvancePaymentFormVm> items { get; set; } = Enumerable.Empty<AdvancePaymentFormVm>().AsQueryable();
+    private IQueryable<AdvancePaymentFormVm> items2load { get; set; } = Enumerable.Empty<AdvancePaymentFormVm>().AsQueryable();
+
+    private DebounceDispatcher debounceDispatcher = new DebounceDispatcher();
+    private PaginationState pagination = new PaginationState { ItemsPerPage = 10 };
+
+    private FormUserContext _userContext = new FormUserContext("Accountant", "Technician");
+    private int CurrentUserEnowaEmpId { get; set; }
+    private bool actionsDisabled = true;
+
+    private List<FilterColumn<AdvancePaymentFormVm>> filterColumns = new List<FilterColumn<AdvancePaymentFormVm>>
+    {
+        new FilterColumn<AdvancePaymentFormVm> { FirstRow = true, Label = "ID", Property = c => c.Id.ToString(), IsVisible = false },
+        new FilterColumn<AdvancePaymentFormVm> { FirstRow = true, Label = "Numer", Property = c => c.Number.ToString()??string.Empty, IsVisible = true },
+        new FilterColumn<AdvancePaymentFormVm> { FirstRow = true, Label = "Status", Property = c => c.Status.ToString()??string.Empty, IsVisible = true, IsDropdown = true, DropdownValues = StatusesValues, SelectedValues = new List<string> ()},
+        new FilterColumn<AdvancePaymentFormVm> { FirstRow = true, Label = "Zgłaszający", Property = c =>(c.EmployeeName.ToString()??string.Empty), IsVisible = false },
+        new FilterColumn<AdvancePaymentFormVm> { FirstRow = true, Label = "Cel", Property = c =>c.Objective, IsVisible = false },
+        new FilterColumn<AdvancePaymentFormVm> { FirstRow = true, Label = "Kwota", Property = c =>c.AdvancePaymentAmount.ToString(), IsVisible = false },
+        new FilterColumn<AdvancePaymentFormVm> { FirstRow = true, Label = "Numer lok.", Property = c => c.OrganisationSapNumber, IsVisible = true },
+        new FilterColumn<AdvancePaymentFormVm> { FirstRow = true, Label = "Przełożony", Property = c => c.LVL1_EmployeeName, IsVisible = true },
+        new FilterColumn<AdvancePaymentFormVm> { FirstRow = true, Label = "Przełożony2", Property = c => c.LVL5_EmployeeName, IsVisible = true }
+    };
+
+    private static List<string> StatusesValues { get; set; } = new List<string>
+    {
+        "Rejestracja", "AprobataL1", "AprobataL2", "ZaliczkaKsiegowosc", "ZaliczkaKsiegowoscTL", "ZaliczkaKasa", "Wyplacone", "Odrzucone", "Rozliczone"
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Utils.GetUserName(AuthenticationStateProvider, _userContext, _mediator);
+        CurrentUserEnowaEmpId = int.Parse(_userContext.EnovaEmpId);
+        items2load = await _mediator.Send(new GetAllAdvancePaymentQuery());
+        await Load();
+    }
+
+    private async Task Edit(AdvancePaymentFormVm item = null)
+    {
+        _navigationManager.NavigateTo($"/zaliczka/{item.Id}?srcPage={role}");
+    }
+
+    private async Task Delete(AdvancePaymentFormVm item = null)
+    {
+
+    }
+
+    private async Task Load()
+    {
+
+        items = role switch
+        {
+            "pracownik" or "employee" => items2load.Where(x => x.EnovaEmpId == _userContext.EnovaEmpId),
+            "kierownikL1" or "managerL1" => items2load.Where(x => x.Level1Approvers.Any(approver => approver.EmpId == CurrentUserEnowaEmpId) && (x.Status == "AprobataL1" || x.Status == "AprobataL2")),
+            "kierownikL2" or "managerL2" => items2load.Where(x => x.Level5Approvers.Any(approver => approver.EmpId == CurrentUserEnowaEmpId) && (x.Status == "AprobataL1" || x.Status == "AprobataL2")),
+            "kasjer" or "cashier" => items2load.Where(x => x.Level2Approvers.Any(approver => approver.EmpId == CurrentUserEnowaEmpId) && (x.Status == "ZaliczkaKasa" || x.Status == "KasaRozliczenie")),
+            "ksiegowe" or "accountants" => items2load,
+            "zapisane" or "saved" => items2load.Where(x => x.Level2Approvers.Any(approver => approver.EmpId == CurrentUserEnowaEmpId)),
+            _ => throw new ArgumentException("Błędny adres strony!")
+        };
+
+    }
+}

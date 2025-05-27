@@ -1,0 +1,143 @@
+﻿@page "/states"
+@using Application.ITWarehouseCQRS.States.Commands
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize(Policy = "Technician")]
+
+@inject IMediator _mediator
+@inject ILogger<State_Page> _logger
+@inject IDialogService _dialogService
+@inject IToastService _toastService
+
+
+<h3>States</h3>
+
+@if (_items == null)
+{
+    <FluentProgressRing>Loading...</FluentProgressRing>
+    
+}
+else
+{
+
+    <FluentDataGrid Items="@_items" TGridItem="StateVm" GridTemplateColumns="50px 1fr 2fr 1fr">
+        
+        
+        <PropertyColumn Property="@(c => c.Id)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.Name)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.Description)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <TemplateColumn Title="Actions" Align="Align.End">
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" />
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => EditItem(context))" />
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" />
+
+        </TemplateColumn>
+    </FluentDataGrid>
+    <FluentButton IconStart="@(new Icons.Regular.Size20.Add())" OnClick="@(() => Add())" />
+}
+
+
+
+@code {
+    // public StateVm Selected { get; set; }
+
+    // CreateStateCommandValidator cctcV = new();
+
+    private IQueryable<StateVm> _items;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Load();
+    }
+
+    private async Task Load()
+    {
+        _items = await _mediator.Send(new GetAllStatesQuery());
+        Console.WriteLine(_items.Count());
+    }
+
+    private async Task EditItem(StateVm item)
+    {
+        ToastIntent intent;
+        string message = string.Empty;
+        int i = 0;
+
+        var data = item;
+        var dialog = await _dialogService.ShowDialogAsync<State_Edit_Component>(data, new DialogParameters()
+        {
+                Height = "240px",
+                Title = data.Id > 0 ? "Update State..." : "Create new State",
+                PreventDismissOnOverlayClick = false,
+                PreventScroll = true,
+        });
+        var result = await dialog.Result;
+        if(!result.Cancelled && result.Data != null)
+        {
+            item = (StateVm)result.Data;
+            if (item.Id > 0)
+            {
+                i = await _mediator.Send(new UpdateStateCommand(item.Id, item.Name, item.Description));
+                intent = ToastIntent.Success;
+                message = "State has been updated!";
+            } else if (item.Id == 0)
+            {
+                i = await _mediator.Send(new CreateStateCommand(item.Name, item.Description));
+                intent = ToastIntent.Success;
+                message = "State has been Created!";
+            } else
+            {
+                intent = ToastIntent.Warning;
+                message = "Something went realy wrong!";
+            }
+
+        } else if (result.Cancelled)
+        {
+            intent = ToastIntent.Info;
+            message = "Update Cancelled...";
+        } else
+        {
+            intent = ToastIntent.Error;
+            message = "Something went wrong!!!";
+        }
+
+
+        await Load();
+        _toastService.ShowToast(intent, message, 3000);
+
+        Console.WriteLine(result.GetType());
+    }
+
+    private async Task View(StateVm item)
+    {
+        await _dialogService.ShowInfoAsync(message: $"State  id: {item.Id}, State name: {item.Name}");
+    }
+
+    private async Task Add()
+    {
+        StateVm item = new StateVm { Id = 0, Name = string.Empty };
+        await EditItem(item);
+    }
+
+    private async Task Delete(StateVm item)
+    {
+        ToastIntent intent;
+        string message = string.Empty;
+
+        var i = await _mediator.Send(new DeleteStateCommand(item.Id));
+
+        if (i == item.Id)
+        {
+            intent = ToastIntent.Success;
+            message = "State has been deleted!";
+        }
+        else
+        {
+            intent = ToastIntent.Error;
+            message = "Something went wrong!!!";
+        }
+        await Load();
+        _toastService.ShowToast(intent, message, 3000);
+
+    }
+}

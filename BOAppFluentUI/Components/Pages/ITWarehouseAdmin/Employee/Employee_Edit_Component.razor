@@ -1,0 +1,300 @@
+﻿@* EmployeeVm Edit Component *@
+@using Application.CQRS.ITWarehouseCQRS.EmployeeTypes.Queries
+@using Application.CQRS.ITWarehouseCQRS.Employees.Queries
+@using Application.Interfaces.Identity.Services
+@using Application.ViewModels.General
+@using Microsoft.AspNetCore.Identity
+
+@inject IPostAuthenticationService _postAuthSvc
+@inject IMediator _mediator
+@inject RoleManager<IdentityRole> _roleManager
+@implements IDialogContentComponent<EmployeeVm>
+
+@* Header *@
+<FluentDialogHeader ShowDismiss="true">
+    <FluentStack VerticalAlignment="VerticalAlignment.Center">
+        <FluentIcon Value="@(new Icons.Regular.Size24.WindowApps())" />
+        <FluentLabel Typo="Typography.PaneHeader">
+            @Dialog.Instance.Parameters.Title
+        </FluentLabel>
+    </FluentStack>
+</FluentDialogHeader>
+
+@* Footer *@
+<FluentDialogFooter>
+    <FluentButton Appearance="Appearance.Accent" OnClick="@SaveAsync"
+                  Disabled="@(!_editContext.Validate())">
+        Save
+    </FluentButton>
+    <FluentButton Appearance="Appearance.Neutral" OnClick="@CancelAsync">Cancel</FluentButton>
+</FluentDialogFooter>
+
+@* Body *@
+<FluentDialogBody Orientation="Orientation.Horizontal">
+    <EditForm EditContext="_editContext">
+        <FluentValidationValidator @ref="_fluentValidator" />
+
+        <FluentGrid Justify="@Justification">
+            @* Content.FirstName *@
+            <FluentGridItem xs="6" sm="4">
+                <div class="card">
+
+                    <FluentTextField Id="First" @bind-Value="@Content.FirstName"
+                    Disabled = "@editmode"
+                    Placeholder="Enter first name"> First Name: </FluentTextField>
+                    <FluentValidationMessage For="@(() => Content.FirstName)" />
+
+                </div>
+            </FluentGridItem>
+            @* Content.LastName *@
+            <FluentGridItem xs="6" sm="4">
+                <div class="card">
+                    <FluentTextField Id="Last" @bind-Value="@Content.LastName"
+                                     Disabled="@editmode" 
+                                     Placeholder="Enter last name"> Last Name: </FluentTextField>
+                    <FluentValidationMessage For="@(() => Content.LastName)" />
+                </div>
+            </FluentGridItem>
+            @* Content.Email *@
+            <FluentGridItem xs="6" sm="4">
+                <div class="card">
+                    <FluentTextField Id="Email" @bind-Value="@Content.Email" Disabled="@editmode" Placeholder="Enter email"> Email: </FluentTextField>
+                    <FluentValidationMessage For="@(() => Content.Email)" />
+                </div>
+            </FluentGridItem>
+            @* Content.MobileNumber *@
+            <FluentGridItem xs="6" sm="4">
+                <div class="card">
+                    <FluentTextField Id="Mobile" @bind-Value="@Content.MobileNumber" Placeholder="Enter mobile"> Mobile: </FluentTextField>
+                    <FluentValidationMessage For="@(() => Content.MobileNumber)" />
+                </div>
+            </FluentGridItem>
+            @* Content.PhoneNumber *@
+            <FluentGridItem xs="6" sm="4">
+                <div class="card">
+                    <FluentTextField Id="Phone" @bind-Value="@Content.PhoneNumber" Placeholder="Enter phone"> Phone: </FluentTextField>
+                    <FluentValidationMessage For="@(() => Content.PhoneNumber)" />
+                </div>
+            </FluentGridItem>
+            @* Content.Manager *@
+            <FluentGridItem xs="6" sm="4">
+                <div class="card">
+                    @{
+                        <FluentSelect TOption="ManagerVm"
+                                      Label="Manager:"
+                                      Items="@itemManagerList"
+                                      Id="ManId"
+                                      Width="150px"
+                                      Height="250px"
+                                      OptionValue="@(p => p.EnovaEmpId.ToString())"
+                                      OptionText="@(p => p.LongName)"
+                                      @bind-SelectedOption="@Content.Manager" />
+
+                    }
+
+                    <FluentValidationMessage For="@(() => Content.ManagerId)" />
+                </div>
+            </FluentGridItem>
+            @* Content.EmployeeTypeVm *@
+            <FluentGridItem xs="6" sm="4">
+                <div class="card">
+                    @{
+                        <FluentSelect TOption="EmployeeTypeVm"
+                                      Label="Select Employee Type:"
+                                      Items="@itemTypeList"
+                                      Id="EmpTId"
+                                      Width="150px"
+                                      Height="250px"
+                                      OptionValue="@(p => p.Id.ToString())"
+                                      OptionText="@(p => p.Name)"
+                                      @bind-SelectedOption="@Content.EmployeeTypeVm" />
+                    }
+
+                    <FluentValidationMessage For="@(() => Content.EmployeeTypeVm.Name)" />
+                </div>
+            </FluentGridItem>
+            @* Roles *@
+            <FluentGridItem xs="12" sm="8">
+                @* ZASTĄPIĆ TO SWOIM KOMPONENTEM *@
+                
+                <div class="card">
+                    <EmployeeRoleEditComponent SelectedRoles="@Content.Roles" AllRoles="@allRolesList" />
+                   @*  <FluentSelect Items=@roleOptions
+                                  TOption="Option<string>"
+                                  Disabled = "@hasEverLogged"
+                                  Multiple=true
+                                  OptionText="@(i => i.Text)"
+                                  OptionValue="@(i => i.Value)"
+                                  OptionSelected="@(i => i.Selected)"
+                                  @bind-SelectedOptions="@selectedRoles" /> *@
+                </div>
+                
+            </FluentGridItem>
+            <p></p>
+            <FluentGridItem xs="6" sm="4">
+                <div class="card">
+
+                    <FluentTextField Id="PersonalDeptNumberId" @bind-Value="@Content.PersonalDeptNumber"
+                                     
+                                     Placeholder="Enter Personal DeptNumber"> Personal DeptNumber: </FluentTextField>
+                    <FluentValidationMessage For="@(() => Content.PersonalDeptNumber)" />
+                </div>
+            </FluentGridItem>
+            <FluentGridItem xs="6" sm="4">
+                </FluentGridItem>
+            <FluentGridItem xs="6" sm="4">
+                <div class="card">
+
+                    <FluentTextField Id="DeptNumberId" @bind-Value="@Content.DeptNumber"
+                                     
+                                     Placeholder="Enter DeptNumber"> DeptNumber: </FluentTextField>
+                    <FluentValidationMessage For="@(() => Content.DeptNumber)" />
+                </div>
+            </FluentGridItem>
+        </FluentGrid>
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="validation-error"><p style="color:red;">@errorMessage</p></div>
+        }
+
+       @*  <p>
+            Selected roles: @(selectedRoles != null ? string.Join(',', selectedRoles.Select(o => o.Value)) : "")<br />
+        </p> *@
+    </EditForm>
+</FluentDialogBody>
+
+
+@code {
+    [Parameter]
+    public EmployeeVm Content { get; set; } = default!;
+
+    [CascadingParameter]
+    public FluentDialog Dialog { get; set; } = default!;
+
+    JustifyContent Justification = JustifyContent.FlexStart;
+
+    private EditContext _editContext;
+    private bool editmode = false;
+    private FluentValidationValidator? _fluentValidator;
+    private string errorMessage;
+
+    private IQueryable<ManagerVm> itemManagerList { get; set; }
+    private IQueryable<EmployeeTypeVm> itemTypeList { get; set; }
+    IEnumerable<Option<string>>? selectedRoles { get; set; }
+    List<Option<string>> roleOptions { get; set; }
+    List<IdentityRole> AllRoles { get; set; }
+    List<string> allRolesList { get; set; }
+
+    private bool hasEverLogged { get; set; } = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _editContext = new EditContext(Content);
+
+        AllRoles = _roleManager.Roles.OrderBy(r => r.Name).ToList();
+        allRolesList = AllRoles.Select(s => s.Name).ToList();
+        roleOptions = new List<Option<string>>();
+
+        var assignedRoles = Content.Roles;
+        roleOptions = allRolesList.Select(roleName => new Option<string>
+            {
+                Value = roleName,
+                Text = roleName,
+                Selected = assignedRoles.Contains(roleName)
+            }).ToList();
+
+        selectedRoles = roleOptions.Where(option => option.Selected).ToList();
+
+
+
+        foreach (var roleOption in roleOptions)
+        {
+            Console.WriteLine("roles :: " + roleOption.Value + " | " + roleOption.Text + "!" + "roleSelected: " + roleOption.Selected);
+        }
+
+        itemManagerList = await _mediator.Send(new GetAllManagersForSelectQuery());
+        itemTypeList = await _mediator.Send(new GetAllEmployeeTypesForSelectQuery());
+
+        if (Content.Id >0)
+        {
+            editmode = true;
+        }
+
+        if(Content.AspNetUserId == null)
+        {
+            hasEverLogged = true;
+        }
+        // StateHasChanged();
+        base.OnInitialized();
+    }
+    private async Task SaveAsync()
+    {
+
+        if (_editContext.Validate())
+        {
+            Console.WriteLine("EditContext Validation OK!...");
+        }
+        else
+        {
+            Console.WriteLine("EditContext Validation NOT OK!...");
+            return;
+        }
+
+        if (Content.Id != 0)
+        {
+            // if (Content.Roles.Count() > 0)
+            // {
+            //     List<string> rolesArray = new List<string>();
+            //     foreach (var selectedRole in selectedRoles)
+            //     {
+            //         Console.WriteLine("SelectedRole :: " + selectedRole.Text);
+            //         rolesArray.Add(selectedRole.Text);
+            //     }
+            //     foreach (var temp in rolesArray)
+            //     {
+            //          Console.WriteLine(rolesArray + temp);
+            //     }
+            //     Content.Roles = rolesArray;
+            // }
+            
+            Content.ManagerId = Content.Manager.EnovaEmpId;
+            await Dialog.CloseAsync(Content);
+        }
+        else
+        {
+            if (Content.ManagerId != 0 || Content.EmployeeTypeVm.Id != 0)
+            {
+                Content.ManagerId = Content.Manager.EnovaEmpId;
+                await Dialog.CloseAsync(Content);
+            }
+            else
+            {
+                Console.WriteLine();
+                errorMessage = "Plese select Manager and EmployeeType!";
+            }
+        }
+    }
+
+    private async Task CancelAsync()
+    {
+        await Dialog.CancelAsync();
+    }
+
+    private void onChangeManager(ChangeEventArgs e)
+    {
+        // if (Content.ManagerId )
+        var selectedManager = itemManagerList.FirstOrDefault(m => m.Id == int.Parse(e.Value.ToString()));
+        // Console.WriteLine("In OnChangeManager from event : " + selectedManager.LongName);
+        Content.Manager = selectedManager;
+        Content.ManagerId = selectedManager.EnovaEmpId;
+        Content.ManagerEmail = selectedManager.Email;
+    }
+
+    private void onChangeRoles()
+    {
+        // _postAuthSvc.UpdateRolesForUserAsync()
+    }
+}
+
+

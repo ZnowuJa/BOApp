@@ -1,0 +1,187 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+	<Nullable>enable</Nullable>
+	<ImplicitUsings>enable</ImplicitUsings>
+	<UserSecretsId>e7ac633d-9928-476d-b85c-3c3f9ed838ac</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+	<Compile Remove="Areas\**" />
+	<Compile Remove="Components\Pages\App\**" />
+	<Compile Remove="Components\Pages\ITWarehouse\**" />
+	<Compile Remove="Controllers\**" />
+	<Compile Remove="Pages\**" />
+	<Compile Remove="Shared\**" />
+	<Content Remove="Areas\**" />
+	<Content Remove="Components\Pages\App\**" />
+	<Content Remove="Components\Pages\ITWarehouse\**" />
+	<Content Remove="Controllers\**" />
+	<Content Remove="Pages\**" />
+	<Content Remove="Shared\**" />
+	<EmbeddedResource Remove="Areas\**" />
+	<EmbeddedResource Remove="Components\Pages\App\**" />
+	<EmbeddedResource Remove="Components\Pages\ITWarehouse\**" />
+	<EmbeddedResource Remove="Controllers\**" />
+	<EmbeddedResource Remove="Pages\**" />
+	<EmbeddedResource Remove="Shared\**" />
+	<None Remove="Areas\**" />
+	<None Remove="Components\Pages\App\**" />
+	<None Remove="Components\Pages\ITWarehouse\**" />
+	<None Remove="Controllers\**" />
+	<None Remove="Pages\**" />
+	<None Remove="Shared\**" />
+	<Content Remove="Components\Pages\Accounting\BusinessTrips\BT2.razor" />
+	<Content Remove="Components\Pages\Accounting\BusinessTrips\BusinessTripStage_Component.razor" />
+	<Content Remove="Components\Pages\Accounting\BusinessTrips\BusinessTrip_FromPage.razor" />
+	<Content Remove="Components\Pages\Accounting\BusinessTrips\DailyMeal_EditComponent.razor" />
+	<Content Remove="Components\Pages\Accounting\BusinessTrips\DailyMeal_EditComponent_InputNumberTest.razor" />
+	<Content Remove="Components\Pages\Accounting\BusinessTrips\DailyMeal_EditComponent_InputNumberTest2.razor" />
+	<Content Remove="Components\Pages\Accounting\Settlements\AccountingNote\AccountingNoteEditComponent3.razor" />
+	<Content Remove="Components\Pages\Administration\OrganisationsPage - Copy.razor" />
+	<Content Remove="Components\Pages\Administration\Validate.razor" />
+	<Content Remove="Components\Pages\CoC\Position_EditAdd_Component.razor" />
+	<Content Remove="Components\Pages\ITWarehouseAdmin\Asset\Asset_Assign_Component.razor" />
+	<Content Remove="Components\Pages\ITWarehouseAdmin\Spady\DialogCustomizableExample.razor" />
+	<Content Remove="Components\Pages\ITWarehouseAdmin\Spady\SimpleCustomizedDialog.razor" />
+	<Content Remove="_ViewStart.cshtml" />
+	<Content Remove="_ViewImports.cshtml" />
+	<Content Remove="Components\Pages\ITWarehouseAdmin\Asset\AssetSaleAssetsGrid_Component.razor" />
+  </ItemGroup>
+
+  <ItemGroup>
+	<Compile Remove="AccountController.cs" />
+	<Compile Remove="Components\LogoutPage.cshtml.cs" />
+	<Compile Remove="Components\Pages\Accounting\BusinessTrips\BusinessTrip_FromPage.razor.cs" />
+	<Compile Remove="Components\Pages\Excluded\LogoutPage.cshtml.cs" />
+	<Compile Remove="Components\Pages\Excluded\RefreshSignIn.cshtml.cs" />
+	<Compile Remove="Components\Pages\ITWarehouseAdmin\Spady\ENumTest.cs" />
+	<Compile Remove="Components\Pages\RefreshSignIn.cshtml.cs" />
+	<Compile Remove="Data\GraphClientExtensions.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+	<Content Remove="Components\LogoutPage.cshtml" />
+	<Content Remove="Components\LogoutPage.razor" />
+	<Content Remove="Components\Pages\Accounting\DeferralPaymentListPageManager.razor" />
+	<Content Remove="Components\Pages\Administration\OrganisationEditComponentOld.razor" />
+	<Content Remove="Components\Pages\Administration\OrgNewComponent.razor" />
+	<Content Remove="Components\Pages\Administration\OrgsPage.razor" />
+	<Content Remove="Components\Pages\Administration\RoleEditor3.razor" />
+	<Content Remove="Components\Pages\Excluded\CategoryComponent.razor" />
+	<Content Remove="Components\Pages\Excluded\CategoryPage.razor" />
+	<Content Remove="Components\Pages\Excluded\CategoryTypeCRUD.razor" />
+	<Content Remove="Components\Pages\Excluded\CategoryTypeDeletePage.razor" />
+	<Content Remove="Components\Pages\Excluded\Category_Page2.razor" />
+	<Content Remove="Components\Pages\Excluded\Category_Page2_Component.razor" />
+	<Content Remove="Components\Pages\Excluded\InvoiceItem_List_Component.razor" />
+	<Content Remove="Components\Pages\ITWarehouseAdmin\Category\CategoryComponent.razor" />
+	<Content Remove="Components\Pages\ITWarehouseAdmin\Category\CategoryPage.razor" />
+	<Content Remove="Components\Pages\ITWarehouseAdmin\Category\CategoryTypeCRUD.razor" />
+	<Content Remove="Components\Pages\ITWarehouseAdmin\Category\CategoryTypeDeletePage.razor" />
+	<Content Remove="Components\Pages\ITWarehouseAdmin\Category\Category_Page2.razor" />
+	<Content Remove="Components\Pages\ITWarehouseAdmin\Category\Category_Page2_Component.razor" />
+	<Content Remove="Components\Pages\ITWarehouseAdmin\Invoice\AddInvoiceItem.razor" />
+	<Content Remove="Components\Pages\ITWarehouseAdmin\Invoice\InvoiceDetails_Page.razor" />
+	<Content Remove="Components\Pages\ITWarehouseAdmin\Invoice\InvoiceItemNewEdit_Component.razor" />
+	<Content Remove="Components\Pages\ITWarehouseAdmin\Invoice\InvoiceItem_List_Component.razor" />
+	<Content Remove="Components\Pages\ITWarehouseAdmin\Spady\CategoryTypeAddEdit_C.razor" />
+	<Content Remove="Components\Pages\ITWarehouseAdmin\Spady\CategoryTypeAdd_C.razor" />
+	<Content Remove="Components\Pages\ITWarehouseAdmin\Spady\CategoryTypeDG_C.razor" />
+	<Content Remove="Components\Pages\ITWarehouseAdmin\Spady\CategoryTypeP.razor" />
+	<Content Remove="Components\Pages\KontrahenciTest.razor" />
+	<Content Remove="Components\Pages\Excluded\Employees.razor" />
+	<Content Remove="Components\Pages\Excluded\LogoutPage.cshtml" />
+	<Content Remove="Components\Pages\Excluded\LogoutPage.razor" />
+	<Content Remove="Components\Pages\Excluded\RefreshSignIn.cshtml" />
+	<Content Remove="Components\Pages\Excluded\Roles.razor" />
+	<Content Remove="Components\Pages\Excluded\Unauthorized.razor" />
+	<Content Remove="Components\Pages\Excluded\UserRoleAssignment.razor" />
+	<Content Remove="Components\Pages\Excluded\Users.razor" />
+	<Content Remove="Components\Pages\RefreshSignIn.cshtml" />
+  </ItemGroup>
+
+  <ItemGroup>
+	<PackageReference Include="AutoMapper" Version="13.0.1" />
+	<PackageReference Include="Blazored.FluentValidation" Version="2.2.0" />
+	<PackageReference Include="FluentValidation" Version="11.10.0" />
+	<PackageReference Include="FluentValidation.AspNetCore" Version="11.3.0" />
+	<PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.10.0" />
+	<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.10" />
+	<PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="8.0.10" />
+	<PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="8.0.10" />
+	<PackageReference Include="Microsoft.AspNetCore.Components.QuickGrid.EntityFrameworkAdapter" Version="8.0.10" />
+	<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="8.0.10" />
+	<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.10" />
+	<PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="8.0.10" />
+	<PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="8.0.10" />
+	<PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.2" />
+	<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.10" />
+	<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.10" />
+	<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.10">
+	  <PrivateAssets>all</PrivateAssets>
+	  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+	</PackageReference>
+	<PackageReference Include="Microsoft.FluentUI.AspNetCore.Components" Version="4.11.5" />
+	<PackageReference Include="Microsoft.FluentUI.AspNetCore.Components.DataGrid.EntityFrameworkAdapter" Version="4.11.5" />
+	<PackageReference Include="Microsoft.FluentUI.AspNetCore.Components.Emoji" Version="4.11.5" />
+	<PackageReference Include="Microsoft.FluentUI.AspNetCore.Components.Icons" Version="4.11.5" />
+	<PackageReference Include="Microsoft.Identity.Web" Version="3.2.2" />
+	<PackageReference Include="Microsoft.Identity.Web.MicrosoftGraph" Version="3.2.2" />
+	<PackageReference Include="Microsoft.Identity.Web.UI" Version="3.2.2" />
+	<PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.1.2" />
+	<PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.6" />
+	<PackageReference Include="Serilog" Version="4.0.2" />
+	<PackageReference Include="Serilog.AspNetCore" Version="8.0.3" />
+	<PackageReference Include="Serilog.Settings.Configuration" Version="8.0.4" />
+	<PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+	<ProjectReference Include="..\Infrastructure\Infrastructure.csproj" />
+	<ProjectReference Include="..\Persistance\Persistance.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+	<Folder Include="Components\Pages\Accounting\Temp\NewFolder\" />
+	<Folder Include="Components\Pages\Excluded\" />
+	<Folder Include="Components\Pages\ITTools\" />
+	<Folder Include="Components\Pages\ITWarehouseAdmin\Sale\" />
+	<Folder Include="Components\Pages\ITWarehouseAdmin\Scrapping\" />
+	<Folder Include="Components\Pages\ITWarehouseAdmin\Spady\" />
+	<Folder Include="Logs\" />
+	<Folder Include="wwwroot\js\" />
+	<Folder Include="wwwroot\temp\" />
+  </ItemGroup>
+
+  <ItemGroup>
+	<UpToDateCheckInput Remove="Components\Pages\KontrahenciTest.razor" />
+  </ItemGroup>
+
+  <ItemGroup>
+	<_ContentIncludedByDefault Remove="Components\Pages\KontrahenciTest.razor" />
+	<_ContentIncludedByDefault Remove="Components\Pages\LicenceAutoStacja\CheckAssigment_Component.razor" />
+	<_ContentIncludedByDefault Remove="Components\Pages\LicenceAutoStacja\CheckLicence_Component.razor" />
+	<_ContentIncludedByDefault Remove="Components\Pages\LicenceAutoStacja\LicenceAdd_Component.razor" />
+	<_ContentIncludedByDefault Remove="Components\Pages\LicenceAutoStacja\LicencjeAS_Page.razor" />
+	<_ContentIncludedByDefault Remove="Components\Pages\LicenceAutoStacja\LicencjeAutoStacja_Page.razor" />
+	<_ContentIncludedByDefault Remove="Components\Pages\LicenceAutoStacja\MultiLicence_Component.razor" />
+	<_ContentIncludedByDefault Remove="Components\Pages\LicenceAutoStacja\SetComputer_Component.razor" />
+  </ItemGroup>
+
+  <ItemGroup>
+	<None Include="Components\Pages\Accounting\Temp\KontrahenciTest.razor" />
+	<None Include="Components\Pages\ITWarehouseForUsers\ITWarehouseForUsers.razor" />
+  </ItemGroup>
+
+  <ItemGroup>
+	<AdditionalFiles Include="Components\Pages\ITTools\LicenceAutoStacja\CheckAssigment_Component.razor" />
+	<AdditionalFiles Include="Components\Pages\ITTools\LicenceAutoStacja\CheckLicence_Component.razor" />
+	<AdditionalFiles Include="Components\Pages\ITTools\LicenceAutoStacja\LicenceAdd_Component.razor" />
+	<AdditionalFiles Include="Components\Pages\ITTools\LicenceAutoStacja\LicencjeAS_Page.razor" />
+	<AdditionalFiles Include="Components\Pages\ITTools\LicenceAutoStacja\LicencjeAutoStacja_Page.razor" />
+	<AdditionalFiles Include="Components\Pages\ITTools\LicenceAutoStacja\MultiLicence_Component.razor" />
+	<AdditionalFiles Include="Components\Pages\ITTools\LicenceAutoStacja\SetComputer_Component.razor" />
+  </ItemGroup>
+</Project>

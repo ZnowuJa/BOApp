@@ -1,0 +1,224 @@
+﻿@page "/companies"
+@using Application.CQRS.ITWarehouseCQRS.Companies
+@using Application.CQRS.ITWarehouseCQRS.Companies.Queries
+@using Application.CQRS.ITWarehouseCQRS.Companies.Commands
+@using Application.CQRS.ITWarehouseCQRS.CompanyTypes
+@using BOAppFluentUI.Components.Pages.ITWarehouseAdmin.Company
+@using MediatR
+@using Microsoft.AspNetCore.Authorization
+
+@attribute [Authorize(Policy = "Technician")]
+
+@inject IMediator _mediator
+@inject ILogger<Company_Page> _logger
+@inject IDialogService _dialogService
+@inject IToastService _toastService
+
+
+<h3>Companies</h3>
+
+@if (cats == null)
+{
+    <FluentProgressRing>Loading...</FluentProgressRing>
+
+}
+else
+{
+
+    <FluentDataGrid Items="@cats" TGridItem="CompanyVm" GridTemplateColumns="50px repeat(6, 1fr)" ResizableColumns=true>
+        <PropertyColumn Property="@(c => c.Id)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.Name)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.FullName)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        <PropertyColumn Property="@(c => c.VATID)" Sortable="true" Align="Align.Start" Tooltip="true" />
+         <PropertyColumn Property="@(c => c.City)" Sortable="true" Align="Align.Start" Tooltip="true" />
+        
+  
+        <PropertyColumn Property="@(c => c.CompanyTypeVm.Name)" Sortable="true" Align="Align.Start" Tooltip="true" Title="Type"/>
+
+        <TemplateColumn Title="Actions" Align="Align.End">
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.BookOpen())" OnClick="@(() => View(context))" />
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.Edit())" OnClick="@(() => EditCatType(context))" />
+            <FluentButton IconEnd="@(new Icons.Regular.Size20.Delete())" OnClick="@(() => Delete(context))" />
+
+        </TemplateColumn>
+    </FluentDataGrid>
+    <FluentButton IconStart="@(new Icons.Regular.Size24.Add())" OnClick="@(() => AddPanel())" />
+}
+
+
+
+@code {
+    private IQueryable<CompanyVm> cats;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Load();
+    }
+    private async Task Load()
+    {
+        cats = await _mediator.Send(new GetAllCompaniesQuery());
+        foreach( var c in cats)
+        {
+            Console.WriteLine( c.CompanyTypeVm.Name);
+        }
+        Console.WriteLine(cats.Count());
+    }
+    private async Task EditCatType(CompanyVm item)
+    {
+        ToastIntent intent;
+        string message = string.Empty;
+        int i = 0;
+
+        var data = item;
+        var dialog = await _dialogService.ShowDialogAsync<Company_Edit_Component>(data, new DialogParameters()
+            {
+                Height = "500px",
+                Width = "720px",
+                Title = data.Id > 0 ? "Update Company" : "Create new Company",
+                PreventDismissOnOverlayClick = false,
+                PreventScroll = true,
+            });
+        var result = await dialog.Result;
+
+
+        if (!result.Cancelled && result.Data != null)
+        {
+            item = (CompanyVm)result.Data;
+            if (item.Id > 0)
+            {
+                i = await _mediator.Send(new UpdateCompanyCommand(item.Id, item.Name, item.FullName, item.VATID, item.Street, item.Building, item.City, item.PostalCode, item.Country, item.CountryCode, item.ContactPerson, item.ContactPersonMobile, item.ContactPersonEmail, item.CompanyTypeVm));
+                intent = ToastIntent.Success;
+                message = "Company has been updated!";
+            }
+            else if (item.Id == 0)
+            {
+                Console.WriteLine("Tu weszlismy?" + item.Name + item.VATID + item.CompanyTypeVm.Name);
+                i = await _mediator.Send(new CreateCompanyCommand(item.Name, item.FullName, item.VATID, item.Street, item.Building, item.City, item.PostalCode, item.Country, item.CountryCode, item.ContactPerson, item.ContactPersonMobile, item.ContactPersonEmail, item.CompanyTypeVm));
+                intent = ToastIntent.Success;
+                message = "Company has been Created!";
+            }
+            else
+            {
+                intent = ToastIntent.Warning;
+                message = "Something went realy wrong!";
+            }
+
+        }
+        else if (result.Cancelled)
+        {
+            intent = ToastIntent.Info;
+            message = "Update Cancelled...";
+        }
+        else
+        {
+            intent = ToastIntent.Error;
+            message = "Something went wrong!!!";
+        }
+
+
+        await Load();
+        _toastService.ShowToast(intent, message, 3000);
+
+        Console.WriteLine(result.GetType());
+    }
+
+    private async Task AddPanel()
+    {
+        CompanyVm item = new CompanyVm { Id = 0, Name = string.Empty, FullName = string.Empty, VATID = string.Empty, Street = string.Empty, Building = string.Empty, City = string.Empty, PostalCode = string.Empty, Country = string.Empty, CountryCode = string.Empty, ContactPerson = string.Empty, ContactPersonMobile = string.Empty, ContactPersonEmail = string.Empty, CompanyTypeVm = new CompanyTypeVm() };
+        // await EditCatTypePanel(ctVm);
+        await EditCatType(item);
+        
+    }
+
+    private async Task EditCatTypePanel(CompanyVm item)
+    {
+        ToastIntent intent;
+        string message = string.Empty;
+        int i = 0;
+
+        var data = item;
+        var dialog = await _dialogService.ShowPanelAsync<Company_Edit_Component>(data, new DialogParameters()
+            {
+                Height = "240px",
+                Width = "720px",
+                Title = data.Id > 0 ? "Update Company Title" : "Create new Company",
+                PreventDismissOnOverlayClick = false,
+                PreventScroll = true,
+            });
+        var result = await dialog.Result;
+
+
+        if (!result.Cancelled && result.Data != null)
+        {
+            item = (CompanyVm)result.Data;
+            if (item.Id > 0)
+            {
+                i = await _mediator.Send(new UpdateCompanyCommand(item.Id, item.Name, item.FullName, item.VATID, item.Street, item.Building, item.City, item.PostalCode, item.Country, item.CountryCode, item.ContactPerson, item.ContactPersonMobile, item.ContactPersonEmail, item.CompanyTypeVm));
+                intent = ToastIntent.Success;
+                message = "Company has been updated!";
+            }
+            else if (item.Id == 0)
+            {
+                i = await _mediator.Send(new CreateCompanyCommand(item.Name, item.FullName, item.VATID, item.Street, item.Building, item.City, item.PostalCode, item.Country, item.CountryCode, item.ContactPerson, item.ContactPersonMobile, item.ContactPersonEmail, item.CompanyTypeVm));
+                intent = ToastIntent.Success;
+                message = "Company has been Created!";
+            }
+            else
+            {
+
+                intent = ToastIntent.Warning;
+                message = "Something went realy wrong!";
+            }
+
+        }
+        else if (result.Cancelled)
+        {
+            intent = ToastIntent.Info;
+            message = "Changes Cancelled...";
+        }
+        else
+        {
+            intent = ToastIntent.Error;
+            message = "Something went wrong!!!";
+        }
+
+
+        await Load();
+        _toastService.ShowToast(intent, message, 3000);
+
+        Console.WriteLine(result.GetType());
+    }
+
+    private async Task View(CompanyVm item)
+    {
+        await _dialogService.ShowInfoAsync(message: $"Company type id: {item.Id}, name: {item.Name}");
+    }
+
+    private async Task Add()
+    {
+        CompanyVm ctVm = new CompanyVm { Id = 0, Name = string.Empty, FullName = string.Empty, VATID = string.Empty, Street = string.Empty, Building = string.Empty, City = string.Empty, PostalCode = string.Empty, Country = string.Empty, CountryCode = string.Empty, ContactPerson = string.Empty, ContactPersonMobile = string.Empty, ContactPersonEmail = string.Empty, CompanyTypeVm = new CompanyTypeVm() };
+        await EditCatType(ctVm);
+    }
+
+    private async Task Delete(CompanyVm ctVm)
+    {
+        ToastIntent intent;
+        string message = string.Empty;
+
+        var i = await _mediator.Send(new DeleteCompanyCommand(ctVm.Id));
+
+        if (i == ctVm.Id)
+        {
+            intent = ToastIntent.Success;
+            message = "Company has been deleted!";
+        }
+        else
+        {
+            intent = ToastIntent.Error;
+            message = "Something went wrong!!!";
+        }
+        await Load();
+        _toastService.ShowToast(intent, message, 3000);
+
+    }
+}
